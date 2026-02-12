@@ -1,0 +1,45 @@
+@keyframes slide {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes verticalSlide {
+  from {
+    transform: translateY(0%);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+.reviews-slide {
+  animation: 50s slide infinite linear;
+}
+
+.vertical-slide {
+  animation: 30s verticalSlide infinite linear;
+}
+
+.reviews:before,
+.reviews:after {
+  position: absolute;
+  top: 0;
+
+  height: 100%;
+  content: "";
+  z-index: 1;
+}
+
+.reviews:before {
+  left: 0;
+  background: #fff;
+}
+
+.reviews:after {
+  right: 0;
+  background: #fff;
+}

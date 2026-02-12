@@ -1,0 +1,105 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  /* FONTS */
+  --font-poppins: "Poppins", "sans-serif";
+  --font-roboto: "Roboto", "serif";
+  --font-oswald: "Oswald", sans-serif;
+
+  /* COLORS */
+  --color-dark: #121013;
+  --color-lightgreen: #cbeac2;
+  --color-filgreen: #1cc978;
+  --color-bright: #f2f2f2;
+
+  --color-moss: #576238;
+  --color-mustard: #ffd95d;
+  --color-light: #f3f4f6;
+  --color-gren: #0d542b;
+  --color-filred: #cc2936;
+  --color-filblue: #5386e4;
+  --color-filgrey: #99a1af;
+
+  /* SCREEN SIZES */
+  --breakpoint-s: 500px;
+  --breakpoint-xs: 400px;
+  --breakpoint-side: 695px;
+  --breakpoint-xxs: 350px;
+  --breakpoint-nav: 860px;
+  --breakpoint-tab: 940px;
+  --breakpoint-cat: 1170px;
+  --breakpoint-box: 890px;
+  --breakpoint-mid: 786px;
+
+  --shadow-custom: 0px 20px 40px -10px rgba(0, 0, 0, 0.3);
+  --shadow-button: 0px 6px 16px 0px #00000040;
+}
+
+/* REUSABLE STYLE */
+
+.buttons {
+  @apply bg-filgreen hover:bg-gren px-4 xs:px-9 py-4 rounded-md font-roboto font-medium text-dark text-xs xs:text-sm;
+}
+
+.danger-btn {
+  @apply bg-red-600 hover:bg-red-700 px-1 xs:px-2 py-1 xs:py-2 font-poppins text-light hover:text-dark text-xs xs:text-sm;
+}
+
+.home-stick {
+  background-image: url("/filpods.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+.form-background {
+  background: linear-gradient(135deg, #0d542b, #1cc874, #0d542b);
+}
+
+/* Chrome, Edge, Safari: Always show spinner arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1 !important; /* Make sure they are visible */
+  -webkit-appearance: inner-spin-button !important;
+  background: transparent; /* Remove grey background */
+  margin: 0;
+}
+
+.delivery-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #ccc;
+  padding: 18px 0;
+  cursor: pointer;
+}
+
+.delivery-options input[type="radio"] {
+  accent-color: green; /* Makes only the inner circle green */
+}
+
+/* Hide arrows in number input (Chrome, Safari, Edge, Opera) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide arrows in number input (Firefox) */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

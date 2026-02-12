@@ -1,0 +1,54 @@
+import { connectDB } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { generateCode } from "@/lib/utils";
+import { sendEmail } from "@/lib/mailer";
+import PendingVerification from "@/models/PendingVerification";
+
+export async function POST(req) {
+  await connectDB();
+  const { email, password, firstName } = await req.json();
+
+  // Check if pending verification exists already
+  const existingPending = await PendingVerification.findOne({ email });
+  if (existingPending) {
+    return new Response(
+      JSON.stringify({
+        message: "Verification already pending for this email",
+      }),
+      { status: 400 }
+    );
+  }
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  const code = generateCode();
+  const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+  await PendingVerification.create({
+    email,
+    hashedPassword,
+    verificationCode: code,
+    verificationCodeExpiry: expiry,
+    firstName,
+  });
+
+  await sendEmail(
+    email,
+    "Verify your email",
+    `Hi ${firstName},
+
+Welcome to Fedan Investment Limited (FIL)! To complete your signup, please verify your email address.
+
+Your verification code is: ${code}
+
+This code will expire in 10 minutes.
+
+If you did not create an account with FIL, please ignore this message.
+
+Thanks,
+The FIL Team
+Think Quality, Think FIL
+`.trim()
+  );
+
+  return Response.json({ message: "Verification code sent to email" });
+}
