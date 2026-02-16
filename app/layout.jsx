@@ -12,6 +12,9 @@ export const metadata = {
     icon: "/fillogo.png",
     apple: "/fillogo.png",
   },
+  verification: {
+    google: "F4YtRJObu3UIQ0aKa9qg3vBcTduL3MxF5mlHoxLyr94",
+  },
 };
 
 export default function RootLayout({ children }) {
