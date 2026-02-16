@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://www.filstore.com.ng/</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/contact</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/cart</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Power+Bank</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Lifestyle</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Extensions</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Wearables</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Power%20Bank</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?categories=Chargers</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?specials=isBestseller&amp;sort=default</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?specials=isBestseller</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?specials=isWhatsNew</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/products?specials=isTodaysDeal</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/register</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/login</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.filstore.com.ng/reset-password</loc>
+  <lastmod>2026-02-16T12:56:40+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+
+
+</urlset>

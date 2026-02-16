@@ -7,6 +7,7 @@ import Accordion from "./Accordion";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 
+
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
 const items = [
@@ -429,10 +430,11 @@ const Footer = () => {
 
       <footer className="bg-black pt-9">
         {/* DISCOUNT TAG (fixed on side). Clicking the tag opens overlay. The small X hides the tag until refresh. */}
-        {isTagVisible && (
+        {(pathname === "/" && isTagVisible) && (
+        
           <div
             onClick={() => setIsOverlayOpen(true)}
-            className="top-[220px] -left-[35px] z-40 fixed -rotate-90 cursor-pointer"
+            className="top-[220px] opacity-50 hover:opacity-100 -left-[35px] z-40 fixed -rotate-90 cursor-pointer"
             role="button"
             aria-label="Open discount popup"
           >
