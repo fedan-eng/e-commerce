@@ -23,7 +23,6 @@ import {
   GoChevronRight,
 } from "react-icons/go";
 import { formatDistanceToNow } from "date-fns";
-import { generateProductSEO, generateProductJsonLd } from '@/lib/seo-utils';
 
 
 async function fetchProduct(id) {
