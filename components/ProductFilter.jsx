@@ -168,6 +168,18 @@ export default function ProductFilter() {
     [filters.specials, toggleSelection]
   );
 
+  // Shop by accordion — open if any special is active
+const shopByDefaultOpen = filters.specials?.length > 0 ? 0 : null;
+
+// For the main accordion — open whichever section has an active filter
+const accordionDefaultOpen = useMemo(() => {
+  if (filters.categories?.length > 0) return 0;
+  if (filters.features?.length > 0) return 1;
+  if (filters.availability) return 2;
+  if (filters.minRating) return 3;
+  return null; // none open by default
+}, [filters]);
+
   const accordionItems = useMemo(
     () => [
       {
@@ -380,7 +392,7 @@ export default function ProductFilter() {
 
         <Accordion
           items={[shopbyOptions]}
-          defaultOpenIndex={0}
+          defaultOpenIndex={shopByDefaultOpen}
           headerClassName="text-xs mt-4 mb-4 font-medium"
           contentClassName="text-sm"
           icon={({ isOpen }) => (isOpen ? <GoChevronUp /> : <GoChevronDown />)}
@@ -395,7 +407,7 @@ export default function ProductFilter() {
 
         <Accordion
           items={accordionItems}
-          defaultOpenIndex={0}
+          defaultOpenIndex={accordionDefaultOpen}
           headerClassName="text-xs mt-9 mb-4 font-medium"
           contentClassName="text-sm"
           icon={({ isOpen }) => (isOpen ? <GoChevronUp /> : <GoChevronDown />)}
