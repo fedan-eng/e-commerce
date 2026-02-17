@@ -21,7 +21,7 @@ import {
   GoChevronUp,
   GoChevronLeft,
   GoChevronRight,
-} from "react-icons/go";
+} from "react-icons/go"; 
 import { formatDistanceToNow } from "date-fns";
 
 
@@ -246,13 +246,6 @@ export default function ProductDetailsPage() {
   };
 
   return (
-    <>
-    <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateProductJsonLd(product))
-        }}
-      />
     <div className="mx-auto w-full max-w-[1140px]">
       <div className="md:flex gap-3 nav:gap-6">
         {/* Left side - Images */}
@@ -711,6 +704,5 @@ export default function ProductDetailsPage() {
         }
       />
     </div>
-    </>
   );
 }
