@@ -57,7 +57,7 @@ const page = () => {
       <ProductCategory />
       <BestSellerSection />
       <VideoSection />
-      <FansSection />
+      {/* <FansSection /> */}
       {/* <Moment/> */}
       <FAQ />
       {/* <ImageCarousel /> */}

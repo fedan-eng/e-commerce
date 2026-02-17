@@ -148,9 +148,9 @@ const ProductCategory = () => {
               <Link
                 href={product.link}
                 key={index}
-                className="flex justify-between bg-bright rounded-md w-[150px] sm:w-[178px] md:w-[221px] h-[92px] sm:h-[110px] md:h-[136px] overflow-hidden"
+                className="flex flex-col-reverse justify-between bg-bright rounded-md w-[150px] sm:w-[178px] md:w-[221px] h-[160px] sm:h-[170px] md:h-[156px] overflow-hidden"
               >
-                <h3 className="pt-3 pl-3 font-oswald font-normal text-sm uppercase">
+                <h3 className="py-4 pl-3 text-center font-oswald font-normal text-sm uppercase">
                   {product.name}
                 </h3>
 
@@ -169,8 +169,8 @@ const ProductCategory = () => {
                   <Image
                     src={product.image}
                     alt={product.name}
-                    width={130}
-                    height={130}
+                    width={150}
+                    height={150}
                     className="rounded-md w-full h-full object-cover"
                   />
                 </motion.div>

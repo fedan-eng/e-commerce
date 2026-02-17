@@ -32,14 +32,14 @@ const About = () => {
   return (
     <div className="">
       <TextSlider />
-
+{/*
       <div
         className="overflow-scroll whitespace-nowrap no-scrollbar"
         ref={scrollContainerRef} // 3. Attach the ref to the scroll container
       >
         <div className="flex justify-center mx-auto px-20 w-[1136px]">
           <div className="gap-4 grid grid-cols-[279px_minmax(300px,574px)_279px] grid-rows-[210px_210px] min-w-[1136px] h-[500px]">
-            {/* First Column */}
+            //First Column 
             <div className="row-span-2 shadow-custom rounded-md overflow-hidden">
               <motion.img
                 initial={{ scale: 1 }}
@@ -57,7 +57,7 @@ const About = () => {
               />
             </div>
 
-            {/* Middle Column (spanning two rows) */}
+            // Middle Column (spanning two rows)
             <div className="row-span-2 shadow-2xl border border-[#e7e7e7] rounded-md overflow-hidden">
               <motion.img
                 initial={{ scale: 1 }}
@@ -112,18 +112,20 @@ const About = () => {
         </div>
       </div>
 
-      <div className="mx-auto px-4">
+      */}
+
+      <div className="mx-auto h-fit px-4">
         <h2 className="font-oswald font-medium text-[32px] s:text-5xl text-center capitalize">
           power bank wey no dey carry belle,{" "}
           <span className="text-filgreen">na here e dey</span>
         </h2>
 
-        <p className="mt-4 mb-5 xs:mb-10 font-normal text-dark text-sm text-center capitalize">
+        {/* <p className="mt-4 mb-5 xs:mb-10 font-normal text-dark text-sm text-center capitalize">
           Lorem ipsum dolor sit amet consectetur. Nibh pellentesque ornare nisi
           iaculis consectetur
-        </p>
+        </p> */}
 
-        <div className="flex justify-center">
+        <div className="flex my-10 justify-center">
           <Link
             href="/products"
             className="uppercase buttons"
