@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <AuthInitializer />
           <Navbar />
-          <div className="mx-auto w-full max-w-[1440px] overflow-x-hidden font-roboto">
+          <div className="mx-auto w-full max-w-[1640px] overflow-x-hidden font-roboto">
             {children}
           </div>
           <Footer />

@@ -34,42 +34,7 @@ async function fetchProduct(id) {
   return data.product || data;
 }
 
-export async function generateMetadata({ params }) {
-  const product = await fetchProduct(params.id);
-  
-  if (!product) {
-    return {
-      title: 'Product Not Found | FIL Store',
-      description: 'The product you are looking for is not available.',
-    };
-  }
 
-  // Use the SEO generator function
-  const seoData = generateProductSEO(product);
-
-  return {
-    title: seoData.title,
-    description: seoData.description,
-    keywords: seoData.keywords,
-    
-    openGraph: {
-      title: seoData.ogTitle,
-      description: seoData.ogDescription,
-      url: `https://www.filstore.com.ng/product/${params.id}`,
-      siteName: 'FIL Store',
-      images: [{ url: product.image, width: 1200, height: 630 }],
-      locale: 'en_NG',
-      type: 'product',
-    },
-
-    twitter: {
-      card: 'summary_large_image',
-      title: seoData.ogTitle,
-      description: seoData.ogDescription,
-      images: [product.image],
-    },
-  };
-}
 
 export default function ProductDetailsPage() {
   const { id } = useParams();

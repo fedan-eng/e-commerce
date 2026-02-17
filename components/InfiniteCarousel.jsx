@@ -41,19 +41,14 @@ const tileSizes = {
   edge: { h: 311, w: 222 },
 };
 
-// Safe play: stores the promise on the element so we can await it before pausing
 function safePlay(videoEl) {
   const p = videoEl.play();
   videoEl._pendingPlay = p;
   if (p !== undefined) {
-    p.catch(() => {
-      // Autoplay blocked by browser — silently ignored
-    });
+    p.catch(() => {});
   }
 }
 
-// Safe pause: waits for any pending play() to resolve before calling pause()
-// This prevents the "play() interrupted by pause()" console error
 function safePause(videoEl, resetTime = false) {
   const pending = videoEl._pendingPlay;
   if (pending !== undefined) {
@@ -70,20 +65,24 @@ function safePause(videoEl, resetTime = false) {
   }
 }
 
+// Applies all attributes needed to prevent iOS fullscreen
+function applyIOSInlineAttributes(el) {
+  if (!el) return;
+  el.setAttribute("playsinline", "");
+  el.setAttribute("webkit-playsinline", ""); // older iOS Safari
+  el.setAttribute("x5-playsinline", "");     // some Android WebViews
+  el.setAttribute("x5-video-player-type", "h5");
+  el.setAttribute("x5-video-player-fullscreen", "false");
+}
+
 export default function InfiniteCarousel() {
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  // Map of item.id -> video DOM element
   const videoRefs = useRef({});
-
-  // Ref for the whole carousel wrapper — used for IntersectionObserver
   const carouselRef = useRef(null);
-
-  // Track whether the carousel is currently in the viewport
   const isInViewRef = useRef(true);
 
-  // ─── Play/pause based on which slide is active ───────────────────────────
   useEffect(() => {
     const centerId = items[active].id;
 
@@ -92,17 +91,13 @@ export default function InfiniteCarousel() {
       const numId = Number(id);
 
       if (numId === centerId) {
-        // Only play if the carousel is visible in the viewport
-        if (isInViewRef.current) {
-          safePlay(videoEl);
-        }
+        if (isInViewRef.current) safePlay(videoEl);
       } else {
         safePause(videoEl, true);
       }
     });
   }, [active]);
 
-  // ─── Pause/resume based on viewport visibility ───────────────────────────
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel) return;
@@ -110,29 +105,23 @@ export default function InfiniteCarousel() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         isInViewRef.current = entry.isIntersecting;
-
         const centerId = items[active].id;
         const centerVideo = videoRefs.current[centerId];
         if (!centerVideo) return;
 
         if (entry.isIntersecting) {
-          // Came back into view — resume the center video
           safePlay(centerVideo);
         } else {
-          // Left the viewport — pause the center video
           safePause(centerVideo);
         }
       },
-      {
-        // Trigger when at least 30% of the carousel is visible
-        threshold: 0.3,
-      }
+      { threshold: 0.3 }
     );
 
     observer.observe(carousel);
     return () => observer.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]); // re-run so observer always has the latest `active` value
+  }, [active]);
 
   const slideVariants = {
     enter: () => ({ opacity: 0, scale: 0.8 }),
@@ -174,8 +163,6 @@ export default function InfiniteCarousel() {
   const handleVideoClick = (e, itemId) => {
     const video = e.currentTarget;
     const centerId = items[active].id;
-
-    // Only allow manual toggle on the focused (center) video
     if (itemId !== centerId) return;
 
     if (video.paused) {
@@ -248,6 +235,12 @@ export default function InfiniteCarousel() {
                   ref={(el) => {
                     if (el) {
                       videoRefs.current[item.id] = el;
+
+                      // Must be set via setAttribute — React props alone
+                      // don't cover the webkit-playsinline attribute that
+                      // older iOS Safari requires to stay out of fullscreen
+                      applyIOSInlineAttributes(el);
+
                       el.onended = () => {
                         el.currentTime = 0;
                         if (isInViewRef.current) safePlay(el);
@@ -258,7 +251,7 @@ export default function InfiniteCarousel() {
                   }}
                   onClick={(e) => handleVideoClick(e, item.id)}
                   poster={item.poster}
-                  
+                  muted
                   playsInline
                   className="relative rounded-md w-full h-full object-cover cursor-pointer"
                 >
@@ -302,5 +295,3 @@ export default function InfiniteCarousel() {
     </div>
   );
 }
-
-

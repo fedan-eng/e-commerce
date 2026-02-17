@@ -148,7 +148,7 @@ const ProductCategory = () => {
               <Link
                 href={product.link}
                 key={index}
-                className="flex flex-col-reverse justify-between bg-bright rounded-md w-[150px] sm:w-[178px] md:w-[221px] h-[160px] sm:h-[170px] md:h-[156px] overflow-hidden"
+                className="flex flex-col-reverse justify-between bg-bright rounded-md w-[150px] sm:w-[178px] md:w-[221px] h-[200px] sm:h-[210px] md:h-[266px] overflow-hidden"
               >
                 <h3 className="py-4 pl-3 text-center font-oswald font-normal text-sm uppercase">
                   {product.name}
