@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Providers } from "./providers";
+import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
 
 export const metadata = {
@@ -23,11 +24,7 @@ export default function RootLayout({ children }) {
       <body>
         <Providers>
           <AuthInitializer />
-          <Navbar />
-          <div className="mx-auto w-full max-w-[1640px] overflow-x-hidden font-roboto">
-            {children}
-          </div>
-          <Footer />
+             <ConditionalShell>{children}</ConditionalShell>
         </Providers>
       </body>
     </html>
