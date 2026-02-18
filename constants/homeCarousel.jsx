@@ -28,7 +28,7 @@ export const homeImages = [
   },
   {
     id: 4,
-    src: "/hero1.png",
+    src: "/powerbank.png",
     title: "POWER BANK",
     link: "/products?categories=Power+Bank",
     desc: "Lorem ipsum dolor sit amet consectetur. Dui mauris libero nulla congue enim duis phasellus congue. Lorem purus consectetur vel varius malesuada ullamcorper non scelerisque vitae.",
