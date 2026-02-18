@@ -25,7 +25,7 @@ export default function AdminDashboard() {
       setStats({
         totalOrders: ordersData.total || 0,
         totalProducts: productsData.pagination?.total || 0,
-        pending: (ordersData.orders || []).filter((o) => o.status?.toLowerCase() === "confirmed").length,
+        confirmed: (ordersData.orders || []).filter((o) => o.status?.toLowerCase() === "confirmed").length,
       });
       setLoading(false);
     });
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
         <StatCard label="Total Orders" value={stats?.totalOrders} accent="#e8c46a" href="/admin/orders" />
         <StatCard label="Total Products" value={stats?.totalProducts} accent="#6ae8a0" href="/admin/products" />
-        <StatCard label="Pending Orders" value={stats?.pending} accent="#e8c46a" href="/admin/orders?status=Pending" />
+        <StatCard label="Confirmed Orders" value={stats?.completed} accent="#e8c46a" href="/admin/orders?status=Confirmed" />
       </div>
 
       {/* Recent Orders */}
