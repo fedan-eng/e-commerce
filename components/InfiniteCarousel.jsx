@@ -251,7 +251,7 @@ export default function InfiniteCarousel() {
                   }}
                   onClick={(e) => handleVideoClick(e, item.id)}
                   poster={item.poster}
-                  muted
+                
                   playsInline
                   className="relative rounded-md w-full h-full object-cover cursor-pointer"
                 >
