@@ -32,8 +32,8 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-const Field = ({ label, children, half }) => (
-  <div style={{ marginBottom: "18px", gridColumn: half ? "span 1" : undefined }}>
+const Field = ({ label, children }) => (
+  <div style={{ marginBottom: "18px" }}>
     <label style={LABEL}>{label}</label>
     {children}
   </div>
@@ -59,8 +59,8 @@ const AddButton = ({ onClick, label }) => (
     borderRadius: "5px", color: "#555", fontSize: "11px", letterSpacing: "0.1em",
     cursor: "pointer", transition: "all 0.15s", marginTop: "8px",
   }}
-    onMouseEnter={e => { e.target.style.borderColor = "#555"; e.target.style.color = "#888"; }}
-    onMouseLeave={e => { e.target.style.borderColor = "#333"; e.target.style.color = "#555"; }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = "#555"; e.currentTarget.style.color = "#888"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "#333"; e.currentTarget.style.color = "#555"; }}
   >
     + {label}
   </button>
@@ -72,12 +72,15 @@ const RemoveBtn = ({ onClick }) => (
     borderRadius: "4px", color: "#555", fontSize: "11px", cursor: "pointer",
     flexShrink: 0, transition: "all 0.15s",
   }}
-    onMouseEnter={e => { e.target.style.borderColor = "#e86a6a44"; e.target.style.color = "#e86a6a"; }}
-    onMouseLeave={e => { e.target.style.borderColor = "#2a2a2a"; e.target.style.color = "#555"; }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = "#e86a6a44"; e.currentTarget.style.color = "#e86a6a"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "#2a2a2a"; e.currentTarget.style.color = "#555"; }}
   >
     ✕
   </button>
 );
+
+// Exact enum values from your Product schema
+const TAG_OPTIONS = ["", "hurry", "fast", "new", "discount"];
 
 export default function ProductForm({ initial = {}, isEdit = false }) {
   const router = useRouter();
@@ -92,33 +95,31 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     image: initial.image || "",
     availability: initial.availability ?? true,
     features: (initial.features || []).join(", "),
-    // Specials — match your actual DB field names
     isBestseller: initial.isBestseller || false,
     isTodaysDeal: initial.isTodaysDeal || false,
     isWhatsNew: initial.isWhatsNew || false,
     isDiscounted: initial.isDiscounted || false,
   });
 
-  // Secondary images array
   const [secondaryImages, setSecondaryImages] = useState(
     initial.secondaryImages?.length > 0 ? initial.secondaryImages : [""]
   );
 
-  // Colors array: [{ name, images: [url, url] }]
   const [colors, setColors] = useState(
     initial.colors?.length > 0
       ? initial.colors.map(c => ({ name: c.name || "", images: c.images?.length > 0 ? c.images : [""] }))
       : []
   );
 
-  // Videos array
   const [videos, setVideos] = useState(
     initial.videos?.length > 0 ? initial.videos : []
   );
 
-  // Box content array
+  // boxContent matches schema: [{ item: String, quantity: Number }]
   const [boxContent, setBoxContent] = useState(
-    initial.boxContent?.length > 0 ? initial.boxContent : []
+    initial.boxContent?.length > 0
+      ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 }))
+      : []
   );
 
   const [saving, setSaving] = useState(false);
@@ -130,12 +131,12 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     setForm(prev => ({ ...prev, [field]: val }));
   };
 
-  // Secondary images helpers
+  // Secondary images
   const updateSecImg = (i, val) => setSecondaryImages(prev => prev.map((v, idx) => idx === i ? val : v));
   const addSecImg = () => setSecondaryImages(prev => [...prev, ""]);
   const removeSecImg = (i) => setSecondaryImages(prev => prev.filter((_, idx) => idx !== i));
 
-  // Colors helpers
+  // Colors
   const addColor = () => setColors(prev => [...prev, { name: "", images: [""] }]);
   const removeColor = (i) => setColors(prev => prev.filter((_, idx) => idx !== i));
   const updateColorName = (i, val) => setColors(prev => prev.map((c, idx) => idx === i ? { ...c, name: val } : c));
@@ -143,14 +144,14 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const addColorImage = (ci) => setColors(prev => prev.map((c, idx) => idx === ci ? { ...c, images: [...c.images, ""] } : c));
   const removeColorImage = (ci, ii) => setColors(prev => prev.map((c, idx) => idx === ci ? { ...c, images: c.images.filter((_, iidx) => iidx !== ii) } : c));
 
-  // Videos helpers
+  // Videos
   const addVideo = () => setVideos(prev => [...prev, ""]);
   const updateVideo = (i, val) => setVideos(prev => prev.map((v, idx) => idx === i ? val : v));
   const removeVideo = (i) => setVideos(prev => prev.filter((_, idx) => idx !== i));
 
-  // Box content helpers
-  const addBoxItem = () => setBoxContent(prev => [...prev, ""]);
-  const updateBoxItem = (i, val) => setBoxContent(prev => prev.map((v, idx) => idx === i ? val : v));
+  // Box content — { item, quantity } objects matching schema exactly
+  const addBoxItem = () => setBoxContent(prev => [...prev, { item: "", quantity: 1 }]);
+  const updateBoxItem = (i, field, val) => setBoxContent(prev => prev.map((b, idx) => idx === i ? { ...b, [field]: val } : b));
   const removeBoxItem = (i) => setBoxContent(prev => prev.filter((_, idx) => idx !== i));
 
   const handleSubmit = async () => {
@@ -161,11 +162,17 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         ...form,
         price: parseFloat(form.price) || 0,
         originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : undefined,
+        tag: form.tag || null,  // null satisfies Mongoose default: null, avoids enum error
         features: form.features.split(",").map(f => f.trim()).filter(Boolean),
         secondaryImages: secondaryImages.filter(Boolean),
-        colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean) })).filter(c => c.name),
+        colors: colors
+          .map(c => ({ name: c.name, images: c.images.filter(Boolean) }))
+          .filter(c => c.name),
         videos: videos.filter(Boolean),
-        boxContent: boxContent.filter(Boolean),
+        // Must match schema shape: { item: String, quantity: Number }
+        boxContent: boxContent
+          .filter(b => b.item?.trim())
+          .map(b => ({ item: b.item.trim(), quantity: parseInt(b.quantity) || 1 })),
       };
 
       const url = isEdit ? `/api/products/${initial._id}` : "/api/admin/products";
@@ -183,7 +190,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       }
 
       setSuccess(true);
-      setTimeout(() => router.push("/admin/products"), 800);
+      setTimeout(() => router.push("/admin/products"), 900);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -210,9 +217,18 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
             <input type="number" value={form.originalPrice} onChange={set("originalPrice")} placeholder="23000" min="0" style={INPUT} />
           </Field>
         </div>
-        <Field label="Tag (e.g. discount, new, hot)">
-          <input value={form.tag} onChange={set("tag")} placeholder="discount" style={INPUT} />
+
+        {/* Tag — dropdown locked to your schema enum values */}
+        <Field label="Tag">
+          <select value={form.tag} onChange={set("tag")} style={{ ...INPUT, cursor: "pointer" }}>
+            {TAG_OPTIONS.map(t => (
+              <option key={t} value={t} style={{ background: "#111", color: "#e8e8e8" }}>
+                {t === "" ? "None" : t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+          </select>
         </Field>
+
         <Field label="Description">
           <textarea value={form.description} onChange={set("description")} placeholder="Product description..." rows={5}
             style={{ ...INPUT, resize: "vertical", lineHeight: "1.7" }} />
@@ -251,6 +267,9 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       {/* Colors */}
       <Section title="Color Variants">
         <div style={{ fontSize: "11px", color: "#444", marginBottom: "14px" }}>Each color variant has a name and its own image(s).</div>
+        {colors.length === 0 && (
+          <div style={{ fontSize: "12px", color: "#333", marginBottom: "12px" }}>No color variants yet.</div>
+        )}
         {colors.map((color, ci) => (
           <div key={ci} style={{ background: "#0d0d0d", border: "1px solid #1e1e1e", borderRadius: "6px", padding: "16px", marginBottom: "12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -276,6 +295,9 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Videos */}
       <Section title="Videos (optional)">
+        {videos.length === 0 && (
+          <div style={{ fontSize: "12px", color: "#333", marginBottom: "12px" }}>No videos added.</div>
+        )}
         {videos.map((url, i) => (
           <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "10px", alignItems: "center" }}>
             <input value={url} onChange={e => updateVideo(i, e.target.value)} placeholder="Video URL" style={{ ...INPUT, marginBottom: 0 }} />
@@ -287,10 +309,29 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Box Content */}
       <Section title="Box Contents (optional)">
-        <div style={{ fontSize: "11px", color: "#444", marginBottom: "14px" }}>List what's included in the box.</div>
-        {boxContent.map((item, i) => (
+        <div style={{ fontSize: "11px", color: "#444", marginBottom: "14px" }}>
+          List what's included in the box. Each item needs a name and quantity.
+        </div>
+        {boxContent.length === 0 && (
+          <div style={{ fontSize: "12px", color: "#333", marginBottom: "12px" }}>No box items added.</div>
+        )}
+        {boxContent.map((b, i) => (
           <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "10px", alignItems: "center" }}>
-            <input value={item} onChange={e => updateBoxItem(i, e.target.value)} placeholder="e.g. USB-C Cable, User Manual" style={{ ...INPUT, marginBottom: 0 }} />
+            <input
+              value={b.item}
+              onChange={e => updateBoxItem(i, "item", e.target.value)}
+              placeholder="e.g. USB-C Cable, User Manual"
+              style={{ ...INPUT, marginBottom: 0, flex: 1 }}
+            />
+            <input
+              type="number"
+              value={b.quantity}
+              onChange={e => updateBoxItem(i, "quantity", e.target.value)}
+              min="1"
+              placeholder="Qty"
+              title="Quantity"
+              style={{ ...INPUT, marginBottom: 0, width: "70px", flex: "none" }}
+            />
             <RemoveBtn onClick={() => removeBoxItem(i)} />
           </div>
         ))}
