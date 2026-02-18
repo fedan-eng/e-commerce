@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { verifyToken } from "@/lib/auth";
 
 // GET SINGLE PRODUCT
 export async function GET(req, context) {
