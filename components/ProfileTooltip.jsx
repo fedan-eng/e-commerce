@@ -70,6 +70,10 @@ const ProfileTooltip = () => {
                   </Link>
                 ))}
 
+                {user.role === "admin" && ( <Link href="/admin" className="block py-2 pl-3 text-black hover:text-filgreen text-sm hover:underline">
+                  Admin Dashboard
+                </Link>)}
+
                 <div className="block">
                   <LogoutButton />
                 </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { LogOut } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -85,11 +86,17 @@ export default function AdminLayout({ children }) {
           })}
         </nav>
 
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #222", fontSize: "11px", color: "#444" }}>
-          {user?.firstName} {user?.lastName}
+        <div className="px-3 py-6" style={{ borderTop: "1px solid #222", fontSize: "11px", color: "#444" }}>
+          <div>
+            {user?.firstName} {user?.lastName}
           <div style={{ color: "#2a6e2a", marginTop: "2px" }}>● admin</div>
+          </div>
+          <Link  className="hover:bg-[#1e1e1e] bg-[#2a2a2a] py-3 px-5 rounded-lg" href="/" style={{ marginTop: "8px", color:"red", display: "flex", alignItems: "center", gap: "4px" }}>
+            <LogOut size={14} />
+            Logout
+          </Link>
         </div>
-      </aside>
+      </aside> 
 
       {/* Main Content */}
       <main style={{ marginLeft: "220px", flex: 1, padding: "32px", minHeight: "100vh" }}>

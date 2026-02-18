@@ -43,7 +43,8 @@ export default function AdminDashboard() {
         transition: "border-color 0.2s",
       }}
         onMouseEnter={(e) => e.currentTarget.style.borderColor = accent}
-        onMouseLeave={(e) => e.currentTarget.style.borderColor = "#222"}
+        onMouseLeave={(e) => e.currentTarget.style.borderTopColor = accent}
+
       >
         <div style={{ fontSize: "11px", letterSpacing: "0.15em", color: "#555", textTransform: "uppercase", marginBottom: "10px" }}>{label}</div>
         <div style={{ fontSize: "36px", fontWeight: "700", color: "#e8e8e8", lineHeight: 1 }}>
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
         <StatCard label="Total Orders" value={stats?.totalOrders} accent="#e8c46a" href="/admin/orders" />
         <StatCard label="Total Products" value={stats?.totalProducts} accent="#6ae8a0" href="/admin/products" />
-        <StatCard label="Confirmed Orders" value={stats?.completed} accent="#e8c46a" href="/admin/orders?status=Confirmed" />
+        <StatCard label="Confirmed Orders" value={stats?.confirmed} accent="#e8c46a" href="/admin/orders?status=Confirmed" />
       </div>
 
       {/* Recent Orders */}

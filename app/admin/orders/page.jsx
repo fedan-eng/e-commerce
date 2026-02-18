@@ -1,7 +1,10 @@
 // app/admin/orders/page.jsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
+
 
 const STATUS_COLORS = {
   pending: "#e8c46a",
@@ -15,14 +18,21 @@ const STATUS_COLORS = {
 
 const ALL_STATUSES = ["all", "Confirmed", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState([]);
+function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [updating, setUpdating] = useState(null); // orderId being updated
+
+    const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // 👇 Initialize from URL param instead of hardcoded "all"
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "all"
+  );
+  const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -84,7 +94,12 @@ const ALL_ORDER_STATUSES = ["Pending", "Processing", "Confirmed", "Shipped", "De
       {/* Status Filter Tabs */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
         {ALL_STATUSES.map((s) => (
-          <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }} style={{
+          <button key={s} onClick={() => {
+  setStatusFilter(s);
+  setPage(1);
+  const url = s === "all" ? "/admin/orders" : `/admin/orders?status=${s}`;
+  router.replace(url, { scroll: false });
+}} style={{
             padding: "7px 16px",
             borderRadius: "20px",
             fontSize: "11px",
@@ -153,7 +168,7 @@ const ALL_ORDER_STATUSES = ["Pending", "Processing", "Confirmed", "Shipped", "De
                         style={{
                           background: `${STATUS_COLORS[order.status]}15`,
                           border: `1px solid ${STATUS_COLORS[order.status]}44`,
-                          color: STATUS_COLORS[order.status],
+                          color: STATUS_COLORS[order.status?.toLowerCase()],
                           borderRadius: "4px",
                           padding: "4px 8px",
                           fontSize: "11px",
@@ -211,5 +226,14 @@ const ALL_ORDER_STATUSES = ["Pending", "Processing", "Confirmed", "Shipped", "De
         )}
       </div>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div style={{ color: "#444", padding: "40px", fontSize: "13px" }}>Loading...</div>}>
+      <AdminOrdersPage />
+    </Suspense>
   );
 }
