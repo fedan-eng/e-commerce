@@ -6,7 +6,11 @@ const pendingVerificationSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, trim: true },
     hashedPassword: { type: String, required: true },
     verificationCode: { type: String, required: true },
-    verificationCodeExpiry: { type: Date, required: true },
+   verificationCodeExpiry: {
+  type: Date,
+  required: true,
+  index: { expires: 0 }, // MongoDB auto-deletes when this date passes
+},
 
     // TTL FIELD
     createdAt: {

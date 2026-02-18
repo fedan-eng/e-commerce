@@ -8,20 +8,26 @@ export async function POST(req) {
   await connectDB();
   const { email, password, firstName } = await req.json();
 
-  // Check if pending verification exists already
   const existingPending = await PendingVerification.findOne({ email });
+
   if (existingPending) {
-    return new Response(
-      JSON.stringify({
-        message: "Verification already pending for this email",
-      }),
-      { status: 400 }
-    );
+    const isExpired = existingPending.verificationCodeExpiry < new Date();
+
+    if (!isExpired) {
+      // Code still valid — tell user to check their email
+      return new Response(
+        JSON.stringify({ message: "Verification already pending for this email" }),
+        { status: 400 }
+      );
+    }
+
+    // Code expired — delete the old record and allow re-registration
+    await PendingVerification.deleteOne({ email });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
   const code = generateCode();
-  const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  const expiry = new Date(Date.now() + 10 * 60 * 1000);
 
   await PendingVerification.create({
     email,
