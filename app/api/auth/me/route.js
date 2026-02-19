@@ -43,6 +43,13 @@ export async function GET(req) {
       });
     }
 
+    if (user.isActive === false) {
+  return new Response(JSON.stringify({ message: "Account suspended" }), {
+    status: 403,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
     return new Response(
       JSON.stringify({
         message: "User authenticated",

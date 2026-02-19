@@ -68,7 +68,8 @@ export default function AdminCustomerDetailPage() {
     }
   };
 
-  const hasChanges = user && (role !== user.role || isActive !== (user.isActive !== false));
+ const currentIsActive = user.isActive ?? true; // treat undefined as true
+const hasChanges = user && (role !== user.role || isActive !== currentIsActive);
 
   if (loading) return <div style={{ color: "#444", fontSize: "13px", padding: "40px 0" }}>Loading customer...</div>;
   if (!user) return <div style={{ color: "#e86a6a", fontSize: "13px", padding: "40px 0" }}>Customer not found.</div>;

@@ -22,6 +22,13 @@ export async function POST(req) {
     });
   }
 
+  if (user.isActive === false) {
+  return new Response(
+    JSON.stringify({ message: "Your account has been suspended. Please contact support." }),
+    { status: 403 }
+  );
+}
+
   const token = signToken({
     id: user._id,
     email: user.email,
