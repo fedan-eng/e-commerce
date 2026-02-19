@@ -291,7 +291,7 @@ export default function Navbar() {
               <div className="mt-2 border-black border-t">
                 <p className="mt-6 mb-3 text-sm"> You're not a member? </p>
 
-                <Link href="/register" className="py-2 w-full block sm:py-3 border border-[#d9d9d9] rounded-md text-[#007c42] text-xs sm:text-sm text-center">
+                <Link href="/login" className="py-2 w-full block sm:py-3 border border-[#d9d9d9] rounded-md text-[#007c42] text-xs sm:text-sm text-center">
                     Sign in/Join Us
                 </Link>
               </div>
