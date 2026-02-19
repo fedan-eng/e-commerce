@@ -49,12 +49,13 @@ const registerSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUserAsync.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isRegistered = true;
-        state.email = action.payload.email;
-        state.successMessage =
-          "Registration successful. Check your email for a verification code.";
-      })
+  state.isLoading = false;
+  state.isRegistered = true;
+  state.email = action.payload.email;  // works for both cases
+  state.successMessage = action.payload.redirect
+    ? "Redirecting to verification..."
+    : "Registration successful. Check your email for a verification code.";
+})
       .addCase(registerUserAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;

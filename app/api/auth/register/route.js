@@ -13,13 +13,12 @@ export async function POST(req) {
   if (existingPending) {
     const isExpired = existingPending.verificationCodeExpiry < new Date();
 
-    if (!isExpired) {
-      // Code still valid — tell user to check their email
-      return new Response(
-        JSON.stringify({ message: "Verification already pending for this email" }),
-        { status: 400 }
-      );
-    }
+if (!isExpired) {
+  return new Response(
+    JSON.stringify({ redirect: true, email }), // 👈 add email
+    { status: 200 }                            // 👈 was 400, change to 200
+  );
+}
 
     // Code expired — delete the old record and allow re-registration
     await PendingVerification.deleteOne({ email });

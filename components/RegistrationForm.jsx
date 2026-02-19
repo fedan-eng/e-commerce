@@ -20,7 +20,7 @@ const RegistrationForm = () => {
     (state) => state.register
   );
 
-  const formik = useFormik({
+  const formik = useFormik({ 
     initialValues: {
       firstName: "",
       lastName: "",
