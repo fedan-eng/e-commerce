@@ -68,15 +68,14 @@ export default function AdminCustomerDetailPage() {
     }
   };
 
- const currentIsActive = user.isActive ?? true; // treat undefined as true
-const hasChanges = user && (role !== user.role || isActive !== currentIsActive);
+if (loading) return <div style={{ color: "#444", fontSize: "13px", padding: "40px 0" }}>Loading customer...</div>;
+if (!user) return <div style={{ color: "#e86a6a", fontSize: "13px", padding: "40px 0" }}>Customer not found.</div>;
 
-  if (loading) return <div style={{ color: "#444", fontSize: "13px", padding: "40px 0" }}>Loading customer...</div>;
-  if (!user) return <div style={{ color: "#e86a6a", fontSize: "13px", padding: "40px 0" }}>Customer not found.</div>;
-
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "—";
-  const initials = ((user.firstName?.[0] || "") + (user.lastName?.[0] || "")).toUpperCase() || user.email?.[0]?.toUpperCase() || "?";
-  const totalSpent = orders.reduce((acc, o) => acc + (parseFloat(o.total || o.subTotal || 0)), 0);
+const currentIsActive = user.isActive ?? true;
+const hasChanges = role !== user.role || isActive !== currentIsActive;
+const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "—";
+const initials = ((user.firstName?.[0] || "") + (user.lastName?.[0] || "")).toUpperCase() || user.email?.[0]?.toUpperCase() || "?";
+const totalSpent = orders.reduce((acc, o) => acc + parseFloat(o.total || o.subTotal || 0), 0);
 
   return (
     <div style={{ maxWidth: "960px" }}>
