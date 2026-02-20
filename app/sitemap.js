@@ -1,21 +1,9 @@
-// app/sitemap.js (for App Router)
-async function fetchAllProducts() {
-  // Use absolute URL in production, relative in dev
-  const baseUrl = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
-    : 'http://localhost:3000';
-    
-  const response = await fetch(`${baseUrl}/api/products`);
-  const data = await response.json();
-  return data;
-}
-
-export default async function sitemap() {
-  const products = await fetchAllProducts();
+// app/sitemap.js
+export default function sitemap() {
+  const baseUrl = 'https://www.filstore.com.ng';
   
-  
-  // Static pages
-  const routes = [
+  // Main pages
+  const mainPages = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -36,22 +24,21 @@ export default async function sitemap() {
     },
   ];
 
-  // Category pages (clean URLs without parameters)
-  const categories = ['Power-Bank', 'Lifestyle', 'Extensions', 'Wearables', 'Chargers'];
-  const categoryRoutes = categories.map(category => ({
-    url: `${baseUrl}/categories/${category}`,
+  // Category pages - using clean URLs
+  const categories = [
+    'Power Bank',
+    'Lifestyle', 
+    'Extensions',
+    'Wearables',
+    'Chargers'
+  ];
+  
+  const categoryPages = categories.map(category => ({
+    url: `${baseUrl}/products?categories=${encodeURIComponent(category)}`,
     lastModified: new Date(),
     changeFrequency: 'daily',
     priority: 0.8,
   }));
 
-  // Product pages - THIS IS THE IMPORTANT PART
-  const productRoutes = products.map(product => ({
-    url: `${baseUrl}/products/${product.slug}`, // or product.id
-    lastModified: product.updatedAt || new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.7,
-  }));
-
-  return [...routes, ...categoryRoutes, ...productRoutes];
+  return [...mainPages, ...categoryPages];
 }
