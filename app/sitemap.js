@@ -1,10 +1,18 @@
 // app/sitemap.js (for App Router)
+async function fetchAllProducts() {
+  // Use absolute URL in production, relative in dev
+  const baseUrl = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+    
+  const response = await fetch(`${baseUrl}/api/products`);
+  const data = await response.json();
+  return data;
+}
+
 export default async function sitemap() {
-  // Fetch all your products from your database/API
-  const products = await fetchAllProducts(); // Your function to get products
+  const products = await fetchAllProducts();
   
-  // Base URLs
-  const baseUrl = 'https://www.filstore.com.ng';
   
   // Static pages
   const routes = [
