@@ -308,7 +308,7 @@ export default function Navbar() {
                     </Link>
                     </div>
                 ) : (
-                  <button onClick={handleLogout} className="py-2 outline-none w-full block sm:py-3 border-filgreen rounded-md text-filgreen text-xs sm:text-sm text-center">
+                  <button onClick={handleLogout} className="py-2 outline-none w-full block sm:py-3 border-filgreen border-1 rounded-md text-filgreen text-xs sm:text-sm text-center">
                     Logout
                   </button>
                 )}

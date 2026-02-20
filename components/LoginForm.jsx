@@ -32,7 +32,7 @@ export default function LoginForm() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/profile");
+        router.push("/products");
       } else {
         setError(data.message || "Invalid email or password");
       }
