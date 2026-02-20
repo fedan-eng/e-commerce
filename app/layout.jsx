@@ -10,8 +10,8 @@ export const metadata = {
   description:
     "At FIL, we take pride in offering quality products at unbeatable prices, making us the go-to destination for anyone who values quality.(Think quality, think FIL)",
   icons: {
-    icon: "/fillogo.png",
-    apple: "/fillogo.png",
+    icon: "/fillogo.ico",
+    apple: "/fillogo.ico",
   },
   verification: {
     google: "F4YtRJObu3UIQ0aKa9qg3vBcTduL3MxF5mlHoxLyr94",

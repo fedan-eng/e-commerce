@@ -11,7 +11,7 @@ import FAQ from "./../components/FAQ";
 import FansSection from "./../components/FansSections";
 
 
-export const homepageMetadata = {
+export const metadata = {
   title: "FIL Store - Buy Power Banks, Wearables, Chargers & Tech Accessories in Nigeria",
   description: "Shop quality tech products at unbeatable prices in Nigeria. Power banks, smartwatches, phone chargers, cables, and lifestyle accessories. Fast delivery in Lagos, Abuja, Port Harcourt. Authentic products, best prices. Think quality, think FIL.",
   keywords: "FIL Store, buy tech products Nigeria, power bank Lagos, smartwatch Nigeria, phone charger, tech accessories, electronics store Nigeria",
@@ -23,7 +23,7 @@ export const homepageMetadata = {
     siteName: 'FIL Store',
     images: [
       {
-        url: '/og-home.jpg',
+        url: 'https://www.filstore.com.ng/fillogo.png',
         width: 1200,
         height: 630,
         alt: 'FIL Store - Tech Products Nigeria',
@@ -37,7 +37,7 @@ export const homepageMetadata = {
     card: 'summary_large_image',
     title: "FIL Store - Quality Tech Products in Nigeria",
     description: "Shop power banks, wearables, chargers & tech accessories. Fast delivery nationwide.",
-    images: ['/og-home.jpg'],
+    images: ['https://www.filstore.com.ng/fillogo.png'],
   },
 
   verification: {
