@@ -4,9 +4,8 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "@/store/features/cartSlice";
 import { useState } from "react";
 
-const AddToCartButton = ({ product, className = "" }) => {
+const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
   const dispatch = useDispatch();
-
   const [notification, setNotification] = useState("");
   const [notificationColor, setNotificationColor] = useState("");
 
@@ -19,8 +18,9 @@ const AddToCartButton = ({ product, className = "" }) => {
         _id: product._id,
         name: product.name,
         price: product.price,
-        image: product.image,
+        image: selectedColor?.images?.[0] || product.image,
         quantity: 1,
+        ...(selectedColor ? { color: selectedColor.name } : {}), // only include color if selected
       })
     );
 

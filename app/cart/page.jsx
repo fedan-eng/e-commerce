@@ -267,7 +267,9 @@ const CartPage = () => {
           {item.name}
         </p>
         <p className="text-[#767676] text-xs">{item.category}</p>
-        <p className="text-xs">Color:Black</p>
+       {item.color && (
+  <p className="text-xs">Color: {item.color}</p>
+)}
       </div>
     </div>
     <div className="max-s:hidden flex items-center gap-1 border border-[#d9d9d9] rounded-md w-fit">
