@@ -448,7 +448,7 @@ export default function ProductDetailsPage() {
                   alt="flutterwave"
                   className="w-[150px] h-[32px] object-cover"
                 />
-              </div> */}//Uncomment when Flutterwave integration is ready
+              </div> */}
              </div>
             </div>
 

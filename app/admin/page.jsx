@@ -5,11 +5,15 @@ import Link from "next/link";
 
 const STATUS_COLORS = {
   pending: "#e8c46a",
+  confirmed: "#e8c46a",   // 👈 add
   processing: "#6ab4e8",
+  processed: "#6ab4e8",   // 👈 add
   shipped: "#a06ae8",
   delivered: "#6ae8a0",
   cancelled: "#e86a6a",
 };
+
+const ALL_STATUSES = ["all", "Confirmed", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -43,10 +47,14 @@ export default function AdminDashboard() {
         transition: "border-color 0.2s",
       }}
         onMouseEnter={(e) => e.currentTarget.style.borderColor = accent}
-        onMouseLeave={(e) => e.currentTarget.style.borderTopColor = accent}
-
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderTop = `2px solid ${accent}`;
+          e.currentTarget.style.borderRight = "1px solid #222";
+          e.currentTarget.style.borderBottom = "1px solid #222";
+          e.currentTarget.style.borderLeft = "1px solid #222";
+        }}
       >
-        <div style={{ fontSize: "11px", letterSpacing: "0.15em", color: "#555", textTransform: "uppercase", marginBottom: "10px" }}>{label}</div>
+        <div style={{ fontSize: "11px", letterSpacing: "0.15em", color: "#fff", textTransform: "uppercase", marginBottom: "10px" }}>{label}</div>
         <div style={{ fontSize: "36px", fontWeight: "700", color: "#e8e8e8", lineHeight: 1 }}>
           {loading ? "—" : value}
         </div>
@@ -82,8 +90,8 @@ export default function AdminDashboard() {
       {/* Recent Orders */}
       <div style={{ background: "#111", border: "1px solid #222", borderRadius: "8px", overflow: "hidden" }}>
         <div style={{ padding: "20px 24px", borderBottom: "1px solid #222", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: "13px", color: "#aaa", letterSpacing: "0.06em" }}>RECENT ORDERS</div>
-          <Link href="/admin/orders" style={{ fontSize: "11px", color: "#555", textDecoration: "none", letterSpacing: "0.1em" }}>VIEW ALL →</Link>
+          <div style={{ fontSize: "13px", color: "#fff", letterSpacing: "0.06em" }}>RECENT ORDERS</div>
+          <Link href="/admin/orders" style={{ fontSize: "11px", color: "#fff", textDecoration: "none", letterSpacing: "0.1em" }}>VIEW ALL →</Link>
         </div>
 
         {loading ? (
@@ -95,37 +103,37 @@ export default function AdminDashboard() {
             <thead>
               <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
                 {["Order ID", "Items", "Total", "Status", "Date"].map((h) => (
-                  <th key={h} style={{ padding: "12px 24px", textAlign: "left", fontSize: "10px", letterSpacing: "0.15em", color: "#444", textTransform: "uppercase", fontWeight: "600" }}>{h}</th>
+                  <th key={h} style={{ padding: "12px 24px", textAlign: "left", fontSize: "10px", letterSpacing: "0.15em", color: "#fff", textTransform: "uppercase", fontWeight: "600" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {recentOrders.map((order) => (
                 <tr key={order._id} style={{ borderBottom: "1px solid #171717" }}>
-                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#666", fontFamily: "monospace" }}>
+                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#fff", fontFamily: "monospace" }}>
                     <Link href={`/admin/orders/${order._id}`} style={{ color: "#e8c46a", textDecoration: "none" }}>
                       #{String(order._id).slice(-8).toUpperCase()}
                     </Link>
                   </td>
-                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#888" }}>{order.items?.length || 0} item(s)</td>
-                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#e8e8e8", fontWeight: "600" }}>
-                    ${getTotal(order) || "—"}
+                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#fff" }}>{order.items?.length || 0} item(s)</td>
+                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#fff", fontWeight: "600" }}>
+                    ₦{getTotal(order) || "—"}
                   </td>
                   <td style={{ padding: "14px 24px" }}>
                     <span style={{
                       fontSize: "10px",
                       letterSpacing: "0.12em",
                       textTransform: "uppercase",
-                      color: STATUS_COLORS[order.status] || "#888",
-                      background: `${STATUS_COLORS[order.status]}18` || "#88888818",
-                      border: `1px solid ${STATUS_COLORS[order.status]}33` || "#88888833",
+                      color: STATUS_COLORS[order.status?.toLowerCase()] || "#fff",
+                      background: `${STATUS_COLORS[order.status?.toLowerCase()]}18` || "#88888818",
+                      border: `1px solid ${STATUS_COLORS[order.status?.toLowerCase()]}33` || "#88888833",
                       padding: "3px 8px",
                       borderRadius: "4px",
                     }}>
                       {order.status}
                     </span>
                   </td>
-                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#555" }}>
+                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#fff" }}>
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                 </tr>

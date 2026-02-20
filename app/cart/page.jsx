@@ -666,7 +666,7 @@ const CartPage = () => {
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="w-[88px] h-[32px]">
+                  {/* <div className="w-[88px] h-[32px]">
                     <Image
                       width={88}
                       height={32}
@@ -674,7 +674,7 @@ const CartPage = () => {
                       alt="flutterwave"
                       className="w-full h-full object-contain"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}
