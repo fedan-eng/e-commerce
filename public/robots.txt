@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /account
+Disallow: /api/
+Disallow: /admin/
+
 
 Sitemap: https://www.filstore.com.ng/sitemap.xml
