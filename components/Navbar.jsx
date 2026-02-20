@@ -1,18 +1,22 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import {useState, useRef, useEffect} from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import {Menu, X} from "lucide-react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import {usePathname} from "next/navigation";
 import ProfileTooltip from "./ProfileTooltip";
 import ArrivalTooltip from "./ArrivalTooltip";
 import ProductTooltip from "./ProductTooltip";
 import NavSearchTooltip from "./NavSearchTooltip";
-import { useSelector } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
+import {useSelector} from "react-redux";
+import {motion, AnimatePresence} from "framer-motion";
 import Accordion from "@/components/Accordion";
-import { GoChevronDown } from "react-icons/go";
-import { GoChevronUp } from "react-icons/go";
+import {GoChevronDown} from "react-icons/go";
+import {GoChevronUp} from "react-icons/go";
+import LogoutButton from "./LogoutButton";
+import {useRouter} from "next/navigation";
+import {useDispatch} from "react-redux";
+import {logoutUser} from "@/store/features/authSlice";
 
 const homeLinks = [
   {
@@ -27,12 +31,24 @@ const homeLinks = [
 ];
 
 export default function Navbar() {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    const result = await dispatch(logoutUser());
+
+    if (logoutUser.fulfilled.match(result)) {
+      router.push("/");
+    } else {
+      console.error("Logout failed:", result.payload);
+    }
+  };
   const menuRef = useRef(null);
 
   const cartItems = useSelector((state) => state.cart.items);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const {isAuthenticated} = useSelector((state) => state.auth);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuData, setMobileMenuData] = useState([]);
@@ -44,11 +60,11 @@ export default function Navbar() {
   const [hasMounted, setHasMounted] = useState(false);
 
   const CATEGORIES = [
-    { key: "Power Bank", title: "Power Bank" },
-    { key: "Wearables", title: "Wearables" },
-    { key: "Chargers", title: "Chargers" },
-    { key: "Lifestyle", title: "Lifestyle" },
-    { key: "Extensions", title: "Extensions" },
+    {key: "Power Bank", title: "Power Bank"},
+    {key: "Wearables", title: "Wearables"},
+    {key: "Chargers", title: "Chargers"},
+    {key: "Lifestyle", title: "Lifestyle"},
+    {key: "Extensions", title: "Extensions"},
   ];
 
   useEffect(() => {
@@ -63,8 +79,8 @@ export default function Navbar() {
         try {
           const res = await fetch(
             `/api/products?categories=${encodeURIComponent(
-              category.key
-            )}&limit=4`
+              category.key,
+            )}&limit=4`,
           );
           const data = await res.json();
 
@@ -159,20 +175,12 @@ export default function Navbar() {
 
               <li>
                 <Link href="/contact">
-                  <Image
-                    alt="help"
-                    width={28}
-                    height={28}
-                    src="/help.svg"
-                  />
+                  <Image alt="help" width={28} height={28} src="/help.svg" />
                 </Link>
               </li>
 
               <li>
-                <Link
-                  href="/cart"
-                  className="relative flex items-center gap-2"
-                >
+                <Link href="/cart" className="relative flex items-center gap-2">
                   <Image
                     src="/cart.svg"
                     alt=""
@@ -192,21 +200,22 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <div className="nav:hidden flex items-center space-x-2">
               <NavSearchTooltip />
-              <ProfileTooltip isAuthenticated={isAuthenticated} />
-
-              <Link href="/contact">
-                <Image
-                  alt="help"
-                  width={28}
-                  height={28}
-                  src="/help.svg"
-                />
+              <Link href="/profile">
+                <div className="font-extrabold hover:text-mustard text-2xl">
+                  <Image
+                    alt="profile"
+                    width={28}
+                    height={28}
+                    src="/profile.svg"
+                  />
+                </div>
               </Link>
 
-              <Link
-                href="/cart"
-                className="relative flex items-center gap-2"
-              >
+              <Link href="/contact">
+                <Image alt="help" width={28} height={28} src="/help.svg" />
+              </Link>
+
+              <Link href="/cart" className="relative flex items-center gap-2">
                 <Image
                   src="/cart.svg"
                   alt=""
@@ -230,10 +239,10 @@ export default function Navbar() {
             <motion.div
               key="mobile-menu"
               ref={menuRef}
-              initial={{ x: "-100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "-100%", opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              initial={{x: "-100%", opacity: 0}}
+              animate={{x: 0, opacity: 1}}
+              exit={{x: "-100%", opacity: 0}}
+              transition={{duration: 0.3, ease: "easeInOut"}}
               className="nav:hidden z-50 relative bg-white p-4"
             >
               <Accordion
@@ -282,26 +291,27 @@ export default function Navbar() {
                 className="mx-auto"
                 headerClassName="text-xs sm:text-sm bg-white py-4 px-1 sm:px-4"
                 contentClassName="text-sm mx-1 sm:mx-4 px-1 sm:px-4 rounded-md bg-[#f5f5f5] py-4"
-                icon={({ isOpen }) =>
+                icon={({isOpen}) =>
                   isOpen ? <GoChevronUp /> : <GoChevronDown />
                 }
                 iconClassName="text-black text-lg font-bold"
               />
 
+                {!isAuthenticated ? (
               <div className="mt-2 border-black border-t">
-                <p className="mt-6 mb-3 text-sm"> You're not a member? </p>
-{(!isAuthenticated) ? (
-  <Link href="/login" className="py-2 w-full block sm:py-3 border border-[#d9d9d9] rounded-md text-[#007c42] text-xs sm:text-sm text-center">
-                    Sign in/Join Us
-                </Link>
-) : (
-  <Link href="/profile" className="py-2 w-full block sm:py-3 border border-[#d9d9d9] rounded-md text-[#007c42] text-xs sm:text-sm text-center">
-                    My Profile
-                </Link>
-)}
-
-                
-              </div>
+                    <p className="mt-6 mb-3 text-sm"> You're not a member? </p>
+                    <Link
+                      href="/login"
+                      className="py-2 w-full block sm:py-3 border border-[#d9d9d9] rounded-md text-[#007c42] text-xs sm:text-sm text-center"
+                    >
+                      Sign in/Join Us
+                    </Link>
+                    </div>
+                ) : (
+                  <button onClick={handleLogout} className="py-2 outline-none w-full block sm:py-3 border-filgreen rounded-md text-filgreen text-xs sm:text-sm text-center">
+                    Logout
+                  </button>
+                )}
             </motion.div>
           )}
         </AnimatePresence>

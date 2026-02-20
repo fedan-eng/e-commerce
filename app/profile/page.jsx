@@ -13,6 +13,8 @@ import { GoShieldLock } from "react-icons/go";
 import { AiOutlineShop } from "react-icons/ai";
 import { CiHeart } from "react-icons/ci";
 import { IoIosArrowForward } from "react-icons/io";
+import { useSelector } from "react-redux";
+import Link from "next/link";
 
 const links = [
   { name: "General Information", icon: <MdOutlineManageAccounts size={24} /> },
@@ -21,9 +23,11 @@ const links = [
   { name: "Wishlist", icon: <CiHeart size={24} /> },
 ];
 
+
 // Small child component that uses useSearchParams
 function ProfileContent() {
   const searchParams = useSearchParams();
+
   const tab = searchParams.get("tab") || "General Information";
 
   const [activeLink, setActiveLink] = useState(tab);
@@ -108,9 +112,11 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
   return (
     <Suspense fallback={<div>Loading profile...</div>}>
-      <ProfileContent />
+      {isAuthenticated ? <ProfileContent /> : <div className="h-120 flex flex-row justify-center items-center" ><Link className=" bg-filgreen px-5 py-3 text-white  text-2xl rounded-md hover:bg-filgreen/80 font-oswald " href="/login">Login to view profile</Link></div>}
     </Suspense>
   );
 }

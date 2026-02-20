@@ -48,26 +48,7 @@ export default function ChangePasswordForm() {
 
   return (
     <div className="mx-auto w-full max-w-[1140px]">
-      <div className="flex justify-end">
-        <div className="flex items-center gap-2 mb-3">
-          <button
-            type="button"
-            onClick={handleGoBack}
-            className="px-2 sm:px-6 py-3 border border-[#d9d9d9] rounded-md font-medium text-[#007c42] text-sm"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            onClick={formik.handleSubmit}
-            className="bg-filgreen px-2 sm:px-6 py-3 rounded-md font-medium text-sm"
-            disabled={loading}
-          >
-            {loading ? <Loading /> : "Save Changes"}
-          </button>
-        </div>
-      </div>
+      
 
       <div className="flex justify-center gap-4">
         <div className="order-1 mb-10 px-2 sm:px-6 pb-4 sm:pb-20 border border-[#e3e3e3] rounded-md w-full max-w-[851px]">
@@ -168,6 +149,26 @@ export default function ChangePasswordForm() {
               </label>
             </div>
           </form>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <div className="flex items-center gap-2 mb-10">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="px-2 sm:px-6 py-3 border border-[#d9d9d9] rounded-md font-medium text-[#007c42] text-sm"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={formik.handleSubmit}
+            className="bg-filgreen px-2 sm:px-6 py-3 rounded-md font-medium text-sm"
+            disabled={loading}
+          >
+            {loading ? <Loading /> : "Save Changes"}
+          </button>
         </div>
       </div>
     </div>

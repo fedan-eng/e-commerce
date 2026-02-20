@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Volume, VolumeX } from "lucide-react";
 
 const items = [
   {
@@ -77,6 +78,7 @@ function applyIOSInlineAttributes(el) {
 
 export default function InfiniteCarousel() {
   const [active, setActive] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
   const [direction, setDirection] = useState(0);
 
   const videoRefs = useRef({});
@@ -251,14 +253,22 @@ export default function InfiniteCarousel() {
                   }}
                   onClick={(e) => handleVideoClick(e, item.id)}
                   poster={item.poster}
-                
+                 muted={isMuted}
                   playsInline
                   className="relative rounded-md w-full h-full object-cover cursor-pointer"
                 >
                   <source src={item.img} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-
+<div className={`absolute right-5 bottom-5 ${isCenter ? "visible" : "hidden"}`} >
+                   {
+                    !isMuted? (
+                      <Volume className="mr-2" size={20} color="#fff" onClick={()=> setIsMuted(true)} />
+                    ) : (
+                      <VolumeX className="mr-2" size={20} color="#fff" onClick={()=> setIsMuted(false)} />
+                    )
+                  }
+                 </div>
                 {/* Play overlay — shown only on non-center videos */}
                 <motion.div
                   className="bottom-4 left-1/2 z-50 absolute flex justify-center items-center -translate-x-1/2 pointer-events-none"
@@ -266,6 +276,7 @@ export default function InfiniteCarousel() {
                   animate={isCenter ? "hidden" : "visible"}
                   variants={contentVariants}
                 >
+                 
                   <img src="play.svg" alt="play" />
                   <p className="px-1 py-2 text-white">Play</p>
                 </motion.div>
