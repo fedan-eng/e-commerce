@@ -119,6 +119,15 @@ export default function OrderSheet() {
     }
   };
 
+  const statusStyles = {
+  Pending:    "bg-[#fff4cc] text-[#b38600]",
+  Processing: "bg-[#ddeeff] text-[#0055cc]",
+  Confirmed:  "bg-[#dcf3de] text-[#007c42]",
+  Shipped:    "bg-[#e8e0ff] text-[#5500cc]",
+  Delivered:  "bg-[#dcf3de] text-[#004d2b]",
+  Cancelled:  "bg-[#ffe0e0] text-[#cc0000]",
+};
+
   return (
     <div className="mx-auto w-full max-w-[1140px]">
       <div className="justify-center gap-4">
@@ -174,9 +183,9 @@ export default function OrderSheet() {
                             <p className="my-1 font-oswald text-sm line-clamp-1">
                               {item.name}
                             </p>
-                            <p className="inline-block bg-[#dcf3de] px-2 py-1 rounded-md text-[#007c42] text-[10px]">
-                              {item.status}
-                            </p>
+                            <p className={`inline-block px-2 py-1 rounded-md text-[10px] ${statusStyles[item.status] || "bg-gray-100 text-gray-600"}`}>
+  {item.status}
+</p>
                           </div>
                         </div>
 
