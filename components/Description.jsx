@@ -103,13 +103,13 @@ const Description = ({ activeImage, clickNext, clickPrev }) => {
             variants={containerVariants}
             initial="hidden"
             animate={showContent ? "visible" : "fadeOut"}
-            className="top-1/2 absolute mx-4 md:mx-8 lg:mx-[53px] text-[#3c3c3c] -translate-y-1/2"
+            className="top-1/2 absolute mx-4 md:mx-8 lg:mx-[53px] text-stone-700 -translate-y-1/2"
           >
             <motion.h3
               variants={paragraphVariants}
               initial="hidden"
               animate="visible"
-              className={` font-oswald font-bold text-4xl sm:text-6xl lg:text-[100px] ${item.titleStyle}`}
+              className={` text-stroke-filgreen font-oswald font-bold text-4xl sm:text-6xl lg:text-[100px] ${item.titleStyle}`}
             >
               {item.title}
             </motion.h3>
@@ -118,7 +118,7 @@ const Description = ({ activeImage, clickNext, clickPrev }) => {
               variants={headerVariants}
               initial="hidden"
               animate="visible"
-              className={` font-roboto font-bold sm:text-2xl text-base max-sm:px-2 max-w-[453px] w-full max-s:px-4 leading-[140%] mt-4 mb-10 ${item.descStyle}`}
+              className={` font-roboto uppercase font-bold sm:text-2xl text-base max-sm:px-2 max-w-[453px] w-full max-s:px-4 leading-[140%] mt-4 mb-10 ${item.descStyle}`}
             >
               {item.desc}
             </motion.p>

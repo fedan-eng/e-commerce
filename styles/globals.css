@@ -64,6 +64,10 @@
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+    .text-stroke-filgreen {
+    -webkit-text-stroke: 1px #1cc978;
+    text-stroke: 1px black;
+  }
 }
 
 .form-background {
