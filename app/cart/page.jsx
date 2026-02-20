@@ -102,16 +102,16 @@ const CartPage = () => {
 
   if (!hasMounted) return null;
 
-  const handleRemove = (id) => {
-    dispatch(removeFromCart(id));
-  };
+const handleRemove = (id, color) => {
+  dispatch(removeFromCart({ _id: id, color }));
+};
 
-  const handleQuantityChange = (id, value) => {
-    const qty = parseInt(value);
-    if (qty >= 1) {
-      dispatch(updateQuantity({_id: id, quantity: qty}));
-    }
-  };
+const handleQuantityChange = (id, color, value) => {
+  const qty = parseInt(value);
+  if (qty >= 1) {
+    dispatch(updateQuantity({ _id: id, color, quantity: qty }));
+  }
+};
 
   const subTotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -274,9 +274,7 @@ const CartPage = () => {
     </div>
     <div className="max-s:hidden flex items-center gap-1 border border-[#d9d9d9] rounded-md w-fit">
       <button
-        onClick={() =>
-          handleQuantityChange(item._id, item.quantity - 1)
-        }
+       onClick={() => handleQuantityChange(item._id, item.color, item.quantity - 1)}
         disabled={item.quantity <= 1}
         className="flex justify-center cursor-pointer items-center px-2 py-1 text-dark hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-l-md"
       >
@@ -286,20 +284,13 @@ const CartPage = () => {
       <input
         type="number"
         value={item.quantity}
-        onChange={(e) =>
-          handleQuantityChange(
-            item._id,
-            Math.max(1, Number(e.target.value)),
-          )
-        }
+       onChange={(e) => handleQuantityChange(item._id, item.color, Math.max(1, Number(e.target.value)))}
         className="px-1 sm:px-2 py-1 border-x border-[#d9d9d9] outline-0 w-[40px] sm:w-[50px] text-center text-dark text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         min="1"
       />
 
       <button
-        onClick={() =>
-          handleQuantityChange(item._id, item.quantity + 1)
-        }
+       onClick={() => handleQuantityChange(item._id, item.color, item.quantity + 1)}
         className="flex justify-center cursor-pointer items-center px-2 py-1 text-dark hover:bg-gray-100 transition-colors rounded-r-md"
       >
         <HiPlus className="text-sm" />
@@ -312,7 +303,7 @@ const CartPage = () => {
       {formatAmount(item.price * item.quantity)}
     </span>
     <button
-      onClick={() => handleRemove(item._id)}
+     onClick={() => handleRemove(item._id, item.color)}
       className="flex justify-center min-w-0 text-red-500 hover:text-red-700 text-xl"
     >
       <MdOutlineDelete />
