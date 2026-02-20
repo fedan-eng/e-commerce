@@ -118,7 +118,7 @@ const Description = ({ activeImage, clickNext, clickPrev }) => {
               variants={headerVariants}
               initial="hidden"
               animate="visible"
-              className={`text-stroke-filgreen font-roboto uppercase font-bold sm:text-2xl text-base max-sm:px-2 max-w-[453px] w-full max-s:px-4 leading-[140%] mt-4 mb-10 ${item.descStyle}`}
+              className={`text-stroke-filgreen-sm font-roboto uppercase font-bold sm:text-2xl text-base max-sm:px-2 max-w-[453px] w-full max-s:px-4 leading-[140%] mt-4 mb-10 ${item.descStyle}`}
             >
               {item.desc}
             </motion.p>

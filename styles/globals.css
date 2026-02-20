@@ -68,6 +68,10 @@
     -webkit-text-stroke: 1px #1cc978;
     text-stroke: 1px black;
   }
+    .text-stroke-filgreen-sm {
+    -webkit-text-stroke: 0.3px #1cc978;
+    text-stroke: 0.3px black;
+  }
 }
 
 .form-background {
