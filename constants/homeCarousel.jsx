@@ -20,7 +20,7 @@ export const homeImages = [
   {
     id: 3,
     src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581550/HERO_SECTION_5_bu19bu.jpg",
-    title: "RELIABLE POWER. ALWAYS",
+    title: "RELIABLE POWER.",
     link: "/products?categories=Power+Bank",
     desc: "Our Powerbank no dey carry belle ",
     titleStyle: "",
