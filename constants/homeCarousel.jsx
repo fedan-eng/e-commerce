@@ -13,7 +13,7 @@ export const homeImages = [
     src: "/fans.png",
     title: "FIL FANS",
     link: " /products?categories=Lifestyle",
-    desc: "Lorem ipsum dolor sit amet consectetur.",
+    desc: "Beat the heat effortlessly.",
     titleStyle: "",
     descStyle: "",
   },
