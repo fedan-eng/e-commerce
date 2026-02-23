@@ -103,7 +103,7 @@ const Description = ({ activeImage, clickNext, clickPrev }) => {
             variants={containerVariants}
             initial="hidden"
             animate={showContent ? "visible" : "fadeOut"}
-            className={`top-1/2 absolute mx-4 md:mx-8 lg:mx-[53px] ${item.id === 1 ? "text-[#D5CAEC]" : "text-stone-700"} -translate-y-1/2`}
+            className={`top-1/2 absolute mx-4 md:mx-8 lg:mx-[53px] ${item.id === 1 ? "text-[#d5caec]" : "text-stone-700"} -translate-y-1/2`}
           >
             <motion.h3
               variants={paragraphVariants}
