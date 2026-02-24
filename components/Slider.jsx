@@ -50,7 +50,7 @@ const Slider = () => {
               alt=""
               width={400}
               height={400}
-              className="w-full h-full object-cover overflow-hidden"
+              className="w-full h-full object-contain overflow-hidden"
               initial={{ scale: 1 }} // Start at normal scale
               animate={idx === activeImage ? { scale: 1.1 } : {}} // Only scale the active image
               transition={{
