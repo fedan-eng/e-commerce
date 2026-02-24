@@ -399,7 +399,7 @@ export default function ProductDetailsPage() {
               />
 
               <AddToCartButton
-                className="max-xxs:order-1 bg-filgreen px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition"
+                className={`max-xxs:order-1 ${product.availability ? "bg-filgreen text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`}
                 product={product}
                 selectedColor={selectedColor}
               />

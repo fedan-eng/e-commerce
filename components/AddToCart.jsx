@@ -47,8 +47,9 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
       <button
         onClick={handleAddToCart}
         className={`cursor-pointer ${className}`}
+        disabled={!product || !product.availability} 
       >
-        Add to Cart
+        {product && product.availability ? "Add to Cart" : "Out of Stock"}
       </button>
     </>
   );

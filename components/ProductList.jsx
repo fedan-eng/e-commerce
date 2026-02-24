@@ -13,7 +13,7 @@ import Image from "next/image";
 import Loading from "@/components/Loading";
 import ProductFilter from "@/components/ProductFilter";
 import { formatAmount } from "lib/utils";
-import AddToCartButton from "@/components/AddToCart";
+import AddToCartButton from "@/components/AddToCart"; 
 import WishlistButton from "@/components/WishlistButton";
 import { MdNavigateNext } from "react-icons/md";
 import { MdKeyboardDoubleArrowRight } from "react-icons/md";
@@ -317,7 +317,7 @@ export default function ProductList() {
 
                           <div className="top-0 left-0 absolute opacity-0 hover:opacity-100 w-full transition-opacity duration-300">
                             <AddToCartButton
-                              className="flex justify-center bg-black py-2 rounded-md w-full text-white text-xs text-center"
+                              className={`flex justify-center ${product.availability ? "bg-black " : "bg-gray-300 cursor-not-allowed"} py-2 rounded-md w-full text-white text-xs text-center`}
                               product={product}
                             />
                           </div>
@@ -341,7 +341,7 @@ export default function ProductList() {
 
                           <div className="mt-4 w-full">
                             <AddToCartButton
-                              className="flex justify-center bg-black py-2 rounded-md w-full text-white text-xs text-center"
+                              className={`flex justify-center ${product.availability ? "bg-black " : "bg-gray-300 cursor-not-allowed"} py-2 rounded-md w-full text-white text-xs text-center`}
                               product={product}
                             />
                           </div>

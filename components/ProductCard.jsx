@@ -49,7 +49,7 @@ const ProductCard = ({
           <div className="relative">
             {/* fast */}
             {product.tag === "fast" && (
-              <>
+              <> 
                 <img
                   src="/redtag.png"
                   alt="Fast tag"
@@ -162,7 +162,7 @@ const ProductCard = ({
 
             <div className="top-0 left-0 absolute opacity-0 hover:opacity-100 w-full transition-opacity duration-300">
               <AddToCartButton
-                className="flex justify-center bg-black py-2 rounded-md w-full text-white text-xs text-center"
+                className={`flex justify-center ${product.availability ? "bg-black" : "bg-gray-300 cursor-not-allowed"} py-2 rounded-md w-full text-white text-xs text-center`}
                 product={product}
               />
             </div>
@@ -186,7 +186,7 @@ const ProductCard = ({
 
             <div className="mt-2 w-full">
               <AddToCartButton
-                className="flex justify-center bg-black py-2 rounded-md w-full text-white text-xs text-center"
+                className={`flex justify-center ${product.availability ? "bg-black" : "bg-gray-300 cursor-not-allowed"} py-2 rounded-md w-full text-white text-xs text-center`}
                 product={product}
               />
             </div>
