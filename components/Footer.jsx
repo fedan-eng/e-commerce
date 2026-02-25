@@ -318,6 +318,89 @@ const Footer = () => {
     return null;
   }
 
+
+//Draggable discount tag state and handlers
+
+
+  const [pos, setPos] = useState({ x: -35, y: 220 });
+  const [side, setSide] = useState("left");
+  const [isDragging, setIsDragging] = useState(false);
+  const [snapped, setSnapped] = useState(true);
+
+  const elementRef = useRef(null);
+  const dragState = useRef({
+    startMouseX: 0,
+    startMouseY: 0,
+    startElemX: -35,
+    startElemY: 220,
+    dragged: false,
+  });
+
+  const ELEM_WIDTH = 120;
+  const ELEM_HEIGHT = 48;
+  const SNAP_PEEK = 35; // how many px peek out from edge
+
+  const clampY = (y) => {
+    const maxY = window.innerHeight - ELEM_HEIGHT - 60;
+    return Math.min(Math.max(y, 60), maxY);
+  };
+
+  const doSnap = (currentX, currentY) => {
+    const centerX = currentX + ELEM_WIDTH / 2;
+    const nearLeft = centerX < window.innerWidth / 2;
+    setSide(nearLeft ? "left" : "right");
+    setSnapped(true);
+    setPos({
+      x: nearLeft ? -SNAP_PEEK : window.innerWidth - ELEM_WIDTH + SNAP_PEEK,
+      y: clampY(currentY),
+    });
+  };
+
+  const onPointerDown = (e) => {
+    if (e.target.closest("button")) return;
+    e.preventDefault();
+    dragState.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startElemX: pos.x,
+      startElemY: pos.y,
+      dragged: false,
+    };
+    setIsDragging(true);
+    setSnapped(false);
+    elementRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragState.current.startMouseX;
+    const dy = e.clientY - dragState.current.startMouseY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragState.current.dragged = true;
+
+    setPos({
+      x: dragState.current.startElemX + dx,
+      y: clampY(dragState.current.startElemY + dy),
+    });
+  };
+
+  const onPointerUp = (e) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (!dragState.current.dragged) {
+      setIsOverlayOpen(true);
+      doSnap(pos.x, pos.y);
+    } else {
+      doSnap(pos.x, pos.y);
+    }
+  };
+
+  const rotation = side === "left" ? "-90deg" : "90deg";
+
+  if (!isTagVisible) return null;
+
+
+
+
   return (
     <>
       {/* Overlay */}
@@ -432,31 +515,70 @@ const Footer = () => {
         {/* DISCOUNT TAG (fixed on side). Clicking the tag opens overlay. The small X hides the tag until refresh. */}
         {(pathname === "/" && isTagVisible) && (
         
-          <div
-            onClick={() => setIsOverlayOpen(true)}
-            className="top-[220px] opacity-50 hover:opacity-100 -left-[35px] z-40 fixed -rotate-90 cursor-pointer"
-            role="button"
-            aria-label="Open discount popup"
+          <>
+      <div
+        ref={elementRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        style={{
+          position: "fixed",
+          left: pos.x,
+          top: pos.y,
+          width: ELEM_WIDTH,
+          transform: `rotate(${rotation})`,
+          transformOrigin: "center center",
+          transition: snapped && !isDragging
+            ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+            : "none",
+          userSelect: "none",
+          touchAction: "none",
+          zIndex: 40,
+          cursor: isDragging ? "grabbing" : "grab",
+          opacity: isDragging ? 1 : undefined,
+        }}
+        className="opacity-50 hover:opacity-100"
+        role="button"
+        aria-label="Open discount popup"
+      >
+        <div className="relative bg-black px-6 py-4 rounded-bl-md rounded-br-md font-medium text-white text-xs whitespace-nowrap">
+          Get 10% OFF
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsTagVisible(false);
+            }}
+            aria-label="Close discount tag"
+            className="-right-3 -bottom-3 absolute flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[29px] h-[29px] text-black rotate-180 cursor-pointer"
           >
-            <div className="relative bg-black px-6 py-4 rounded-bl-md rounded-br-md font-medium text-white text-xs">
-              Get 10% OFF
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsTagVisible(false);
-                }}
-                aria-label="Close discount tag"
-                className="-right-3 -bottom-3 absolute flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[29px] h-[29px] text-black rotate-180 cursor-pointer"
-              >
-                <Image
-                  width={6}
-                  height={6}
-                  src="/close.png"
-                  alt="close"
-                />
-              </button>
-            </div>
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {isOverlayOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setIsOverlayOpen(false)}
+        >
+          <div
+            className="bg-white p-8 rounded-xl shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold mb-2">Get 10% OFF 🎉</h2>
+            <p className="text-gray-500">
+              Use code <span className="font-mono font-bold">SAVE10</span> at checkout.
+            </p>
+            <button
+              onClick={() => setIsOverlayOpen(false)}
+              className="mt-4 px-4 py-2 bg-black text-white rounded-lg"
+            >
+              Close
+            </button>
           </div>
+        </div>
+      )}
+    </>
         )}
 
         {/* TOP AND WHATSAPP */}
