@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/mailer";
+import mailchimp from "@mailchimp/mailchimp_marketing";
+
+// Configure Mailchimp
+mailchimp.setConfig({
+  apiKey: process.env.MAILCHIMP_API_KEY,
+  server: process.env.MAILCHIMP_SERVER_PREFIX,
+});
+
 export async function POST(req) {
   try {
     const { email } = await req.json();
@@ -11,14 +19,25 @@ export async function POST(req) {
       );
     }
 
-    // Notify admin
-    await sendEmail(
-      process.env.EMAIL_USER,
-      "New Marketing Subscription 📧",
-      `${email} has subscribed to email marketing.`
-    );
+    // Add subscriber to Mailchimp
+    try {
+      await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+        email_address: email,
+        status: "subscribed",
+        tags: ["website_signup"], // Optional: tag for tracking
+      });
+    } catch (mailchimpError) {
+      // Handle if email already exists
+      if (mailchimpError.status === 400 && mailchimpError.response?.body?.title === "Member Exists") {
+        return NextResponse.json(
+          { message: "You're already subscribed!" },
+          { status: 400 }
+        );
+      }
+      throw mailchimpError;
+    }
 
-    // 2️⃣ Send welcome email to user
+    // Send welcome email to user
     await sendEmail(
       email,
       "Welcome to FIL! Enjoy 10% OFF",
@@ -30,7 +49,7 @@ Thanks for signing up for our exclusive offers 🔥
 Use promo code: WELCOME10
 To enjoy: 10% OFF your first purchase 🎁
 
-Shop now at FIL Store. We’re excited to have you! 😊
+Shop now at FIL Store. We're excited to have you! 😊
 
 — FIL Team
       `
