@@ -97,6 +97,7 @@ export default function ProductDetailsPage() {
   const [selectedColor, setSelectedColor] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
+  const [commentSubmitted, setCommentSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
   const [page, setPage] = useState(1);
@@ -168,7 +169,7 @@ export default function ProductDetailsPage() {
     const fetchComments = async () => {
       try {
         const res = await axios.get(`/api/products/${id}/comments`);
-        setComments(res.data);
+        setComments(res.data.filter(c => !c.status || c.status === "approved"));
       } catch (err) {
         console.error("Error fetching comments:", err);
       }
@@ -178,34 +179,23 @@ export default function ProductDetailsPage() {
   }, [id]);
 
   // Handle comment submission
-  const handleSubmitComment = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
+ const handleSubmitComment = async (e) => {
+  e.preventDefault();
+  if (!commentText.trim()) return;
 
-    try {
-      setSubmitting(true);
-      const res = await axios.post(`/api/products/${id}/comments`, {
-        text: commentText,
-      });
-
-      // Inject full user info manually (so UI doesn’t need to wait for refresh)
-      const fullComment = {
-        ...res.data,
-        user: {
-          _id: user._id,
-          firstName: user.firstName, // or use user.name
-        },
-      };
-
-      setComments((prev) => [...prev, fullComment]);
-      setCommentText("");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to post comment. Please log in.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  try {
+    setSubmitting(true);
+    await axios.post(`/api/products/${id}/comments`, { text: commentText });
+    setCommentText("");
+    setCommentSubmitted(true);
+    setTimeout(() => setCommentSubmitted(false), 4000);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to post comment. Please log in.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // Fetch product only if not already loaded
   useEffect(() => {
@@ -247,6 +237,39 @@ export default function ProductDetailsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1140px]">
+    {/* ── Review submitted toast ── */}
+          <div style={{
+      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+      zIndex: 9999, pointerEvents: "none",
+      transition: "opacity 0.4s ease, transform 0.4s ease",
+      opacity: commentSubmitted ? 1 : 0,
+      transform: commentSubmitted ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(16px)",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", gap: "12px",
+        background: "#1a1a1a", border: "1px solid #2a2a2a",
+        borderRadius: "10px", padding: "14px 20px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        minWidth: "300px",
+      }}>
+        <div style={{
+          width: "32px", height: "32px", borderRadius: "50%",
+          background: "#6ae8a015", border: "1px solid #6ae8a033",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, fontSize: "14px",
+        }}>✓</div>
+        <div>
+          <p style={{ margin: 0, fontSize: "13px", fontWeight: "600", color: "#e8e8e8" }}>
+            Review submitted!
+          </p>
+          <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#6ae8a0" }}>
+            Your review is pending approval and will appear shortly.
+          </p>
+        </div>
+      </div>
+    </div>
+
+
       <div className="md:flex gap-3 nav:gap-6">
         {/* Left side - Images */}
         <div className="flex flex-col items-center gap-4 md:gap-10 mt-3 md:mt-12 basis-[546px]">

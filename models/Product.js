@@ -51,16 +51,21 @@ const productSchema = new mongoose.Schema(
     averageRating: { type: Number, default: 0 },
     ratingsCount: { type: Number, default: 0 },
     comments: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        text: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    text: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "archived"],
+      default: "pending",  // all new comments need approval
+    },
+  },
+],
   },
   {
     timestamps: true,
