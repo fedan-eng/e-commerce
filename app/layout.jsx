@@ -1,9 +1,8 @@
 import "../styles/globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "FIL Store",
@@ -24,7 +23,9 @@ export default function RootLayout({ children }) {
       <body>
         <Providers>
           <AuthInitializer />
-             <ConditionalShell>{children}</ConditionalShell>
+             <Suspense fallback={<div>Loading...</div>}>
+            <ConditionalShell>{children}</ConditionalShell>
+          </Suspense>
         </Providers>
       </body>
     </html>
