@@ -76,7 +76,7 @@ export default function VerifyPaymentPage() {
         if (data.verified) {
           setOrderDetails(data.orderData);
           dispatch(clearCart());
-          
+           
           // Clear localStorage checkout data
           localStorage.removeItem("cart");
           localStorage.removeItem("checkoutEmail");
@@ -107,78 +107,245 @@ export default function VerifyPaymentPage() {
     verify();
   }, [paystackRef, flutterwaveRef, flutterwaveStatus, dispatch]);
 
-  const generateReceipt = () => {
-    if (!orderDetails) return;
+ const generateReceipt = () => {
+  if (!orderDetails) return;
 
-    const doc = new jsPDF();
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
 
-    // Header
-    doc.setFontSize(18);
-    doc.text("Order Receipt", 14, 20);
+  // Add watermark
+  doc.setGState(new doc.GState({ opacity: 0.1 }));
+  doc.setFontSize(60);
+  doc.setTextColor(28, 201, 120);
+  doc.text('FIL', pageWidth / 2, pageHeight / 2, {
+    align: 'center',
+    angle: 45
+  });
+  doc.setGState(new doc.GState({ opacity: 1 }));
 
-    // Customer & Order Info
-    doc.setFontSize(12);
-    doc.text(`Order Reference: ${orderDetails.paymentReference}`, 14, 35);
-    doc.text(
-      `Order Date: ${new Date().toLocaleString()}`,
-      14,
-      42
-    );
-    doc.text(`Customer: ${orderDetails.firstName} ${orderDetails.lastName || ''}`, 14, 49);
-    doc.text(`Email: ${orderDetails.email}`, 14, 56);
-    doc.text(`Phone: ${orderDetails.phone}`, 14, 63);
-    doc.text(`Delivery Type: ${orderDetails.deliveryType}`, 14, 70);
-    doc.text(
-      `Address: ${orderDetails.address}, ${orderDetails.city}, ${
-        orderDetails.region?.name || orderDetails.region
-      }`,
-      14,
-      77
-    );
-    doc.text(
-      `Payment Method: ${paymentProvider ? paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1) : 'N/A'}`,
-      14,
-      84
-    );
+  // Add logo at the top
+  try {
+    const logo = new Image();
+    logo.src = '/fillogo.png';
+    doc.addImage(logo, 'PNG', pageWidth / 2 - 20, 10, 40, 40);
+  } catch (error) {
+    console.log('Logo not found, skipping');
+  }
 
-    // Table of items
-    const tableData = orderDetails.cartItems.map((item, i) => [
-      i + 1,
-      item.name,
-      item.quantity,
-      `₦${item.price.toLocaleString()}`,
-      `₦${(item.price * item.quantity).toLocaleString()}`,
-    ]);
+  // Company name and tagline
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(28, 201, 120);
+  doc.text('Fedan Investment Limited', pageWidth / 2, 58, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Think Quality, Think FIL', pageWidth / 2, 65, { align: 'center' });
 
-    autoTable(doc, {
-      startY: 92,
-      head: [["#", "Product", "Qty", "Unit Price", "Total"]],
-      body: tableData,
-    });
+  // Divider line
+  doc.setDrawColor(28, 201, 120);
+  doc.setLineWidth(0.5);
+  doc.line(14, 70, pageWidth - 14, 70);
 
-    // Totals
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.text(
-      `Subtotal: ₦${orderDetails.subTotal.toLocaleString()}`,
-      14,
-      finalY
-    );
-    doc.text(
-      `Delivery Fee: ₦${orderDetails.deliveryFee.toLocaleString()}`,
-      14,
-      finalY + 7
-    );
-    doc.text(
-      `Discount: - ₦${orderDetails.discount.toLocaleString()}`,
-      14,
-      finalY + 14
-    );
-    doc.setFontSize(14);
-    doc.text(`Total: ₦${orderDetails.total.toLocaleString()}`, 14, finalY + 25);
+  // Receipt title
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 51, 51);
+  doc.text('ORDER RECEIPT', pageWidth / 2, 80, { align: 'center' });
 
-    // Save PDF
-    doc.save(`Receipt-${orderDetails.paymentReference}.pdf`);
-  };
+  // Order reference box
+  doc.setFillColor(248, 249, 250);
+  doc.roundedRect(14, 88, pageWidth - 28, 16, 3, 3, 'F');
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(28, 201, 120);
+  doc.text('Order Reference:', 18, 96);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 51, 51);
+  doc.text(orderDetails.paymentReference, 58, 96);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(28, 201, 120);
+  doc.text('Date:', 18, 101);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 51, 51);
+  doc.text(new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }), 32, 101);
+
+  // Customer Information Section
+  let yPos = 114;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 51, 51);
+  doc.text('CUSTOMER INFORMATION', 14, yPos);
+  
+  yPos += 2;
+  doc.setDrawColor(28, 201, 120);
+  doc.setLineWidth(0.3);
+  doc.line(14, yPos, 70, yPos);
+
+  yPos += 8;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  
+  const customerInfo = [
+    { label: 'Name:', value: `${orderDetails.firstName} ${orderDetails.lastName || ''}` },
+    { label: 'Email:', value: orderDetails.email },
+    { label: 'Phone:', value: orderDetails.phone },
+    { label: 'Address:', value: `${orderDetails.address}, ${orderDetails.city}` },
+    { label: 'Region:', value: orderDetails.region?.name || orderDetails.region },
+    { label: 'Delivery:', value: orderDetails.deliveryType },
+  ];
+
+  customerInfo.forEach((info) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(info.label, 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(info.value, 40, yPos);
+    yPos += 6;
+  });
+
+  // Payment Information Section
+  yPos += 4;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 51, 51);
+  doc.text('PAYMENT DETAILS', 14, yPos);
+  
+  yPos += 2;
+  doc.setDrawColor(28, 201, 120);
+  doc.line(14, yPos, 70, yPos);
+
+  yPos += 8;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text('Payment Method:', 14, yPos);
+  doc.setFont('helvetica', 'normal');
+  const paymentMethod = paymentProvider ? 
+    paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1) : 
+    'N/A';
+  doc.text(paymentMethod, 50, yPos);
+  
+  yPos += 6;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Status:', 14, yPos);
+  doc.setTextColor(28, 201, 120);
+  doc.setFont('helvetica', 'bold');
+  doc.text('✓ PAID', 50, yPos);
+
+  // Order Items Section
+  yPos += 12;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 51, 51);
+  doc.text('ORDER ITEMS', 14, yPos);
+  
+  yPos += 2;
+  doc.setDrawColor(28, 201, 120);
+  doc.line(14, yPos, 70, yPos);
+
+  // Items Table
+  const tableData = orderDetails.cartItems.map((item, i) => [
+    String(i + 1),
+    item.name,
+    String(item.quantity),
+    `₦${Number(item.price).toLocaleString()}`,
+    `₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}`,
+  ]);
+
+  autoTable(doc, {
+    startY: yPos + 5,
+    head: [['#', 'Product', 'Qty', 'Unit Price', 'Total']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [28, 201, 120],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 10,
+      halign: 'center',
+    },
+    bodyStyles: {
+      textColor: [51, 51, 51],
+      fontSize: 9,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 249, 250],
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      1: { cellWidth: 70 },
+      2: { halign: 'center', cellWidth: 20 },
+      3: { halign: 'right', cellWidth: 35 },
+      4: { halign: 'right', cellWidth: 35 },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Summary Section
+  const finalY = doc.lastAutoTable.finalY + 10;
+  
+  // Summary box
+  doc.setFillColor(248, 249, 250);
+  doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, 'F');
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  
+  const summaryY = finalY + 8;
+  doc.text('Subtotal:', pageWidth - 85, summaryY);
+  doc.text(`₦${Number(orderDetails.subTotal).toLocaleString()}`, pageWidth - 20, summaryY, { align: 'right' });
+  
+  doc.text('Delivery Fee:', pageWidth - 85, summaryY + 7);
+  doc.text(`₦${Number(orderDetails.deliveryFee).toLocaleString()}`, pageWidth - 20, summaryY + 7, { align: 'right' });
+  
+  doc.text('Discount:', pageWidth - 85, summaryY + 14);
+  doc.setTextColor(28, 201, 120);
+  doc.text(`-₦${Number(orderDetails.discount).toLocaleString()}`, pageWidth - 20, summaryY + 14, { align: 'right' });
+  
+  // Total line
+  doc.setDrawColor(28, 201, 120);
+  doc.setLineWidth(0.5);
+  doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(28, 201, 120);
+  doc.text('TOTAL:', pageWidth - 85, summaryY + 26);
+  doc.setFontSize(14);
+  doc.text(`₦${Number(orderDetails.total).toLocaleString()}`, pageWidth - 20, summaryY + 26, { align: 'right' });
+
+  // Footer
+  const footerY = pageHeight - 30;
+  doc.setDrawColor(28, 201, 120);
+  doc.setLineWidth(0.3);
+  doc.line(14, footerY, pageWidth - 14, footerY);
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Thank you for choosing FIL Store!', pageWidth / 2, footerY + 6, { align: 'center' });
+  doc.text('For support: support@filstore.com.ng | Visit: filstore.com.ng', pageWidth / 2, footerY + 11, { align: 'center' });
+  
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.text('This is a computer-generated receipt and does not require a signature.', pageWidth / 2, footerY + 18, { align: 'center' });
+
+  // Save PDF
+  doc.save(`FIL-Receipt-${orderDetails.paymentReference}.pdf`);
+};
 
   // 1️⃣ Loading state
   if (loading) {
