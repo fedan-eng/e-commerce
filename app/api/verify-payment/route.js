@@ -225,7 +225,7 @@ const emailHtml = `
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1cc978 0%, #16a05f 100%);
       color: white;
       padding: 40px 30px;
       text-align: center;
@@ -257,7 +257,7 @@ const emailHtml = `
     }
     .order-box {
       background-color: #f8f9fa;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #1cc978;
       padding: 20px;
       margin: 30px 0;
       border-radius: 5px;
@@ -290,7 +290,7 @@ const emailHtml = `
       border-collapse: collapse;
     }
     .items-table th {
-      background-color: #667eea;
+      background-color: #1cc978;
       color: white;
       padding: 12px;
       text-align: left;
@@ -305,7 +305,7 @@ const emailHtml = `
     }
     .summary-box {
       background-color: #fff;
-      border: 2px solid #667eea;
+      border: 2px solid #1cc978;
       border-radius: 8px;
       padding: 20px;
       margin: 30px 0;
@@ -317,16 +317,16 @@ const emailHtml = `
       font-size: 15px;
     }
     .summary-total {
-      border-top: 2px solid #667eea;
+      border-top: 2px solid #1cc978;
       margin-top: 10px;
       padding-top: 15px;
       font-size: 18px;
       font-weight: bold;
-      color: #667eea;
+      color: #1cc978;
     }
     .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1cc978 0%, #16a05f 100%);
       color: white;
       padding: 15px 40px;
       text-decoration: none;
@@ -343,11 +343,11 @@ const emailHtml = `
       font-size: 14px;
     }
     .footer a {
-      color: #667eea;
+      color: #1cc978;
       text-decoration: none;
     }
     .success-badge {
-      background-color: #10b981;
+      background-color: #1cc978;
       color: white;
       padding: 8px 20px;
       border-radius: 20px;
@@ -396,14 +396,14 @@ const emailHtml = `
       </div>
       
       <div style="text-align: center;">
-        <a href="https://filstore.com.ng" class="cta-button">Explore More Products</a>
+        <a href="https://filstore.com.ng/products" class="cta-button">Explore More Products</a>
       </div>
       
       <div class="order-box">
         <h2>📦 Order Details</h2>
         <div class="order-detail">
           <span class="order-detail-label">Status:</span>
-          <span class="order-detail-value"><strong style="color: #10b981;">Confirmed</strong></span>
+          <span class="order-detail-value"><strong style="color: #1cc978;">Confirmed</strong></span>
         </div>
         <div class="order-detail">
           <span class="order-detail-label">Name:</span>
@@ -477,7 +477,7 @@ const emailHtml = `
           <span>₦${Number(orderData.deliveryFee).toLocaleString()}</span>
         </div>
         ${orderData.discount > 0 ? `
-        <div class="summary-row" style="color: #10b981;">
+        <div class="summary-row" style="color: #1cc978;">
           <span>Discount:</span>
           <span>-₦${Number(orderData.discount).toLocaleString()}</span>
         </div>
@@ -491,7 +491,7 @@ const emailHtml = `
     
     <div class="footer">
       <p style="margin: 0 0 10px 0; font-size: 16px; color: #333;"><strong>The FIL Team</strong></p>
-      <p style="margin: 0 0 20px 0; font-style: italic; color: #667eea;">Think Quality, Think FIL.</p>
+      <p style="margin: 0 0 20px 0; font-style: italic; color: #1cc978;">Think Quality, Think FIL.</p>
       <p>Visit us at <a href="https://filstore.com.ng">filstore.com.ng</a></p>
       <p style="margin-top: 20px; font-size: 12px; color: #999;">
         This is an automated email. Please do not reply directly to this message.
