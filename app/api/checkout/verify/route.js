@@ -119,7 +119,7 @@ At FIL, we believe every product is more than just an accessory — we see it as
 
 We can’t wait for you to experience the difference. If you ever have questions or need support, our team is always just a message away, because to us, you’re not just a customer — you’re family. 💙
 
-👉 While you wait for your order, feel free to explore tips, updates, and new arrivals on our https://fil-store.vercel.app
+👉 While you wait for your order, feel free to explore tips, updates, and new arrivals on our https://filstore.com.ng
 
 Thank you once again for trusting FIL. We’re honored to be part of your journey!
 

@@ -15,7 +15,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function VerifyPaymentPage() {
-  const [orderDetails, setOrderDetails] = useState(null);
+  const [orderDetails, setOrderDetails] = useState(null); 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentProvider, setPaymentProvider] = useState(null);
