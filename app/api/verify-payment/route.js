@@ -201,13 +201,9 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-      // ✅ ONLY EMAIL FUNCTIONALITY ADDED HERE
-      const itemList = orderData.cartItems
-        .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
-        .join("\n");
+     // Inside the if (verificationData.verified) block, replace the email code with:
 
-      // Replace the emailText section with this:
-      const emailHtml = `
+const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -421,16 +417,12 @@ export async function POST(req) {
           <span class="order-detail-label">Phone:</span>
           <span class="order-detail-value">${orderData.phone}</span>
         </div>
-        ${
-          orderData.addPhone
-            ? `
+        ${orderData.addPhone ? `
         <div class="order-detail">
           <span class="order-detail-label">Additional Phone:</span>
           <span class="order-detail-value">${orderData.addPhone}</span>
         </div>
-        `
-            : ""
-        }
+        ` : ''}
         <div class="order-detail">
           <span class="order-detail-label">Delivery Address:</span>
           <span class="order-detail-value">${orderData.address}</span>
@@ -464,18 +456,14 @@ export async function POST(req) {
           </tr>
         </thead>
         <tbody>
-          ${orderData.cartItems
-            .map(
-              (item) => `
+          ${orderData.cartItems.map(item => `
             <tr>
               <td>${item.name}</td>
               <td style="text-align: center;">${item.quantity}</td>
               <td style="text-align: right;">₦${Number(item.price).toLocaleString()}</td>
               <td style="text-align: right;">₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
             </tr>
-          `,
-            )
-            .join("")}
+          `).join('')}
         </tbody>
       </table>
       
@@ -488,16 +476,12 @@ export async function POST(req) {
           <span>Delivery Fee:</span>
           <span>₦${Number(orderData.deliveryFee).toLocaleString()}</span>
         </div>
-        ${
-          orderData.discount > 0
-            ? `
+        ${orderData.discount > 0 ? `
         <div class="summary-row" style="color: #10b981;">
           <span>Discount:</span>
           <span>-₦${Number(orderData.discount).toLocaleString()}</span>
         </div>
-        `
-            : ""
-        }
+        ` : ''}
         <div class="summary-row summary-total">
           <span>Total Amount:</span>
           <span>₦${Number(orderData.total).toLocaleString()}</span>
@@ -518,25 +502,60 @@ export async function POST(req) {
 </html>
 `;
 
-      const adminEmail = process.env.ADMIN_EMAIL;
+const itemList = orderData.cartItems
+  .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
+  .join("\n");
 
-      console.log("📧 Attempting to send emails...");
-      console.log("Customer email:", orderData.email);
-      console.log("Admin email:", adminEmail);
+const plainText = `
+Hi ${orderData.firstName},
 
-      try {
+Thank you for choosing Fedan Investment Limited (FIL) — we're so glad to have you as part of our family!
+
+Your order is confirmed and our team is already preparing it with care.
+
+Order Details:
+- Status: Confirmed
+- Name: ${orderData.firstName}
+- Email: ${orderData.email}
+- Phone: ${orderData.phone}
+- Address: ${orderData.address}
+- City: ${orderData.city}
+- Region: ${orderData.region?.name || orderData.region}
+
+Items:
+${itemList}
+
+Summary:
+- Subtotal: ₦${orderData.subTotal}
+- Delivery Fee: ₦${orderData.deliveryFee}
+- Discount: ₦${orderData.discount}
+- Total: ₦${orderData.total}
+
+With gratitude,
+The FIL Team
+Think Quality, Think FIL.
+Visit: https://filstore.com.ng
+`.trim();
+
+const adminEmail = process.env.ADMIN_EMAIL;
+
+console.log("📧 Attempting to send emails...");
+console.log("Customer email:", orderData.email);
+console.log("Admin email:", adminEmail);
+
+try {
   await Promise.all([
     sendEmail(
       orderData.email, 
       "Your Order Confirmation - FIL Store", 
-      `Your order has been confirmed. Order total: ₦${orderData.total}`, // Plain text fallback
-      emailHtml // HTML version
+      plainText,
+      emailHtml
     ),
     sendEmail(
       adminEmail, 
       `New Order from ${orderData.email}`, 
-      `New order received. Total: ₦${orderData.total}`, // Plain text fallback
-      emailHtml // HTML version
+      plainText,
+      emailHtml
     ),
   ]);
   console.log("✅ Emails sent successfully");
