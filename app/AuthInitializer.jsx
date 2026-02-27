@@ -12,6 +12,9 @@ export default function AuthInitializer() {
     setMounted(true);
     
     // ✅ Only fetch user if token cookie exists
+    // Check for window/document existence to prevent SSR issues
+    if (typeof document === 'undefined') return;
+    
     const hasToken = document.cookie.split('; ').find(row => row.startsWith('token='));
     
     if (hasToken) {

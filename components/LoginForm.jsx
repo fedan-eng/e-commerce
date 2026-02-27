@@ -63,7 +63,13 @@ export default function LoginForm() {
         </h2>
         <div className="bg-[#fafafa] lg:ml-3 px-4 md:px-10 py-4 sm:py-10 max-lg:rounded-md">
           <div
-            onClick={() => router.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/products");
+              }
+            }}
             className="flex items-center gap-1 mb-6 cursor-pointer"
           >
             <FaArrowLeft />
