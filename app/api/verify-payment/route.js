@@ -619,12 +619,14 @@ Visit: https://filstore.com.ng
         console.error("❌ Email sending failed:", emailError);
       }
 
-      return Response.json({
-        verified: true,
-        message: "Payment verified and order created successfully",
-        provider: verificationData.provider,
-        order: order, // ✅ Return the saved order
-      });
+   
+return Response.json({
+  verified: true,
+  message: "Payment verified and order created successfully",
+  provider: verificationData.provider,
+  orderData: orderData, // ✅ Correct property name that frontend expects
+  order: order, // ✅ Keep this too for backward compatibility
+});
     } else {
       console.error("❌ Payment verification failed:", verificationData);
 
