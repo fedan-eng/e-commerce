@@ -57,7 +57,6 @@ export async function POST(req) {
     } else if (provider === "flutterwave") {
       console.log("🔍 Verifying Flutterwave transaction ID:", reference);
       
-      // Call to Flutterwave transaction verification endpoint
       const res = await axios.get(
         `https://api.flutterwave.com/v3/transactions/${reference}/verify`,
         {
@@ -69,7 +68,6 @@ export async function POST(req) {
 
       console.log("📦 Flutterwave Full API Response:", JSON.stringify(res.data, null, 2));
 
-      // Verify response status
       if (res.data.status !== "success") {
         console.error("❌ Flutterwave API error:", res.data);
         return Response.json(
@@ -84,7 +82,6 @@ export async function POST(req) {
 
       const flutterwaveData = res.data.data;
 
-      // Verify transaction status and currency
       const isVerified = 
         flutterwaveData.status === "successful" &&
         flutterwaveData.currency === "NGN" &&
@@ -105,7 +102,6 @@ export async function POST(req) {
         transactionId: flutterwaveData.id,
       };
 
-      // Check if metadata exists and is valid
       if (!flutterwaveData.meta || Object.keys(flutterwaveData.meta).length === 0) {
         console.error("❌ No meta data found in Flutterwave response");
         return Response.json(
@@ -122,14 +118,12 @@ export async function POST(req) {
         );
       }
 
-      // Parse and validate meta data
       let parsedCartItems = [];
       let parsedRegion = {};
 
       console.log("📋 Raw Meta Data:", flutterwaveData.meta);
 
       try {
-        // Parse cartItems
         if (flutterwaveData.meta.cartItems) {
           if (typeof flutterwaveData.meta.cartItems === 'string') {
             parsedCartItems = JSON.parse(flutterwaveData.meta.cartItems);
@@ -138,7 +132,6 @@ export async function POST(req) {
           }
         }
 
-        // Parse region
         if (flutterwaveData.meta.region) {
           if (typeof flutterwaveData.meta.region === 'string') {
             parsedRegion = JSON.parse(flutterwaveData.meta.region);
@@ -155,7 +148,6 @@ export async function POST(req) {
         region: parsedRegion,
       });
 
-      // Extract order data from parsed meta data
       orderData = {
         firstName: flutterwaveData.meta.firstName || 
                    flutterwaveData.customer?.name?.split(' ')[0] || "",
@@ -192,43 +184,54 @@ export async function POST(req) {
       );
     }
 
+    if (verificationData.verified) {
+      console.log("✅ Payment verified successfully:", {
+        provider: verificationData.provider,
+        reference: verificationData.reference,
+        amount: verificationData.amount,
+      });
+
+      // ✅ ONLY EMAIL FUNCTIONALITY ADDED HERE
+      const itemList = orderData.cartItems
+        .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
+        .join("\n");
 
       const emailText = `
-Hi ${firstName},
+Hi ${orderData.firstName},
 
-Thank you for choosing **Fedan Investment Limited (FIL)** — we’re so glad to have you as part of our family!
+Thank you for choosing **Fedan Investment Limited (FIL)** — we're so glad to have you as part of our family!
 
-Your order is confirmed ✅ and our team is already preparing it with care. You’ll receive a shipping update as soon as it’s on the way.
+Your order is confirmed ✅ and our team is already preparing it with care. You'll receive a shipping update as soon as it's on the way.
 
 At FIL, we believe every product is more than just an accessory — we see it as an opportunity to empower you and make your daily life smoother, easier, and more connected.
 
-We can’t wait for you to experience the difference. If you ever have questions or need support, our team is always just a message away, because to us, you’re not just a customer — you’re family. 💙
+We can't wait for you to experience the difference. If you ever have questions or need support, our team is always just a message away, because to us, you're not just a customer — you're family. 💙
 
 👉 While you wait for your order, feel free to explore tips, updates, and new arrivals on our https://filstore.com.ng
 
-Thank you once again for trusting FIL. We’re honored to be part of your journey!
+Thank you once again for trusting FIL. We're honored to be part of your journey!
 
 
 ------------------------------
 🧾 **Order Details**
 ------------------------------
 
-• **Order ID:** ${order._id}
-• **Status:** ${order.status}
-• **Address:** ${address}
-• **Region:** ${region?.name || region}
-• **City:** ${city}
-• **Email:** ${email}
-• **Phone:** ${phone}
-• **Add. Phone:** ${addPhone || "N/A"}
-• **Name:** ${firstName}
+- **Status:** Confirmed
+- **Address:** ${orderData.address}
+- **Region:** ${orderData.region?.name || orderData.region}
+- **City:** ${orderData.city}
+- **Email:** ${orderData.email}
+- **Phone:** ${orderData.phone}
+- **Add. Phone:** ${orderData.addPhone || "N/A"}
+- **Name:** ${orderData.firstName}
 
 💰 **Summary**
-• **Subtotal:** ₦${safeSubTotal}
-• **Delivery Fee:** ₦${safeDeliveryFee}
-• **Discount:** ₦${safeDiscount}
-• **Total:** ₦${safeTotal}
-• **Delivery Type:** ${deliveryType}
+- **Subtotal:** ₦${orderData.subTotal}
+- **Delivery Fee:** ₦${orderData.deliveryFee}
+- **Discount:** ₦${orderData.discount}
+- **Total:** ₦${orderData.total}
+- **Delivery Type:** ${orderData.deliveryType}
+- **Payment Method:** ${orderData.paymentMethod}
 
 📦 **Items**
 ${itemList}
@@ -239,20 +242,22 @@ With gratitude,
 *Think Quality, Think FIL.*
 `.trim();
 
-const adminEmail = process.env.ADMIN_EMAIL;
+      const adminEmail = process.env.ADMIN_EMAIL;
 
-    await Promise.all([
-      sendEmail(email, "Your Order Confirmation - Fil Store", emailText),
-      sendEmail(adminEmail, `New Order from ${email}`, emailText),
-    ]);
+      console.log("📧 Attempting to send emails...");
+      console.log("Customer email:", orderData.email);
+      console.log("Admin email:", adminEmail);
 
-
-    if (verificationData.verified) {
-      console.log("✅ Payment verified successfully:", {
-        provider: verificationData.provider,
-        reference: verificationData.reference,
-        amount: verificationData.amount,
-      });
+      try {
+        await Promise.all([
+          sendEmail(orderData.email, "Your Order Confirmation - FIL Store", emailText),
+          sendEmail(adminEmail, `New Order from ${orderData.email}`, emailText),
+        ]);
+        console.log("✅ Emails sent successfully");
+      } catch (emailError) {
+        console.error("❌ Email sending failed:", emailError);
+      }
+      // END OF EMAIL FUNCTIONALITY
 
       return Response.json({
         verified: true,
