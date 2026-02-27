@@ -1,15 +1,25 @@
 // app/AuthInitializer.jsx
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { fetchUser } from "@/store/features/authSlice";
 
 export default function AuthInitializer() {
   const dispatch = useDispatch();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchUser());
+    setMounted(true);
+    
+    // ✅ Only fetch user if token cookie exists
+    const hasToken = document.cookie.split('; ').find(row => row.startsWith('token='));
+    
+    if (hasToken) {
+      dispatch(fetchUser());
+    }
   }, [dispatch]);
 
-  return null; // This component doesn't render anything
+  if (!mounted) return null;
+
+  return null;
 }

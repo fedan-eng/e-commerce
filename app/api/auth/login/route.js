@@ -7,7 +7,7 @@ import { serialize } from "cookie";
 export async function POST(req) {
   await connectDB();
   const { email, password } = await req.json();
-
+ 
   const user = await User.findOne({ email });
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
