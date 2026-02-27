@@ -6,9 +6,8 @@ import cartReducer from "./features/cartSlice";
 import wishlistReducer from "./features/wishlistSlice";
 import recentlyViewedReducer from "./features/recentlyViewedSlice";
 
-// Load wishlist from localStorage (only on client)
+// Load wishlist from localStorage
 const loadWishlist = () => {
-  if (typeof window === 'undefined') return undefined;
   try {
     const serializedState = localStorage.getItem("wishlist");
     if (serializedState === null) return undefined;
@@ -20,16 +19,14 @@ const loadWishlist = () => {
 
 // Save wishlist to localStorage
 const saveWishlist = (state) => {
-  if (typeof window === 'undefined') return;
   try {
     const serializedState = JSON.stringify(state.wishlist);
     localStorage.setItem("wishlist", serializedState);
   } catch (e) {}
 };
 
-// Load cart from localStorage (only on client)
+// Load cart from localStorage
 const loadCart = () => {
-  if (typeof window === 'undefined') return undefined;
   try {
     const serializedState = localStorage.getItem("cart");
     if (serializedState === null) return undefined;
@@ -41,7 +38,6 @@ const loadCart = () => {
 
 // Save cart to localStorage
 const saveCart = (state) => {
-  if (typeof window === 'undefined') return;
   try {
     const serializedState = JSON.stringify(state.cart);
     localStorage.setItem("cart", serializedState);
