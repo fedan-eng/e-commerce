@@ -16,43 +16,43 @@
 //     let orderData;
 
 //     if (provider === "paystack") {
-//       const res = await axios.get(
-//         `https://api.paystack.co/transaction/verify/${reference}`,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-//           },
-//         },
-//       );
+      // const res = await axios.get(
+      //   `https://api.paystack.co/transaction/verify/${reference}`,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      //     },
+      //   },
+      // );
 
-//       const paystackData = res.data.data;
+      // const paystackData = res.data.data;
 
-//       verificationData = {
-//         verified: paystackData.status === "success",
-//         provider: "paystack",
-//         amount: paystackData.amount / 100,
-//         reference: paystackData.reference,
-//       };
+      // verificationData = {
+      //   verified: paystackData.status === "success",
+      //   provider: "paystack",
+      //   amount: paystackData.amount / 100,
+      //   reference: paystackData.reference,
+      // };
 
-//       orderData = {
-//         firstName: paystackData.metadata.firstName,
-//         lastName: paystackData.metadata.lastName || "",
-//         email: paystackData.metadata.email,
-//         phone: paystackData.metadata.phone,
-//         addPhone: paystackData.metadata.addPhone,
-//         region: paystackData.metadata.region,
-//         city: paystackData.metadata.city,
-//         deliveryType: paystackData.metadata.deliveryType,
-//         address: paystackData.metadata.address,
-//         cartItems: paystackData.metadata.cartItems,
-//         subTotal: paystackData.metadata.subTotal,
-//         discount: paystackData.metadata.discount,
-//         deliveryFee: paystackData.metadata.deliveryFee,
-//         total: paystackData.metadata.total,
-//         paymentMethod: "paystack",
-//         paymentReference: reference,
-//         paymentStatus: "paid",
-//       };
+      // orderData = {
+      //   firstName: paystackData.metadata.firstName,
+      //   lastName: paystackData.metadata.lastName || "",
+      //   email: paystackData.metadata.email,
+      //   phone: paystackData.metadata.phone,
+      //   addPhone: paystackData.metadata.addPhone,
+      //   region: paystackData.metadata.region,
+      //   city: paystackData.metadata.city,
+      //   deliveryType: paystackData.metadata.deliveryType,
+      //   address: paystackData.metadata.address,
+      //   cartItems: paystackData.metadata.cartItems,
+      //   subTotal: paystackData.metadata.subTotal,
+      //   discount: paystackData.metadata.discount,
+      //   deliveryFee: paystackData.metadata.deliveryFee,
+      //   total: paystackData.metadata.total,
+      //   paymentMethod: "paystack",
+      //   paymentReference: reference,
+      //   paymentStatus: "paid",
+      // };
 //     } else if (provider === "flutterwave") {
 //       console.log("🔍 Verifying Flutterwave transaction ID:", reference);
 
@@ -669,13 +669,13 @@ export async function POST(req) {
     let orderData;
 
     if (provider === "paystack") {
-      const res = await axios.get(
+            const res = await axios.get(
         `https://api.paystack.co/transaction/verify/${reference}`,
         {
           headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
           },
-        }
+        },
       );
 
       const paystackData = res.data.data;
