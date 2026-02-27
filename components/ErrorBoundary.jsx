@@ -22,8 +22,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <h1>Something went wrong</h1>
-          <p>{this.state.error?.message}</p>
-          <button onClick={() => window.location.reload()}>
+          <button className=' bg-filgreen px-5 py-3 text-white  text-2xl rounded-md hover:bg-filgreen/80 font-oswald' onClick={() => window.location.reload()}>
             Reload Page
           </button>
         </div>
