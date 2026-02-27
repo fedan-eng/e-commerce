@@ -24,6 +24,7 @@ export default function ProductList() {
   const [loading, setLoading] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isLargeScreenTwo, setIsLargeScreenTwo] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dispatch = useDispatch();
   const {
     items: products,
@@ -38,6 +39,7 @@ export default function ProductList() {
   const limit = 10; // items per page
 
   useEffect(() => {
+    setMounted(true);
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth >= 768);
       setIsLargeScreenTwo(window.innerWidth >= 1024);
@@ -74,7 +76,9 @@ export default function ProductList() {
   ]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [page]);
 
   const getSortedProducts = () => {

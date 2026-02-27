@@ -13,8 +13,10 @@ export default function RecentlyViewed() {
   const dispatch = useDispatch();
   const items = useSelector((state) => state.recentlyViewed.items);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth >= 768);
     };
@@ -26,13 +28,14 @@ export default function RecentlyViewed() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const stored = localStorage.getItem("recentlyViewed");
     if (stored) {
       dispatch(setRecentlyViewed(JSON.parse(stored)));
     }
   }, [dispatch]);
 
-  if (!items.length) return null;
+  if (!mounted || !items.length) return null;
 
   return (
     <div className="mt-8">
