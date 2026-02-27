@@ -1,15 +1,32 @@
 import axios from "axios";
-import {sendEmail} from "@/lib/mailer";
+import { sendEmail } from "@/lib/mailer";
+import { connectDB } from "@/lib/db";
+import Order from "@/models/Order";
+import { verifyToken } from "@/lib/auth";
 
 export async function POST(req) {
+  await connectDB(); // ✅ Connect to database
+
   try {
-    const {reference, provider} = await req.json();
+    const { reference, provider } = await req.json();
 
     if (!reference || !provider) {
       return Response.json(
-        {message: "Missing reference or provider"},
-        {status: 400},
+        { message: "Missing reference or provider" },
+        { status: 400 },
       );
+    }
+
+    // ✅ Get token from cookies (for logged-in users)
+    const cookie = req.cookies.get("token")?.value;
+
+    let user = null;
+    if (cookie) {
+      try {
+        user = verifyToken(cookie);
+      } catch (err) {
+        console.error("Token verification error:", err);
+      }
     }
 
     let verificationData;
@@ -78,7 +95,7 @@ export async function POST(req) {
             message: res.data.message || "Transaction verification failed",
             provider: "flutterwave",
           },
-          {status: 400},
+          { status: 400 },
         );
       }
 
@@ -119,7 +136,7 @@ export async function POST(req) {
               status: flutterwaveData.status,
             },
           },
-          {status: 400},
+          { status: 400 },
         );
       }
 
@@ -185,12 +202,12 @@ export async function POST(req) {
 
       console.log("📦 Final Order Data:", {
         ...orderData,
-        cartItems: `${orderData.cartItems.length} items`, 
+        cartItems: `${orderData.cartItems.length} items`,
       });
     } else {
       return Response.json(
-        {message: "Invalid payment provider"},
-        {status: 400},
+        { message: "Invalid payment provider" },
+        { status: 400 },
       );
     }
 
@@ -201,9 +218,43 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-     // Inside the if (verificationData.verified) block, replace the email code with:
+      // ✅ SAVE ORDER TO DATABASE
+      console.log("💾 Saving order to database...");
 
-const emailHtml = `
+      const order = await Order.create({
+        userId: user?.id || null,
+        email: orderData.email,
+        address: orderData.address,
+        region: {
+          name: orderData.region?.name || orderData.region,
+          fee: orderData.deliveryFee,
+        },
+        city: orderData.city,
+        deliveryType: orderData.deliveryType,
+        phone: orderData.phone,
+        addPhone: orderData.addPhone,
+        firstName: orderData.firstName,
+        items: orderData.cartItems,
+        subTotal: orderData.subTotal,
+        discount: orderData.discount,
+        deliveryFee: orderData.deliveryFee,
+        total: orderData.total,
+        paymentMethod: orderData.paymentMethod,
+        paymentReference: orderData.paymentReference,
+        paymentStatus: orderData.paymentStatus,
+        status: "Confirmed",
+        statusHistory: [
+          {
+            status: "Confirmed",
+            date: new Date(),
+          },
+        ],
+      });
+
+      console.log("✅ Order saved successfully:", order._id);
+
+      // ✅ NOW SEND EMAILS
+      const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -402,6 +453,10 @@ const emailHtml = `
       <div class="order-box">
         <h2>📦 Order Details</h2>
         <div class="order-detail">
+          <span class="order-detail-label">Order ID:</span>
+          <span class="order-detail-value"><strong>${order._id}</strong></span>
+        </div>
+        <div class="order-detail">
           <span class="order-detail-label">Status:</span>
           <span class="order-detail-value"><strong style="color: #1cc978;">Confirmed</strong></span>
         </div>
@@ -502,11 +557,11 @@ const emailHtml = `
 </html>
 `;
 
-const itemList = orderData.cartItems
-  .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
-  .join("\n");
+      const itemList = orderData.cartItems
+        .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
+        .join("\n");
 
-const plainText = `
+      const plainText = `
 Hi ${orderData.firstName},
 
 Thank you for choosing Fedan Investment Limited (FIL) — we're so glad to have you as part of our family!
@@ -514,6 +569,7 @@ Thank you for choosing Fedan Investment Limited (FIL) — we're so glad to have 
 Your order is confirmed and our team is already preparing it with care.
 
 Order Details:
+- Order ID: ${order._id}
 - Status: Confirmed
 - Name: ${orderData.firstName}
 - Email: ${orderData.email}
@@ -537,38 +593,37 @@ Think Quality, Think FIL.
 Visit: https://filstore.com.ng
 `.trim();
 
-const adminEmail = process.env.ADMIN_EMAIL;
+      const adminEmail = process.env.ADMIN_EMAIL;
 
-console.log("📧 Attempting to send emails...");
-console.log("Customer email:", orderData.email);
-console.log("Admin email:", adminEmail);
+      console.log("📧 Attempting to send emails...");
+      console.log("Customer email:", orderData.email);
+      console.log("Admin email:", adminEmail);
 
-try {
-  await Promise.all([
-    sendEmail(
-      orderData.email, 
-      "Your Order Confirmation - FIL Store", 
-      plainText,
-      emailHtml
-    ),
-    sendEmail(
-      adminEmail, 
-      `New Order from ${orderData.email}`, 
-      plainText,
-      emailHtml
-    ),
-  ]);
-  console.log("✅ Emails sent successfully");
-} catch (emailError) {
-  console.error("❌ Email sending failed:", emailError);
-}
-      // END OF EMAIL FUNCTIONALITY
+      try {
+        await Promise.all([
+          sendEmail(
+            orderData.email,
+            "Your Order Confirmation - FIL Store",
+            plainText,
+            emailHtml
+          ),
+          sendEmail(
+            adminEmail,
+            `New Order from ${orderData.email}`,
+            plainText,
+            emailHtml
+          ),
+        ]);
+        console.log("✅ Emails sent successfully");
+      } catch (emailError) {
+        console.error("❌ Email sending failed:", emailError);
+      }
 
       return Response.json({
         verified: true,
-        message: "Payment verified successfully",
+        message: "Payment verified and order created successfully",
         provider: verificationData.provider,
-        orderData: orderData,
+        order: order, // ✅ Return the saved order
       });
     } else {
       console.error("❌ Payment verification failed:", verificationData);
@@ -579,7 +634,7 @@ try {
           message: "Payment verification failed",
           provider: verificationData.provider,
         },
-        {status: 400},
+        { status: 400 },
       );
     }
   } catch (error) {
@@ -596,9 +651,7 @@ try {
         error: error.message,
         details: error.response?.data,
       },
-      {status: 500},
+      { status: 500 },
     );
   }
 }
-
-
