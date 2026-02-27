@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -19,14 +20,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <Providers>
-          <AuthInitializer />
-             <Suspense fallback={<div>Loading...</div>}>
-            <ConditionalShell>{children}</ConditionalShell>
-          </Suspense>
-        </Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <ErrorBoundary>
+          <Providers>
+            <AuthInitializer />
+            <Suspense fallback={<div>Loading...</div>}>
+              <ConditionalShell>{children}</ConditionalShell>
+            </Suspense>
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );
