@@ -16,6 +16,7 @@ import ProductTabs from "@/components/ProductTabs";
 import axios from "axios";
 import Accordion from "@/components/Accordion";
 import { CheckCircle } from 'lucide-react';
+import ImageZoomViewer from "@/components/ImageZoomViewer"; // Import the new component
 import {
   GoChevronDown,
   GoChevronUp,
@@ -273,13 +274,20 @@ export default function ProductDetailsPage() {
       <div className="md:flex gap-3 nav:gap-6">
         {/* Left side - Images */}
         <div className="flex flex-col items-center gap-4 md:gap-10 mt-3 md:mt-12 basis-[546px]">
-          <div className="w-[200px] nav:w-[381px] xxs:w-[300px] nav:h-[381px]">
+          <div className="relative w-[200px] nav:w-[381px] xxs:w-[300px] nav:h-[381px]">
             {selectedImage ? (
-              <img
-                src={selectedImage}
-                alt={product.name}
-                className="w-full h-full object-contain"
-              />
+              <>
+                <img
+                  src={selectedImage}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                />
+                {/* Add the zoom button overlay */}
+                <ImageZoomViewer 
+                  images={currentImages} 
+                  initialImage={selectedImage} 
+                />
+              </>
             ) : (
               <div className="flex justify-center items-center w-full h-full text-gray-400">
                 No image available
@@ -464,15 +472,6 @@ export default function ProductDetailsPage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              {/* <div className="w-full">
-                <Image
-                  width={200}
-                  height={100}
-                  src="/flutterwave.png"
-                  alt="flutterwave"
-                  className="w-[150px] h-[32px] object-cover"
-                />
-              </div> */}
              </div>
             </div>
 
@@ -720,7 +719,7 @@ export default function ProductDetailsPage() {
                         </div>
                       </div>
                     ))}
-                  </div> 
+                  </div>
                 )}
               </div>
             </div>
