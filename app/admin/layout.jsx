@@ -55,6 +55,7 @@ export default function AdminLayout({ children }) {
         left: 0,
         bottom: 0,
         zIndex: 10,
+        overflowY: "auto",
       }}>
         <div style={{ padding: "28px 24px 20px", borderBottom: "1px solid #222" }}>
           <div style={{ fontSize: "10px", letterSpacing: "0.2em", color: "#555", marginBottom: "4px", textTransform: "uppercase" }}>Control Panel</div>
