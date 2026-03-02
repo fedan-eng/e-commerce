@@ -3,217 +3,241 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMdSearch } from "react-icons/io";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { formatAmount } from "@/lib/utils";
 
 const categories = [
-  {
-    name: "Power Banks",
-    image: "/powerbanks.png",
-    link: "/products?categories=Power Bank",
-  },
-  {
-    name: "Wearables",
-    image: "/wearables.png",
-    link: "/products?categories=Wearables",
-  },
-  {
-    name: "Chargers",
-    image: "/chargers.png",
-    link: "/products?categories=Chargers",
-  },
-  {
-    name: "Lifestyle",
-    image: "/lifestyle.png",
-    link: "/products?categories=Lifestyle",
-  },
-  {
-    name: "Extensions",
-    image: "/extensions.png",
-    link: "/products?categories=Extensions",
-  },
+  { name: "Power Banks", image: "/powerbanks.png", link: "/products?categories=Power Bank" },
+  { name: "Wearables",  image: "/wearables.png",  link: "/products?categories=Wearables" },
+  { name: "Chargers",   image: "/chargers.png",   link: "/products?categories=Chargers" },
+  { name: "Lifestyle",  image: "/lifestyle.png",  link: "/products?categories=Lifestyle" },
+  { name: "Extensions", image: "/extensions.png", link: "/products?categories=Extensions" },
+];
+
+const TOP_SUGGESTIONS = [
+  { name: "FIL Bolt Pro 32,500 mAh Power Bank", href: "/products/691b041af0ddc5e1e75e1ed0" },
+  { name: "FIL Pulse 3",                         href: "/products/691b18d96ab12366ceef60e4" },
+  { name: "FIL Mag-Flex 10,000mAh Powerbank",    href: "/products/691b18d96ab12366ceef60dc" },
 ];
 
 const NavSearchTooltip = () => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [open, setOpen]           = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults]     = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const containerRef              = useRef(null);
 
-  // FETCH SEARCH RESULTS
+  // Close when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Debounced search
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults([]);
+      setLoading(false);
       return;
     }
 
-    const delayDebounce = setTimeout(async () => {
+    setLoading(true);
+    const timer = setTimeout(async () => {
       try {
-        const res = await axios.get(`/api/products?search=${searchTerm}`);
-        setResults(res.data.products.slice(0, 5)); // Limit for dropdown
+        const res = await axios.get(`/api/products?search=${encodeURIComponent(searchTerm.trim())}`);
+        setResults(res.data.products?.slice(0, 6) || []);
       } catch (err) {
-        console.log(err);
+        console.error("Search error:", err);
+        setResults([]);
+      } finally {
+        setLoading(false);
       }
     }, 300);
 
-    return () => clearTimeout(delayDebounce);
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  const hasSearch  = searchTerm.trim().length > 0;
+  const hasResults = results.length > 0;
+
   return (
-    <li
-      className="flex justify-center items-center"
-      onClick={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="max-nav:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-4xl">
-        <span>
-          <IoMdSearch
-            size={12}
-            className="text-black"
-          />
-        </span>
+    <li ref={containerRef} className="flex justify-center items-center relative">
+
+      {/* ── Desktop search bar ── */}
+      <div
+        className="max-nav:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-4xl cursor-text"
+        onClick={() => setOpen(true)}
+      >
+        <IoMdSearch size={12} className="text-black flex-shrink-0" />
         <input
-          name="text"
+          name="search"
           type="text"
           placeholder="Search"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => { setSearchTerm(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
           className="block outline-0 w-full placeholder-text-xs text-xs placeholder-[#929292]"
+          autoComplete="off"
         />
+        {/* Clear button */}
+        {hasSearch && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setSearchTerm(""); setResults([]); }}
+            className="text-[#929292] hover:text-black text-xs flex-shrink-0"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
-      <div className="nav:hidden">
-        <span>
-          <IoMdSearch className="text-white text-3xl cursor-pointer" />
-        </span>
+      {/* ── Mobile icon ── */}
+      <div className="nav:hidden" onClick={() => setOpen(o => !o)}>
+        <IoMdSearch className="text-white text-3xl cursor-pointer" />
       </div>
 
+      {/* ── Dropdown ── */}
       <AnimatePresence>
-        {isHovered && (
+        {open && (
           <motion.div
-            onMouseEnter={() => setIsHovered(true)}
-            initial={{ opacity: 0, y: -5 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.2 }}
-            className="top-28 max-sm:left-0 z-50 absolute bg-white sm:mr-80 sm:rounded-md w-full sm:w-[549px]"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="top-12 max-sm:left-0 z-50 absolute bg-white sm:rounded-md w-full sm:w-[560px] shadow-lg border border-[#e5e5e5]"
+            style={{ right: 0, left: "auto" }}
           >
             <div className="flex max-sm:flex-col gap-5 p-4">
-              {/* LEFT SECTION */}
-              <div>
-                <p className="hidden sm:block mb-4 font-oswald text-sm uppercase">
-                  FIL CATEGORIES
-                </p>
-                <p className="sm:hidden block mb-4 font-oswald text-sm uppercase">
-                  SEARCH PRODUCT
-                </p>
 
-                {/* CATEGORY GRID */}
-                <div className="hidden gap-3 sm:grid grid-cols-2">
+              {/* ── LEFT: Categories (desktop) / Search (mobile) ── */}
+              <div className="flex-shrink-0">
+                <p className="hidden sm:block mb-4 font-oswald text-sm uppercase">FIL Categories</p>
+                <p className="sm:hidden block mb-4 font-oswald text-sm uppercase">Search Product</p>
+
+                {/* Category grid — desktop */}
+                <div className="hidden sm:grid gap-3 grid-cols-2">
                   {categories.map((cat, i) => (
-                    <Link
-                      href={cat.link}
-                      key={i}
-                      className="flex bg-[#f2f2f2] rounded-md"
-                    >
-                      <span className="pt-2 pl-2 font-oswald text-sm uppercase">
-                        {cat.name}
-                      </span>
+                    <Link href={cat.link} key={i} onClick={() => setOpen(false)}
+                      className="flex bg-[#f2f2f2] rounded-md overflow-hidden hover:bg-[#e8e8e8] transition-colors">
+                      <span className="pt-2 pl-2 font-oswald text-sm uppercase">{cat.name}</span>
                       <div className="ml-auto">
-                        <Image
-                          width={70}
-                          height={70}
-                          src={cat.image}
-                          alt={cat.name}
-                          className="w-full h-full object-cover"
-                        />
+                        <Image width={70} height={70} src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
                       </div>
                     </Link>
                   ))}
                 </div>
 
-                {/* SEARCH (mobile) */}
+                {/* Mobile search input */}
                 <div className="sm:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-md">
-                  <span>
-                    <IoMdSearch className="text-filgrey text-base" />
-                  </span>
+                  <IoMdSearch className="text-filgrey text-base flex-shrink-0" />
                   <input
-                    name="text"
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search products..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="block outline-0 w-full placeholder-text-base placeholder-filgrey"
+                    className="block outline-0 w-full text-sm placeholder-filgrey"
+                    autoFocus
                   />
+                  {hasSearch && (
+                    <button onClick={() => { setSearchTerm(""); setResults([]); }} className="text-gray-400 text-xs">✕</button>
+                  )}
                 </div>
               </div>
 
-              {/* RIGHT SECTION */}
-              <div className="sm:px-4 sm:border-[#dfdfdf] sm:border-l">
-                {/* SEARCH RESULTS */}
-                {results.length > 0 && (
-                  <>
-                    <p className="mb-4 font-oswald text-sm uppercase">
-                      SEARCH RESULTS
-                    </p>
+              {/* ── RIGHT: Results or suggestions ── */}
+              <div className="sm:px-4 sm:border-[#dfdfdf] sm:border-l flex-1 min-w-0">
 
-                    <div className="mb-4">
+                {/* Loading */}
+                {loading && (
+                  <div className="flex items-center gap-2 py-6 text-gray-400 text-sm">
+                    <div className="w-3 h-3 border border-gray-300 border-t-black rounded-full animate-spin" />
+                    Searching...
+                  </div>
+                )}
+
+                {/* Search results */}
+                {!loading && hasSearch && hasResults && (
+                  <>
+                    <p className="mb-3 font-oswald text-sm uppercase">
+                      Results <span className="text-[#929292] normal-case font-sans text-xs">for "{searchTerm}"</span>
+                    </p>
+                    <div>
                       {results.map((product) => (
                         <Link
                           href={`/products/${product._id}`}
                           key={product._id}
-                          className="flex items-center gap-2 hover:bg-gray-100 px-1 py-2"
+                          onClick={() => { setOpen(false); setSearchTerm(""); }}
+                          className="flex items-center gap-3 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors group"
                         >
-                          <IoMdSearch className="text-black text-base" />
-                          <p className="text-sm underline line-clamp-1">
-                            {product.name}
-                          </p>
+                          {/* Product thumbnail */}
+                          <div className="w-8 h-8 flex-shrink-0 rounded overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
+                            {product.image
+                              ? <img src={product.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
+                              : <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">□</div>
+                            }
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm line-clamp-1 group-hover:underline">{product.name}</p>
+                            {product.price && (
+                              <p className="text-xs text-[#929292]">{formatAmount(product.price)}</p>
+                            )}
+                          </div>
+                          <IoMdSearch className="text-gray-300 text-sm flex-shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                    {/* View all results link */}
+                    <Link
+                      href={`/products?search=${encodeURIComponent(searchTerm)}`}
+                      onClick={() => { setOpen(false); }}
+                      className="flex items-center gap-1 mt-3 pt-3 border-t border-[#f0f0f0] text-xs text-filgreen hover:underline"
+                    >
+                      View all results for "{searchTerm}" →
+                    </Link>
+                  </>
+                )}
+
+                {/* No results */}
+                {!loading && hasSearch && !hasResults && (
+                  <div className="py-6 text-center">
+                    <p className="text-sm text-gray-500">No products found for</p>
+                    <p className="text-sm font-medium">"{searchTerm}"</p>
+                    <Link
+                      href="/products"
+                      onClick={() => setOpen(false)}
+                      className="mt-3 inline-block text-xs text-filgreen hover:underline"
+                    >
+                      Browse all products →
+                    </Link>
+                  </div>
+                )}
+
+                {/* Top suggestions — only when no active search */}
+                {!hasSearch && (
+                  <>
+                    <p className="mb-4 font-oswald text-sm uppercase">Top Suggestions</p>
+                    <div>
+                      {TOP_SUGGESTIONS.map((s, i) => (
+                        <Link
+                          href={s.href}
+                          key={i}
+                          onClick={() => setOpen(false)}
+                          className="flex items-center gap-2 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors"
+                        >
+                          <IoMdSearch className="text-black text-base flex-shrink-0" />
+                          <p className="text-sm underline line-clamp-1">{s.name}</p>
                         </Link>
                       ))}
                     </div>
                   </>
                 )}
-
-                {/* TOP SUGGESTIONS (only show when no search OR no results) */}
-                {results.length === 0 && (
-                  <>
-                    <p className="mb-4 font-oswald text-sm uppercase">
-                      TOP SUGGESTIONS
-                    </p>
-
-                    <div>
-                      <div className="flex items-center gap-1 px-1 py-2">
-                        <IoMdSearch className="text-black text-base" />
-                        <Link
-                          href="/products/691b041af0ddc5e1e75e1ed0"
-                          className="text-sm underline line-clamp-1"
-                        >
-                          FIL Bolt Pro 32,500 mAh Power Bank
-                        </Link>
-                      </div>
-
-                      <div className="flex items-center gap-1 px-1 py-2">
-                        <IoMdSearch className="text-black text-base" />
-                        <Link
-                          href="/products/691b18d96ab12366ceef60e4"
-                          className="text-sm underline line-clamp-1"
-                        >
-                          FIL Pulse 3
-                        </Link>
-                      </div>
-
-                      <div className="flex items-center gap-1 px-1 py-2">
-                        <IoMdSearch className="text-black text-base" />
-                        <Link
-                          href="/products/691b18d96ab12366ceef60dc"
-                          className="text-sm underline line-clamp-1"
-                        >
-                          FIL Mag-Flex 10,000mAh Powerbank
-                        </Link>
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
+
             </div>
           </motion.div>
         )}
