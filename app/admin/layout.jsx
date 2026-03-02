@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
