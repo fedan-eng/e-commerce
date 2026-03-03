@@ -101,6 +101,8 @@ export default function ProductDetailsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
   const [page, setPage] = useState(1);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const limit = 5;
 
   const totalPages = Math.ceil(comments.length / limit);
@@ -131,13 +133,6 @@ export default function ProductDetailsPage() {
               >
                 <input
                   type="checkbox"
-                  //checked={filters.minRating === star}
-                  // onChange={() =>
-                  //   updateSingleFilter(
-                  //     "minRating",
-                  //     filters.minRating === star ? null : star
-                  //   )
-                  // }
                   className="peer hidden"
                 />
                 <span className="flex justify-center items-center peer-checked:bg-black border border-black rounded w-4 h-4">
@@ -178,39 +173,49 @@ export default function ProductDetailsPage() {
     if (id) fetchComments();
   }, [id]);
 
-  // Handle comment submission
- const handleSubmitComment = async (e) => {
-  e.preventDefault();
-  if (!commentText.trim()) return;
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
 
-  try {
-    setSubmitting(true);
-    await axios.post(`/api/products/${id}/comments`, { text: commentText });
-    setCommentText("");
-    setCommentSubmitted(true);
-    setTimeout(() => setCommentSubmitted(false), 4000);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to post comment. Please log in.");
-  } finally {
-    setSubmitting(false);
-  }
-};
+    try {
+      setSubmitting(true);
+      await axios.post(`/api/products/${id}/comments`, { text: commentText });
+      setCommentText("");
+      setCommentSubmitted(true);
+      setTimeout(() => setCommentSubmitted(false), 4000);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to post comment. Please log in.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  // Fetch product only if not already loaded
   useEffect(() => {
     if (id && (!product || product._id !== id)) {
       dispatch(getProduct(id));
     }
   }, [dispatch, id, product]);
 
-  // Add to recently viewed & set default image
   useEffect(() => {
     if (product && product._id) {
       dispatch(addRecentlyViewed(product));
       setSelectedImage(product.image || "");
     }
   }, [product, dispatch]);
+
+  const handleImageClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    if (isZoomed) {
+      setIsZoomed(false);
+    } else {
+      setZoomOrigin({ x, y });
+      setIsZoomed(true);
+    }
+  };
 
   if (loading)
     return (
@@ -233,52 +238,60 @@ export default function ProductDetailsPage() {
   const handleSelectColor = (color) => {
     setSelectedColor(color);
     setSelectedImage(color.images?.[0] || product.image);
+    setIsZoomed(false);
   };
 
   return (
     <div className="mx-auto w-full max-w-[1140px]">
-    {/* ── Review submitted toast ── */}
-          <div style={{
-      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      zIndex: 9999, pointerEvents: "none",
-      transition: "opacity 0.4s ease, transform 0.4s ease",
-      opacity: commentSubmitted ? 1 : 0,
-      transform: commentSubmitted ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(16px)",
-    }}>
+      {/* Review submitted toast */}
       <div style={{
-        display: "flex", alignItems: "center", gap: "12px",
-        background: "#1a1a1a", border: "1px solid #2a2a2a",
-        borderRadius: "10px", padding: "14px 20px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        minWidth: "300px",
+        position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+        zIndex: 9999, pointerEvents: "none",
+        transition: "opacity 0.4s ease, transform 0.4s ease",
+        opacity: commentSubmitted ? 1 : 0,
+        transform: commentSubmitted ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(16px)",
       }}>
         <div style={{
-          width: "32px", height: "32px", borderRadius: "50%",
-          background: "#6ae8a015", border: "1px solid #6ae8a033",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0, fontSize: "14px",
-        }}>✓</div>
-        <div>
-          <p style={{ margin: 0, fontSize: "13px", fontWeight: "600", color: "#e8e8e8" }}>
-            Review submitted!
-          </p>
-          <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#6ae8a0" }}>
-            Your review is pending approval and will appear shortly.
-          </p>
+          display: "flex", alignItems: "center", gap: "12px",
+          background: "#1a1a1a", border: "1px solid #2a2a2a",
+          borderRadius: "10px", padding: "14px 20px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          minWidth: "300px",
+        }}>
+          <div style={{
+            width: "32px", height: "32px", borderRadius: "50%",
+            background: "#6ae8a015", border: "1px solid #6ae8a033",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, fontSize: "14px",
+          }}>✓</div>
+          <div>
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: "600", color: "#e8e8e8" }}>
+              Review submitted!
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#6ae8a0" }}>
+              Your review is pending approval and will appear shortly.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-
 
       <div className="md:flex gap-3 nav:gap-6">
         {/* Left side - Images */}
         <div className="flex flex-col items-center gap-4 md:gap-10 mt-3 md:mt-12 basis-[546px]">
-          <div className="w-[200px] nav:w-[381px] xxs:w-[300px] nav:h-[381px]">
+          <div 
+            className="w-[200px] nav:w-[381px] xxs:w-[300px] nav:h-[381px] overflow-hidden relative"
+            style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
+          >
             {selectedImage ? (
               <img
                 src={selectedImage}
                 alt={product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain transition-transform duration-300 ease-out"
+                style={{
+                  transform: isZoomed ? 'scale(2)' : 'scale(1)',
+                  transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`
+                }}
+                onClick={handleImageClick}
               />
             ) : (
               <div className="flex justify-center items-center w-full h-full text-gray-400">
@@ -286,6 +299,7 @@ export default function ProductDetailsPage() {
               </div>
             )}
           </div>
+          
           {/* Thumbnails */}
           <div className="flex justify-center gap-2 pt-3 md:pt-6 border-[#dfdfdf] border-t w-full">
             {currentImages.map((img, idx) => (
@@ -294,9 +308,12 @@ export default function ProductDetailsPage() {
                 src={img}
                 alt={`Thumbnail ${idx}`}
                 className={`xxs:w-[70px] w-[50px] h-[50px] xxs:h-[70px] object-contain border border-[#f5f5f5] rounded-md cursor-pointer p-2 ${
-                  selectedImage === img ? "" : ""
+                  selectedImage === img ? "ring-2 ring-filgreen" : ""
                 }`}
-                onClick={() => setSelectedImage(img)}
+                onClick={() => {
+                  setSelectedImage(img);
+                  setIsZoomed(false);
+                }}
               />
             ))}
           </div>
@@ -307,7 +324,7 @@ export default function ProductDetailsPage() {
             </h3>
 
             <div className="flex gap-2 md:gap-4 mx-2 my-4">
-              {product.videos.map((video, index) => (
+              {product.videos?.map((video, index) => (
                 <div
                   key={index}
                   className="relative w-full"
@@ -324,13 +341,11 @@ export default function ProductDetailsPage() {
                       onClick={() => setActiveVideo(index)}
                       className="group relative cursor-pointer"
                     >
-                      {/* Video thumbnail */}
                       <video
                         src={video}
                         className="opacity-70 group-hover:opacity-100 rounded-lg w-full"
                         muted
                       />
-                      {/* Play button overlay */}
                       <div className="absolute">
                         <img
                           src="/play.svg"
@@ -344,11 +359,10 @@ export default function ProductDetailsPage() {
             </div>
           </div>
         </div>
+        
         {/* Right side - Details */}
-
         <div className="flex flex-col gap-4 bg-[#fafafa] px-2 nav:px-6 pt-8 basis-[546px]">
           <div className="bg-black px-3 py-1 rounded-2xl w-fit text-[10px] text-white">
-            {" "}
             Save{" "}
             {Math.round(
               ((product.originalPrice - product.price) /
@@ -429,7 +443,6 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Assurance Points */}
-
             <div className="mt-6">
               <h3 className="mb-4 font-oswald font-medium text-2xl">
                 We Assure You
@@ -454,26 +467,17 @@ export default function ProductDetailsPage() {
               <p className="mb-4 font-oswald font-medium text-2xl capitalize">
                 PAYMENT METHOD
               </p>
-             <div className="flex items-center gap-6">
-               <div className="w-[88px] h-[32px]">
-                <Image
-                  width={88}
-                  height={32}
-                  src="/paystack.png"
-                  alt="paystack"
-                  className="w-full h-full object-cover"
-                />
+              <div className="flex items-center gap-6">
+                <div className="w-[88px] h-[32px]">
+                  <Image
+                    width={88}
+                    height={32}
+                    src="/paystack.png"
+                    alt="paystack"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-              {/* <div className="w-full">
-                <Image
-                  width={200}
-                  height={100}
-                  src="/flutterwave.png"
-                  alt="flutterwave"
-                  className="w-[150px] h-[32px] object-cover"
-                />
-              </div> */}
-             </div>
             </div>
 
             <div className="max-nav:hidden mt-6 rounded-md">
@@ -482,11 +486,9 @@ export default function ProductDetailsPage() {
               </p>
 
               <div className="flex items-center gap-[10px] bg-[#ddebfe] mb-4 px-3 py-[14px] border border-[#331698] rounded-md w-full text-xs text">
-                {" "}
                 <span className="text-[#331689] text-2xl rotate-180">
-                  {" "}
                   <AiOutlineExclamation />
-                </span>{" "}
+                </span>
                 Please note that delivery within Lagos is 1 - 3 working days and
                 outside Lagos and 5 - 7 working days.
               </div>
@@ -512,23 +514,23 @@ export default function ProductDetailsPage() {
       <ProductTabs
         description={product.description}
         features={
-         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto p-6">
-  {product.features?.length > 0 ? (
-    product.features.map((feat, idx) => (
-      <div
-        key={idx}
-        className="flex flex-col items-center gap-3 p-6 border bg-gray-500/10 border-[#d9d9d9] rounded-lg  hover:shadow-md transition-shadow"
-      >
-        <CheckCircle className="w-8 h-8 text-green-600" />
-        <p className="text-sm text-center text-gray-800">
-          {feat}
-        </p>
-      </div>
-    ))
-  ) : (
-    <p className="col-span-full text-center text-gray-500">No features available</p>
-  )}
-</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto p-6">
+            {product.features?.length > 0 ? (
+              product.features.map((feat, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col items-center gap-3 p-6 border bg-gray-500/10 border-[#d9d9d9] rounded-lg hover:shadow-md transition-shadow"
+                >
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <p className="text-sm text-center text-gray-800">
+                    {feat}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="col-span-full text-center text-gray-500">No features available</p>
+            )}
+          </div>
         }
         boxContent={
           <div className="flex justify-center items-center gap-5 nav:gap-40 side:gap-10">
@@ -540,8 +542,7 @@ export default function ProductDetailsPage() {
             </div>
             <div className="flex flex-col justify-center">
               <p className="mb-6 font-oswald font-medium text-2xl">
-                {" "}
-                What's in the box?{" "}
+                What's in the box?
               </p>
               {product.boxContent?.map((boxItem, idx) => (
                 <p
@@ -559,9 +560,8 @@ export default function ProductDetailsPage() {
             <div className="flex max-sm:flex-col gap-2 md:gap-6">
               <div className="bg-white p-4 rounded-md sm:basis-[253px]">
                 <div className="text-[#3e3e3e] text-sm text-center">
-                  {" "}
                   <span className="font-oswald font-medium text-[40px] text-black">
-                    {product.averageRating.toFixed(1)}{" "}
+                    {product.averageRating.toFixed(1)}
                   </span>
                   out of 5
                 </div>
@@ -638,7 +638,6 @@ export default function ProductDetailsPage() {
                           value={commentText}
                           onChange={(e) => {
                             const words = e.target.value.trim().split(/\s+/);
-
                             if (words.length <= 100) {
                               setCommentText(e.target.value);
                             }
@@ -720,7 +719,7 @@ export default function ProductDetailsPage() {
                         </div>
                       </div>
                     ))}
-                  </div> 
+                  </div>
                 )}
               </div>
             </div>
