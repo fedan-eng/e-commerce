@@ -7,7 +7,6 @@ import { Suspense } from "react";
 
 
 const STATUS_COLORS = {
-  pending: "#e8c46a",
   confirmed: "#e8c46a",   // 👈 add
   processing: "#6ab4e8",
   processed: "#6ab4e8",   // 👈 add
