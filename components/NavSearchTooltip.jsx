@@ -248,7 +248,7 @@ const NavSearchTooltip = () => {
                         >
                           <IoMdSearch className="text-black text-base flex-shrink-0" />
                           <p className="text-sm underline line-clamp-1">{s.name}</p>
-                        </Link>
+                        </Link>   
                       ))}
                     </div>
                   </>
