@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMdSearch } from "react-icons/io";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { formatAmount } from "@/lib/utils";
 
@@ -22,11 +23,12 @@ const TOP_SUGGESTIONS = [
 ];
 
 const NavSearchTooltip = () => {
-  const [open, setOpen]           = useState(false);
+  const [open, setOpen]             = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults]     = useState([]);
-  const [loading, setLoading]     = useState(false);
-  const containerRef              = useRef(null);
+  const [results, setResults]       = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const containerRef                = useRef(null);
+  const router                      = useRouter();
 
   // Close when clicking outside
   useEffect(() => {
@@ -46,7 +48,6 @@ const NavSearchTooltip = () => {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
@@ -59,12 +60,28 @@ const NavSearchTooltip = () => {
         setLoading(false);
       }
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
   const hasSearch  = searchTerm.trim().length > 0;
   const hasResults = results.length > 0;
+
+  // ✅ Navigate to results page and clear the input
+  const handleViewAll = () => {
+    const term = searchTerm.trim();
+    if (!term) return;
+    setOpen(false);
+    setSearchTerm(""); // clear input after navigating
+    setResults([]);
+    router.push(`/products?search=${encodeURIComponent(term)}`);
+  };
+
+  // ✅ Also submit on Enter key
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchTerm.trim()) {
+      handleViewAll();
+    }
+  };
 
   return (
     <li ref={containerRef} className="flex justify-center items-center relative">
@@ -82,10 +99,10 @@ const NavSearchTooltip = () => {
           value={searchTerm}
           onChange={(e) => { setSearchTerm(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
+          onKeyDown={handleKeyDown}
           className="block outline-0 w-full placeholder-text-xs text-xs placeholder-[#929292]"
           autoComplete="off"
         />
-        {/* Clear button */}
         {hasSearch && (
           <button
             onClick={(e) => { e.stopPropagation(); setSearchTerm(""); setResults([]); }}
@@ -122,7 +139,7 @@ const NavSearchTooltip = () => {
                 {/* Category grid — desktop */}
                 <div className="hidden sm:grid gap-3 grid-cols-2">
                   {categories.map((cat, i) => (
-                    <Link href={cat.link} key={i} onClick={() => setOpen(false)}
+                    <Link href={cat.link} key={i} onClick={() => { setOpen(false); setSearchTerm(""); }}
                       className="flex bg-[#f2f2f2] rounded-md overflow-hidden hover:bg-[#e8e8e8] transition-colors">
                       <span className="pt-2 pl-2 font-oswald text-sm uppercase">{cat.name}</span>
                       <div className="ml-auto">
@@ -140,6 +157,7 @@ const NavSearchTooltip = () => {
                     placeholder="Search products..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     className="block outline-0 w-full text-sm placeholder-filgrey"
                     autoFocus
                   />
@@ -171,10 +189,9 @@ const NavSearchTooltip = () => {
                         <Link
                           href={`/products/${product._id}`}
                           key={product._id}
-                          onClick={() => { setOpen(false); setSearchTerm(""); }}
+                          onClick={() => { setOpen(false); setSearchTerm(""); setResults([]); }}
                           className="flex items-center gap-3 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors group"
                         >
-                          {/* Product thumbnail */}
                           <div className="w-8 h-8 flex-shrink-0 rounded overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
                             {product.image
                               ? <img src={product.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
@@ -191,14 +208,14 @@ const NavSearchTooltip = () => {
                         </Link>
                       ))}
                     </div>
-                    {/* View all results link */}
-                    <Link
-                      href={`/products?search=${encodeURIComponent(searchTerm)}`}
-                      onClick={() => { setOpen(false); }}
-                      className="flex items-center gap-1 mt-3 pt-3 border-t border-[#f0f0f0] text-xs text-filgreen hover:underline"
+
+                    {/* ✅ View all — uses router.push + clears input */}
+                    <button
+                      onClick={handleViewAll}
+                      className="flex items-center gap-1 mt-3 pt-3 border-t border-[#f0f0f0] text-xs text-filgreen hover:underline w-full"
                     >
                       View all results for "{searchTerm}" →
-                    </Link>
+                    </button>
                   </>
                 )}
 
@@ -209,7 +226,7 @@ const NavSearchTooltip = () => {
                     <p className="text-sm font-medium">"{searchTerm}"</p>
                     <Link
                       href="/products"
-                      onClick={() => setOpen(false)}
+                      onClick={() => { setOpen(false); setSearchTerm(""); }}
                       className="mt-3 inline-block text-xs text-filgreen hover:underline"
                     >
                       Browse all products →
@@ -217,7 +234,7 @@ const NavSearchTooltip = () => {
                   </div>
                 )}
 
-                {/* Top suggestions — only when no active search */}
+                {/* Top suggestions */}
                 {!hasSearch && (
                   <>
                     <p className="mb-4 font-oswald text-sm uppercase">Top Suggestions</p>
