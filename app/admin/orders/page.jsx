@@ -76,7 +76,7 @@ function AdminOrdersPage() {
   return sum.toFixed(2);
 };
 
-const ALL_ORDER_STATUSES = ["Pending", "Processing", "Confirmed", "Shipped", "Delivered", "Cancelled"];
+const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "Delivered", "Cancelled"];
 
   return (
     <div>
@@ -156,26 +156,26 @@ const ALL_ORDER_STATUSES = ["Pending", "Processing", "Confirmed", "Shipped", "De
                     <td style={{ padding: "14px 20px" }}>
                       {/* Inline status dropdown */}
                       <select
-                        value={ALL_ORDER_STATUSES.find(
+  value={ALL_ORDER_STATUSES.find(
     s => s.toLowerCase() === order.status?.toLowerCase()
   ) || order.status}
   onChange={(e) => updateStatus(order._id, e.target.value)}
-                        style={{
-                          background: `${STATUS_COLORS[order.status]}15`,
-                          border: `1px solid ${STATUS_COLORS[order.status]}44`,
-                          color: STATUS_COLORS[order.status?.toLowerCase()],
-                          borderRadius: "4px",
-                          padding: "4px 8px",
-                          fontSize: "11px",
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          cursor: "pointer",
-                          outline: "none",
-                          opacity: updating === order._id ? 0.5 : 1,
-                        }}
-                      >
+  style={{
+    background: `${STATUS_COLORS[order.status?.toLowerCase()]}15`, // 👈 lowercase
+    border: `1px solid ${STATUS_COLORS[order.status?.toLowerCase()]}44`, // 👈 lowercase
+    color: STATUS_COLORS[order.status?.toLowerCase()],
+    borderRadius: "4px",
+    padding: "4px 8px",
+    fontSize: "11px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    outline: "none",
+    opacity: updating === order._id ? 0.5 : 1,
+  }}
+  >
                          {ALL_ORDER_STATUSES.map((s) => (
-    <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[order.status?.toLowerCase()] }}>
+    <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[s.toLowerCase()] }}>
       {s}
     </option>
   ))}
