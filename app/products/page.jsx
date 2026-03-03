@@ -104,7 +104,7 @@ const Shop = () => {
       <div className="overflow-hidden">
         <TextSlider className="bg-[#fafafa]" />
       </div>
-      <ProductList />
+      <ProductList /> 
     </div>
   );
 };
