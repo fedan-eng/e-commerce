@@ -3,7 +3,7 @@
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
-import { sendEmail } from "@/lib/email"; // 👈 your existing sendEmail utility
+import { sendEmail } from "@/lib/mailer";
 
 export async function GET(req, context) {
   await connectDB();
