@@ -567,9 +567,25 @@ export default function OrderSheet() {
                         placeholder="Product Condition" className="block bg-[#f6f6f6] mt-2 px-3 py-3 rounded-md outline-0 w-full text-sm" />
                     </div>
                     <div className="max-md:mb-3 w-full">
-                      <label className="text-sm"><span className="text-red-600">*</span> Return Quantity</label>
-                      <input type="number" name="returnQuantity" value={returnForm.returnQuantity} onChange={handleReturnChange} required
-                        placeholder="Return Quantity" className="block bg-[#f6f6f6] mt-2 px-3 py-3 rounded-md outline-0 w-full text-sm" />
+                     <label className="text-sm">
+  <span className="text-red-600">*</span> Return Quantity
+  <span className="text-[#929292] ml-1">(max: {returningProduct?.quantity})</span>
+</label>
+                     <input
+  type="number"
+  name="returnQuantity"
+  value={returnForm.returnQuantity}
+  onChange={(e) => {
+    const max = returningProduct?.quantity || 1;
+    const val = Math.min(Number(e.target.value), max);
+    setReturnForm({ ...returnForm, returnQuantity: val });
+  }}
+  required
+  min={1}
+  max={returningProduct?.quantity || 1}
+  placeholder="Return Quantity"
+  className="block bg-[#f6f6f6] mt-2 px-3 py-3 rounded-md outline-0 w-full text-sm"
+/>
                     </div>
                   </div>
 
