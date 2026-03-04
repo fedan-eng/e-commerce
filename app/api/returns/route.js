@@ -267,8 +267,6 @@ export async function POST(req) {
           <span class="detail-label">Account Name:</span>
           <span class="detail-value">${accountName}</span>
         </div>
-        <div class="refund-amount">₦${Number(amount).toLocaleString()}</div>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Expected Refund Amount</p>
       </div>
       
       <div style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; border-radius: 5px;">

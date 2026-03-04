@@ -103,6 +103,15 @@ export default function OrderSheet() {
       };
       const res = await axios.post("/api/returns", payload);
       setReturnMessage(res.data.message);
+      setTimeout(() => setReturnMessage(""), 5000);
+      setReturnForm({
+  productCondition: "",
+  returnQuantity:   "",
+  reasonForReturn:  "",
+  bankName:         "",
+  accountNumber:    "",
+  accountName:      "",
+});
     } catch (err) {
       setReturnMessage(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -143,6 +152,8 @@ export default function OrderSheet() {
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setContactMessage(data.message || "Message sent successfully!");
+      setTimeout(() => setContactMessage(""), 5000);
+      
       setContactForm({ inquiryType: "general", name: "", email: "", question: "", reason: "", productName: "" });
       setContactFiles([]);
     } catch {
@@ -210,7 +221,10 @@ export default function OrderSheet() {
                       <div className="max-s:hidden text-dark text-sm text-center">{item.quantity}</div>
                       <div className="max-s:hidden text-dark text-sm">{formatAmount(item.price)}</div>
                       <div className="w-full overflow-hidden">
-                        <AddToCartButton className="bg-filgreen px-2 lg:px-6 py-2 rounded-md w-full font-medium text-dark text-xs s:text-sm cursor-pointer" product={item} />
+                      <AddToCartButton
+  className="bg-filgreen px-2 nav:px-6 py-2 rounded-md w-full font-medium text-dark text-sm cursor-pointer"
+  product={{ ...item, availability: item.availability ?? true }} // 👈
+/>
                         <button onClick={() => handleViewOrder(item.orderId)} className="mt-2 px-2 lg:px-4 py-2 border border-[#d9d9d9] rounded-md w-full font-medium text-filgreen text-xs s:text-sm whitespace-nowrap cursor-pointer">
                           View Details
                         </button>
@@ -302,7 +316,10 @@ export default function OrderSheet() {
                         <div className="text-dark text-sm text-center">{item.quantity}</div>
                         <div className="max-s:hidden text-dark text-sm text-center">{formatAmount(item.price)}</div>
                         <div>
-                          <AddToCartButton className="bg-filgreen px-2 nav:px-6 py-2 rounded-md w-full font-medium text-dark text-sm cursor-pointer" product={item} />
+                         <AddToCartButton
+  className="bg-filgreen px-2 nav:px-6 py-2 rounded-md w-full font-medium text-dark text-sm cursor-pointer"
+  product={{ ...item, availability: item.availability ?? true }} // 👈
+/>
                           <button onClick={() => setReturningProduct(item)} className="mt-2 px-1 nav:px-4 py-2 border border-[#d9d9d9] rounded-md w-full font-medium text-filgreen text-xs nav:text-sm whitespace-nowrap cursor-pointer">
                             Return Product
                           </button>
@@ -334,10 +351,10 @@ export default function OrderSheet() {
                         <p className="text-sm capitalize">{selectedOrder.deliveryType}</p>
                       </div>
                     </div>
-                    <div className="max-xs:hidden w-1/2">
+                    {/* <div className="max-xs:hidden w-1/2">
                       <h2 className="mb-4 font-oswald font-medium">Payment Method</h2>
                       <p className="text-sm">Pay with Cards, Bank Transfer or USSD</p>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* ✅ Contact / Support button */}
