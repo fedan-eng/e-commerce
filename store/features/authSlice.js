@@ -1,13 +1,25 @@
+// store/features/authSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { setCartFromDB, clearCart } from "./cartSlice"; // 👈 import cart actions
 
 // Fetch current user info
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
+
+      // ── When user logs in, load their cart from DB ──────────────────────
+      // This overwrites whatever is in localStorage with the DB cart,
+      // so User B never sees User A's leftover cart items.
+      if (data.user?.cart?.items?.length > 0) {
+        dispatch(setCartFromDB(data.user.cart.items));
+      }
+      // ────────────────────────────────────────────────────────────────────
+
       return data.user;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -25,14 +37,9 @@ export const updateUser = createAsyncThunk(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Update failed");
-      }
-
-      return data.user; // Expect updated user from backend
+      if (!res.ok) throw new Error(data.message || "Update failed");
+      return data.user;
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -42,12 +49,16 @@ export const updateUser = createAsyncThunk(
 // Logout thunk
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const res = await fetch("/api/auth/logout", { method: "POST" });
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message);
+
+      // ── On logout, wipe the cart from localStorage ──────────────────────
+      // So the next user who logs in starts clean.
+      dispatch(clearCart());
+      // ────────────────────────────────────────────────────────────────────
 
       return true;
     } catch (err) {
@@ -92,21 +103,21 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       })
       .addCase(updateUser.pending, (state) => {
-        state.isLoading = true; // Or a separate `isUpdating` state
+        state.isLoading = true;
         state.error = null;
         state.updateMessage = null;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.isLoading = false; // Or `isUpdating` to false
-        state.user = { ...state.user, ...action.payload }; // Ensure new object reference
-        state.updateMessage = "Profile updated successfully!"; // Optional success message
+        state.isLoading = false;
+        state.user = { ...state.user, ...action.payload };
+        state.updateMessage = "Profile updated successfully!";
       })
       .addCase(updateUser.rejected, (state, action) => {
-        state.isLoading = false; // Or `isUpdating` to false
+        state.isLoading = false;
         state.error = action.payload;
         state.updateMessage = null;
       })
-       .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;

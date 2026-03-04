@@ -213,18 +213,14 @@ const handleQuantityChange = (id, color, value) => {
           </div>
           <p className="my-6 text-sm">
             Need recommendations? Check{" "}
-            <Link href="/" className="text-filgreen underline">
+            <Link href="/products?specials=isWhatsNew" className="text-filgreen underline">
               New Arrivals
             </Link>{" "}
-            or{" "}
-            <Link href="/" className="text-filgreen underline">
-              New Arrivals
-            </Link>
           </p>
           <h3 className="mb-10 font-medium text-sm">
             Think Quality, Think FIL
           </h3>
-          <button className="shadow-button buttons"> Start Shopping Now</button>
+          <Link href="/products" ><button className="shadow-button buttons"> Start Shopping Now</button></Link>
         </div>
       ) : (
         <div className="nav:flex justify-center items-start gap-2 lg:gap-4 mx-2 mb-20">
