@@ -5,6 +5,7 @@ import productReducer from "./features/productSlice";
 import cartReducer from "./features/cartSlice";
 import wishlistReducer from "./features/wishlistSlice";
 import recentlyViewedReducer from "./features/recentlyViewedSlice";
+import { cartSyncMiddleware } from "./features/cartSlice"; // 👈 add this import
 
 // Load wishlist from localStorage
 const loadWishlist = () => {
@@ -58,6 +59,9 @@ export const store = configureStore({
     cart: loadCart(),
     wishlist: loadWishlist(),
   },
+
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(cartSyncMiddleware),
 });
 
 store.subscribe(() => {
