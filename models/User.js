@@ -58,6 +58,20 @@ const userSchema = new mongoose.Schema(
 
     resetPasswordCode: { type: String },
     resetPasswordExpiry: { type: Date },
+    cart: {
+  items: [
+    {
+      _id:      { type: String },
+      name:     { type: String },
+      price:    { type: Number },
+      image:    { type: String },
+      quantity: { type: Number, default: 1 },
+      color:    { type: String, default: "" },
+    },
+  ],
+  updatedAt:          { type: Date, default: null },
+  abandonedEmailSent: { type: Boolean, default: false }, // prevent duplicate emails
+},
   },
   { timestamps: true }
 );
