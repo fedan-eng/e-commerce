@@ -16,9 +16,9 @@ export async function GET(req) {
   await connectDB();
 
   try {
-    // const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
     // Use this for testing:
-     const fiveDaysAgo = new Date(Date.now() - 1 * 60 * 1000); // 1 minute ago
+    //  const fiveDaysAgo = new Date(Date.now() - 1 * 60 * 1000); // 1 minute ago
 
     // Find users who:
     // 1. Have items in their cart
