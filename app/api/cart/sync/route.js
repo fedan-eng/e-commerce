@@ -7,10 +7,12 @@ import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 
 export async function POST(req) {
+     console.log("🛒 Cart sync hit"); 
   await connectDB();
 
   try {
     const token = req.cookies.get("token")?.value;
+    console.log("Token exists:", !!token); 
     if (!token) {
       // Not logged in — silently ignore, cart stays in localStorage only
       return new Response(JSON.stringify({ ok: false, message: "Not logged in" }), { status: 200 });
