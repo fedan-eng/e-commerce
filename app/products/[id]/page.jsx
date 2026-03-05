@@ -103,6 +103,8 @@ export default function ProductDetailsPage() {
   const [page, setPage] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [showShareModal, setShowShareModal] = useState(false);
+const [linkCopied, setLinkCopied] = useState(false);
   const limit = 5;
 
   const totalPages = Math.ceil(comments.length / limit);
@@ -216,6 +218,15 @@ export default function ProductDetailsPage() {
       setIsZoomed(true);
     }
   };
+
+  const handleCopyLink = () => {
+  navigator.clipboard.writeText(window.location.href);
+  setLinkCopied(true);
+  setTimeout(() => setLinkCopied(false), 2000);
+};
+
+const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+const shareText = `Check out ${product?.name} on FIL Store!`;
 
   if (loading)
     return (
@@ -371,6 +382,13 @@ export default function ProductDetailsPage() {
             )}
             %
           </div>
+          <button
+    onClick={() => setShowShareModal(true)}
+    className="flex items-center gap-1.5 px-3 py-1.5 border border-[#e5e5e5] rounded-full text-xs text-[#3e3e3e] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+  >
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Share
+  </button>
 
           <div>
             <h3 className="mb-2 font-oswald font-medium text-2xl">
@@ -726,6 +744,82 @@ export default function ProductDetailsPage() {
           </div>
         }
       />
+      {/* Share Modal */}
+{showShareModal && (
+  <div
+    className="z-[9999] fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center p-4"
+    onClick={() => setShowShareModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-5">
+        <h3 className="font-oswald font-medium text-lg">Share Product</h3>
+        <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-black text-xl cursor-pointer">✕</button>
+      </div>
+
+      {/* Product preview */}
+      <div className="flex items-center gap-3 bg-[#f6f6f6] rounded-lg p-3 mb-5">
+        <img src={product.image} alt={product.name} className="w-12 h-12 object-contain rounded-md bg-white" />
+        <p className="text-sm font-medium line-clamp-2">{product.name}</p>
+      </div>
+
+      {/* Share options */}
+      <div className="grid grid-cols-4 gap-3 mb-5">
+        {/* WhatsApp */}
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`}
+          target="_blank" rel="noopener noreferrer"
+          className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-[#f0fdf6] transition-colors group"
+        >
+          <div className="flex justify-center items-center bg-[#25D366] rounded-full w-11 h-11">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </div>
+          <span className="text-[10px] text-[#3e3e3e]">WhatsApp</span>
+        </a>
+
+        {/* Twitter/X */}
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
+          target="_blank" rel="noopener noreferrer"
+          className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-[#f0f4ff] transition-colors"
+        >
+          <div className="flex justify-center items-center bg-black rounded-full w-11 h-11">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <span className="text-[10px] text-[#3e3e3e]">Twitter</span>
+        </a>
+
+        {/* Instagram — no direct share API, opens Instagram */}
+        <a
+          href="https://www.instagram.com"
+          target="_blank" rel="noopener noreferrer"
+          className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-[#fdf0f6] transition-colors"
+        >
+          <div className="flex justify-center items-center rounded-full w-11 h-11" style={{background:"radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%)"}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          </div>
+          <span className="text-[10px] text-[#3e3e3e]">Instagram</span>
+        </a>
+
+        {/* Copy Link */}
+        <button
+          onClick={handleCopyLink}
+          className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-[#f6f6f6] transition-colors cursor-pointer"
+        >
+          <div className={`flex justify-center items-center rounded-full w-11 h-11 transition-colors ${linkCopied ? "bg-filgreen" : "bg-[#e5e5e5]"}`}>
+            {linkCopied
+              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3e3e3e" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            }
+          </div>
+          <span className="text-[10px] text-[#3e3e3e]">{linkCopied ? "Copied!" : "Copy Link"}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
