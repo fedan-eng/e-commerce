@@ -112,10 +112,7 @@ const NavSearchTooltip = () => {
   };
 
   return (
-    <li
-      ref={containerRef}
-      className="flex justify-center items-center max-sm:static relative"
-    >
+    <li ref={containerRef} className="flex justify-center items-center relative">
       {/* ── Desktop search bar ── */}
       <div
         className="max-nav:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-4xl cursor-text"
@@ -163,8 +160,7 @@ const NavSearchTooltip = () => {
             animate={{opacity: 1, y: 0}}
             exit={{opacity: 0, y: -8}}
             transition={{duration: 0.18}}
-            className="top-12 z-50 absolute bg-white sm:rounded-md shadow-lg border border-[#e5e5e5] w-screen sm:w-[560px] max-sm:left-1/2 max-sm:-translate-x-1/2 max-sm:max-h-[80vh] max-sm:overflow-y-auto"
-            style={{right: 0}}
+           className="sm:top-12 sm:right-0 sm:absolute z-50 bg-white sm:rounded-md shadow-lg border border-[#e5e5e5] sm:w-[560px] max-sm:fixed max-sm:top-16 max-sm:left-0 max-sm:w-full max-sm:max-h-[80vh] max-sm:overflow-y-auto"
           >
             <div className="flex max-sm:flex-col gap-5 p-4">
               {/* ── LEFT: Categories (desktop) / Search (mobile) ── */}
