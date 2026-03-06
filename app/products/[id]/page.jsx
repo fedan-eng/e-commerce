@@ -372,7 +372,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
         </div>
         
         {/* Right side - Details */}
-        <div className="flex flex-col gap-4 bg-[#fafafa] px-2 nav:px-6 pt-8 basis-[546px]">
+        <div className="flex flex-col relative gap-4 bg-[#fafafa] px-2 nav:px-6 pt-8 basis-[546px]">
           <div className="bg-black px-3 py-1 rounded-2xl w-fit text-[10px] text-white">
             Save{" "}
             {Math.round(
@@ -384,7 +384,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
           </div>
           <button
     onClick={() => setShowShareModal(true)}
-    className="flex items-center gap-1.5 px-3 py-1.5 border border-[#e5e5e5] rounded-full text-xs text-[#3e3e3e] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+    className="flex items-center absolute w-[50px] justify-center top-10 right-10 gap-1.5 px-3 py-1.5 border border-[#e5e5e5] rounded-full text-xs text-[#3e3e3e] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
   >
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     Share
