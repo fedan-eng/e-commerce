@@ -373,7 +373,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
         
         {/* Right side - Details */}
         <div className="flex flex-col relative gap-4 bg-[#fafafa] px-2 nav:px-6 pt-8 basis-[546px]">
-          <div className="bg-black px-3 py-1 rounded-2xl w-fit text-[10px] text-white">
+          {product.originalPrice && (<div className="bg-black px-3 py-1 rounded-2xl w-fit text-[10px] text-white">
             Save{" "}
             {Math.round(
               ((product.originalPrice - product.price) /
@@ -381,7 +381,8 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
                 100
             )}
             %
-          </div>
+          </div>)}
+          
           <button
     onClick={() => setShowShareModal(true)}
     className="flex items-center absolute w-fit justify-center top-10 right-10 gap-1.5 px-3 py-1.5 border border-[#e5e5e5] rounded-full text-xs text-[#3e3e3e] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
@@ -413,7 +414,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
 
             {/* Color Options */}
             <div>
-              <p className="mt-5 font-medium text-xs">Available Colors</p>
+              {product.colors?.length > 0 && (<p className="mt-5 font-medium text-xs">Available Colors</p>)}
 
               {product.colors?.length > 0 && (
                 <div className="flex items-center gap-2 mt-1 pb-4">
