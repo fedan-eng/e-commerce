@@ -2,6 +2,20 @@ import React from "react";
 import ProductList from "@/components/ProductList";
 import TextSlider from "@/components/TextSlider";
 
+export const metadata = {
+  title: "Shop Premium Tech & Accessories in Nigeria | FIL Store",
+  description: "Explore the best deals on electronics, power banks, and gadgets at FIL Store Nigeria. Quality products with fast nationwide delivery.",
+  keywords: ["FIL Store", "Tech Nigeria", "Electronics Lagos", "Online Shopping Nigeria"],
+  openGraph: {
+    title: "FIL Store Nigeria | Premium Tech Hub",
+    description: "Your one-stop shop for the latest gadgets and accessories.",
+    url: "https://filstore.com.ng/products",
+    siteName: "FIL Store",
+    locale: "en_NG",
+    type: "website",
+  },
+};
+
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }) {
   const category = searchParams.categories;
