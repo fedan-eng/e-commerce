@@ -7,6 +7,7 @@ export async function generateMetadata({ searchParams }) {
   const category = searchParams.categories;
   const special = searchParams.specials;
 
+  
   // Category-specific metadata
   const categoryMetadata = {
     "Power Bank": {
@@ -104,7 +105,7 @@ const Shop = () => {
       <div className="overflow-hidden">
         <TextSlider className="bg-[#fafafa]" />
       </div>
-      <ProductList /> 
+      <ProductList />  
     </div>
   );
 };
