@@ -40,5 +40,24 @@ export default function sitemap() {
     priority: 0.8,
   }));
 
-  return [...mainPages, ...categoryPages];
+  // attempt to pull a list of products so each product page gets crawled
+  let productPages = [];
+  try {
+    const res = await fetch(`${baseUrl}/api/products?limit=1000`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    const products = data.products || [];
+    productPages = products.map((p) => ({
+      url: `${baseUrl}/products/${p._id}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
+  } catch (e) {
+    // on failure we simply fall back to the static pages
+    console.error('could not load products for sitemap', e);
+  }
+
+  return [...mainPages, ...categoryPages, ...productPages];
 }
