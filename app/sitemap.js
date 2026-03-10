@@ -1,5 +1,5 @@
 // app/sitemap.js
-export default function sitemap() {
+export default async function sitemap() {
   const baseUrl = 'https://filstore.com.ng';
   
   // Main pages
