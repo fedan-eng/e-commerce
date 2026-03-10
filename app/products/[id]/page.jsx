@@ -33,6 +33,36 @@ async function fetchProduct(id) {
   return data.product || data;
 }
 
+export async function generateMetadata({ params }) {
+  const { id } = params;
+
+  let product = null;
+  try {
+    const res = await fetch(`https://www.filstore.com.ng/api/products/${id}`, {
+      cache: "no-store",
+    });
+    const json = await res.json();
+    product = json.product || json;
+  } catch (e) {
+    console.error("Failed to load product metadata", e);
+  }
+
+  const title = product ? `${product.name} | FIL Store` : "Product | FIL Store";
+  const description = product?.description || "Quality tech products available at FIL Store Nigeria.";
+  const url = `https://www.filstore.com.ng/products/${id}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      images: product?.image ? [{ url: product.image }] : [],
+    },
+  };
+}
 
 
 export default function ProductDetailsPage() {
