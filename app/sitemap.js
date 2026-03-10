@@ -44,5 +44,5 @@ export default async function sitemap() {
     console.error('could not load products for sitemap', e);
   }
 
-  return [...mainPages, ...categoryPages, ...productPages];
+  return [...mainPages, ...productPages];
 }
