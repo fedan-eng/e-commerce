@@ -61,8 +61,22 @@ export const metadata = {
 };
 
 const page = () => {
+  // homepage-specific structured data (WebPage) to help search engines
+  const homepageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "FIL Store - Home",
+    url: "https://www.filstore.com.ng",
+    description: "Shop quality tech products at unbeatable prices in Nigeria.",
+  };
+
   return (
     <div className="bg-white overflow-x-hidden text-black">
+      {/* inject JSON‑LD as a server-rendered script so crawlers see it */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd) }}
+      />
       <Hero />
       <About />
       <ProductCategory />
