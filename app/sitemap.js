@@ -24,21 +24,6 @@ export default async function sitemap() {
     },
   ];
 
-  // Category pages - using clean URLs
-  const categories = [
-    'Power Bank',
-    'Lifestyle', 
-    'Extensions',
-    'Wearables',
-    'Chargers'
-  ];
-  
-  const categoryPages = categories.map(category => ({
-    url: `${baseUrl}/products?categories=${encodeURIComponent(category)}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.8,
-  }));
 
   // attempt to pull a list of products so each product page gets crawled
   let productPages = [];
