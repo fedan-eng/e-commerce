@@ -72,21 +72,22 @@ export async function GET(req) {
     query.averageRating = { $gte: minRating };
   }
 
-  // ✅ If filtering by exactly one category with default sort,
-  // use custom sortOrder.<category> — sorted in JS since Map fields
-  // aren't easily sorted in MongoDB
+  // ✅ Custom sort key — single category OR single special, default sort only
   const singleCategory = categories.length === 1 ? categories[0] : null;
-  const useCustomSort  = singleCategory && sortBy === "default";
+  const singleSpecial  = specials.length === 1 ? specials[0] : null;
+  const sortKey        = singleCategory || singleSpecial || null;
+  const useCustomSort  = sortKey && sortBy === "default";
 
   const totalCount = await Product.countDocuments(query);
 
   let products;
 
   if (useCustomSort) {
+    // Fetch all matches, sort in JS by sortOrder map value
     const allMatches = await Product.find(query).lean();
     allMatches.sort((a, b) => {
-      const aOrder = a.sortOrder?.[singleCategory] ?? 9999;
-      const bOrder = b.sortOrder?.[singleCategory] ?? 9999;
+      const aOrder = a.sortOrder?.[sortKey] ?? 9999;
+      const bOrder = b.sortOrder?.[sortKey] ?? 9999;
       return aOrder - bOrder;
     });
     products = allMatches.slice(skip, skip + limit);
@@ -107,29 +108,4 @@ export async function GET(req) {
       totalPages: Math.ceil(totalCount / limit),
     },
   });
-}
-
-export async function PATCH(req) {
-  await connectDB();
-
-  try {
-    const { category, orderedIds } = await req.json();
-
-    if (!category || !Array.isArray(orderedIds)) {
-      return Response.json({ message: "Invalid payload" }, { status: 400 });
-    }
-
-    await Promise.all(
-      orderedIds.map((id, index) =>
-        Product.findByIdAndUpdate(id, {
-          $set: { [`sortOrder.${category}`]: index },
-        })
-      )
-    );
-
-    return Response.json({ message: "Order saved" });
-  } catch (err) {
-    console.error("Sort order error:", err);
-    return Response.json({ message: "Failed to save order" }, { status: 500 });
-  }
 }

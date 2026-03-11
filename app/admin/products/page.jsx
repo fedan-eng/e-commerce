@@ -1,7 +1,25 @@
-// app/admin/products/page.jsx
 "use client";
 import {useEffect, useState, useCallback} from "react";
 import Link from "next/link";
+
+const CATEGORIES = [
+  // Categories
+  "Power Bank",
+  "Wearables",
+  "Chargers",
+  "Lifestyle",
+  "Extensions",
+  // Specials
+  "isBestseller",
+  "isWhatsNew",
+  "isTodaysDeal",
+];
+
+const CATEGORY_LABELS = {
+  isBestseller: "Best Seller",
+  isWhatsNew: "What's New",
+  isTodaysDeal: "Today's Deal",
+};
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -12,11 +30,13 @@ export default function AdminProductsPage() {
   const [total, setTotal] = useState(0);
   const [deleting, setDeleting] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-const [sortMode, setSortMode] = useState(false);
-const [sortCategory, setSortCategory] = useState("");
-const [sortableProducts, setSortableProducts] = useState([]);
-const [savingOrder, setSavingOrder] = useState(false);
-const [dragOverId, setDragOverId] = useState(null);
+
+  // Sort mode state
+  const [sortMode, setSortMode] = useState(false);
+  const [sortCategory, setSortCategory] = useState("");
+  const [sortableProducts, setSortableProducts] = useState([]);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [dragOverId, setDragOverId] = useState(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -47,83 +67,84 @@ const [dragOverId, setDragOverId] = useState(null);
     setConfirmDelete(null);
   };
 
+  const openSortMode = () => {
+    setSortMode(true);
+    setSortCategory("");
+    setSortableProducts([]);
+  };
 
-  const CATEGORIES = ["Power Bank", "Wearables", "Chargers", "Lifestyle", "Extensions"];
+  const handleCategorySelect = async (cat) => {
+    setSortCategory(cat);
+    setSortableProducts([]);
 
-const openSortMode = () => {
-  setSortMode(true);
-  setSortCategory("");
-  setSortableProducts([]);
-};
+    const isSpecial = cat.startsWith("is");
+    const url = isSpecial
+      ? `/api/products?specials=${cat}&limit=500`
+      : `/api/products?categories=${encodeURIComponent(cat)}&limit=500`;
 
-const handleCategorySelect = async (cat) => {
-  setSortCategory(cat);
-  setSortableProducts([]);
-  const res = await fetch(`/api/products?categories=${encodeURIComponent(cat)}&limit=500`);
-  const data = await res.json();
+    const res = await fetch(url);
+    const data = await res.json();
 
-  const sorted = (data.products || []).sort((a, b) => {
-    const aOrder = a.sortOrder?.[cat] ?? 9999;
-    const bOrder = b.sortOrder?.[cat] ?? 9999;
-    return aOrder - bOrder;
-  });
-
-  setSortableProducts(sorted);
-};
-
-// Native drag and drop handlers
-const handleDragStart = (e, id) => {
-  e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setData("draggedId", id);
-};
-
-const handleDragOver = (e, id) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
-  setDragOverId(id);
-};
-
-const handleDrop = (e, targetId) => {
-  e.preventDefault();
-  const draggedId = e.dataTransfer.getData("draggedId");
-  if (draggedId === targetId) return;
-
-  setSortableProducts((prev) => {
-    const arr = [...prev];
-    const fromIdx = arr.findIndex((p) => p._id === draggedId);
-    const toIdx   = arr.findIndex((p) => p._id === targetId);
-    const [moved] = arr.splice(fromIdx, 1);
-    arr.splice(toIdx, 0, moved);
-    return arr;
-  });
-  setDragOverId(null);
-};
-
-const handleSaveOrder = async () => {
-  setSavingOrder(true);
-  try {
-    const res = await fetch("/api/products/sort-order",  {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        category: sortCategory,
-        orderedIds: sortableProducts.map((p) => p._id),
-      }),
+    const sorted = (data.products || []).sort((a, b) => {
+      const aOrder = a.sortOrder?.[cat] ?? 9999;
+      const bOrder = b.sortOrder?.[cat] ?? 9999;
+      return aOrder - bOrder;
     });
-    if (res.ok) {
-      alert("Order saved successfully!");
-      setSortMode(false);
-      fetchProducts(); // refresh the list
-    } else {
-      alert("Failed to save order.");
-    }
-  } catch {
-    alert("Something went wrong.");
-  } finally {
-    setSavingOrder(false);
-  }
-};
 
+    setSortableProducts(sorted);
+  };
+
+  const handleDragStart = (e, id) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("draggedId", id);
+  };
+
+  const handleDragOver = (e, id) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverId(id);
+  };
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData("draggedId");
+    if (draggedId === targetId) return;
+
+    setSortableProducts((prev) => {
+      const arr = [...prev];
+      const fromIdx = arr.findIndex((p) => p._id === draggedId);
+      const toIdx = arr.findIndex((p) => p._id === targetId);
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+      return arr;
+    });
+    setDragOverId(null);
+  };
+
+  const handleSaveOrder = async () => {
+    setSavingOrder(true);
+    try {
+      const res = await fetch("/api/products/sort-order", {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          category: sortCategory,
+          orderedIds: sortableProducts.map((p) => p._id),
+        }),
+      });
+      if (res.ok) {
+        alert("Order saved successfully!");
+        setSortMode(false);
+        fetchProducts();
+      } else {
+        alert("Failed to save order.");
+      }
+    } catch {
+      alert("Something went wrong.");
+    } finally {
+      setSavingOrder(false);
+    }
+  };
 
   return (
     <div>
@@ -161,43 +182,43 @@ const handleSaveOrder = async () => {
             <span style={{color: "#444", fontSize: "18px"}}>({total})</span>
           </h1>
         </div>
-        
-        <div style={{ display: "flex", gap: "10px" }}>
-  <button
-    onClick={openSortMode}
-    style={{
-      padding: "10px 20px",
-      background: "transparent",
-      color: "#e8c46a",
-      border: "1px solid #e8c46a44",
-      borderRadius: "6px",
-      fontSize: "11px",
-      fontWeight: "700",
-      letterSpacing: "0.12em",
-      textTransform: "uppercase",
-      cursor: "pointer",
-    }}
-  >
-    ⠿ Manage Order
-  </button>
 
-  <Link
-    href="/admin/products/new"
-    style={{
-      padding: "10px 20px",
-      background: "#e8c46a",
-      color: "#0a0a0a",
-      textDecoration: "none",
-      borderRadius: "6px",
-      fontSize: "11px",
-      fontWeight: "700",
-      letterSpacing: "0.12em",
-      textTransform: "uppercase",
-    }}
-  >
-    + Add Product
-  </Link>
-</div>
+        <div style={{display: "flex", gap: "10px"}}>
+          <button
+            onClick={openSortMode}
+            style={{
+              padding: "10px 20px",
+              background: "transparent",
+              color: "#e8c46a",
+              border: "1px solid #e8c46a44",
+              borderRadius: "6px",
+              fontSize: "11px",
+              fontWeight: "700",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            ⠿ Manage Order
+          </button>
+
+          <Link
+            href="/admin/products/new"
+            style={{
+              padding: "10px 20px",
+              background: "#e8c46a",
+              color: "#0a0a0a",
+              textDecoration: "none",
+              borderRadius: "6px",
+              fontSize: "11px",
+              fontWeight: "700",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+            }}
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       {/* Search */}
@@ -345,7 +366,6 @@ const handleSaveOrder = async () => {
                       {product.category || "—"}
                     </td>
                     <td
-                    className="flex items-center"
                       style={{
                         padding: "14px 20px",
                         fontSize: "13px",
@@ -504,132 +524,285 @@ const handleSaveOrder = async () => {
                 </div>
               </div>
             )}
-            {/* ── SORT MODE PANEL ─────────────────────────── */}
-{sortMode && (
-  <div style={{ marginTop: "32px", background: "#111", border: "1px solid #222", borderRadius: "8px", padding: "24px" }}>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-      <h2 style={{ margin: 0, fontSize: "16px", fontWeight: "700", color: "#e8e8e8" }}>
-        Manage Display Order
-      </h2>
-      <button
-        onClick={() => setSortMode(false)}
-        style={{ background: "transparent", border: "1px solid #222", color: "#666", borderRadius: "4px", padding: "4px 12px", cursor: "pointer", fontSize: "12px" }}
-      >
-        Close
-      </button>
-    </div>
-
-    {/* Category selector */}
-    <div style={{ marginBottom: "20px" }}>
-      <p style={{ fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "10px" }}>
-        Select Category
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => handleCategorySelect(cat)}
-            style={{
-              padding: "6px 16px",
-              borderRadius: "4px",
-              fontSize: "12px",
-              cursor: "pointer",
-              border: sortCategory === cat ? "1px solid #e8c46a" : "1px solid #222",
-              background: sortCategory === cat ? "#e8c46a18" : "transparent",
-              color: sortCategory === cat ? "#e8c46a" : "#666",
-              fontWeight: sortCategory === cat ? "700" : "400",
-            }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-    </div>
-
-    {/* Draggable list */}
-    {sortCategory && sortableProducts.length === 0 && (
-      <p style={{ color: "#444", fontSize: "13px" }}>No products in this category.</p>
-    )}
-
-    {sortableProducts.length > 0 && (
-      <>
-        <p style={{ fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "10px" }}>
-          Drag to reorder — top = displayed first
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {sortableProducts.map((product, idx) => (
-            <div
-              key={product._id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, product._id)}
-              onDragOver={(e) => handleDragOver(e, product._id)}
-              onDrop={(e) => handleDrop(e, product._id)}
-              onDragLeave={() => setDragOverId(null)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "10px 14px",
-                background: dragOverId === product._id ? "#1a1a1a" : "#0d0d0d",
-                border: dragOverId === product._id ? "1px solid #e8c46a44" : "1px solid #1a1a1a",
-                borderRadius: "6px",
-                cursor: "grab",
-                transition: "background 0.15s, border 0.15s",
-              }}
-            >
-              {/* Drag handle */}
-              <span style={{ color: "#333", fontSize: "16px", userSelect: "none", flexShrink: 0 }}>⠿</span>
-
-              {/* Position number */}
-              <span style={{ fontSize: "11px", color: "#444", width: "20px", flexShrink: 0 }}>{idx + 1}</span>
-
-              {/* Image */}
-              {product.image && (
-                <img src={product.image} alt="" style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "4px", background: "#1a1a1a", flexShrink: 0 }} />
-              )}
-
-              {/* Name */}
-              <span style={{ fontSize: "13px", color: "#e8e8e8", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {product.name}
-              </span>
-
-              {/* Price */}
-              <span style={{ fontSize: "12px", color: "#666", flexShrink: 0 }}>
-                ₦{product.price?.toLocaleString()}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Save button */}
-        <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={handleSaveOrder}
-            disabled={savingOrder}
-            style={{
-              padding: "10px 24px",
-              background: savingOrder ? "#333" : "#e8c46a",
-              color: savingOrder ? "#666" : "#0a0a0a",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "12px",
-              fontWeight: "700",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              cursor: savingOrder ? "default" : "pointer",
-            }}
-          >
-            {savingOrder ? "Saving..." : "Save Order"}
-          </button>
-        </div>
-      </>
-    )}
-  </div>
-)}
           </>
         )}
       </div>
+
+      {/* ── SORT MODE PANEL ─────────────────────────── */}
+      {sortMode && (
+        <div
+          style={{
+            marginTop: "32px",
+            background: "#111",
+            border: "1px solid #222",
+            borderRadius: "8px",
+            padding: "24px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#e8e8e8",
+              }}
+            >
+              Manage Display Order
+            </h2>
+            <button
+              onClick={() => setSortMode(false)}
+              style={{
+                background: "transparent",
+                border: "1px solid #222",
+                color: "#666",
+                borderRadius: "4px",
+                padding: "4px 12px",
+                cursor: "pointer",
+                fontSize: "12px",
+              }}
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Category + Specials selector */}
+          <div style={{marginBottom: "20px"}}>
+            <p
+              style={{
+                fontSize: "11px",
+                color: "#555",
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                marginBottom: "6px",
+              }}
+            >
+              Categories
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginBottom: "16px",
+              }}
+            >
+              {CATEGORIES.filter((c) => !c.startsWith("is")).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategorySelect(cat)}
+                  style={{
+                    padding: "6px 16px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    border:
+                      sortCategory === cat
+                        ? "1px solid #e8c46a"
+                        : "1px solid #222",
+                    background:
+                      sortCategory === cat ? "#e8c46a18" : "transparent",
+                    color: sortCategory === cat ? "#e8c46a" : "#666",
+                    fontWeight: sortCategory === cat ? "700" : "400",
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <p
+              style={{
+                fontSize: "11px",
+                color: "#555",
+                textTransform: "uppercase",
+                letterSpacing: "0.15em",
+                marginBottom: "6px",
+              }}
+            >
+              Specials
+            </p>
+            <div style={{display: "flex", flexWrap: "wrap", gap: "8px"}}>
+              {CATEGORIES.filter((c) => c.startsWith("is")).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategorySelect(cat)}
+                  style={{
+                    padding: "6px 16px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    border:
+                      sortCategory === cat
+                        ? "1px solid #e8c46a"
+                        : "1px solid #222",
+                    background:
+                      sortCategory === cat ? "#e8c46a18" : "transparent",
+                    color: sortCategory === cat ? "#e8c46a" : "#666",
+                    fontWeight: sortCategory === cat ? "700" : "400",
+                  }}
+                >
+                  {CATEGORY_LABELS[cat] || cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Empty state */}
+          {sortCategory && sortableProducts.length === 0 && (
+            <p style={{color: "#444", fontSize: "13px"}}>
+              No products in this selection.
+            </p>
+          )}
+
+          {/* Draggable list */}
+          {sortableProducts.length > 0 && (
+            <>
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "#555",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  marginBottom: "10px",
+                }}
+              >
+                Drag to reorder — top = displayed first
+              </p>
+
+              <div
+                style={{display: "flex", flexDirection: "column", gap: "6px"}}
+              >
+                {sortableProducts.map((product, idx) => (
+                  <div
+                    key={product._id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, product._id)}
+                    onDragOver={(e) => handleDragOver(e, product._id)}
+                    onDrop={(e) => handleDrop(e, product._id)}
+                    onDragLeave={() => setDragOverId(null)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "10px 14px",
+                      background:
+                        dragOverId === product._id ? "#1a1a1a" : "#0d0d0d",
+                      border:
+                        dragOverId === product._id
+                          ? "1px solid #e8c46a44"
+                          : "1px solid #1a1a1a",
+                      borderRadius: "6px",
+                      cursor: "grab",
+                      transition: "background 0.15s, border 0.15s",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#333",
+                        fontSize: "16px",
+                        userSelect: "none",
+                        flexShrink: 0,
+                      }}
+                    >
+                      ⠿
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#444",
+                        width: "20px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {idx + 1}
+                    </span>
+                    {product.image && (
+                      <img
+                        src={product.image}
+                        alt=""
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                          background: "#1a1a1a",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        color: "#e8e8e8",
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {product.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#555",
+                        flexShrink: 0,
+                        fontSize: "10px",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {product.category}
+                    </span>
+                    <span
+                      style={{fontSize: "12px", color: "#666", flexShrink: 0}}
+                    >
+                      ₦{product.price?.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Save */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  onClick={handleSaveOrder}
+                  disabled={savingOrder}
+                  style={{
+                    padding: "10px 24px",
+                    background: savingOrder ? "#333" : "#e8c46a",
+                    color: savingOrder ? "#666" : "#0a0a0a",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    cursor: savingOrder ? "default" : "pointer",
+                  }}
+                >
+                  {savingOrder ? "Saving..." : "Save Order"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
