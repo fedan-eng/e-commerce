@@ -159,22 +159,7 @@ const handleSaveOrder = async () => {
             <span style={{color: "#444", fontSize: "18px"}}>({total})</span>
           </h1>
         </div>
-        <Link
-          href="/admin/products/new"
-          style={{
-            padding: "10px 20px",
-            background: "#e8c46a",
-            color: "#0a0a0a",
-            textDecoration: "none",
-            borderRadius: "6px",
-            fontSize: "11px",
-            fontWeight: "700",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-          }}
-        >
-          + Add Product
-        </Link>
+        
         <div style={{ display: "flex", gap: "10px" }}>
   <button
     onClick={openSortMode}
