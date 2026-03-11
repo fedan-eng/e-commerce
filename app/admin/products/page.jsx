@@ -56,17 +56,19 @@ const openSortMode = () => {
   setSortableProducts([]);
 };
 
-const handleCategorySelect = (cat) => {
+const handleCategorySelect = async (cat) => {
   setSortCategory(cat);
-  // filter + sort products in that category by existing sortOrder, unknowns go last
-  const filtered = products
-    .filter((p) => p.category === cat)
-    .sort((a, b) => {
-      const aOrder = a.sortOrder?.[cat] ?? 9999;
-      const bOrder = b.sortOrder?.[cat] ?? 9999;
-      return aOrder - bOrder;
-    });
-  setSortableProducts(filtered);
+  setSortableProducts([]);
+  const res = await fetch(`/api/products?categories=${encodeURIComponent(cat)}&limit=500`);
+  const data = await res.json();
+
+  const sorted = (data.products || []).sort((a, b) => {
+    const aOrder = a.sortOrder?.[cat] ?? 9999;
+    const bOrder = b.sortOrder?.[cat] ?? 9999;
+    return aOrder - bOrder;
+  });
+
+  setSortableProducts(sorted);
 };
 
 // Native drag and drop handlers
@@ -100,7 +102,7 @@ const handleDrop = (e, targetId) => {
 const handleSaveOrder = async () => {
   setSavingOrder(true);
   try {
-    const res = await fetch("/api/products/sort-order", {
+    const res = await fetch("/api/products/sort-order",  {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
