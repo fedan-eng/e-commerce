@@ -57,6 +57,11 @@ const productSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    sortOrder: {
+  type: Map,
+  of: Number,
+  default: {},
+},
     text: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     status: {

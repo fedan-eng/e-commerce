@@ -27,10 +27,10 @@ export async function GET(req) {
   // Sorting
   const sortBy = searchParams.get("sort") || "default";
   const sortOptions = {
-    default: { createdAt: -1 },
-    oldest: { createdAt: 1 },
-    "price-low-high": { price: 1 },
-    "price-high-low": { price: -1 },
+    default:           { createdAt: -1 },
+    oldest:            { createdAt: 1 },
+    "price-low-high":  { price: 1 },
+    "price-high-low":  { price: -1 },
     "rating-high-low": { averageRating: -1 },
     "rating-low-high": { averageRating: 1 },
   };
@@ -72,14 +72,31 @@ export async function GET(req) {
     query.averageRating = { $gte: minRating };
   }
 
-  // Fetch total count and products
+  // ✅ If filtering by exactly one category with default sort,
+  // use custom sortOrder.<category> — sorted in JS since Map fields
+  // aren't easily sorted in MongoDB
+  const singleCategory = categories.length === 1 ? categories[0] : null;
+  const useCustomSort  = singleCategory && sortBy === "default";
+
   const totalCount = await Product.countDocuments(query);
 
-  const products = await Product.find(query)
-    .sort(sortOptions[sortBy] || { createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  let products;
+
+  if (useCustomSort) {
+    const allMatches = await Product.find(query).lean();
+    allMatches.sort((a, b) => {
+      const aOrder = a.sortOrder?.[singleCategory] ?? 9999;
+      const bOrder = b.sortOrder?.[singleCategory] ?? 9999;
+      return aOrder - bOrder;
+    });
+    products = allMatches.slice(skip, skip + limit);
+  } else {
+    products = await Product.find(query)
+      .sort(sortOptions[sortBy] || { createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+  }
 
   return Response.json({
     products,
@@ -90,4 +107,29 @@ export async function GET(req) {
       totalPages: Math.ceil(totalCount / limit),
     },
   });
+}
+
+export async function PATCH(req) {
+  await connectDB();
+
+  try {
+    const { category, orderedIds } = await req.json();
+
+    if (!category || !Array.isArray(orderedIds)) {
+      return Response.json({ message: "Invalid payload" }, { status: 400 });
+    }
+
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        Product.findByIdAndUpdate(id, {
+          $set: { [`sortOrder.${category}`]: index },
+        })
+      )
+    );
+
+    return Response.json({ message: "Order saved" });
+  } catch (err) {
+    console.error("Sort order error:", err);
+    return Response.json({ message: "Failed to save order" }, { status: 500 });
+  }
 }
