@@ -324,7 +324,7 @@ function ProductListInner() {
                 {(index === 1 || index === 6) && !isSearching && (
                   <div className="relative overflow-hidden rounded-md w-[45%] box:w-[273px] mid:w-[240px] s:w-[46%] sm:w-[273px] md:h-[351px]">
                     <img
-                      src={index === 1 ? "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396982/WEB_PB_1_x8db8h.jpg" : "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396981/WEB_PB_2_egetio.jpg"}
+                      src={index === 1 ? "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396982/WEB_PB_1_x8db8h.jpg" : "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396981/WEB_PB_2_egetio.jpg"} 
                       alt="Latest Tech Deal"
                       className="w-full h-full object-cover"
                     />
