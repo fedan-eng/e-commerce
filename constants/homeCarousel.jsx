@@ -1,19 +1,19 @@
 export const homeImages = [
-  {
+    {
     id: 1,
-    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581672/HERO_SECTION_8_ynbwqz.jpg",
-    title: "ALWAYS WITH YOU ",
-    link: "/products?categories=Power+Bank",
-    desc: "Stylish. Portable. Fast charging.",
+    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396995/HERO_SECTION_11_komflk.jpg",
+    title: "RAMADAN SALES",
+    link: "/products?specials=isTodaysDeal",
+    desc: "Up to 30% discount",
     titleStyle: "",
     descStyle: "",
   },
   {
     id: 2,
-    src: "/fans.png",
-    title: "FIL FANS",
-    link: " /products?categories=Lifestyle",
-    desc: "Beat the heat effortlessly.",
+    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581672/HERO_SECTION_8_ynbwqz.jpg",
+    title: "ALWAYS WITH YOU ",
+    link: "/products?categories=Power+Bank",
+    desc: "Stylish. Portable. Fast charging.",
     titleStyle: "",
     descStyle: "",
   },
