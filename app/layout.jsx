@@ -4,6 +4,7 @@ import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Suspense } from "react";
 
 export const metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
             <AuthInitializer />
             <Suspense fallback={<div>Loading...</div>}>
             <Analytics/>
+            <SpeedInsights/>
               <ConditionalShell>{children}</ConditionalShell>
             </Suspense>
           </Providers>
