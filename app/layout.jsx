@@ -27,6 +27,7 @@ export default function RootLayout({ children }) {
           <Providers>
             <AuthInitializer />
             <Suspense fallback={<div>Loading...</div>}>
+            <Analytics/>
               <ConditionalShell>{children}</ConditionalShell>
             </Suspense>
           </Providers>
