@@ -72,6 +72,7 @@ const page = () => {
 
   return (
     <div className="bg-white overflow-x-hidden text-black">
+      
       {/* inject JSON‑LD as a server-rendered script so crawlers see it */}
       <script
         type="application/ld+json"
