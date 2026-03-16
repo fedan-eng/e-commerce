@@ -1,203 +1,204 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import Header from "@/components/Header";
 
 const products = [
   {
     name: "Wearables",
-    image: "/zen2.png",
+    image: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771511722/zennnnnnn.jpg_pwu3uw_qgdvvh.png",
     link: "/products?categories=Wearables",
   },
   {
     name: "Power Banks",
-    image: "/pow2.png",
+    image: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771515862/unnamed_fnunic_dfgrc2.png",
     link: "/products?categories=Power Bank",
   },
   {
     name: "Chargers",
-    image: "/char2.png",
+    image: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771950402/FIL-Turbo-Charger-4-USB-Ports-4.1A-Output-3-pins_n0d9ze__1_-removebg-preview_ikkrds.png",
     link: "/products?categories=Chargers",
   },
   {
     name: "Lifestyle",
-    image: "/pro2.png",
+    image: "https://res.cloudinary.com/dm2igxywk/image/upload/v1773665639/Gemini_Generated_Image_7lr1dq7lr1dq7lr1-removebg-preview_tjiny2.png",
     link: "/products?categories=Lifestyle",
   },
   {
     name: "Extensions",
-    image: "/ext2.png",
+    image: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771950500/FIL-WO35KT-1.jpg_jvmbxd-removebg-preview_o3rwqx.png",
     link: "/products?categories=Extensions",
   },
 ];
 
+const GAP = 12;
+
 const ProductCategory = () => {
-  const [scrollStep, setScrollStep] = useState(0);
   const scrollRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [cardWidth, setCardWidth] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(4);
 
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsLargeScreen(window.innerWidth >= 1170);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-
-    const onScroll = () => {
-      if (!el) return;
-      const scrollLeft = el.scrollLeft;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-
-      const ratio = maxScroll === 0 ? 0 : scrollLeft / maxScroll;
-
-      if (ratio <= 0.2) {
-        setScrollStep(0);
-      } else if (ratio > 0.2 && ratio <= 0.7) {
-        setScrollStep(1);
-      } else {
-        setScrollStep(2);
-      }
-    };
-
-    if (el) el.addEventListener("scroll", onScroll);
-
-    return () => {
-      if (el) el.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  // This scrollToStep is the one directly called by the buttons
-  const scrollToStep = (step) => {
+  const updateSizes = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
+    const containerWidth = el.clientWidth;
+    const w = window.innerWidth;
 
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    const targetScroll =
-      step === 0 ? 0 : step === 1 ? maxScroll / 2 : maxScroll;
+    let visible, cw;
 
-    el.scrollTo({
-      left: targetScroll,
-      behavior: "smooth",
-    });
-  };
+    if (w < 640) {
+      // mobile: 1 card + peek of next
+      visible = 1;
+      cw = containerWidth * 0.82;
+    } else if (w < 1024) {
+      // tablet: ~2.3 cards
+      visible = 2;
+      cw = (containerWidth - GAP * 2) / 2.3;
+    } else {
+      // desktop: 4 full cards + peek of 5th
+      visible = 4;
+      cw = (containerWidth - GAP * 3) / 4.12;
+    }
+
+    setVisibleCount(visible);
+    setCardWidth(Math.floor(cw));
+  }, []);
+
+  useEffect(() => {
+    updateSizes();
+    window.addEventListener("resize", updateSizes);
+    return () => window.removeEventListener("resize", updateSizes);
+  }, [updateSizes]);
+
+  const scrollToIndex = useCallback(
+    (index) => {
+      const el = scrollRef.current;
+      if (!el || cardWidth === 0) return;
+      const maxIndex = products.length - visibleCount;
+      const clamped = Math.max(0, Math.min(index, maxIndex));
+      el.scrollTo({ left: clamped * (cardWidth + GAP), behavior: "smooth" });
+      setActiveIndex(clamped);
+    },
+    [cardWidth, visibleCount]
+  );
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (cardWidth === 0) return;
+      const i = Math.round(el.scrollLeft / (cardWidth + GAP));
+      setActiveIndex(Math.min(i, products.length - visibleCount));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [cardWidth, visibleCount]);
+
+  const maxIndex = products.length - visibleCount;
+  const dotCount = maxIndex + 1;
 
   return (
-    <div>
+    <div className="mt-12">
       <Header
         header="We Categorize - You Choose"
         imageClassName="order-2"
-        className="justify-end mt-12"
+        className="justify-end"
       />
 
-      {isLargeScreen && (
-        <div className="flex flex-nowrap justify-center gap-2">
+      {/* Carousel */}
+      <div className="relative mt-6">
+        {/* Prev Arrow */}
+        <button
+          onClick={() => scrollToIndex(activeIndex - 1)}
+          disabled={activeIndex === 0}
+          aria-label="Previous"
+          className={`hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10
+            items-center justify-center w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md
+            transition-opacity duration-200
+            ${activeIndex === 0 ? "opacity-25 cursor-not-allowed" : "opacity-100 hover:bg-gray-50 cursor-pointer"}`}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8L10 4" stroke="#222" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        {/* Scrollable track */}
+        <div
+          ref={scrollRef}
+          className="flex overflow-x-auto no-scrollbar mx-4 md:mx-20 lg:px-12"
+          style={{ gap: `${GAP}px`, scrollSnapType: "x mandatory" }}
+        >
           {products.map((product, index) => (
             <Link
               href={product.link}
               key={index}
-              target="_blank"
-              className="flex justify-between bg-bright rounded-md w-[221px] h-[136px] overflow-hidden"
+              className="flex-shrink-0 overflow-hidden rounded-xl bg-bright group block"
+              style={{
+                width: cardWidth > 0 ? `${cardWidth}px` : "260px",
+                minWidth: cardWidth > 0 ? `${cardWidth}px` : "260px",
+                scrollSnapAlign: "start",
+              }}
             >
-              <h3 className="pt-3 pl-3 font-oswald font-normal text-sm uppercase no-whitspace-nowrap">
-                {product.name}
-              </h3>
-
-              <motion.div
-                whileHover={{
-                  scale: 1.1,
-                  transition: {
-                    duration: 0.5,
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 10,
-                  },
-                }}
-                className="justify-self-end"
+              {/* Portrait card — same ratio as the BEIS reference */}
+              <div
+                className="relative w-full aspect-[4/3] sm:aspect-[3/4]"
               >
                 <Image
                   src={product.image}
-                  alt="Chargers"
-                  width={260}
-                  height={260}
-                  className="rounded-md w-full h-full object-cover"
+                  alt={product.name}
+                  width={1000}
+                  height={1000}
+                  quality={90}
+                  className="object-cover h-full w-full transition-transform duration-500 ease-out group-hover:scale-105"
+                  //sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 30vw"
                 />
-              </motion.div>
+                {/* Bottom gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                {/* Label */}
+                <div className="absolute bottom-0 left-0 w-full px-4 pb-4">
+                  <h3 className="font-oswald font-normal text-white text-sm md:text-base uppercase tracking-wide">
+                    {product.name}
+                  </h3>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
-      )}
 
-      {!isLargeScreen && (
-        <div
-          ref={scrollRef}
-          className="mx-auto overflow-x-auto overflow-y-hidden whitespace-nowrap no-scrollbar"
+        {/* Next Arrow */}
+        <button
+          onClick={() => scrollToIndex(activeIndex + 1)}
+          disabled={activeIndex >= maxIndex}
+          aria-label="Next"
+          className={`hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10
+            items-center justify-center w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md
+            transition-opacity duration-200
+            ${activeIndex >= maxIndex ? "opacity-25 cursor-not-allowed" : "opacity-100 hover:bg-gray-50 cursor-pointer"}`}
         >
-          <div className="inline-flex justify-center gap-2 px-4 pt-6">
-            {products.map((product, index) => (
-              <Link
-                href={product.link}
-                key={index}
-                className="flex flex-col-reverse justify-between bg-bright rounded-md w-[150px] sm:w-[178px] md:w-[221px] h-[200px] sm:h-[210px] md:h-[266px] overflow-hidden"
-              >
-                <h3 className="py-4 pl-3 text-center font-oswald font-normal text-sm uppercase">
-                  {product.name}
-                </h3>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4L10 8L6 12" stroke="#222" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
 
-                <motion.div
-                  whileHover={{
-                    scale: 1.1,
-                    transition: {
-                      duration: 0.5,
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 10,
-                    },
-                  }}
-                  className="justify-self-end overflow-hidden"
-                >
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={150}
-                    height={150}
-                    className="rounded-md w-full h-full object-cover"
-                  />
-                </motion.div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!isLargeScreen && (
-        <div className="flex justify-center gap-2 mt-4 px-2">
-          {[0, 1, 2].map((i) => (
-            <button
-              key={i}
-              onClick={() => scrollToStep(i)}
-              className={`h-2 w-2 rounded-full ${
-                scrollStep === i
-                  ? "bg-filgreen w-5 h-[6px]"
-                  : "bg-[#b7b7b7] h-[6px] w-[10px]"
-              } transition-all duration-300`}
-              aria-label={`Scroll to ${
-                i === 0 ? "start" : i === 1 ? "middle" : "end"
-              }`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-4">
+        {Array.from({ length: dotCount }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollToIndex(i)}
+            aria-label={`Go to position ${i + 1}`}
+            className={`rounded-full transition-all duration-300 ${
+              activeIndex === i
+                ? "bg-filgreen w-5 h-[6px]"
+                : "bg-[#b7b7b7] w-[10px] h-[6px]"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 };

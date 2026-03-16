@@ -29,7 +29,7 @@ const Slider = () => {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="w-full h-[400px]">
+      <div className="w-full h-[400px] md:h-[600px]">
         {homeImages.map((item, idx) => (
           <motion.div
             key={idx}
@@ -52,7 +52,7 @@ const Slider = () => {
               height={400}
               className={`w-full h-full ${item.id === 1 ? "object-right" : ""} object-cover overflow-hidden`}
               initial={{ scale: 1 }} // Start at normal scale
-              animate={idx === activeImage ? { scale: 1.1 } : {}} // Only scale the active image
+              animate={idx === activeImage ? { scale: 1 } : {}} // Only scale the active image
               transition={{
                 duration: 3,
               }}
@@ -71,7 +71,7 @@ const Slider = () => {
 
       {/* Thumbnail Carousel */}
       <div className="max-sm:hidden z-50 mb-3 px-4 w-full overflow-hidden">
-        <div
+        {/* <div
           className="flex gap-3 transition-transform duration-300"
           style={{ transform: "translateX(55%)" }}
         >
@@ -94,7 +94,7 @@ const Slider = () => {
               />
             </div>
           ))}
-        </div>
+        </div> */}
         <div className="z-50 relative flex justify-center items-center gap-6 mt-4">
           <button
             className="left-28 -rotate-180 relative text-white text-lg"
