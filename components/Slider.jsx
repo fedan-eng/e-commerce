@@ -56,13 +56,13 @@ const Slider = () => {
         {/* --- Side Navigation Arrows --- */}
         <button 
           onClick={clickPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+          className="absolute  cusor-pointer left-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
         >
           <img src="/homearrow.svg" className="w-8 h-8 rotate-180 brightness-200" alt="Prev" />
         </button>
         <button 
           onClick={clickNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+          className="absolute cusor-pointer  right-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
         >
           <img src="/homearrow.svg" className="w-8 h-8 brightness-200" alt="Next" />
         </button>
@@ -73,7 +73,7 @@ const Slider = () => {
             <button
               key={idx}
               onClick={() => setActiveImage(idx)}
-              className={`h-2 transition-all duration-300 rounded-full ${
+              className={`h-2 transition-all cursor-pointer duration-300 rounded-full ${
                 idx === activeImage ? "w-8 bg-mustard" : "w-2 bg-white/50 hover:bg-white"
               }`}
             />
