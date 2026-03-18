@@ -7,8 +7,11 @@ import TextSlider from "@/components/TextSlider";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }) {
-  const category = searchParams.categories;
-  const special = searchParams.specials;
+    const resolvedSearchParams = await searchParams;
+  
+  const category = resolvedSearchParams.categories;
+  const special = resolvedSearchParams.specials;
+
 
   
   // Category-specific metadata

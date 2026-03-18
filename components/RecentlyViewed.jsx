@@ -42,11 +42,11 @@ export default function RecentlyViewed() {
         className="justify-end mt-12"
       />
       <div className="mx-auto overflow-x-auto overflow-y-hidden whitespace-nowrap no-scrollbar">
-        <div className="inline-flex gap-4 px-4 sm:px-10 md:px-20 pt-6">
+        <div className="inline-flex gap-4 my-5 px-4 sm:px-10 md:px-20 pt-6">
           {items.map((product) => (
             <div
               key={product._id}
-              className="relative flex flex-col justify-between bg-[#f6f6f6] rounded-md w-[45%] box:w-[273px] mid:w-[240px] s:w-[46%] sm:w-[273px] md:h-[351px]"
+              className="relative flex flex-col justify-between bg-[#f6f6f6] rounded-md w-[200px] sm:w-[300px] h-fit "
             >
               <Link
                 className="relative"
