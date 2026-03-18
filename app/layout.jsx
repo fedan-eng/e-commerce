@@ -3,6 +3,7 @@ import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import CookieConsent from "@/components/CookieConsent";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Suspense } from "react";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
             <Analytics/>
             <SpeedInsights/>
               <ConditionalShell>{children}</ConditionalShell>
+              <CookieConsent />
             </Suspense>
           </Providers>
         </ErrorBoundary>
