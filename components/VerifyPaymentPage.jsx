@@ -35,6 +35,28 @@ export default function VerifyPaymentPage() {
   const flutterwaveRef = searchParams.get("transaction_id");
   const flutterwaveStatus = searchParams.get("status");
 
+
+  useEffect(() => {
+  if (!orderDetails) return
+
+  // Small delay ensures gtag is available after consent/script load
+  const timer = setTimeout(() => {
+    trackEvent('purchase', {
+      transaction_id: orderDetails.paymentReference || orderDetails._id || '',
+      currency: 'NGN',
+      value: Number(orderDetails.total || orderDetails.subTotal || 0),
+      items: (orderDetails.cartItems || []).map((item) => ({
+        item_id: item._id,
+        item_name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    })
+  }, 500)
+
+  return () => clearTimeout(timer)
+}, [orderDetails]) // ← fires only when orderDetails is set, trackEvent is stable
+
   useEffect(() => {
     // Prevent double verification
     if (hasVerified.current) return;
@@ -79,17 +101,7 @@ export default function VerifyPaymentPage() {
           setOrderDetails(data.orderData);
           dispatch(clearCart());
 
-          trackEvent("purchase", {
-            transaction_id: data.orderData.paymentReference || data.orderData._id || "",
-            currency: "NGN",
-            value: Number(data.orderData.total || data.orderData.subTotal || 0),
-            items: (data.orderData.cartItems || []).map((item) => ({
-              item_id: item._id,
-              item_name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-          });
+         
 
           // Clear localStorage checkout data
           localStorage.removeItem("cart");
