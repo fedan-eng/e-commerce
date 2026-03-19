@@ -276,9 +276,8 @@ export default function CookiePolicyPage() {
             Want to update your cookie choices?
           </h3>
           <p className="text-[13px] text-white/40 mb-5 max-w-sm mx-auto">
-            Clear your browser's local storage for filstore.com.ng and revisit the site — the
-            preference banner will reappear.
-          </p>
+  Go back to the homepage and use the cookie banner to update your preferences.
+</p>
           <a
             href="/"
             className="inline-flex items-center gap-2 bg-[#1cc978] text-white text-[13px] font-medium px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
