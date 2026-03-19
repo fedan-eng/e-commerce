@@ -33,7 +33,7 @@ const PREF_ITEMS = [
 export default function CookieBanner() {
   const { status, preferences, acceptAll, declineAll, savePreferences, mounted } =
     useCookieConsent()
-
+  const pathname = usePathname() 
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [localPrefs, setLocalPrefs] = useState({
