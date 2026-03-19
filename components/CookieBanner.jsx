@@ -1,5 +1,5 @@
 'use client'
-
+import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useCookieConsent } from '../context/CookieConsentContext'
 
@@ -43,6 +43,11 @@ export default function CookieBanner() {
   })
   const [toast, setToast] = useState(null)
   const [toastVisible, setToastVisible] = useState(false)
+
+   if (!mounted) return null
+  if (status !== 'pending') return null
+  if (bannerDismissed) return null
+  if (pathname === '/cookie-policy') return null 
 
   useEffect(() => {
     if (modalOpen) {
