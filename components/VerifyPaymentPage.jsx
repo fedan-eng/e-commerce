@@ -4,6 +4,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
+import { useGAEvent } from "@/hooks/useGAEvent";
 import { clearCart } from "@/store/features/cartSlice";
 import axios from "axios";
 import Loading from "@/components/Loading";
@@ -26,6 +27,7 @@ export default function VerifyPaymentPage() {
 
   const cartItems = useSelector((state) => state.cart.items || []);
   const user = useSelector((state) => state.auth.user || null);
+  const { trackEvent } = useGAEvent();
   const hasVerified = useRef(false);
 
   // Get payment reference based on provider
@@ -76,7 +78,19 @@ export default function VerifyPaymentPage() {
         if (data.verified) {
           setOrderDetails(data.orderData);
           dispatch(clearCart());
-           
+
+          trackEvent("purchase", {
+            transaction_id: data.orderData.paymentReference || data.orderData._id || "",
+            currency: "NGN",
+            value: Number(data.orderData.total || data.orderData.subTotal || 0),
+            items: (data.orderData.cartItems || []).map((item) => ({
+              item_id: item._id,
+              item_name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          });
+
           // Clear localStorage checkout data
           localStorage.removeItem("cart");
           localStorage.removeItem("checkoutEmail");

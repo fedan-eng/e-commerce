@@ -4,6 +4,7 @@
 import {useState, useEffect} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
+import { useGAEvent } from "@/hooks/useGAEvent";
 import {
   removeFromCart,
   updateQuantity,
@@ -20,6 +21,7 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const user = useSelector((state) => state.auth.user);
+  const { trackEvent } = useGAEvent();
 
   const [hasMounted, setHasMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -133,6 +135,18 @@ const handleQuantityChange = (id, color, value) => {
     }
 
     try {
+      // Track checkout funnel step
+      trackEvent("begin_checkout", {
+        currency: "NGN",
+        value: total,
+        items: cartItems.map((item) => ({
+          item_id: item._id,
+          item_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      });
+
       // Determine which API endpoint to use based on selected payment method
       const endpoint =
         selectedPaymentMethod === "paystack"

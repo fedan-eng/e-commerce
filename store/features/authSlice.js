@@ -1,7 +1,8 @@
 // store/features/authSlice.js
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { setCartFromDB, clearCart } from "./cartSlice"; // 👈 import cart actions
+import { setCartFromDB, clearCart } from "./cartSlice"; 
+import { setWishlistFromDB, clearWishlist } from "./wishlistSlice";
 
 // Fetch current user info
 export const fetchUser = createAsyncThunk(
@@ -18,6 +19,10 @@ export const fetchUser = createAsyncThunk(
       if (data.user?.cart?.items?.length > 0) {
         dispatch(setCartFromDB(data.user.cart.items));
       }
+
+      if (data.user.wishlist?.items?.length > 0) {
+  dispatch(setWishlistFromDB(data.user.wishlist.items));
+}
       // ────────────────────────────────────────────────────────────────────
 
       return data.user;
@@ -58,6 +63,7 @@ export const logoutUser = createAsyncThunk(
       // ── On logout, wipe the cart from localStorage ──────────────────────
       // So the next user who logs in starts clean.
       dispatch(clearCart());
+      dispatch(clearWishlist());
       // ────────────────────────────────────────────────────────────────────
 
       return true;

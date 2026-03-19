@@ -22,10 +22,41 @@ const wishlistSlice = createSlice({
     clearWishlist: (state) => {
       state.items = [];
     },
+    // ✅ Load wishlist from DB on login
+    setWishlistFromDB: (state, action) => {
+      state.items = action.payload || [];
+    },
   },
 });
 
-export const { addToWishlist, removeFromWishlist, clearWishlist } =
+export const { addToWishlist, removeFromWishlist, clearWishlist, setWishlistFromDB } =
   wishlistSlice.actions;
+
+// ✅ Sync middleware — fires after mutations, debounced 800ms
+let syncTimeout = null;
+
+const SYNC_ACTIONS = [
+  "wishlist/addToWishlist",
+  "wishlist/removeFromWishlist",
+  "wishlist/clearWishlist",
+];
+
+export const wishlistSyncMiddleware = (store) => (next) => (action) => {
+  const result = next(action);
+
+  if (SYNC_ACTIONS.includes(action.type)) {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
+      const items = store.getState().wishlist.items;
+      fetch("/api/wishlist/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      }).catch(() => {}); // fire and forget
+    }, 800);
+  }
+
+  return result;
+};
 
 export default wishlistSlice.reducer;

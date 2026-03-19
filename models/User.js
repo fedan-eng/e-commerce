@@ -72,6 +72,17 @@ const userSchema = new mongoose.Schema(
   updatedAt:          { type: Date, default: null },
   abandonedEmailSent: { type: Boolean, default: false }, // prevent duplicate emails
 },
+wishlist: {
+  items: [
+    {
+      _id:   { type: String },
+      name:  { type: String },
+      price: { type: Number },
+      image: { type: String },
+    },
+  ],
+  updatedAt: { type: Date, default: null },
+},
   },
   { timestamps: true }
 );

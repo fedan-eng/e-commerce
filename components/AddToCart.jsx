@@ -3,11 +3,13 @@
 import { useDispatch } from "react-redux";
 import { addToCart } from "@/store/features/cartSlice";
 import { useState } from "react";
+import { useGAEvent } from "@/hooks/useGAEvent";
 
 const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
   const dispatch = useDispatch();
   const [notification, setNotification] = useState("");
   const [notificationColor, setNotificationColor] = useState("");
+  const { trackEvent } = useGAEvent();
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -23,6 +25,13 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
         ...(selectedColor ? { color: selectedColor.name } : {}), // only include color if selected
       })
     );
+
+    trackEvent("add_to_cart", {
+      item_id: product._id,
+      item_name: product.name,
+      currency: "NGN",
+      value: product.price,
+    });
 
     showNotification("Added to cart", "bg-green-600");
   };

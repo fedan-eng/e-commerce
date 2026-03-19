@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "next/navigation";
+import { useGAEvent } from "@/hooks/useGAEvent";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getProduct } from "@/store/features/productSlice";
 import AddToCartButton from "@/components/AddToCart";
@@ -74,6 +75,18 @@ export default function ProductDetailsPage() {
     error,
   } = useSelector((state) => state.products);
   const { user } = useSelector((state) => state.auth);
+  const { trackEvent } = useGAEvent();
+
+  useEffect(() => {
+    if (!product?._id) return;
+    trackEvent("view_item", {
+      item_id: product._id,
+      item_name: product.name,
+      currency: "NGN",
+      value: product.price,
+      items: [{ item_id: product._id, item_name: product.name, price: product.price }],
+    });
+  }, [product?._id, product?.name, product?.price, trackEvent]);
 
   const points = [
     { img: "/express.png", text: "Fast And Reliable Delivery" },
