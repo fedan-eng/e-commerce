@@ -1,5 +1,4 @@
 'use client'
-import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useCookieConsent } from '../context/CookieConsentContext'
 
@@ -33,9 +32,9 @@ const PREF_ITEMS = [
 export default function CookieBanner() {
   const { status, preferences, acceptAll, declineAll, savePreferences, mounted } =
     useCookieConsent()
-  const pathname = usePathname() 
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [hiddenForPath, setHiddenForPath] = useState(false)
   const [localPrefs, setLocalPrefs] = useState({
     analytics: false,
     marketing: false,
@@ -44,10 +43,18 @@ export default function CookieBanner() {
   const [toast, setToast] = useState(null)
   const [toastVisible, setToastVisible] = useState(false)
 
-   if (!mounted) return null
+   useEffect(() => {
+    if (window.location.pathname === '/cookie-policy') {
+      setHiddenForPath(true)
+    }
+  }, [])
+
+
+  if (!mounted) return null
   if (status !== 'pending') return null
   if (bannerDismissed) return null
-  if (pathname === '/cookie-policy') return null 
+  if (hiddenForPath) return null
+
 
   useEffect(() => {
     if (modalOpen) {
