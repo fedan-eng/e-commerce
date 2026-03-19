@@ -34,7 +34,6 @@ export default function CookieBanner() {
   const { status, preferences, acceptAll, declineAll, savePreferences, mounted } =
     useCookieConsent()
 
-  // ── ALL hooks must come first — no returns before this block ──
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [hiddenForPath, setHiddenForPath] = useState(false)
@@ -62,13 +61,11 @@ export default function CookieBanner() {
     }
   }, [modalOpen, preferences])
 
-  // ── Early returns AFTER all hooks ──
   if (!mounted) return null
   if (status !== 'pending') return null
   if (bannerDismissed) return null
   if (hiddenForPath) return null
 
-  // ── Handlers ──
   const showToast = (msg, sub) => {
     setToast({ msg, sub })
     setToastVisible(true)
@@ -88,9 +85,7 @@ export default function CookieBanner() {
     showToast('Cookies declined', 'Only essential cookies will be used')
   }
 
-  const handleCancel = () => {
-    setBannerDismissed(true)
-  }
+  const handleCancel = () => setBannerDismissed(true)
 
   const handleSavePrefs = () => {
     savePreferences(localPrefs)
@@ -109,18 +104,30 @@ export default function CookieBanner() {
 
   return (
     <>
-      {/* ── Banner ── */}
-      <div className="fixed bottom-6 right-6 z-[9999] w-[340px] rounded-2xl overflow-hidden bg-[#111111] border border-white/10 shadow-2xl shadow-black/50">
+      {/* ── Banner ──
+          Mobile:  pinned to bottom, full width with mx-3 breathing room, smaller text/padding
+          Desktop: fixed bottom-right, 340px wide
+      */}
+      <div className="
+        fixed z-[9999] rounded-2xl overflow-hidden
+        bg-[#111111] border border-white/10 shadow-2xl shadow-black/50
 
+        bottom-3 left-3 right-3
+        sm:bottom-6 sm:left-auto sm:right-6 sm:w-[340px]
+      ">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3.5 bg-[#1cc978]">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-black/15 flex items-center justify-center shrink-0">
+        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3.5 bg-[#1cc978]">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black/15 flex items-center justify-center shrink-0">
               <CookieSVG />
             </div>
             <div>
-              <p className="text-white text-[13px] font-medium leading-none">We use cookies</p>
-              <span className="text-white/75 text-[11px]">Filstore · filstore.com.ng</span>
+              <p className="text-white text-[12px] sm:text-[13px] font-medium leading-none">
+                We use cookies
+              </p>
+              <span className="text-white/75 text-[10px] sm:text-[11px]">
+                Filstore · filstore.com.ng
+              </span>
             </div>
           </div>
 
@@ -128,15 +135,15 @@ export default function CookieBanner() {
           <button
             onClick={handleCancel}
             aria-label="Dismiss banner"
-            className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center text-white/80 hover:bg-black/30 hover:text-white active:scale-95 transition-all text-sm leading-none"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/15 flex items-center justify-center text-white/80 hover:bg-black/30 hover:text-white active:scale-95 transition-all text-sm leading-none"
           >
             ×
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-4 pt-3.5 pb-1.5">
-          <p className="text-[12.5px] text-white/45 leading-relaxed">
+        <div className="px-3 pt-2.5 pb-1 sm:px-4 sm:pt-3.5 sm:pb-1.5">
+          <p className="text-[11.5px] sm:text-[12.5px] text-white/45 leading-relaxed">
             We use cookies to improve your shopping experience, personalise content, and analyse
             traffic.{' '}
             <a href="/cookie-policy" className="text-[#1cc978] font-medium hover:underline">
@@ -146,24 +153,24 @@ export default function CookieBanner() {
         </div>
 
         {/* Actions */}
-        <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
-          <div className="flex gap-2">
+        <div className="px-3 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4 flex flex-col gap-1.5 sm:gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             <button
               onClick={handleAcceptAll}
-              className="flex-1 py-2.5 rounded-lg text-[12.5px] font-medium bg-[#1cc978] text-white hover:opacity-90 active:scale-[0.98] transition-all"
+              className="flex-1 py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium bg-[#1cc978] text-white hover:opacity-90 active:scale-[0.98] transition-all"
             >
               Accept all
             </button>
             <button
               onClick={handleDecline}
-              className="flex-1 py-2.5 rounded-lg text-[12.5px] font-medium text-white/60 border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all"
+              className="flex-1 py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium text-white/60 border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all"
             >
               Decline
             </button>
           </div>
           <button
             onClick={() => setModalOpen(true)}
-            className="w-full py-2.5 rounded-lg text-[12.5px] font-medium text-[#1cc978] border border-[#1cc978]/30 bg-transparent hover:bg-[#1cc978]/8 active:scale-[0.98] transition-all"
+            className="w-full py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium text-[#1cc978] border border-[#1cc978]/30 bg-transparent hover:bg-[#1cc978]/8 active:scale-[0.98] transition-all"
           >
             Customize preferences
           </button>
@@ -173,15 +180,26 @@ export default function CookieBanner() {
       {/* ── Preferences Modal ── */}
       {modalOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="bg-[#1a1a1a] rounded-2xl border border-white/10 w-[320px] overflow-hidden shadow-2xl"
+            className="
+              bg-[#1a1a1a] border border-white/10 shadow-2xl
+              w-full rounded-t-2xl sm:rounded-2xl sm:w-[320px]
+              overflow-hidden
+            "
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.07]">
-              <h3 className="text-[14px] font-medium text-white">Cookie preferences</h3>
+            {/* drag handle on mobile */}
+            <div className="flex justify-center pt-3 sm:hidden">
+              <div className="w-8 h-1 rounded-full bg-white/20" />
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 sm:py-3.5 border-b border-white/[0.07]">
+              <h3 className="text-[13px] sm:text-[14px] font-medium text-white">
+                Cookie preferences
+              </h3>
               <button
                 onClick={() => setModalOpen(false)}
                 className="text-white/35 hover:text-white/70 text-xl leading-none px-1 transition-colors"
@@ -199,8 +217,12 @@ export default function CookieBanner() {
                   }`}
                 >
                   <div>
-                    <p className="text-[12.5px] font-medium text-white/80">{item.label}</p>
-                    <p className="text-[11px] text-white/35 mt-0.5">{item.sub}</p>
+                    <p className="text-[12px] sm:text-[12.5px] font-medium text-white/80">
+                      {item.label}
+                    </p>
+                    <p className="text-[10.5px] sm:text-[11px] text-white/35 mt-0.5">
+                      {item.sub}
+                    </p>
                   </div>
                   <Toggle
                     on={item.locked ? true : localPrefs[item.key]}
@@ -211,7 +233,7 @@ export default function CookieBanner() {
               ))}
             </div>
 
-            <div className="flex gap-2 px-4 pt-2.5 pb-4">
+            <div className="flex gap-2 px-4 pt-2.5 pb-5 sm:pb-4">
               <button
                 onClick={handleSavePrefs}
                 className="flex-1 py-2.5 rounded-lg text-[12px] font-medium text-white/60 border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all"
@@ -232,12 +254,17 @@ export default function CookieBanner() {
       {/* ── Toast ── */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-[10001] bg-[#1a1a1a] border-l-[3px] border-l-[#1cc978] border border-white/10 rounded-xl px-4 py-3 min-w-[220px] shadow-xl transition-all duration-300 ${
-            toastVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
+          className={`
+            fixed z-[10001] bg-[#1a1a1a] border-l-[3px] border-l-[#1cc978]
+            border border-white/10 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3
+            shadow-xl transition-all duration-300
+            bottom-20 left-3 right-3
+            sm:bottom-6 sm:left-auto sm:right-6 sm:min-w-[220px] sm:w-auto
+            ${toastVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
+          `}
         >
-          <p className="text-[13px] font-medium text-white">{toast.msg}</p>
-          <p className="text-[12px] text-white/40 mt-0.5">{toast.sub}</p>
+          <p className="text-[12.5px] sm:text-[13px] font-medium text-white">{toast.msg}</p>
+          <p className="text-[11.5px] sm:text-[12px] text-white/40 mt-0.5">{toast.sub}</p>
         </div>
       )}
     </>
