@@ -1,4 +1,5 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import { useCookieConsent } from '../context/CookieConsentContext'
 
@@ -32,6 +33,8 @@ const PREF_ITEMS = [
 export default function CookieBanner() {
   const { status, preferences, acceptAll, declineAll, savePreferences, mounted } =
     useCookieConsent()
+
+  // ── ALL hooks must come first — no returns before this block ──
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [hiddenForPath, setHiddenForPath] = useState(false)
@@ -43,18 +46,11 @@ export default function CookieBanner() {
   const [toast, setToast] = useState(null)
   const [toastVisible, setToastVisible] = useState(false)
 
-   useEffect(() => {
+  useEffect(() => {
     if (window.location.pathname === '/cookie-policy') {
       setHiddenForPath(true)
     }
   }, [])
-
-
-  if (!mounted) return null
-  if (status !== 'pending') return null
-  if (bannerDismissed) return null
-  if (hiddenForPath) return null
-
 
   useEffect(() => {
     if (modalOpen) {
@@ -66,6 +62,13 @@ export default function CookieBanner() {
     }
   }, [modalOpen, preferences])
 
+  // ── Early returns AFTER all hooks ──
+  if (!mounted) return null
+  if (status !== 'pending') return null
+  if (bannerDismissed) return null
+  if (hiddenForPath) return null
+
+  // ── Handlers ──
   const showToast = (msg, sub) => {
     setToast({ msg, sub })
     setToastVisible(true)
@@ -85,7 +88,6 @@ export default function CookieBanner() {
     showToast('Cookies declined', 'Only essential cookies will be used')
   }
 
-  // Cancel just hides the banner for this session — no consent saved, banner returns on next visit
   const handleCancel = () => {
     setBannerDismissed(true)
   }
@@ -104,10 +106,6 @@ export default function CookieBanner() {
 
   const togglePref = (key) =>
     setLocalPrefs((prev) => ({ ...prev, [key]: !prev[key] }))
-
-  if (!mounted) return null
-  if (status !== 'pending') return null
-  if (bannerDismissed) return null
 
   return (
     <>
@@ -130,7 +128,7 @@ export default function CookieBanner() {
           <button
             onClick={handleCancel}
             aria-label="Dismiss banner"
-            className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center text-white/80 hover:bg-black/30 hover:text-white active:scale-95 transition-all text-[15px] leading-none"
+            className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center text-white/80 hover:bg-black/30 hover:text-white active:scale-95 transition-all text-sm leading-none"
           >
             ×
           </button>
@@ -182,7 +180,6 @@ export default function CookieBanner() {
             className="bg-[#1a1a1a] rounded-2xl border border-white/10 w-[320px] overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal header */}
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.07]">
               <h3 className="text-[14px] font-medium text-white">Cookie preferences</h3>
               <button
@@ -193,7 +190,6 @@ export default function CookieBanner() {
               </button>
             </div>
 
-            {/* Pref items */}
             <div className="px-4">
               {PREF_ITEMS.map((item, i) => (
                 <div
@@ -215,7 +211,6 @@ export default function CookieBanner() {
               ))}
             </div>
 
-            {/* Modal footer */}
             <div className="flex gap-2 px-4 pt-2.5 pb-4">
               <button
                 onClick={handleSavePrefs}
