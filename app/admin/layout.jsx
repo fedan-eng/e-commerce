@@ -1,4 +1,4 @@
-// app/admin/layout.jsx  ← update this file, add Customers to navItems
+// app/admin/layout.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -27,82 +27,82 @@ export default function AdminLayout({ children }) {
 
   if (checking) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0a0a0a", color: "#fff", fontFamily: "monospace" }}>
+      <div className="flex items-center justify-center h-screen bg-[#0a0a0a] text-white font-mono">
         Verifying access...
       </div>
     );
   }
 
   const navItems = [
-    { href: "/admin", label: "Dashboard", icon: "⬡" },
-    { href: "/admin/orders", label: "Orders", icon: "◈" },
-    { href: "/admin/products", label: "Products", icon: "◉" },
+    { href: "/admin",           label: "Dashboard", icon: "⬡" },
+    { href: "/admin/orders",    label: "Orders",    icon: "◈" },
+    { href: "/admin/products",  label: "Products",  icon: "◉" },
     { href: "/admin/customers", label: "Customers", icon: "◎" },
     { href: "/admin/reviews",   label: "Reviews",   icon: "◌" },
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Mono', 'Courier New', monospace" }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: "220px",
-        minHeight: "100vh",
-        background: "#111",
-        borderRight: "1px solid #222",
-        display: "flex",
-        flexDirection: "column",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 10,
-        overflowY: "auto",
-      }}>
-        <div style={{ padding: "28px 24px 20px", borderBottom: "1px solid #222" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "0.2em", color: "#555", marginBottom: "4px", textTransform: "uppercase" }}>Control Panel</div>
-          <div style={{ fontSize: "18px", fontWeight: "700", color: "#e8e8e8", letterSpacing: "-0.02em" }}>Admin</div>
+    <div className="flex min-h-screen bg-[#0a0a0a] font-mono">
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden md:flex w-[220px] min-h-screen bg-[#111] border-r border-[#222] flex-col fixed top-0 left-0 bottom-0 z-10 overflow-y-auto">
+        <div className="px-6 pt-7 pb-5 border-b border-[#222]">
+          <div className="text-[10px] tracking-[0.2em] text-[#555] uppercase mb-1">Control Panel</div>
+          <div className="text-lg font-bold text-[#e8e8e8] tracking-tight">Admin</div>
         </div>
 
-        <nav style={{ flex: 1, padding: "16px 12px" }}>
+        <nav className="flex-1 p-3">
           {navItems.map((item) => {
             const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
             return (
-              <Link key={item.href} href={item.href} style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 12px",
-                marginBottom: "4px",
-                borderRadius: "6px",
-                color: active ? "#e8e8e8" : "#555",
-                background: active ? "#1e1e1e" : "transparent",
-                textDecoration: "none",
-                fontSize: "13px",
-                letterSpacing: "0.04em",
-                borderLeft: active ? "2px solid #e8c46a" : "2px solid transparent",
-                transition: "all 0.15s ease",
-              }}>
-                <span style={{ fontSize: "16px" }}>{item.icon}</span>
+              <Link key={item.href} href={item.href}
+                className={`flex items-center gap-2.5 px-3 py-2.5 mb-1 rounded-md text-[13px] tracking-[0.04em] no-underline transition-all duration-150 border-l-2
+                  ${active
+                    ? "text-[#e8e8e8] bg-[#1e1e1e] border-[#e8c46a]"
+                    : "text-[#555] bg-transparent border-transparent hover:text-[#888] hover:bg-[#161616]"
+                  }`}
+              >
+                <span className="text-base">{item.icon}</span>
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="px-3 py-6" style={{ borderTop: "1px solid #222", fontSize: "11px", color: "#444" }}>
-          <div>
-            {user?.firstName} {user?.lastName}
-          <div style={{ color: "#2a6e2a", marginTop: "2px" }}>● admin</div>
+        <div className="px-3 py-6 border-t border-[#222] text-[11px] text-[#444]">
+          <div className="mb-2">
+            <span>{user?.firstName} {user?.lastName}</span>
+            <div className="text-[#2a6e2a] mt-0.5">● admin</div>
           </div>
-          <Link  className="hover:bg-[#1e1e1e] bg-[#2a2a2a] py-3 px-5 rounded-lg" href="/" style={{ marginTop: "8px", color:"red", display: "flex", alignItems: "center", gap: "4px" }}>
-            <LogOut size={14} />
+          <Link href="/"
+            className="flex items-center gap-1.5 mt-2 px-4 py-2.5 rounded-lg bg-[#2a2a2a] hover:bg-[#1e1e1e] text-red-500 transition-colors no-underline text-[11px]">
+            <LogOut size={13} />
             Logout
           </Link>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main style={{ marginLeft: "220px", flex: 1, padding: "32px", minHeight: "100vh" }}>
+      {/* ── Mobile Bottom Nav ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-[#111] border-t border-[#222] flex items-stretch h-16">
+        {navItems.map((item) => {
+          const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+          return (
+            <Link key={item.href} href={item.href}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 no-underline text-[9px] tracking-[0.08em] uppercase transition-all border-t-2
+                ${active
+                  ? "text-[#e8c46a] border-[#e8c46a]"
+                  : "text-[#555] border-transparent hover:bg-[#1e1e1e]"
+                }`}
+            >
+              <span className="text-lg leading-none">{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* ── Main Content ── */}
+      <main className="md:ml-[220px] flex-1 p-5 md:p-8 pb-24 md:pb-8 min-h-screen">
         {children}
       </main>
     </div>

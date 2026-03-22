@@ -4,16 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const STATUS_COLORS = {
-  pending: "#e8c46a",
-  confirmed: "#e8c46a",   // 👈 add
-  processing: "#6ab4e8",
-  processed: "#6ab4e8",   // 👈 add
-  shipped: "#a06ae8",
-  delivered: "#6ae8a0",
-  cancelled: "#e86a6a",
+  pending:    "text-[#e8c46a] bg-[#e8c46a18] border-[#e8c46a33]",
+  confirmed:  "text-[#e8c46a] bg-[#e8c46a18] border-[#e8c46a33]",
+  processing: "text-[#6ab4e8] bg-[#6ab4e818] border-[#6ab4e833]",
+  processed:  "text-[#6ab4e8] bg-[#6ab4e818] border-[#6ab4e833]",
+  shipped:    "text-[#a06ae8] bg-[#a06ae818] border-[#a06ae833]",
+  delivered:  "text-[#6ae8a0] bg-[#6ae8a018] border-[#6ae8a033]",
+  cancelled:  "text-[#e86a6a] bg-[#e86a6a18] border-[#e86a6a33]",
 };
-
-const ALL_STATUSES = ["all", "Confirmed", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -27,7 +25,7 @@ export default function AdminDashboard() {
     ]).then(([ordersData, productsData]) => {
       setRecentOrders(ordersData.orders || []);
       setStats({
-        totalOrders: ordersData.total || 0,
+        totalOrders:   ordersData.total || 0,
         totalProducts: productsData.pagination?.total || 0,
         confirmed: (ordersData.orders || []).filter((o) => o.status?.toLowerCase() === "confirmed").length,
       });
@@ -35,111 +33,89 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  const StatCard = ({ label, value, accent, href }) => (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div style={{
-        background: "#111",
-        border: "1px solid #222",
-        borderTop: `2px solid ${accent}`,
-        borderRadius: "8px",
-        padding: "24px",
-        cursor: "pointer",
-        transition: "border-color 0.2s",
-      }}
-        onMouseEnter={(e) => e.currentTarget.style.borderColor = accent}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderTop = `2px solid ${accent}`;
-          e.currentTarget.style.borderRight = "1px solid #222";
-          e.currentTarget.style.borderBottom = "1px solid #222";
-          e.currentTarget.style.borderLeft = "1px solid #222";
-        }}
-      >
-        <div style={{ fontSize: "11px", letterSpacing: "0.15em", color: "#fff", textTransform: "uppercase", marginBottom: "10px" }}>{label}</div>
-        <div style={{ fontSize: "36px", fontWeight: "700", color: "#e8e8e8", lineHeight: 1 }}>
+  const getTotal = (order) => {
+    if (order.total != null)    return parseFloat(order.total).toFixed(2);
+    if (order.subTotal != null) return parseFloat(order.subTotal).toFixed(2);
+    return (order.items || []).reduce((acc, item) =>
+      acc + parseFloat(item.price || 0) * parseFloat(item.quantity || 1), 0).toFixed(2);
+  };
+
+  const StatCard = ({ label, value, accentClass, href }) => (
+    <Link href={href} className="no-underline group">
+      <div className={`bg-[#111] border border-[#222] ${accentClass} rounded-lg p-6 cursor-pointer transition-all duration-200 hover:border-opacity-80`}>
+        <div className="text-[11px] tracking-[0.15em] text-white uppercase mb-2.5">{label}</div>
+        <div className="text-4xl font-bold text-[#e8e8e8] leading-none">
           {loading ? "—" : value}
         </div>
       </div>
     </Link>
   );
 
-  const getTotal = (order) => {
-  if (order.total != null) return parseFloat(order.total).toFixed(2);
-  if (order.subTotal != null) return parseFloat(order.subTotal).toFixed(2);
-  // fallback: calculate from items
-  const sum = (order.items || []).reduce((acc, item) => {
-    return acc + parseFloat(item.price || 0) * parseFloat(item.quantity || 1);
-  }, 0);
-  return sum.toFixed(2);
-};
-
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: "36px" }}>
-        <div style={{ fontSize: "11px", letterSpacing: "0.2em", color: "#555", textTransform: "uppercase", marginBottom: "6px" }}>Overview</div>
-        <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "700", color: "#e8e8e8", letterSpacing: "-0.02em" }}>Dashboard</h1>
+      <div className="mb-9">
+        <div className="text-[11px] tracking-[0.2em] text-[#555] uppercase mb-1.5">Overview</div>
+        <h1 className="m-0 text-[28px] font-bold text-[#e8e8e8] tracking-tight">Dashboard</h1>
       </div>
 
       {/* Stats Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
-        <StatCard label="Total Orders" value={stats?.totalOrders} accent="#e8c46a" href="/admin/orders" />
-        <StatCard label="Total Products" value={stats?.totalProducts} accent="#6ae8a0" href="/admin/products" />
-        <StatCard label="Confirmed Orders" value={stats?.confirmed} accent="#e8c46a" href="/admin/orders?status=Confirmed" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        <StatCard label="Total Orders"     value={stats?.totalOrders}    accentClass="border-t-2 border-t-[#e8c46a]" href="/admin/orders" />
+        <StatCard label="Total Products"   value={stats?.totalProducts}  accentClass="border-t-2 border-t-[#6ae8a0]" href="/admin/products" />
+        <StatCard label="Confirmed Orders" value={stats?.confirmed}      accentClass="border-t-2 border-t-[#e8c46a]" href="/admin/orders?status=Confirmed" />
       </div>
 
       {/* Recent Orders */}
-      <div style={{ background: "#111", border: "1px solid #222", borderRadius: "8px", overflow: "hidden" }}>
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #222", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: "13px", color: "#fff", letterSpacing: "0.06em" }}>RECENT ORDERS</div>
-          <Link href="/admin/orders" style={{ fontSize: "11px", color: "#fff", textDecoration: "none", letterSpacing: "0.1em" }}>VIEW ALL →</Link>
+      <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#222] flex justify-between items-center">
+          <div className="text-[13px] text-white tracking-[0.06em]">RECENT ORDERS</div>
+          <Link href="/admin/orders" className="text-[11px] text-white no-underline tracking-[0.1em] hover:text-[#e8c46a] transition-colors">
+            VIEW ALL →
+          </Link>
         </div>
 
         {loading ? (
-          <div style={{ padding: "32px 24px", color: "#444", fontSize: "13px" }}>Loading...</div>
+          <div className="px-6 py-8 text-[#444] text-[13px]">Loading...</div>
         ) : recentOrders.length === 0 ? (
-          <div style={{ padding: "32px 24px", color: "#444", fontSize: "13px" }}>No orders yet.</div>
+          <div className="px-6 py-8 text-[#444] text-[13px]">No orders yet.</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
-                {["Order ID", "Items", "Total", "Status", "Date"].map((h) => (
-                  <th key={h} style={{ padding: "12px 24px", textAlign: "left", fontSize: "10px", letterSpacing: "0.15em", color: "#fff", textTransform: "uppercase", fontWeight: "600" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order._id} style={{ borderBottom: "1px solid #171717" }}>
-                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#fff", fontFamily: "monospace" }}>
-                    <Link href={`/admin/orders/${order._id}`} style={{ color: "#e8c46a", textDecoration: "none" }}>
-                      #{String(order._id).slice(-8).toUpperCase()}
-                    </Link>
-                  </td>
-                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#fff" }}>{order.items?.length || 0} item(s)</td>
-                  <td style={{ padding: "14px 24px", fontSize: "13px", color: "#fff", fontWeight: "600" }}>
-                    ₦{getTotal(order) || "—"}
-                  </td>
-                  <td style={{ padding: "14px 24px" }}>
-                    <span style={{
-                      fontSize: "10px",
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      color: STATUS_COLORS[order.status?.toLowerCase()] || "#fff",
-                      background: `${STATUS_COLORS[order.status?.toLowerCase()]}18` || "#88888818",
-                      border: `1px solid ${STATUS_COLORS[order.status?.toLowerCase()]}33` || "#88888833",
-                      padding: "3px 8px",
-                      borderRadius: "4px",
-                    }}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "14px 24px", fontSize: "12px", color: "#fff" }}>
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] border-collapse">
+              <thead>
+                <tr className="border-b border-[#1a1a1a]">
+                  {["Order ID", "Items", "Total", "Status", "Date"].map((h) => (
+                    <th key={h} className="px-6 py-3 text-left text-[10px] tracking-[0.15em] text-white uppercase font-semibold whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => {
+                  const statusKey = order.status?.toLowerCase();
+                  const statusClasses = STATUS_COLORS[statusKey] || "text-white bg-[#88888818] border-[#88888833]";
+                  return (
+                    <tr key={order._id} className="border-b border-[#171717] hover:bg-[#141414] transition-colors">
+                      <td className="px-6 py-3.5 text-[12px] text-white font-mono whitespace-nowrap">
+                        <Link href={`/admin/orders/${order._id}`} className="text-[#e8c46a] no-underline hover:underline">
+                          #{String(order._id).slice(-8).toUpperCase()}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-3.5 text-[13px] text-white whitespace-nowrap">{order.items?.length || 0} item(s)</td>
+                      <td className="px-6 py-3.5 text-[13px] text-white font-semibold whitespace-nowrap">₦{getTotal(order)}</td>
+                      <td className="px-6 py-3.5 whitespace-nowrap">
+                        <span className={`text-[10px] tracking-[0.12em] uppercase border px-2 py-0.5 rounded ${statusClasses}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5 text-[12px] text-white whitespace-nowrap">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
