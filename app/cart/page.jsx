@@ -341,7 +341,7 @@ const handleQuantityChange = (id, color, value) => {
               <h2 className="mb-4 font-oswald font-medium text-2xl">
                 Cart Summary
               </h2>
-              <PromoCodeInput subTotal={subTotal} onApply={setDiscount} />
+              <PromoCodeInput subTotal={subTotal} onApply={setDiscount} userId={user?._id}  />
               <div className="mt-[13px]">
                 <div className="flex justify-between items-center mb-[13px] py-2">
                   <p className="text-dark text-sm">Sub Total</p>

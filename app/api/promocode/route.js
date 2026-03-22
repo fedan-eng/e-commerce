@@ -1,4 +1,5 @@
-// app/api/promocode/validate/route.js
+// app/api/promocode/route.js
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import PromoCode from "@/models/PromoCode";
 import Order from "@/models/Order";
@@ -19,10 +20,17 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Check user exists
+    // ✅ Option 1: Block guests from restricted codes entirely
+    if ((promo.firstPurchaseOnly || promo.oneTimePerUser) && !userId) {
+      return Response.json(
+        { valid: false, message: "Please log in to use this promo code" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ Check user exists (only if userId was provided)
     let user = null;
     if (userId) {
-      // ✅ Validate ObjectId format
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return Response.json(
           { valid: false, message: "Invalid userId format" },
@@ -42,7 +50,7 @@ export async function POST(req) {
     // ❌ Expiry check
     if (promo.expiresAt && promo.expiresAt < new Date()) {
       return Response.json(
-        { valid: false, message: "Promo expired" },
+        { valid: false, message: "Promo code has expired" },
         { status: 400 }
       );
     }
@@ -52,7 +60,7 @@ export async function POST(req) {
       return Response.json(
         {
           valid: false,
-          message: `Minimum cart value of ${promo.minCartValue} NGN required`,
+          message: `Minimum cart value of ₦${promo.minCartValue.toLocaleString()} required`,
         },
         { status: 400 }
       );
@@ -66,7 +74,7 @@ export async function POST(req) {
       );
     }
 
-    // ❌ First purchase only check (user must not have any orders)
+    // ❌ First purchase only — user must have zero previous orders
     if (promo.firstPurchaseOnly) {
       const userOrders = await Order.findOne({ userId });
       if (userOrders) {
@@ -77,12 +85,12 @@ export async function POST(req) {
       }
     }
 
-    // ❌ One-time per user check (has this user used this promo before?)
+    // ❌ One-time per user — has this user used this promo before?
     if (promo.oneTimePerUser) {
       const usedBefore = await Order.findOne({ userId, promoCode: code });
       if (usedBefore) {
         return Response.json(
-          { valid: false, message: "You have already used this promo" },
+          { valid: false, message: "You have already used this promo code" },
           { status: 400 }
         );
       }
