@@ -7,7 +7,6 @@ import Accordion from "./Accordion";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 
-
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
 const items = [
@@ -15,48 +14,11 @@ const items = [
     title: "PRODUCTS",
     content: (
       <ul className="space-y-4">
-        <li>
-          <Link
-            className=""
-            href="/products?categories=Power+Bank"
-          >
-            Power Bank
-          </Link>
-        </li>
-
-        <li>
-          <Link
-            className=""
-            href="/products?categories=Wearables"
-          >
-            Wireless Earbuds
-          </Link>
-        </li>
-
-        <li>
-          <Link
-            className=""
-            href="/products?categories=Lifestyle"
-          >
-            Rechargeable Fan
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/products?categories=Lifestyle"
-          >
-            Lifestyle
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/products?categories=Extensions"
-          >
-            Extension
-          </Link>
-        </li>
+        <li><Link className="" href="/products?categories=Power+Bank">Power Bank</Link></li>
+        <li><Link className="" href="/products?categories=Wearables">Wireless Earbuds</Link></li>
+        <li><Link className="" href="/products?categories=Lifestyle">Rechargeable Fan</Link></li>
+        <li><Link className="" href="/products?categories=Lifestyle">Lifestyle</Link></li>
+        <li><Link className="" href="/products?categories=Extensions">Extension</Link></li>
       </ul>
     ),
   },
@@ -64,47 +26,11 @@ const items = [
     title: "LINKS",
     content: (
       <ul className="space-y-4">
-        <li>
-          <Link
-            className=""
-            href="/products"
-          >
-            Products
-          </Link>
-        </li>
-
-        <li>
-          <Link
-            className=""
-            href="/products?specials=isBestseller"
-          >
-            Best Sellers
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/products?specials=isWhatsNew"
-          >
-            What's New
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/products?specials=isTodaysDeal"
-          >
-            Today's Deals
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/cart"
-          >
-            Cart
-          </Link>
-        </li>
+        <li><Link className="" href="/products">Products</Link></li>
+        <li><Link className="" href="/products?specials=isBestseller">Best Sellers</Link></li>
+        <li><Link className="" href="/products?specials=isWhatsNew">What's New</Link></li>
+        <li><Link className="" href="/products?specials=isTodaysDeal">Today's Deals</Link></li>
+        <li><Link className="" href="/cart">Cart</Link></li>
       </ul>
     ),
   },
@@ -112,42 +38,10 @@ const items = [
     title: "CONTACT US",
     content: (
       <ul className="space-y-4">
-        <li>
-          <Link
-            target="_blank"
-            className=""
-            href="https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz"
-          >
-            Instagram
-          </Link>
-        </li>
-        <li>
-          <Link
-            target="_blank"
-            className=""
-            href="/"
-          >
-            Facebook
-          </Link>
-        </li>
-        <li>
-          <Link
-            target="_blank"
-            className=""
-            href="/"
-          >
-            X
-          </Link>
-        </li>
-        <li>
-          <Link
-            target="_blank"
-            className=""
-            href="/"
-          >
-            TikTok
-          </Link>
-        </li>
+        <li><Link target="_blank" className="" href="https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz">Instagram</Link></li>
+        <li><Link target="_blank" className="" href="/">Facebook</Link></li>
+        <li><Link target="_blank" className="" href="/">X</Link></li>
+        <li><Link target="_blank" className="" href="/">TikTok</Link></li>
       </ul>
     ),
   },
@@ -155,59 +49,15 @@ const items = [
     title: "HELP",
     content: (
       <ul className="space-y-4">
-        <li>
-          <Link
-            className=""
-            href="/register"
-          >
-            Sign in/Register
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/contact"
-          >
-            Track Order
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/contact"
-          >
-            Contact Us
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/"
-          >
-            Terms and Condition
-          </Link>
-        </li>
-        <li>
-          <Link
-            className=""
-            href="/"
-          >
-            Privacy Policy
-          </Link>
-        </li>
-
+        <li><Link className="" href="/register">Sign in/Register</Link></li>
+        <li><Link className="" href="/contact">Track Order</Link></li>
+        <li><Link className="" href="/contact">Contact Us</Link></li>
+        <li><Link className="" href="/">Terms and Condition</Link></li>
+        <li><Link className="" href="/">Privacy Policy</Link></li>
         <li className="mt-[62px]">
-          <p className="mb-8 font-medium text-white text-sm uppercase">
-            WE ACCEPT
-          </p>
+          <p className="mb-8 font-medium text-white text-sm uppercase">WE ACCEPT</p>
           <div className="w-[88px] h-[32px]">
-            <Image
-              width={88}
-              height={32}
-              src="/paystack.png"
-              alt="paystack"
-              className="w-full h-full object-cover"
-            />
+            <Image width={88} height={32} src="/paystack.png" alt="paystack" className="w-full h-full object-cover" />
           </div>
         </li>
       </ul>
@@ -221,32 +71,43 @@ const Footer = () => {
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
-  // Overlay & Tag state
+  // ✅ ALL hooks at the top — before any early returns
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [isTagVisible, setIsTagVisible] = useState(true);
-
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Slider state
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [pos, setPos] = useState({ x: -35, y: 220 });
+  const [side, setSide] = useState("left");
+  const [isDragging, setIsDragging] = useState(false);
+  const [snapped, setSnapped] = useState(true);
+
   const slideIntervalRef = useRef(null);
   const autoOpenTimerRef = useRef(null);
+  const elementRef = useRef(null);
+  const dragState = useRef({
+    startMouseX: 0,
+    startMouseY: 0,
+    startElemX: -35,
+    startElemY: 220,
+    dragged: false,
+  });
 
-  // Auto open overlay after 5s on homepage
+  const ELEM_WIDTH = 120;
+  const ELEM_HEIGHT = 48;
+  const SNAP_PEEK = 35;
+
+  // Auto open overlay after 10s on homepage
   useEffect(() => {
     if (pathname === "/") {
-      autoOpenTimerRef.current = setTimeout(
-        () => setIsOverlayOpen(true),
-        10000
-      );
+      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
     }
     return () => {
       if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
     };
   }, [pathname]);
 
-  // Auto change slides every 3 seconds _only_ while overlay is open
+  // Auto change slides every 3s while overlay is open
   useEffect(() => {
     if (!isOverlayOpen) {
       if (slideIntervalRef.current) {
@@ -255,11 +116,9 @@ const Footer = () => {
       }
       return;
     }
-
     slideIntervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 3000);
-
     return () => {
       if (slideIntervalRef.current) {
         clearInterval(slideIntervalRef.current);
@@ -277,68 +136,9 @@ const Footer = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [isOverlayOpen]);
 
-  const handleDotClick = (index) => {
-    setCurrentSlide(index);
-    // restart autoplay interval so user has time to view the selected slide
-    if (slideIntervalRef.current) {
-      clearInterval(slideIntervalRef.current);
-      slideIntervalRef.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-      }, 3000);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    if (!email.trim()) {
-      alert("Enter a valid email");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-      alert(data.message);
-      setEmail("");
-      setIsOverlayOpen(false);
-    } catch (error) {
-      alert("Failed to subscribe. Try again!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (noNavigationMenu) {
-    return null;
-  }
-
-
-//Draggable discount tag state and handlers
-
-
-  const [pos, setPos] = useState({ x: -35, y: 220 });
-  const [side, setSide] = useState("left");
-  const [isDragging, setIsDragging] = useState(false);
-  const [snapped, setSnapped] = useState(true);
-
-  const elementRef = useRef(null);
-  const dragState = useRef({
-    startMouseX: 0,
-    startMouseY: 0,
-    startElemX: -35,
-    startElemY: 220,
-    dragged: false,
-  });
-
-  const ELEM_WIDTH = 120;
-  const ELEM_HEIGHT = 48;
-  const SNAP_PEEK = 35; // how many px peek out from edge
+  // ✅ Early returns AFTER all hooks
+  if (noNavigationMenu) return null;
+  if (!isTagVisible && false) return null; // removed the broken early return; isTagVisible is handled in JSX below
 
   const clampY = (y) => {
     const maxY = window.innerHeight - ELEM_HEIGHT - 60;
@@ -376,45 +176,66 @@ const Footer = () => {
     const dx = e.clientX - dragState.current.startMouseX;
     const dy = e.clientY - dragState.current.startMouseY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragState.current.dragged = true;
-
     setPos({
       x: dragState.current.startElemX + dx,
       y: clampY(dragState.current.startElemY + dy),
     });
   };
 
-  const onPointerUp = (e) => {
+  const onPointerUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
     if (!dragState.current.dragged) {
       setIsOverlayOpen(true);
-      doSnap(pos.x, pos.y);
-    } else {
-      doSnap(pos.x, pos.y);
+    }
+    doSnap(pos.x, pos.y);
+  };
+
+  const handleDotClick = (index) => {
+    setCurrentSlide(index);
+    if (slideIntervalRef.current) {
+      clearInterval(slideIntervalRef.current);
+      slideIntervalRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+      }, 3000);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!email.trim()) {
+      alert("Enter a valid email");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      alert(data.message);
+      setEmail("");
+      setIsOverlayOpen(false);
+    } catch (error) {
+      alert("Failed to subscribe. Try again!");
+    } finally {
+      setLoading(false);
     }
   };
 
   const rotation = side === "left" ? "-90deg" : "90deg";
 
-  if (!isTagVisible) return null;
-
-
-
-
   return (
     <>
-      {/* Overlay */}
+      {/* Discount popup overlay */}
       {isOverlayOpen && (
         <div className="z-[1000] fixed inset-0 flex justify-center items-center">
-          {/* Background overlay */}
           <div
             className="absolute inset-0 bg-black opacity-70"
             onClick={() => setIsOverlayOpen(false)}
           />
-
-          {/* Popup content */}
           <div className="z-10 relative flex bg-white mx-2 p-2 rounded-md w-full max-w-[745px] h-[409px] overflow-hidden">
-            {/* Overlay X (only closes overlay) */}
             <button
               aria-label="Close discount popup"
               onClick={() => setIsOverlayOpen(false)}
@@ -433,8 +254,6 @@ const Footer = () => {
                   className="object-center object-cover"
                 />
               </div>
-
-              {/* Dots */}
               <div
                 className="bottom-2 left-1/2 absolute flex gap-2 mt-4 -translate-x-1/2"
                 role="tablist"
@@ -461,43 +280,30 @@ const Footer = () => {
                 First Order? Grab 10% OFF! 🎁
               </h2>
               <p className="mb-6 text-[#3e3e3e] text-sm">
-                Join today and enjoy exclusive offers delivered straight to your
-                inbox! Use promo code{" "}
+                Join today and enjoy exclusive offers delivered straight to your inbox! Use promo code{" "}
                 <span className="font-medium">WELCOME10</span> to get
                 <span className="font-medium"> 10% off</span> your first order.
               </p>
-
               <div className="w-full">
                 <input
                   type="email"
-                  name="emaii"
+                  name="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your Email Address"
                   className="bg-[#f7f7f7] p-3 rounded-md outline-0 w-full placeholder-text-[#3e3e3e] text-sm"
                 />
-
                 <div className="mb-6">
                   <p className="text-[10px]">
-                    {" "}
-                    By entering your email, you consent to receiving weekly
-                    promotions and exclusive FIL emails. You can unsubscribe any
-                    at any time.{" "}
+                    By entering your email, you consent to receiving weekly promotions and exclusive FIL emails. You can unsubscribe at any time.
                   </p>
-
                   <p className="mt-2 text-[10px]">
-                    <span className="font-medium text-filgreen underline">
-                      {" "}
-                      Terms & conditions{" "}
-                    </span>{" "}
+                    <span className="font-medium text-filgreen underline">Terms & conditions</span>{" "}
                     or{" "}
-                    <span className="font-medium text-filgreen underline">
-                      Privacy policy
-                    </span>
+                    <span className="font-medium text-filgreen underline">Privacy policy</span>
                   </p>
                 </div>
-
                 <button
                   onClick={handleSubscribe}
                   disabled={loading}
@@ -512,100 +318,63 @@ const Footer = () => {
       )}
 
       <footer className="bg-black pt-9">
-        {/* DISCOUNT TAG (fixed on side). Clicking the tag opens overlay. The small X hides the tag until refresh. */}
-        {(pathname === "/" && isTagVisible) && (
-        
-          <>
-      <div
-        ref={elementRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        style={{
-          position: "fixed",
-          left: pos.x,
-          top: pos.y,
-          width: ELEM_WIDTH,
-          transform: `rotate(${rotation})`,
-          transformOrigin: "center center",
-          transition: snapped && !isDragging
-            ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-            : "none",
-          userSelect: "none",
-          touchAction: "none",
-          zIndex: 40,
-          cursor: isDragging ? "grabbing" : "grab",
-          opacity: isDragging ? 1 : undefined,
-        }}
-        className="opacity-50 hover:opacity-100"
-        role="button"
-        aria-label="Open discount popup"
-      >
-        <div className="relative bg-black px-6 py-4 rounded-bl-md rounded-br-md font-medium text-white text-xs whitespace-nowrap">
-          Get 10% OFF
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsTagVisible(false);
-            }}
-            aria-label="Close discount tag"
-            className="-right-3 -bottom-3 absolute flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[29px] h-[29px] text-black rotate-180 cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {isOverlayOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setIsOverlayOpen(false)}
-        >
+        {/* Draggable discount tag — only on homepage and when visible */}
+        {pathname === "/" && isTagVisible && (
           <div
-            className="bg-white p-8 rounded-xl shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+            ref={elementRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            style={{
+              position: "fixed",
+              left: pos.x,
+              top: pos.y,
+              width: ELEM_WIDTH,
+              transform: `rotate(${rotation})`,
+              transformOrigin: "center center",
+              transition:
+                snapped && !isDragging
+                  ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+                  : "none",
+              userSelect: "none",
+              touchAction: "none",
+              zIndex: 40,
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
+            className="opacity-50 hover:opacity-100"
+            role="button"
+            aria-label="Open discount popup"
           >
-            <h2 className="text-xl font-bold mb-2">Get 10% OFF 🎉</h2>
-            <p className="text-gray-500">
-              Use code <span className="font-mono font-bold">SAVE10</span> at checkout.
-            </p>
-            <button
-              onClick={() => setIsOverlayOpen(false)}
-              className="mt-4 px-4 py-2 bg-black text-white rounded-lg"
-            >
-              Close
-            </button>
+            <div className="relative bg-black px-6 py-4 rounded-bl-md rounded-br-md font-medium text-white text-xs whitespace-nowrap">
+              Get 10% OFF
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTagVisible(false);
+                }}
+                aria-label="Close discount tag"
+                className="-right-3 -bottom-3 absolute flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[29px] h-[29px] text-black rotate-180 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </>
         )}
 
-        {/* TOP AND WHATSAPP */}
+        {/* WhatsApp & scroll-to-top */}
         <div className="right-4 md:right-[34px] bottom-[105px] z-50 fixed">
           <Link
             target="_blank"
-            href="https://wa.me/2347018900705 "
+            href="https://wa.me/2347018900705"
             className="flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[40px] sm:w-[50px] h-[40px] sm:h-[50px]"
           >
-            <Image
-              width={26.67}
-              height={26.67}
-              src="/whatsapp.png"
-              alt="whatsapp"
-            />
+            <Image width={26.67} height={26.67} src="/whatsapp.png" alt="whatsapp" />
           </Link>
           <div
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="flex justify-center items-center bg-black opacity-70 mt-4 border border-[#d9d9d9] rounded-full w-[40px] sm:w-[50px] h-[40px] sm:h-[50px] cursor-pointer poin"
+            className="flex justify-center items-center bg-black opacity-70 mt-4 border border-[#d9d9d9] rounded-full w-[40px] sm:w-[50px] h-[40px] sm:h-[50px] cursor-pointer"
           >
-            <Image
-              width={13.33}
-              height={13.33}
-              src="/upward.png"
-              alt="upward"
-              className="opacity-100"
-            />
+            <Image width={13.33} height={13.33} src="/upward.png" alt="upward" className="opacity-100" />
           </div>
         </div>
 
@@ -613,29 +382,17 @@ const Footer = () => {
         <div className="md:flex justify-around">
           <div className="max-md:mb-[30px] px-4">
             <div className="mb-4">
-              <Image
-                src="/fillogo-white.webp"
-                alt="Fil Store Logo"
-                width={77}
-                height={33}
-              />
+              <Image src="/fillogo-white.webp" alt="Fil Store Logo" width={77} height={33} />
             </div>
             <p className="w-[95%] sm:w-[60%] md:w-[182px] text-white text-xs text-justify leading-[150%]">
-              At FIL, we take pride in offering quality products at unbeatable
-              prices, making us the go-to destination for anyone who values
-              quality
+              At FIL, we take pride in offering quality products at unbeatable prices, making us the go-to destination for anyone who values quality
             </p>
           </div>
 
           {items.map((item, index) => (
-            <div
-              className="max-md:hidden"
-              key={index}
-            >
-              <h2 className="mb-8 font-medium text-white text-sm uppercase">
-                {item.title}
-              </h2>
-              <div className="text-white text-xs"> {item.content} </div>
+            <div className="max-md:hidden" key={index}>
+              <h2 className="mb-8 font-medium text-white text-sm uppercase">{item.title}</h2>
+              <div className="text-white text-xs">{item.content}</div>
             </div>
           ))}
 
@@ -644,13 +401,11 @@ const Footer = () => {
               items={items}
               className="border-[#3e3e3e] border-b"
               headerClassName={(isOpen) =>
-                `text-xs  border-t border-[#3e3e3e] font-medium  uppercase py-4 text-white ${
-                  isOpen ? "border-b " : ""
-                }  `
+                `text-xs border-t border-[#3e3e3e] font-medium uppercase py-4 text-white ${isOpen ? "border-b" : ""}`
               }
-              contentClassName=" text-white text-xs px-3 py-4 "
+              contentClassName="text-white text-xs px-3 py-4"
               icon={({ isOpen }) => (isOpen ? <FaMinus /> : <FaPlus />)}
-              iconClassName="text-white  font-bold"
+              iconClassName="text-white font-bold"
             />
           </div>
         </div>
