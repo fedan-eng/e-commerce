@@ -82,7 +82,7 @@ const CartPage = () => {
     },
     {
       id: "Free",
-      label: "Free Delivery on Thursdays",
+      label: "Free Delivery on Thursdays (Lagos Only)",
     },
   ];
 
