@@ -36,26 +36,56 @@ export default function VerifyPaymentPage() {
   const flutterwaveStatus = searchParams.get("status");
 
 
-  useEffect(() => {
-  if (!orderDetails) return
+useEffect(() => {
+  if (!orderDetails) return;
 
-  // Small delay ensures gtag is available after consent/script load
+  // Debug: log what fields actually came back from API
+  console.log("[GA purchase] orderDetails fields:", {
+    id: orderDetails._id,
+    ref: orderDetails.paymentReference,
+    total: orderDetails.total,
+    subTotal: orderDetails.subTotal,
+    cartItems: orderDetails.cartItems,
+    items: orderDetails.items, // check which one exists
+  });
+
   const timer = setTimeout(() => {
-    trackEvent('purchase', {
-      transaction_id: orderDetails.paymentReference || orderDetails._id || '',
-      currency: 'NGN',
-      value: Number(orderDetails.total || orderDetails.subTotal || 0),
-      items: (orderDetails.cartItems || []).map((item) => ({
-        item_id: item._id,
-        item_name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-    })
-  }, 500)
+    // Support both field names your API might return
+    const lineItems = orderDetails.cartItems || orderDetails.items || [];
+    const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
+    const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
 
-  return () => clearTimeout(timer)
-}, [orderDetails]) // ← fires only when orderDetails is set, trackEvent is stable
+    if (!txId) {
+      console.warn("[GA purchase] Missing transaction_id — event not fired");
+      return;
+    }
+
+    trackEvent("purchase", {
+      transaction_id: txId,
+      currency: "NGN",
+      value: orderValue,
+      // Optional but recommended
+      coupon: orderDetails.couponCode || undefined,
+      shipping: Number(orderDetails.deliveryFee || 0),
+      tax: 0,
+      items: lineItems.map((item, index) => ({
+        item_id: String(item._id || item.productId || index),
+        item_name: item.name || "Unknown",
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0),
+        index,
+      })),
+    });
+
+    console.log("[GA purchase] Event fired:", {
+      transaction_id: txId,
+      value: orderValue,
+      items: lineItems.length,
+    });
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [orderDetails]);
 
   useEffect(() => {
     // Prevent double verification
