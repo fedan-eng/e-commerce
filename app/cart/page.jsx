@@ -73,7 +73,7 @@ const CartPage = () => {
   const options = [
     {
       id: "Regular",
-      label: "Regular Delivery (1-3 Working Days)",
+      label: "Regular Delivery (3-5 Working Days)",
     },
     {
       id: "Express",
