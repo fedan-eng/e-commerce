@@ -243,7 +243,7 @@ const RegistrationForm = () => {
               By clicking Sign In you are agreeing to our{" "}
               <Link
                 className="font-medium text-black underline"
-                href="/"
+                href="/policies"
               >
                 Privacy Policy and Terms and Conditions.
               </Link>{" "}
