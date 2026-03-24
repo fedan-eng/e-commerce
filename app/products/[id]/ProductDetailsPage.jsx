@@ -355,7 +355,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
           </div>
           
           {/* Thumbnails */}
-          <div className="max-sm:ml-5 flex justify-center overflow-auto gap-2 pt-3 md:pt-6 border-[#dfdfdf] border-t w-full">
+          <div className="max-sm:pl-10 flex justify-center overflow-auto gap-2 pt-3 md:pt-6 border-[#dfdfdf] border-t w-full">
             {currentImages.map((img, idx) => (
               <img
                 key={idx}
