@@ -128,6 +128,12 @@ export default function AdminOrderDetailPage() {
                   <span className="text-[12px] text-[#888]">{order.deliveryFee === 0 ? "Free" : `₦${parseFloat(order.deliveryFee).toLocaleString()}`}</span>
                 </div>
               )}
+               {order.promoCode && (
+                <div className="flex justify-between">
+                  <span className="text-[11px] text-[#555]">Promo Code</span>
+                  <span className="text-[12px] text-[#888]">{order.promoCode}</span>
+                </div>
+              )}
               {order.discount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-[11px] text-[#555]">Discount</span>
