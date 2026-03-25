@@ -40,47 +40,7 @@ function ProductListInner() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // ── SEO: DYNAMIC JSON-LD SCHEMA ──
-  // This helps Google show your products with prices/ratings in search results
-  const jsonLd = useMemo(() => {
-    if (!products || products.length === 0) return null;
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      name: filters.categories?.[0] || "Top Tech Products in Nigeria",
-      numberOfItems: products.length,
-      itemListElement: products.map((product, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        item: {
-          "@type": "Product",
-          url: `https://www.filstore.com.ng/products/${product._id}`,
-          name: product.name,
-          image: product.image,
-          description: `Buy ${product.name} at the best price on FIL Store Nigeria.`,
-          brand: {"@type": "Brand", name: "FIL"},
-          ...(product.averageRating > 0 && {
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: product.averageRating,
-              reviewCount: product.ratingsCount,
-            },
-          }),
-          offers: {
-            "@type": "Offer",
-            price: product.price,
-            priceCurrency: "NGN",
-            availability: product.availability
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-            url: `https://www.filstore.com.ng/products/${product._id}`,
-          },
-        },
-      })),
-    };
-  }, [products, filters.categories]);
-
+ 
   useEffect(() => {
     const urlSearch = searchParams.get("search") || "";
     const urlCategories =
@@ -141,13 +101,6 @@ function ProductListInner() {
 
   return (
     <div className="">
-      {/* SEO Script Injection */}
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{__html: JSON.stringify(jsonLd)}}
-        />
-      )}
 
       <div className="flex justify-center lg:gap-4 mx-2 mt-6">
         {isLargeScreenTwo && <ProductFilter />}
