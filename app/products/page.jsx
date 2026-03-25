@@ -1,6 +1,6 @@
 import React from "react";
-import ProductListingContent from "@/components/ProductListingContent";
 import TextSlider from "@/components/TextSlider";
+import ProductList from "../../components/ProductList";
 
 // the static metadata block has been removed because we now build everything inside
 // `generateMetadata`. keeping both exports at once triggers a Next.js build error.
@@ -206,7 +206,7 @@ export default async function Shop() {
         <div className="overflow-hidden">
           <TextSlider className="bg-[#fafafa]" />
         </div>
-        <ProductListingContent />
+        <ProductList/>
       </div>
     </>
   );
