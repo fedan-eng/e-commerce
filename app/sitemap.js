@@ -1,8 +1,8 @@
 // app/sitemap.js
 export default async function sitemap() {
-  const baseUrl = 'https://filstore.com.ng';
+  const baseUrl = 'https://www.filstore.com.ng';
   
-  // Main pages
+  // 1. Main Static Pages
   const mainPages = [
     {
       url: baseUrl,
@@ -24,8 +24,24 @@ export default async function sitemap() {
     },
   ];
 
+  // 2. Category Pages (The "Konga" Sitelinks)
+  // We define these manually since they are your main business pillars
+  const categories = [
+    'Power+Bank',
+    'Wearables',
+    'Chargers',
+    'Cables',
+    'Audio'
+  ];
 
-  // attempt to pull a list of products so each product page gets crawled
+  const categoryPages = categories.map((cat) => ({
+    url: `${baseUrl}/products?categories=${cat}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.8, // High priority to encourage Sitelinks
+  }));
+
+  // 3. Dynamic Product Pages
   let productPages = [];
   try {
     const res = await fetch(`${baseUrl}/api/products?limit=1000`, {
@@ -40,9 +56,8 @@ export default async function sitemap() {
       priority: 0.7,
     }));
   } catch (e) {
-    // on failure we simply fall back to the static pages
     console.error('could not load products for sitemap', e);
   }
 
-  return [...mainPages, ...productPages];
+  return [...mainPages, ...categoryPages, ...productPages];
 }
