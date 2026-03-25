@@ -7,7 +7,7 @@ import Tracking from "@/components/Tracking";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 
-export const contactMetadata = {
+export const metadata = {
   title: "Contact Us - Customer Support & Store Locations | FIL Store Nigeria",
   description: "Get in touch with FIL Store Nigeria. Customer support, store locations in Lagos, Abuja, Port Harcourt. Email, phone, WhatsApp support. We're here to help with your tech product needs.",
   keywords: "contact FIL Store, customer support Nigeria, tech store Lagos, FIL Store location, phone number, email",
