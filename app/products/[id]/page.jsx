@@ -75,7 +75,7 @@ export default async function Page({ params }) {
               aggregateRating: {
                 "@type": "AggregateRating",
                 ratingValue: clampRating(product.averageRating),
-                reviewCount: product.ratingsCount,
+                reviewCount: product.ratingsCount ?? 0,
                 bestRating: 5,
                 worstRating: 1,
               },
@@ -90,7 +90,7 @@ export default async function Page({ params }) {
                 "@type": "Review",
                 reviewRating: {
                   "@type": "Rating",
-                  ratingValue: clampRating(r.value),
+                  ratingValue: clampRating(r.value) ?? 0,
                   bestRating: 5,
                   worstRating: 1,
                 },
