@@ -131,6 +131,9 @@ useEffect(() => {
           setOrderDetails(data.orderData);
           dispatch(clearCart());
 
+
+  
+
          
 
           // Clear localStorage checkout data

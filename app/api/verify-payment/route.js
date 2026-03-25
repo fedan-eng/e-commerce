@@ -3,6 +3,7 @@ import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
+import User from "@/models/User";
 
 export async function POST(req) {
   await connectDB(); // ✅ Connect to database

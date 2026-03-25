@@ -145,7 +145,7 @@ export default function AdminOrderDetailPage() {
           <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 mb-4">
             <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-3">Customer Info</div>
             <div className="space-y-1 text-[13px] text-[#888]">
-              {order.paymentReference && <div>{order.paymentReference}</div>}
+              {order.paymentReference && <div>Payment Reference: {order.paymentReference}</div>}
               {(order.firstName || order.lastName) && (
                 <div className="text-[#e8e8e8] font-medium">{[order.firstName, order.lastName].filter(Boolean).join(" ")}</div>
               )}
