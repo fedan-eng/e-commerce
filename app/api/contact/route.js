@@ -20,6 +20,22 @@ export async function POST(req) {
       return new Response(JSON.stringify({ message: "Name, email and message are required." }), { status: 400 });
     }
 
+    // Extract files from FormData
+    const files = formData.getAll("files") || [];
+    const attachments = [];
+
+    // Convert File objects to attachments for nodemailer
+    for (const file of files) {
+      if (file && file.size > 0) {
+        const buffer = await file.arrayBuffer();
+        attachments.push({
+          filename: file.name,
+          content: Buffer.from(buffer),
+          contentType: file.type || "application/octet-stream",
+        });
+      }
+    }
+
     const INQUIRY_LABELS = {
       general:    "💬 General Question",
       redress:    "⚠️ Complaint / Redress",
@@ -43,6 +59,7 @@ export async function POST(req) {
             ${orderId     ? `<tr><td style="padding:8px 0;color:#767676;vertical-align:top;">Order ID</td><td style="padding:8px 0;font-family:monospace;">#${orderId}</td></tr>` : ""}
             ${productName ? `<tr><td style="padding:8px 0;color:#767676;vertical-align:top;">Product</td><td style="padding:8px 0;">${productName}</td></tr>` : ""}
             ${reason      ? `<tr><td style="padding:8px 0;color:#767676;vertical-align:top;">Reason</td><td style="padding:8px 0;">${reason}</td></tr>` : ""}
+            ${attachments.length > 0 ? `<tr><td style="padding:8px 0;color:#767676;vertical-align:top;">Attachments</td><td style="padding:8px 0;">${attachments.length} file(s) attached</td></tr>` : ""}
           </table>
           <div style="margin-top:20px;padding:16px;background:#f8f9fa;border-left:4px solid #1cc978;border-radius:4px;">
             <p style="margin:0;font-size:13px;color:#767676;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Message</p>
@@ -55,10 +72,10 @@ export async function POST(req) {
       </div>
     `;
 
-    const plain = `New contact form submission\n\nType: ${label}\nName: ${name}\nEmail: ${email}${orderId ? `\nOrder: #${orderId}` : ""}${productName ? `\nProduct: ${productName}` : ""}${reason ? `\nReason: ${reason}` : ""}\n\nMessage:\n${question}`;
+    const plain = `New contact form submission\n\nType: ${label}\nName: ${name}\nEmail: ${email}${orderId ? `\nOrder: #${orderId}` : ""}${productName ? `\nProduct: ${productName}` : ""}${reason ? `\nReason: ${reason}` : ""}${attachments.length > 0 ? `\nAttachments: ${attachments.length} file(s)` : ""}\n\nMessage:\n${question}`;
 
-    // Send to admin
-    await sendEmail(process.env.ADMIN_EMAIL, subject, plain, html);
+    // Send to admin WITH attachments
+    await sendEmail(process.env.ADMIN_EMAIL, subject, plain, html, attachments);
 
     // Send confirmation to user
     const confirmHtml = `

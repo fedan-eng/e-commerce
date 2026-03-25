@@ -14,7 +14,10 @@ export default function Tracking() {
   const [loading, setLoading] = useState(false);
 
   const fetchOrder = async () => {
-    if (!orderId.trim()) return;
+    if (!orderId.trim()) {
+      setError("Please enter an order number");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -23,10 +26,13 @@ export default function Tracking() {
     try {
       const res = await axios.get(`/api/orders/${orderId}`);
       setOrder(res.data.order);
+      setError(""); // Clear any previous errors
     } catch (err) {
+      console.error("Tracking error:", err); // Log for debugging
       setError(
         err.response?.data?.message ||
-          "Unable to fetch order. Please try again."
+          err.message ||
+          "Unable to fetch order. Please check the order number and try again."
       );
     } finally {
       setLoading(false);
@@ -64,7 +70,7 @@ export default function Tracking() {
         </button>
       </div>
 
-      {/* {error && <p className="text-red-600 text-xs">{error}</p>} */}
+      {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
 
       {order && (
         <div className="space-y-2 shadow-lg mt-4 p-4 rounded-2xl">
