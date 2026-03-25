@@ -44,7 +44,8 @@ const Slider = () => {
           >
             <motion.img
               src={item.src}
-              alt=""
+              alt={item.title}
+              title={item.title}
               className={`w-full h-full ${item.id === 1 ? "object-right" : ""} object-cover`}
               initial={{ scale: 1.1 }} // Slight scale for effect
               animate={idx === activeImage ? { scale: 1 } : {}} 

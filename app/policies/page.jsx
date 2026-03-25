@@ -105,7 +105,7 @@ const sections = [
     content: [
       {
         heading: "Return Eligibility",
-        body: "Items may be returned within 7 days of delivery, provided they are unused, in their original packaging, and accompanied by proof of purchase. Perishable goods, digital products, and items marked as final sale are not eligible for return.",
+        body: "Items may be returned within 7 days of delivery, provided they are unused, in their original packaging, and accompanied by proof of purchase. Non-defected products are not eligible for return.",
       },
       {
         heading: "How to Initiate a Return",
@@ -117,7 +117,7 @@ const sections = [
       },
       {
         heading: "Refund Processing",
-        body: "Once your returned item is received and inspected, we will notify you via email of the approval or rejection of your refund. Approved refunds are processed within 5–10 business days and returned to your original payment method via Paystack or Flutterwave.",
+        body: "Once your returned item is received and inspected, we will notify you via email of the approval or rejection of your refund. Approved refunds are processed within 5–10 business days and returned to your original payment method via Paystack.",
       },
       {
         heading: "Damaged or Incorrect Items",
