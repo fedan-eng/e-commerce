@@ -55,10 +55,18 @@ function ProductListInner() {
         position: index + 1,
         item: {
           "@type": "Product",
+          url: `https://www.filstore.com.ng/products/${product._id}`,
           name: product.name,
           image: product.image,
           description: `Buy ${product.name} at the best price on FIL Store Nigeria.`,
           brand: {"@type": "Brand", name: "FIL"},
+          ...(product.averageRating > 0 && {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: product.averageRating,
+              reviewCount: product.ratingsCount,
+            },
+          }),
           offers: {
             "@type": "Offer",
             price: product.price,
