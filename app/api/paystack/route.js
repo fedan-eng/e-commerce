@@ -54,7 +54,8 @@ export async function POST(req) {
     }
 
     const safeDiscount = discount || 0;
-    const total = subTotal - safeDiscount + deliveryFee;
+    const rawTotal = subTotal - safeDiscount + deliveryFee;
+    const total = Math.max(0, rawTotal); // Ensure total is not negative
 
     const amount = total * 100;
 

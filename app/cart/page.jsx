@@ -26,6 +26,7 @@ const CartPage = () => {
   const [hasMounted, setHasMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [promoResetKey, setPromoResetKey] = useState(0);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState("paystack"); // New state
 
@@ -106,12 +107,16 @@ const CartPage = () => {
 
 const handleRemove = (id, color) => {
   dispatch(removeFromCart({ _id: id, color }));
+  setDiscount(0);                          // ← reset discount amount
+  setPromoResetKey((k) => k + 1);          // ← force PromoCodeInput to reset
 };
 
 const handleQuantityChange = (id, color, value) => {
   const qty = parseInt(value);
   if (qty >= 1) {
     dispatch(updateQuantity({ _id: id, color, quantity: qty }));
+    setDiscount(0);                        // ← reset discount amount
+    setPromoResetKey((k) => k + 1);        // ← force PromoCodeInput to reset
   }
 };
 
@@ -184,7 +189,7 @@ const handleQuantityChange = (id, color, value) => {
   } else {
     deliveryFee = formData.region?.fee || 0;
   }
-  const total = subTotal - discount + deliveryFee;
+  const total = Math.max(0, subTotal - discount + deliveryFee);
 
   return (
     <div className="mx-auto mt-6 w-full max-w-[1140px]">
@@ -341,7 +346,7 @@ const handleQuantityChange = (id, color, value) => {
               <h2 className="mb-4 font-oswald font-medium text-2xl">
                 Cart Summary
               </h2>
-              <PromoCodeInput subTotal={subTotal} onApply={setDiscount} userId={user?._id}  />
+              <PromoCodeInput key={promoResetKey} subTotal={subTotal} onApply={setDiscount} userId={user?._id} />
               <div className="mt-[13px]">
                 <div className="flex justify-between items-center mb-[13px] py-2">
                   <p className="text-dark text-sm">Sub Total</p>
