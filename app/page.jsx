@@ -71,23 +71,51 @@ const page = () => {
     }
   };
 
-  // 2. Organization Schema
+  // 2. Organization Schema (Enhanced for Google Recognition)
   const organizationJsonLd = {
     "@context": "https://schema.org",
-    "@type": "OnlineStore",
+    "@type": "Organization",
     "name": "FIL Store",
+    "alternateName": "Fedan Investment Limited",
     "url": baseUrl,
     "logo": `${baseUrl}/fillogo.png`,
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+234-YOUR-PHONE", // Replace with actual phone
-      "contactType": "customer service",
-      "areaServed": "NG",
-      "availableLanguage": "en"
+    "description": "FIL Store is Nigeria's leading online retailer for quality tech products including power banks, smartwatches, phone chargers, and electronic accessories. We deliver authentic products at competitive prices nationwide.",
+    "foundingDate": "1994",
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "telephone": "+2347018900705",
+        "email": "filsmteam@gmail.com",
+        "areaServed": "NG",
+        "availableLanguage": ["en"]
+      }
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "20 Fedan St, Ojo, Lagos 102113, Lagos",
+      "addressLocality": "Lagos",
+      "addressRegion": "Lagos",
+      "postalCode": "102113",
+      "addressCountry": "NG"
     },
     "sameAs": [
-      "https://www.instagram.com/filstore", // Replace with actual social links
-      "https://www.facebook.com/filstore"
+      "https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz",
+    ],
+    "priceRange": "$",
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Lagos"
+      },
+      {
+        "@type": "City",
+        "name": "Abuja"
+      },
+      {
+        "@type": "City",
+        "name": "Port Harcourt"
+      }
     ]
   };
 
