@@ -5,7 +5,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { cartItems, deliveryInfo, discount } = body;
+    const { cartItems, deliveryInfo, discount, promoCode } = body;
 
     const {
       firstName,
@@ -95,9 +95,9 @@ export async function POST(req) {
         discount: safeDiscount.toString(),
         deliveryFee: deliveryFee.toString(),
         total: total.toString(),
+        promoCode: promoCode || null,
       },
     };
-
     console.log("📦 Flutterwave Payload Meta:", payload.meta);
 
     const res = await axios.post(

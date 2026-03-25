@@ -26,6 +26,7 @@ const CartPage = () => {
   const [hasMounted, setHasMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [promoCode, setPromoCode] = useState(null);
   const [promoResetKey, setPromoResetKey] = useState(0);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState("paystack"); // New state
@@ -71,6 +72,11 @@ const CartPage = () => {
     });
   };
 
+  const handlePromoApply = ({ promoCode, amount }) => {
+    setPromoCode(promoCode || null);
+    setDiscount(amount || 0);
+  };
+
   const options = [
     {
       id: "Regular",
@@ -108,6 +114,7 @@ const CartPage = () => {
 const handleRemove = (id, color) => {
   dispatch(removeFromCart({ _id: id, color }));
   setDiscount(0);                          // ← reset discount amount
+  setPromoCode(null);                      // ← clear promo code when cart changes
   setPromoResetKey((k) => k + 1);          // ← force PromoCodeInput to reset
 };
 
@@ -116,6 +123,7 @@ const handleQuantityChange = (id, color, value) => {
   if (qty >= 1) {
     dispatch(updateQuantity({ _id: id, color, quantity: qty }));
     setDiscount(0);                        // ← reset discount amount
+    setPromoCode(null);                    // ← clear promo code when cart changes
     setPromoResetKey((k) => k + 1);        // ← force PromoCodeInput to reset
   }
 };
@@ -165,6 +173,7 @@ const handleQuantityChange = (id, color, value) => {
           cartItems,
           deliveryInfo: formData,
           discount,
+          promoCode,
         }),
       });
 
@@ -346,7 +355,12 @@ const handleQuantityChange = (id, color, value) => {
               <h2 className="mb-4 font-oswald font-medium text-2xl">
                 Cart Summary
               </h2>
-              <PromoCodeInput key={promoResetKey} subTotal={subTotal} onApply={setDiscount} userId={user?._id} />
+              <PromoCodeInput
+                key={promoResetKey}
+                subTotal={subTotal}
+                onApply={handlePromoApply}
+                userId={user?._id}
+              />
               <div className="mt-[13px]">
                 <div className="flex justify-between items-center mb-[13px] py-2">
                   <p className="text-dark text-sm">Sub Total</p>

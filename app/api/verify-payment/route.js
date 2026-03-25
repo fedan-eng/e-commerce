@@ -67,11 +67,11 @@ export async function POST(req) {
         discount: paystackData.metadata.discount,
         deliveryFee: paystackData.metadata.deliveryFee,
         total: paystackData.metadata.total,
+        promoCode: paystackData.metadata.promoCode || null,
         paymentMethod: "paystack",
         paymentReference: reference,
         paymentStatus: "paid",
-      };
-    } else if (provider === "flutterwave") {
+      };    } else if (provider === "flutterwave") {
       console.log("🔍 Verifying Flutterwave transaction ID:", reference);
 
       const res = await axios.get(
@@ -194,13 +194,13 @@ export async function POST(req) {
         cartItems: parsedCartItems,
         subTotal: Number(flutterwaveData.meta.subTotal) || 0,
         discount: Number(flutterwaveData.meta.discount) || 0,
+        promoCode: flutterwaveData.meta.promoCode || null,
         deliveryFee: Number(flutterwaveData.meta.deliveryFee) || 0,
         total: Number(flutterwaveData.amount) || 0,
         paymentMethod: "flutterwave",
         paymentReference: flutterwaveData.tx_ref || reference,
         paymentStatus: "paid",
       };
-
       console.log("📦 Final Order Data:", {
         ...orderData,
         cartItems: `${orderData.cartItems.length} items`,
@@ -255,6 +255,7 @@ console.log("💾 No existing order found. Creating new order...");
         items: orderData.cartItems,
         subTotal: orderData.subTotal,
         discount: orderData.discount,
+        promoCode: orderData.promoCode || null,
         deliveryFee: orderData.deliveryFee,
         total: orderData.total,
         paymentMethod: orderData.paymentMethod,

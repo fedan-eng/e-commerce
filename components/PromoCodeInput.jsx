@@ -8,6 +8,7 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [appliedCode, setAppliedCode] = useState(null);
   const [requiresLogin, setRequiresLogin] = useState(false);
 
   const handleApply = async () => {
@@ -40,13 +41,15 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
           setError(data.message || "Invalid promo code");
         }
         setDiscount(0);
-        onApply(0);
+        setAppliedCode(null);
+        onApply({ promoCode: null, amount: 0 });
         return;
       }
 
       const discountAmount = (subTotal * data.discount) / 100;
       setDiscount(discountAmount);
-      onApply(discountAmount);
+      setAppliedCode(code.toUpperCase());
+      onApply({ promoCode: code.toUpperCase(), amount: discountAmount });
     } catch (err) {
       setError("Something went wrong, try again.");
     } finally {

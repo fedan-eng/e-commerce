@@ -6,7 +6,7 @@ export async function POST(req) {
     const body = await req.json();
 
     // Destructure the cartItems and deliveryInfo from the body
-    const { cartItems, deliveryInfo, discount } = body;
+    const { cartItems, deliveryInfo, discount, promoCode } = body;
 
     // Destructure the nested deliveryInfo object
     const {
@@ -76,6 +76,7 @@ export async function POST(req) {
           cartItems,
           subTotal,
           discount: safeDiscount,
+          promoCode: promoCode || null,
           deliveryFee,
           total,
         },
