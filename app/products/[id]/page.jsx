@@ -35,6 +35,12 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// Clamp rating value between 1-5 for Google Schema validation
+function clampRating(value) {
+  const num = parseFloat(value) || 0;
+  return Math.max(1, Math.min(5, num));
+}
+
 // priceValidUntil — 1 year from today, updated at build/request time
 function getPriceValidUntil() {
   const d = new Date();
@@ -62,43 +68,29 @@ export default async function Page({ params }) {
           name: "FIL",
         },
 
-        // ── Fix 1: aggregateRating — always present ──────────────────────
-        // Google expects this even when there are no ratings yet.
-        // We use real data if available, otherwise a sensible default.
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: product.averageRating ?? 4.5,
-          reviewCount: product.ratingsCount > 0 ? product.ratingsCount : 1,
-          bestRating: 5,
-          worstRating: 1,
-        },
-
-        // ── Fix 2: review — at least one review object ───────────────────
-        // If you have real reviews in your DB, map them here instead.
-        review: product.reviews?.length > 0
-          ? product.reviews.slice(0, 3).map((r) => ({
-              "@type": "Review",
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: r.rating,
+        // ── Fix 1: aggregateRating — ONLY if rating count > 0 ──────────────
+        // CRITICAL: ratingValue MUST be between 1-5 for Google validation
+        ...(product.ratingsCount > 0
+          ? {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: clampRating(product.averageRating),
+                reviewCount: product.ratingsCount,
                 bestRating: 5,
                 worstRating: 1,
               },
-              author: {
-                "@type": "Person",
-                name: r.author || "Verified Buyer",
-              },
-              reviewBody: r.comment || "",
-              datePublished: r.createdAt
-                ? new Date(r.createdAt).toISOString().split("T")[0]
-                : new Date().toISOString().split("T")[0],
-            }))
-          : [
-              {
+            }
+          : {}),
+
+        // ── Fix 2: review — ONLY include if there are actual ratings ──────
+        // Map ratings to reviews. Only include if ratingsCount > 0
+        ...(product.ratings && product.ratings.length > 0
+          ? {
+              review: product.ratings.slice(0, 3).map((r) => ({
                 "@type": "Review",
                 reviewRating: {
                   "@type": "Rating",
-                  ratingValue: 5,
+                  ratingValue: clampRating(r.value),
                   bestRating: 5,
                   worstRating: 1,
                 },
@@ -106,10 +98,13 @@ export default async function Page({ params }) {
                   "@type": "Person",
                   name: "Verified Buyer",
                 },
-                reviewBody: "Great product, fast delivery from FIL Store.",
-                datePublished: new Date().toISOString().split("T")[0],
-              },
-            ],
+                reviewBody: "Verified purchase",
+                datePublished: r.createdAt
+                  ? new Date(r.createdAt).toISOString().split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+              })),
+            }
+          : {}),
 
         offers: {
           "@type": "Offer",
