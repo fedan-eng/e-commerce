@@ -7,18 +7,6 @@ import ProductList from "../../components/ProductList";
 
 export const dynamic = "force-dynamic";
 
-async function fetchProducts() {
-  try {
-    const res = await fetch(`https://www.filstore.com.ng/api/products`, {
-      cache: "no-store",
-    });
-    const json = await res.json();
-    return json.products || [];
-  } catch (e) {
-    return [];
-  }
-}
-
 export async function generateMetadata({ searchParams }) {
     const resolvedSearchParams = await searchParams;
   
@@ -119,95 +107,12 @@ export async function generateMetadata({ searchParams }) {
 }
 
 export default async function Shop() {
-  const products = await fetchProducts();
-
-  // JSON-LD ItemList Schema for SEO
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "Tech Products in Nigeria",
-    numberOfItems: products.length,
-    url: "https://www.filstore.com.ng/products",
-    itemListElement: (products || []).slice(0, 20).map((product, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      url: `https://www.filstore.com.ng/products/${product._id}`,
-      item: {
-        "@type": "Product",
-        name: product.name,
-        image: product.image,
-        description: product.description,
-        url: `https://www.filstore.com.ng/products/${product._id}`,
-        brand: {
-          "@type": "Brand",
-          name: "FIL",
-        },
-        ...(product.averageRating > 0 && {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: product.averageRating,
-            reviewCount: product.ratingsCount,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        }),
-        offers: {
-          "@type": "Offer",
-          price: product.price,
-          priceCurrency: "NGN",
-          availability: product.availability
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
-          url: `https://www.filstore.com.ng/products/${product._id}`,
-          seller: {
-            "@type": "Organization",
-            name: "FIL Store",
-            url: "https://www.filstore.com.ng",
-          },
-        },
-      },
-    })),
-  };
-
-  const breadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: "https://www.filstore.com.ng",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Products",
-        item: "https://www.filstore.com.ng/products",
-      },
-    ],
-  };
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
-        }}
-      />
-      <div>
-        <div className="overflow-hidden">
-          <TextSlider className="bg-[#fafafa]" />
-        </div>
-        <ProductList/>
+    <div>
+      <div className="overflow-hidden">
+        <TextSlider className="bg-[#fafafa]" />
       </div>
-    </>
+      <ProductList/>
+    </div>
   );
 }
