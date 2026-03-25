@@ -15,7 +15,7 @@ export async function POST(req) {
         { message: "Missing reference or provider" },
         { status: 400 },
       );
-    }
+    } 
 
     // ✅ Get token from cookies (for logged-in users)
     const cookie = req.cookies.get("token")?.value;
@@ -218,8 +218,25 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-      // ✅ SAVE ORDER TO DATABASE
-      console.log("💾 Saving order to database...");
+    // ✅ SAVE ORDER TO DATABASE (idempotent — prevent duplicate orders)
+console.log("💾 Checking for existing order...");
+
+const existingOrder = await Order.findOne({
+  paymentReference: orderData.paymentReference,
+});
+
+if (existingOrder) {
+  console.log("⚠️ Duplicate request — order already exists:", existingOrder._id);
+  return Response.json({
+    verified: true,
+    message: "Payment already verified and order exists",
+    provider: verificationData.provider,
+    orderData: orderData,
+    order: existingOrder,
+  });
+}
+
+console.log("💾 No existing order found. Creating new order...");
 
       const order = await Order.create({
         userId: user?.id || null,

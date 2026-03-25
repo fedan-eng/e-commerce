@@ -60,6 +60,11 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  paymentReference: {
+  type: String,
+  unique: true,  
+  sparse: true, 
+},
   status: {
     type: String,
     enum: [
