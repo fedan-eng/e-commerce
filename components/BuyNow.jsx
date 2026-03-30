@@ -84,7 +84,7 @@ const BuyNow = ({ product, className }) => {
     <button
       onClick={handleBuyNow}
       disabled={loading}
-      className={className}
+      className={`${className} cursor-pointer`}
     >
       {loading ? "Redirecting..." : "Buy Now"}
     </button>
