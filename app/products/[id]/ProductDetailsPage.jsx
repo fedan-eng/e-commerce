@@ -500,8 +500,8 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
                 product={product}
                 selectedColor={selectedColor}
               />
-              {user && 
-              <BuyNow className={`max-xxs:order-1 ${product.availability ? "bg-filgreen text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`} product={product} />}
+              
+              <BuyNow className={`max-xxs:order-1 ${product.availability ? "bg-filgreen text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`} product={product} />
               <WishlistButtonPD
                 text
                 className={`${!user&& 'max-xxs:order-2 px-6 max-xxs:px-3 py-3 max-xxs:py-2 border border-[#dfdfdf] rounded-md w-full font-medium text-[#007c42] hover:text-filgreen xs:text-sm whitespace-nowrap transition'}`}
