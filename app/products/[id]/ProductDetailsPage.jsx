@@ -496,7 +496,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
             <div className="flex max-xxs:flex-col gap-2 xxs:gap-4 mt-10 fl">
               
               <AddToCartButton
-                className={`max-xxs:order-1 ${user? "bg-white text-filgreen border border-[#dfdfdf]" :"bg-filgreen text-white "} ${product.availability ? " hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`}
+                className={`max-xxs:order-1 bg-white text-filgreen border border-[#dfdfdf] ${product.availability ? " hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`}
                 product={product}
                 selectedColor={selectedColor}
               />

@@ -24,7 +24,7 @@ export async function middleware(req) {
   if (AUTH_ROUTES.includes(pathname)) {
     const payload = await getPayload();
     if (payload) {
-      const destination = payload.role === "admin" ? "/admin" : "/";
+      const destination = payload.role === "admin" ? "/admin" : "/products";
       return NextResponse.redirect(new URL(destination, req.url));
     }
     return NextResponse.next();
