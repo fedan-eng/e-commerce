@@ -10,11 +10,11 @@ const BuyNow = ({ product, className }) => {
 
   const handleBuyNow = async () => {
     // 1. Requirement: Must be logged in
-    // if (!user) {
-    //   alert("Please login to use Buy Now.");
-    //   router.push('/login');
-    //   return;
-    // }
+    if (!user) {
+      alert("Please login to use Buy Now.");
+      router.push('/login');
+      return;
+    }
 
     // 2. Requirement: Check if essential delivery info is present
     const hasRequiredInfo = 
