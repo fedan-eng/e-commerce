@@ -496,7 +496,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
             <div className="flex max-xxs:flex-col gap-2 xxs:gap-4 mt-10 fl">
               <WishlistButton
                 text
-                className="max-xxs:order-2 px-6 max-xxs:px-3 py-3 max-xxs:py-2 border border-[#dfdfdf] rounded-md w-full font-medium text-[#007c42] hover:text-filgreen xs:text-sm whitespace-nowrap transition"
+                className={`${!user&& 'max-xxs:order-2 px-6 max-xxs:px-3 py-3 max-xxs:py-2 border border-[#dfdfdf] rounded-md w-full font-medium text-[#007c42] hover:text-filgreen xs:text-sm whitespace-nowrap transition'}`}
                 product={product}
               />
 

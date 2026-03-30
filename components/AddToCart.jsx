@@ -58,7 +58,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
         className={`cursor-pointer ${className}`}
         disabled={!product || !product.availability} 
       >
-        {product && product.availability ? "Buy Now" : "Out of Stock"}
+        {product && product.availability ? "Add to cart" : "Out of Stock"}
       </button>
     </>
   );
