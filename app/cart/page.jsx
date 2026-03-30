@@ -255,29 +255,31 @@ const handleQuantityChange = (id, color, value) => {
           {!(user && showForm) && (
             <div className="px-2 lx:px-4 py-4 md:pb-[88px] border border-[#e3e3e3] rounded-md w-full nav:min-w-[500px] nav:max-w-[755px]">
               {/* HEADER ROW */}
-              <div className="items-justify-center gap-2 lg:gap-4 grid grid-cols-[minmax(100px,1fr)_60px_20px] s:grid-cols-[20px_minmax(100px,1fr)_40px_60px_20px] sm:grid-cols-[20px_minmax(160px,1fr)_80px_70px_60px_20px] pb-2 border-[#e5e5e5] border-b">
+              <div className="items-justify-center gap-2 lg:gap-4 grid grid-cols-[minmax(100px,1fr)_120px_20px] s:grid-cols-[20px_minmax(100px,1fr)_40px_60px_20px] sm:grid-cols-[20px_minmax(160px,1fr)_80px_70px_60px_20px] pb-2 border-[#e5e5e5] border-b">
                 <span className="max-s:hidden min-w-0 font-medium text-sm text-center">
                   #
                 </span>
-                <span className="min-w-0 font-medium text-sm">Product</span>
+                <span className="max-s:hidden min-w-0 font-medium text-sm">Product</span>
                 <span className="max-s:hidden min-w-0 font-medium text-sm">
                   Qty
                 </span>
                 <span className="max-sm:hidden min-w-0 font-medium text-sm">
                   Unit Price
                 </span>
-                <span className="min-w-0 font-medium text-sm">Total</span>
+                <span className="min-w-0 font-medium text-sm"><span className="s:hidden " >Subotal - ₦{total}</span><span className="max-s:hidden" >Total</span></span>
                 <span className="min-w-0 font-medium text-sm"></span>
               </div>
               {/* Cart Items */}
              {cartItems.map((item, index) => (
+ <>
   <div
     key={item._id}
-    className="items-center gap-2 lg:gap-4 grid grid-cols-[minmax(80px,1fr)_60px_20px] s:grid-cols-[20px_minmax(80px,1fr)_80px_60px_20px] sm:grid-cols-[20px_minmax(140px,1fr)_120px_70px_60px_20px] py-2 text-sm sm:text-base"
+    className="items-center max-s:hidden gap-2 lg:gap-4 grid grid-cols-[minmax(80px,1fr)_60px_20px] s:grid-cols-[20px_minmax(80px,1fr)_80px_60px_20px] sm:grid-cols-[20px_minmax(140px,1fr)_120px_70px_60px_20px] py-2 text-sm sm:text-base"
   >
     <span className="max-s:hidden min-w-0 text-sm text-center">
       {index + 1}
     </span>
+    <a href={`/products/${item._id}`}>
     <div className="flex items-center gap-2 min-w-0">
       <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[50px] xxs:w-[65px] h-[50px] xxs:h-[65px]">
         <img
@@ -296,6 +298,8 @@ const handleQuantityChange = (id, color, value) => {
 )}
       </div>
     </div>
+    </a>
+  
     <div className="max-s:hidden flex items-center gap-1 border border-[#d9d9d9] rounded-md w-fit">
       <button
        onClick={() => handleQuantityChange(item._id, item.color, item.quantity - 1)}
@@ -333,6 +337,68 @@ const handleQuantityChange = (id, color, value) => {
       <MdOutlineDelete />
     </button>
   </div>
+
+
+ <div className="flex flex-col my-5 s:hidden " >
+  <a href={`/products/${item._id}`}>
+  <div className="flex flex-row gap-5" >
+     <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[50px] xxs:w-[65px] h-[50px] xxs:h-[65px]">
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-[40px] xxs:w-[56px] h-[40px] xxs:h-[56px] object-contain"
+        />
+      </div>
+      <div>
+        <p className="min-w-0 font-oswald text-sm line-clamp-1">
+          {item.name}
+        </p>
+        <p className="text-[#767676] text-xs">{item.category}</p>
+       {item.color && (
+  <p className="text-xs">Color: {item.color}</p>
+)}
+<span className=" min-w-0 text-dark text-sm">
+      {formatAmount(item.price)}
+    </span>
+      </div>
+  </div>
+  </a>
+  <div className="flex my-5 flex-row items-center justify-between" >
+     <button
+     onClick={() => handleRemove(item._id, item.color)}
+      className="flex items-center justify-center min-w-0 text-red-500 hover:text-red-700 text-xl"
+    >
+      <MdOutlineDelete /><span className="text-red text-sm" >Remove</span>
+    </button> 
+    
+     <div className=" flex items-center gap-1 border border-[#d9d9d9] rounded-md w-[70%]">
+      <button
+       onClick={() => handleQuantityChange(item._id, item.color, item.quantity - 1)}
+        disabled={item.quantity <= 1}
+        className="flex justify-center w-[30%] cursor-pointer items-center px-2 py-1 text-dark hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-l-md"
+      >
+        <HiMinus className="text-sm" />
+      </button>
+
+      <input
+        type="number"
+        value={item.quantity}
+       onChange={(e) => handleQuantityChange(item._id, item.color, Math.max(1, Number(e.target.value)))}
+        className="px-1 sm:px-2  py-1 border-x border-[#d9d9d9] outline-0 w-[40%] text-center text-dark text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        min="1"
+      />
+
+      <button
+       onClick={() => handleQuantityChange(item._id, item.color, item.quantity + 1)}
+        className="flex justify-center w-[30%] cursor-pointer items-center px-2 py-1 text-dark hover:bg-gray-100 transition-colors rounded-r-md"
+      >
+        <HiPlus className="text-sm" />
+      </button>
+    </div>
+  </div>
+  
+ </div>
+ </>
 ))}
             </div>
           )}
