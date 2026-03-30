@@ -117,7 +117,6 @@ function buildStatusEmail(order, cfg) {
   const subTotal = order.subTotal ?? 0;
   const delivFee = order.deliveryFee ?? 0;
   const discount = order.discount ?? 0;
-  const shortId  = String(order._id).slice(-8).toUpperCase();
   const firstName = order.firstName || "Customer";
 
   return `<!DOCTYPE html>
@@ -172,7 +171,7 @@ function buildStatusEmail(order, cfg) {
 
       <div class="order-box">
         <h2>📋 Order Summary</h2>
-        <div class="row"><span class="row-label">Order ID:</span><span class="row-value"><strong>#${shortId}</strong></span></div>
+        <div class="row"><span class="row-label">Order ID:</span><span class="row-value"><strong>#${order._id}</strong></span></div>
         <div class="row"><span class="row-label">Status:</span><span class="row-value" style="color:${cfg.badgeColor};font-weight:600;">${cfg.badge}</span></div>
         <div class="row"><span class="row-label">Name:</span><span class="row-value">${order.firstName || "—"}</span></div>
         <div class="row"><span class="row-label">Email:</span><span class="row-value">${order.email || "—"}</span></div>
@@ -217,7 +216,6 @@ function buildStatusEmail(order, cfg) {
 
 // ── Plain text fallback ───────────────────────────────────────────────────────
 function buildPlainText(order, cfg) {
-  const shortId   = String(order._id).slice(-8).toUpperCase();
   const firstName = order.firstName || "Customer";
   const total     = order.total ?? order.subTotal ?? 0;
   const itemLines = (order.items || [])
@@ -229,7 +227,7 @@ Hi ${firstName},
 
 ${cfg.plainMessage(order)}
 
-Order ID: #${shortId}
+Order ID: #${order._id}
 Status: ${cfg.badge}
 Address: ${order.address}, ${order.city}, ${order.region?.name || order.region}
 
