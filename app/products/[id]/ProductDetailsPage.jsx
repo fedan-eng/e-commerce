@@ -24,6 +24,7 @@ import {
   GoChevronRight,
 } from "react-icons/go"; 
 import { formatDistanceToNow } from "date-fns";
+import BuyNow from "@/components/BuyNow";
 
 
 async function fetchProduct(id) {
@@ -64,6 +65,8 @@ export async function generateMetadata({ params }) {
     },
   };
 }
+
+
 
 
 export default function ProductDetailsPage() {
@@ -502,6 +505,8 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
                 product={product}
                 selectedColor={selectedColor}
               />
+              {user && 
+              <BuyNow className={`max-xxs:order-1 ${product.availability ? "bg-filgreen text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`} product={product} />}
             </div>
 
             {/* Assurance Points */}
