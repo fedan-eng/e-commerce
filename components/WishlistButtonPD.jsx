@@ -20,7 +20,7 @@ export default function WishlistButton({
 
   // Get wishlist items and auth state
   const wishlist = useSelector((state) => state.wishlist.items);
-  const { user } = useSelector((state) => state.auth);
+  const { user } = true;
 
   const isInWishlist = wishlist.some((item) => item._id === product._id);
 
