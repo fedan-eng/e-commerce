@@ -39,9 +39,9 @@ const items = [
     content: (
       <ul className="space-y-4">
         <li><Link target="_blank" className="" href="https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz">Instagram</Link></li>
-        <li><Link target="_blank" className="" href="/">Facebook</Link></li>
+        <li><Link target="_blank" className="" href="https://www.facebook.com/filstoreng/">Facebook</Link></li>
         <li><Link target="_blank" className="" href="/">X</Link></li>
-        <li><Link target="_blank" className="" href="/">TikTok</Link></li>
+        <li><Link target="_blank" className="" href="https://www.tiktok.com/@filstoreng_">TikTok</Link></li>
       </ul>
     ),
   },
@@ -52,8 +52,8 @@ const items = [
         <li><Link className="" href="/register">Sign in/Register</Link></li>
         <li><Link className="" href="/contact">Track Order</Link></li>
         <li><Link className="" href="/contact">Contact Us</Link></li>
-        <li><Link className="" href="/">Terms and Condition</Link></li>
-        <li><Link className="" href="/">Privacy Policy</Link></li>
+        <li><Link className="" href="/policies">Terms and Condition</Link></li>
+        <li><Link className="" href="/policies">Privacy Policy</Link></li>
         <li className="mt-[62px]">
           <p className="mb-8 font-medium text-white text-sm uppercase">WE ACCEPT</p>
           <div className="w-[88px] h-[32px]">
@@ -412,7 +412,7 @@ const Footer = () => {
 
         <div className="mx-[14px] md:mx-[60px] mt-10 pt-4 pb-6 border-white border-t">
           <p className="font-medium text-white text-xs text-center leading-[150%]">
-            2025 Copyright - FIL E-Commerce
+            2026 Copyright - FIL E-Commerce
           </p>
         </div>
       </footer>
