@@ -1,23 +1,26 @@
 "use client";
 
-import { useDispatch, useSelector } from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {
   addToWishlist,
   removeFromWishlist,
 } from "@/store/features/wishlistSlice";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { useState } from "react";
+import {FaHeart, FaRegHeart} from "react-icons/fa";
+import {useState} from "react";
 
 export default function WishlistButton({
   product,
   className = "",
-  text,
+  text, // This remains for manual overrides
   textClassName = "",
   addedText = "Remove from Wishlist",
   defaultText = "Save to Wishlist",
 }) {
   const dispatch = useDispatch();
+
+  // Get wishlist items and auth state
   const wishlist = useSelector((state) => state.wishlist.items);
+  const { user } = useSelector((state) => state.auth);
 
   const isInWishlist = wishlist.some((item) => item._id === product._id);
 
@@ -58,7 +61,17 @@ export default function WishlistButton({
         onClick={toggleWishlist}
         className={`p-1 cursor-pointer transition ${className}`}
       >
-        {text ? (
+        {/* LOGIC: If user is logged in, show HEART icons. If not, show TEXT button. */}
+        {user ? (
+          isInWishlist ? (
+            <FaHeart size={18} className="text-red-500" />
+          ) : (
+            <FaRegHeart
+              size={18}
+              className="text-gray-500 hover:text-red-500"
+            />
+          )
+        ) : (
           <span
             className={`${textClassName} ${
               isInWishlist
@@ -68,16 +81,6 @@ export default function WishlistButton({
           >
             {isInWishlist ? addedText : defaultText}
           </span>
-        ) : isInWishlist ? (
-          <FaHeart
-            size={18}
-            className="text-red-500"
-          />
-        ) : (
-          <FaRegHeart
-            size={18}
-            className="text-gray-500 hover:text-red-500"
-          />
         )}
       </button>
     </>

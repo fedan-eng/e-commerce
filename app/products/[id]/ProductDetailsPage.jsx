@@ -7,7 +7,7 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getProduct } from "@/store/features/productSlice";
 import AddToCartButton from "@/components/AddToCart";
-import WishlistButton from "@/components/WishlistButton";
+import WishlistButtonPD from "@/components/WishlistButtonPD";
 import Loading from "@/components/Loading";
 import Rating from "@/components/Rating";
 import { formatAmount } from "@/lib/utils";
@@ -494,12 +494,7 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
 
             {/* buttons */}
             <div className="flex max-xxs:flex-col gap-2 xxs:gap-4 mt-10 fl">
-              <WishlistButton
-                text
-                className={`${!user&& 'max-xxs:order-2 px-6 max-xxs:px-3 py-3 max-xxs:py-2 border border-[#dfdfdf] rounded-md w-full font-medium text-[#007c42] hover:text-filgreen xs:text-sm whitespace-nowrap transition'}`}
-                product={product}
-              />
-
+              
               <AddToCartButton
                 className={`max-xxs:order-1 ${user? "bg-white border border-[#dfdfdf]" :"bg-filgreen"} ${product.availability ? " text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`}
                 product={product}
@@ -507,6 +502,12 @@ const shareText = `Check out ${product?.name} on FIL Store!`;
               />
               {user && 
               <BuyNow className={`max-xxs:order-1 ${product.availability ? "bg-filgreen text-white hover:bg-[#007c42]" : "bg-gray-300 text-gray-500 cursor-not-allowed"} px-6 max-xxs:px-3 py-3 max-xxs:py-2 rounded-md w-full font-medium text-sm whitespace-nowrap transition`} product={product} />}
+              <WishlistButtonPD
+                text
+                className={`${!user&& 'max-xxs:order-2 px-6 max-xxs:px-3 py-3 max-xxs:py-2 border border-[#dfdfdf] rounded-md w-full font-medium text-[#007c42] hover:text-filgreen xs:text-sm whitespace-nowrap transition'}`}
+                product={product}
+              />
+
             </div>
 
             {/* Assurance Points */}
