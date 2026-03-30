@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Loading from "@/components/Loading";
 import ImageSlider from "./ImageSlider";
+import { useRouter } from 'next/navigation';
 import { FaArrowLeft } from "react-icons/fa";
 
 export default function ResetForm() {
@@ -15,6 +16,7 @@ export default function ResetForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+    const router = useRouter();
   // 🔒 Yup password schema
   const passwordSchema = Yup.string()
     .min(6, "Password must be at least 8 characters")
@@ -84,6 +86,7 @@ export default function ResetForm() {
         setStep(1);
         formikStep1.resetForm();
         formikStep2.resetForm();
+         router.push('/login');
       } catch (err) {
         setError(err.message);
       } finally {
