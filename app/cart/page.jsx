@@ -85,7 +85,7 @@ const CartPage = () => {
     {
       id: "Express",
       label:
-        "Express Delivery (Within 24 hours, for orders placed before 10am)",
+        "Express Delivery (Within 24 hours, for orders placed before 10am, Lagos Only )",
     },
     {
       id: "Free",

@@ -1,8 +1,8 @@
 export const homeImages = [
     {
     id: 1,
-    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1773396995/HERO_SECTION_11_komflk.jpg",
-    title: "RAMADAN SALES",
+    src: "https://i.ibb.co/rGRzj86Q/EASTER-2.jpg",
+    title: "Easter SALES",
     link: "/products?specials=isTodaysDeal",
     desc: "Up to 30% discount",
     titleStyle: "",
@@ -10,7 +10,7 @@ export const homeImages = [
   },
   {
     id: 2,
-    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581672/HERO_SECTION_8_ynbwqz.jpg",
+    src: "https://i.ibb.co/TMV3FQhF/HERO-SECTION-8.jpg",
     title: "ALWAYS WITH YOU ",
     link: "/products?categories=Power+Bank",
     desc: "Stylish. Portable. Fast charging.",
@@ -19,7 +19,7 @@ export const homeImages = [
   },
   {
     id: 3,
-    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581550/HERO_SECTION_5_bu19bu.jpg",
+    src: "https://i.ibb.co/ZpH5v8xz/HERO-SECTION-5.jpg",
     title: "RELIABLE POWER.",
     link: "/products?categories=Power+Bank",
     desc: "Our Powerbank no dey carry belle ",
@@ -28,7 +28,7 @@ export const homeImages = [
   },
   {
     id: 4,
-    src: "https://res.cloudinary.com/dm2igxywk/image/upload/v1771581653/HERO_SECTION_4_k6i5gq.jpg",
+    src: "https://i.ibb.co/1Y1cytbk/HERO-SECTION-4.jpg",
     title: "SMALL BUDS. BIG ENERGY",
     link: "/products?categories=Wearables",
     desc: "Active noise cancellation. Sleek Design.",
