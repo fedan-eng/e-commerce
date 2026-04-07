@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       "t3.ftcdn.net",
       "filstore.com.ng",
       "www.filstore.com.ng",
+      "i.ibb.co",
     ],
   },
 
