@@ -18,7 +18,8 @@ function fmt(n) {
   return Number(n).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function fmtK(n) {
-  return n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
+  const v = Math.round(n);
+  return v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v);
 }
 function getDayLabels() {
   const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
