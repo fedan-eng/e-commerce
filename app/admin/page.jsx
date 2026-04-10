@@ -176,15 +176,17 @@ export default function AdminDashboard() {
   const statusTotal   = statusEntries.reduce((a, e) => a + e[1], 0);
 
   // ── Top products ───────────────────────────────────────────
-  const productCatLookup = {};
-  allProducts.forEach(p => { productCatLookup[String(p._id)] = p.category || "Other"; });
+  const productLookup = {};
+  allProducts.forEach(p => { productLookup[String(p._id)] = { category: p.category || "Other", rating: p.averageRating || 0 }; });
 
   const prodMap = {};
   filtered.forEach(o => (o.items || []).forEach(it => {
     const k   = String(it.productId || it._id || it.name || "unknown");
     const qty = parseInt(it.quantity, 10) || 1;
-    const cat = it.category || productCatLookup[String(it.productId)] || productCatLookup[String(it._id)] || "Other";
-    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: cat, price: parseFloat(it.price || 0), qty: 0, total: 0, rating: it.rating || it.averageRating || 0 };
+    const match = productLookup[String(it.productId)] || productLookup[String(it._id)] || {};
+    const cat = it.category || match.category || "Other";
+    const rating = match.rating || it.averageRating || it.rating || 0;
+    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: cat, price: parseFloat(it.price || 0), qty: 0, total: 0, rating };
     prodMap[k].qty   += qty;
     prodMap[k].total += parseFloat(it.price || 0) * qty;
   }));
