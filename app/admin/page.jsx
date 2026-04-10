@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Chart, registerables } from "chart.js";
+Chart.register(...registerables);
 import Link from "next/link";
 
 const STATUS_COLORS = {
@@ -52,15 +54,6 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  // ── Load Chart.js from CDN once ────────────────────────────
-  useEffect(() => {
-    if (document.getElementById("chartjs-cdn")) return;
-    const s = document.createElement("script");
-    s.id  = "chartjs-cdn";
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js";
-    document.head.appendChild(s);
-  }, []);
-
   // ── Filtered slice ─────────────────────────────────────────
   const filtered = allOrders.filter(o => {
     const d = new Date(o.createdAt);
@@ -73,7 +66,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (loading) return;
     const tryBuild = () => {
-      if (!window.Chart) { setTimeout(tryBuild, 100); return; }
+      if (!Chart) { setTimeout(tryBuild, 100); return; }
       buildSalesChart();
       buildDonutChart();
       buildStatusChart();
@@ -104,7 +97,7 @@ export default function AdminDashboard() {
       data   = Array(12).fill(0);
       filtered.forEach(o => { data[new Date(o.createdAt).getMonth()] += parseFloat(o.total || o.subTotal || 0); });
     }
-    salesInst.current = new window.Chart(salesRef.current, {
+    salesInst.current = new Chart(salesRef.current, {
       type: "line",
       data: { labels, datasets: [{ label: "Sales (₦)", data, borderColor: "#1cc978", backgroundColor: "rgba(28,201,120,0.08)", borderWidth: 1.5, pointBackgroundColor: "#1cc978", pointRadius: 3, tension: 0.4, fill: true }] },
       options: {
@@ -125,7 +118,7 @@ export default function AdminDashboard() {
     }));
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
     if (!entries.length) return;
-    donutInst.current = new window.Chart(donutRef.current, {
+    donutInst.current = new Chart(donutRef.current, {
       type: "doughnut",
       data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map((_, i) => CAT_COLORS[i % CAT_COLORS.length]), borderWidth: 0, hoverOffset: 4 }] },
       options: { responsive: false, cutout: "72%", plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa" } } },
@@ -140,7 +133,7 @@ export default function AdminDashboard() {
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
     if (!entries.length) return;
     const colors = entries.map(e => STATUS_COLORS[e[0]]?.text || "#888");
-    statusInst.current = new window.Chart(statusRef.current, {
+    statusInst.current = new Chart(statusRef.current, {
       type: "doughnut",
       data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
       options: { responsive: false, cutout: "72%", plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa" } } },
