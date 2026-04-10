@@ -32,6 +32,7 @@ function getDayLabels() {
 
 export default function AdminDashboard() {
   const [allOrders,    setAllOrders]    = useState([]);
+  const [allProducts,  setAllProducts]  = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [chartMode,    setChartMode]    = useState("week");
   const [filterMonth,  setFilterMonth]  = useState(0);
@@ -46,9 +47,13 @@ export default function AdminDashboard() {
 
   // ── Load data ──────────────────────────────────────────────
   useEffect(() => {
-    axios.get("/api/admin/orders?limit=500")
-      .then(({ data }) => {
-        setAllOrders(data.orders || []);
+    Promise.all([
+      axios.get("/api/admin/orders?limit=500"),
+      axios.get("/api/products?limit=500"),
+    ])
+      .then(([{ data: ordersData }, { data: productsData }]) => {
+        setAllOrders(ordersData.orders || []);
+        setAllProducts(productsData.products || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -171,11 +176,15 @@ export default function AdminDashboard() {
   const statusTotal   = statusEntries.reduce((a, e) => a + e[1], 0);
 
   // ── Top products ───────────────────────────────────────────
+  const productCatLookup = {};
+  allProducts.forEach(p => { productCatLookup[String(p._id)] = p.category || "Other"; });
+
   const prodMap = {};
   filtered.forEach(o => (o.items || []).forEach(it => {
     const k   = String(it.productId || it._id || it.name || "unknown");
     const qty = parseInt(it.quantity, 10) || 1;
-    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: it.category || "Other", price: parseFloat(it.price || 0), qty: 0, total: 0, rating: it.rating || it.averageRating || 0 };
+    const cat = it.category || productCatLookup[String(it.productId)] || productCatLookup[String(it._id)] || "Other";
+    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: cat, price: parseFloat(it.price || 0), qty: 0, total: 0, rating: it.rating || it.averageRating || 0 };
     prodMap[k].qty   += qty;
     prodMap[k].total += parseFloat(it.price || 0) * qty;
   }));
