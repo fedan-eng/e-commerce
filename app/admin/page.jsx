@@ -59,6 +59,10 @@ export default function AdminDashboard() {
       .catch(() => setLoading(false));
   }, []);
 
+  // ── Product lookup (category + rating by _id) ─────────────
+  const productLookup = {};
+  allProducts.forEach(p => { productLookup[String(p._id)] = { category: p.category || "Other", rating: p.averageRating || 0 }; });
+
   // ── Filtered slice ─────────────────────────────────────────
   const filtered = allOrders.filter(o => {
     const d = new Date(o.createdAt);
@@ -181,9 +185,6 @@ export default function AdminDashboard() {
   const statusTotal   = statusEntries.reduce((a, e) => a + e[1], 0);
 
   // ── Top products ───────────────────────────────────────────
-  const productLookup = {};
-  allProducts.forEach(p => { productLookup[String(p._id)] = { category: p.category || "Other", rating: p.averageRating || 0 }; });
-
   const prodMap = {};
   filtered.forEach(o => (o.items || []).forEach(it => {
     const k   = String(it.productId || it._id || it.name || "unknown");
