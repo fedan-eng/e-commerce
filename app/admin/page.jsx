@@ -238,7 +238,7 @@ export default function AdminDashboard() {
             style={{ borderTopWidth: "2px", borderTopColor: card.accent }}
           >
             <div className="text-[10px] tracking-[0.12em] text-[#666] uppercase mb-2.5">{card.label}</div>
-            <div className="text-xl font-bold text-[#e8e8e8] leading-none">
+            <div className="sm:text-xl text-[14px] font-bold text-[#e8e8e8] leading-none">
               {loading ? <span className="text-[#333]">—</span> : card.value}
             </div>
             <div className={`flex items-center gap-1 mt-2 text-[11px] ${card.dir === "up" ? "text-[#6ae8a0]" : "text-[#888]"}`}>
