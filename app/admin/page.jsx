@@ -18,7 +18,7 @@ function fmt(n) {
   return Number(n).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function fmtK(n) {
-  const v = Math.round(n);
+  const v = Math.round(Number(n) || 0);
   return v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v);
 }
 function getDayLabels() {
@@ -29,7 +29,6 @@ function getDayLabels() {
 
 export default function AdminDashboard() {
   const [allOrders,    setAllOrders]    = useState([]);
-  const [allProducts,  setAllProducts]  = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [chartMode,    setChartMode]    = useState("week");
   const [filterMonth,  setFilterMonth]  = useState(0);
@@ -46,7 +45,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     Promise.all([
       fetch("/api/admin/orders?limit=500").then(r => r.json()),
-      fetch("/api/products?limit=500").then(r => r.json()),
     ]).then(([ordersData, productsData]) => {
       setAllOrders(ordersData.orders || []);
       setAllProducts(productsData.products || []);
@@ -123,7 +121,7 @@ export default function AdminDashboard() {
     const map = {};
     filtered.forEach(o => (o.items || []).forEach(it => {
       const cat = it.category || "Other";
-      map[cat] = (map[cat] || 0) + (it.quantity || 1);
+      map[cat] = (map[cat] || 0) + (parseInt(it.quantity, 10) || 1);
     }));
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
     if (!entries.length) return;
@@ -173,7 +171,7 @@ export default function AdminDashboard() {
 
   // ── Category legend ────────────────────────────────────────
   const catMap = {};
-  filtered.forEach(o => (o.items || []).forEach(it => { const c = it.category || "Other"; catMap[c] = (catMap[c] || 0) + (it.quantity || 1); }));
+  filtered.forEach(o => (o.items || []).forEach(it => { const c = it.category || "Other"; catMap[c] = (catMap[c] || 0) + (parseInt(it.quantity, 10) || 1); }));
   const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
   const catTotal   = catEntries.reduce((a, e) => a + e[1], 0);
 
@@ -186,10 +184,11 @@ export default function AdminDashboard() {
   // ── Top products ───────────────────────────────────────────
   const prodMap = {};
   filtered.forEach(o => (o.items || []).forEach(it => {
-    const k = it.productId || it._id || it.name;
-    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: it.category || "—", price: parseFloat(it.price || 0), qty: 0, total: 0, rating: it.rating || it.averageRating || 0 };
-    prodMap[k].qty   += (it.quantity || 1);
-    prodMap[k].total += parseFloat(it.price || 0) * (it.quantity || 1);
+    const k   = String(it.productId || it._id || it.name || "unknown");
+    const qty = parseInt(it.quantity, 10) || 1;
+    if (!prodMap[k]) prodMap[k] = { name: it.name || "Unknown", category: it.category || "Other", price: parseFloat(it.price || 0), qty: 0, total: 0, rating: it.rating || it.averageRating || 0 };
+    prodMap[k].qty   += qty;
+    prodMap[k].total += parseFloat(it.price || 0) * qty;
   }));
   const topProducts = Object.values(prodMap).sort((a, b) => b.total - a.total).slice(0, 10);
 
