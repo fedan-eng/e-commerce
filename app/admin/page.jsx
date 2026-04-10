@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 import Link from "next/link";
+import axios from "axios";
 
 const STATUS_COLORS = {
   confirmed:  { text: "#e8c46a", bg: "#e8c46a18", border: "#e8c46a33" },
@@ -45,13 +46,12 @@ export default function AdminDashboard() {
 
   // ── Load data ──────────────────────────────────────────────
   useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/orders?limit=500").then(r => r.json()),
-    ]).then(([ordersData, productsData]) => {
-      setAllOrders(ordersData.orders || []);
-      setAllProducts(productsData.products || []);
-      setLoading(false);
-    });
+    axios.get("/api/admin/orders?limit=500")
+      .then(({ data }) => {
+        setAllOrders(data.orders || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   // ── Filtered slice ─────────────────────────────────────────
@@ -65,13 +65,9 @@ export default function AdminDashboard() {
   // ── Rebuild charts whenever deps change ───────────────────
   useEffect(() => {
     if (loading) return;
-    const tryBuild = () => {
-      if (!Chart) { setTimeout(tryBuild, 100); return; }
-      buildSalesChart();
-      buildDonutChart();
-      buildStatusChart();
-    };
-    tryBuild();
+    buildSalesChart();
+    buildDonutChart();
+    buildStatusChart();
     return () => {
       salesInst.current?.destroy();
       donutInst.current?.destroy();
