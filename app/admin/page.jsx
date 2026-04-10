@@ -114,7 +114,8 @@ export default function AdminDashboard() {
     if (!donutRef.current) return;
     const map = {};
     filtered.forEach(o => (o.items || []).forEach(it => {
-      const cat = it.category || "Other";
+      const match = productLookup[String(it.productId)] || productLookup[String(it._id)] || {};
+      const cat = it.category || match.category || "Other";
       map[cat] = (map[cat] || 0) + (parseInt(it.quantity, 10) || 1);
     }));
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
@@ -165,7 +166,11 @@ export default function AdminDashboard() {
 
   // ── Category legend ────────────────────────────────────────
   const catMap = {};
-  filtered.forEach(o => (o.items || []).forEach(it => { const c = it.category || "Other"; catMap[c] = (catMap[c] || 0) + (parseInt(it.quantity, 10) || 1); }));
+  filtered.forEach(o => (o.items || []).forEach(it => {
+    const match = productLookup[String(it.productId)] || productLookup[String(it._id)] || {};
+    const c = it.category || match.category || "Other";
+    catMap[c] = (catMap[c] || 0) + (parseInt(it.quantity, 10) || 1);
+  }));
   const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
   const catTotal   = catEntries.reduce((a, e) => a + e[1], 0);
 
