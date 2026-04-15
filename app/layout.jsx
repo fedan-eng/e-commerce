@@ -9,6 +9,7 @@ import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import CookieBanner from "@/components/CookieBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
+
 export const metadata = {
   title: "FIL Store",
   description:
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
+<TiktokPixel />
         <ErrorBoundary>
           <CookieConsentProvider>
             <Providers>
