@@ -3,6 +3,7 @@ import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import TiktokPixel from "@/components/TiktokPixel";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
