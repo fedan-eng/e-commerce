@@ -20,6 +20,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
         _id: product._id,
         name: product.name,
         price: product.price,
+        category: product.category,
         image: selectedColor?.images?.[0] || product.image,
         quantity: 1,
         ...(selectedColor ? { color: selectedColor.name } : {}), // only include color if selected

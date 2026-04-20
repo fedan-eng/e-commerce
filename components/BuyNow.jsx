@@ -42,6 +42,7 @@ const BuyNow = ({ product, className }) => {
           _id: product._id,
           name: product.name,
           price: product.price,
+          category: product.category,
           quantity: 1,
           image: product.image
         }],
