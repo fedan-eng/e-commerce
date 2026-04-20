@@ -6,7 +6,6 @@ import OrderProgressBar from "@/components/OrderTracking";
 import Loading from "@/components/Loading";
 import { MdDeliveryDining } from "react-icons/md";
 import { formatAmount } from "lib/utils";
-import { isNullOrUndef } from "chart.js/dist/helpers/helpers.core";
 
 export default function Tracking() {
   const [orderId, setOrderId] = useState("");
