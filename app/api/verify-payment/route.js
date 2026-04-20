@@ -536,6 +536,7 @@ console.log("💾 No existing order found. Creating new order...");
               <td style="text-align: center;">${item.quantity}</td>
               <td style="text-align: right;">₦${Number(item.price).toLocaleString()}</td>
               <td style="text-align: right;">₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
+              ${item.color?? (<td style="text-align: center;">Color: {item.color}</td> )}
             </tr>
           `).join('')}
         </tbody>
