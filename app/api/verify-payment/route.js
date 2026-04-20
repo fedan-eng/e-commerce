@@ -356,7 +356,7 @@ console.log("💾 No existing order found. Creating new order...");
     }
     .items-table {
       width: 100%;
-      margin: 20px 0;
+      margin: 20px 0; 
       border-collapse: collapse;
     }
     .items-table th {
