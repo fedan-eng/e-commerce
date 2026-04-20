@@ -6,6 +6,7 @@ import OrderProgressBar from "@/components/OrderTracking";
 import Loading from "@/components/Loading";
 import { MdDeliveryDining } from "react-icons/md";
 import { formatAmount } from "lib/utils";
+import { isNullOrUndef } from "chart.js/dist/helpers/helpers.core";
 
 export default function Tracking() {
   const [orderId, setOrderId] = useState("");
@@ -85,7 +86,7 @@ export default function Tracking() {
           <ul className="text-sm list-disc list-inside">
             {order.items.map((item, i) => (
               <li key={i}>
-                {item.name} × {item.quantity} — {formatAmount(item.price)}
+                {item.color? item.color : ""} {item.name} × {item.quantity} — {formatAmount(item.price)}
               </li>
             ))}
           </ul>
