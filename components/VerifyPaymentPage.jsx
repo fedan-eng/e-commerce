@@ -572,8 +572,8 @@ useEffect(() => {
                     <p className="min-w-0 font-oswald text-xs xs:text-sm line-clamp-1">
                       {item.name}
                     </p>
-                    <p className="xs:my-2 text-[#767676] text-xs">Wearables</p>
-                    <p className="text-xs">Color:Black</p>
+                    <p className="xs:my-2 text-[#767676] text-xs">{item.category}</p>
+                    <p className="text-xs">{item.color}</p>
                   </div>
                 </div>
 
