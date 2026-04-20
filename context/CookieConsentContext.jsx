@@ -6,7 +6,7 @@ const STORAGE_KEY = 'filstore_cookie_consent'
 
 const defaultPreferences = {
   necessary: true,
-  analytics: false,
+  analytics: true,
   marketing: false,
   functional: false,
 }

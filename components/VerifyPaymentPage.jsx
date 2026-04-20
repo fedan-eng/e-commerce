@@ -49,43 +49,39 @@ useEffect(() => {
     items: orderDetails.items, // check which one exists
   });
 
-  const timer = setTimeout(() => {
-    // Support both field names your API might return
-    const lineItems = orderDetails.cartItems || orderDetails.items || [];
-    const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
-    const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
+  // Support both field names your API might return
+  const lineItems = orderDetails.cartItems || orderDetails.items || [];
+  const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
+  const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
 
-    if (!txId) {
-      console.warn("[GA purchase] Missing transaction_id — event not fired");
-      return;
-    }
+  if (!txId) {
+    console.warn("[GA purchase] Missing transaction_id — event not fired");
+    return;
+  }
 
-    trackEvent("purchase", {
-      transaction_id: txId,
-      currency: "NGN",
-      value: orderValue,
-      // Optional but recommended
-      coupon: orderDetails.couponCode || undefined,
-      shipping: Number(orderDetails.deliveryFee || 0),
-      tax: 0,
-      items: lineItems.map((item, index) => ({
-        item_id: String(item._id || item.productId || index),
-        item_name: item.name || "Unknown",
-        quantity: Number(item.quantity || 1),
-        price: Number(item.price || 0),
-        index,
-      })),
-    });
+  trackEvent("purchase", {
+    transaction_id: txId,
+    currency: "NGN",
+    value: orderValue,
+    // Optional but recommended
+    coupon: orderDetails.couponCode || undefined,
+    shipping: Number(orderDetails.deliveryFee || 0),
+    tax: 0,
+    items: lineItems.map((item, index) => ({
+      item_id: String(item._id || item.productId || index),
+      item_name: item.name || "Unknown",
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+      index,
+    })),
+  });
 
-    console.log("[GA purchase] Event fired:", {
-      transaction_id: txId,
-      value: orderValue,
-      items: lineItems.length,
-    });
-  }, 500);
-
-  return () => clearTimeout(timer);
-}, [orderDetails]);
+  console.log("[GA purchase] Event fired:", {
+    transaction_id: txId,
+    value: orderValue,
+    items: lineItems.length,
+  });
+}, [orderDetails, trackEvent]);
 
   useEffect(() => {
     // Prevent double verification
