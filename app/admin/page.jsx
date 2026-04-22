@@ -33,6 +33,7 @@ function getDayLabels() {
 export default function AdminDashboard() {
   const [allOrders,    setAllOrders]    = useState([]);
   const [allProducts,  setAllProducts]  = useState([]);
+  const [totalCustomers, setTotalCustomers] = useState(0);
   const [loading,      setLoading]      = useState(true);
   const [chartMode,    setChartMode]    = useState("week");
   const [filterMonth,  setFilterMonth]  = useState(0);
@@ -50,10 +51,12 @@ export default function AdminDashboard() {
     Promise.all([
       axios.get("/api/admin/orders?limit=500"),
       axios.get("/api/products?limit=500"),
+      axios.get("/api/admin/users?limit=1"),
     ])
-      .then(([{ data: ordersData }, { data: productsData }]) => {
+      .then(([{ data: ordersData }, { data: productsData }, { data: usersData }]) => {
         setAllOrders(ordersData.orders || []);
         setAllProducts(productsData.products || []);
+        setTotalCustomers(usersData.total || 0);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -151,7 +154,7 @@ export default function AdminDashboard() {
   const totalOrders     = filtered.length;
   const avgOrder        = totalOrders ? totalSales / totalOrders : 0;
   const delivered       = filtered.filter(o => o.status?.toLowerCase() === "delivered").length;
-  const uniqueCustomers = new Set(filtered.map(o => o.email)).size;
+  const uniqueCustomers = totalCustomers;
 
   const statCards = [
     { label: "Total Sales",      value: "₦" + fmt(totalSales),  accent: STAT_ACCENTS[0], sub: "from orders",    dir: "up"  },
@@ -239,7 +242,7 @@ export default function AdminDashboard() {
             style={{ borderTopWidth: "2px", borderTopColor: card.accent }}
           >
             <div className="text-[10px] tracking-[0.12em] text-[#666] uppercase mb-2.5">{card.label}</div>
-            <div className="sm:text-xl text-[14px] font-bold text-[#e8e8e8] leading-none">
+            <div className="text-xl font-bold text-[#e8e8e8] leading-none">
               {loading ? <span className="text-[#333]">—</span> : card.value}
             </div>
             <div className={`flex items-center gap-1 mt-2 text-[11px] ${card.dir === "up" ? "text-[#6ae8a0]" : "text-[#888]"}`}>

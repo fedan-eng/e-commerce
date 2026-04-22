@@ -18,7 +18,7 @@ export default function AdminCustomersPage() {
   const [search, setSearch]         = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [page, setPage]             = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); 
   const [total, setTotal]           = useState(0);
 
   const fetchUsers = useCallback(async () => {
