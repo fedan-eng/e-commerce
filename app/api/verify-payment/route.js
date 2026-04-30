@@ -219,58 +219,66 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-    // ✅ SAVE ORDER TO DATABASE (idempotent — prevent duplicate orders)
-console.log("💾 Checking for existing order...");
+    // ✅ SAVE ORDER TO DATABASE USING ATOMIC UPSERT
+    console.log("💾 Saving order atomically with upsert...");
 
-const existingOrder = await Order.findOne({
-  paymentReference: orderData.paymentReference,
-});
-
-if (existingOrder) {
-  console.log("⚠️ Duplicate request — order already exists:", existingOrder._id);
-  return Response.json({
-    verified: true,
-    message: "Payment already verified and order exists",
-    provider: verificationData.provider,
-    orderData: orderData,
-    order: existingOrder,
-  });
-}
-
-console.log("💾 No existing order found. Creating new order...");
-
-      const order = await Order.create({
-        userId: user?.id || null,
-        email: orderData.email,
-        address: orderData.address,
-        region: {
-          name: orderData.region?.name || orderData.region,
-          fee: orderData.deliveryFee,
-        },
-        city: orderData.city,
-        deliveryType: orderData.deliveryType,
-        phone: orderData.phone,
-        addPhone: orderData.addPhone,
-        firstName: orderData.firstName,
-        items: orderData.cartItems,
-        subTotal: orderData.subTotal,
-        discount: orderData.discount,
-        promoCode: orderData.promoCode || null,
-        deliveryFee: orderData.deliveryFee,
-        total: orderData.total,
-        paymentMethod: orderData.paymentMethod,
-        paymentReference: orderData.paymentReference,
-        paymentStatus: orderData.paymentStatus,
-        status: "Confirmed",
-        statusHistory: [
-          {
-            status: "Confirmed",
-            date: new Date(),
+    const result = await Order.findOneAndUpdate(
+      { paymentReference: orderData.paymentReference },
+      {
+        $setOnInsert: {
+          userId: user?.id || null,
+          email: orderData.email,
+          address: orderData.address,
+          region: {
+            name: orderData.region?.name || orderData.region,
+            fee: orderData.deliveryFee,
           },
-        ],
-      });
+          city: orderData.city,
+          deliveryType: orderData.deliveryType,
+          phone: orderData.phone,
+          addPhone: orderData.addPhone,
+          firstName: orderData.firstName,
+          items: orderData.cartItems,
+          subTotal: orderData.subTotal,
+          discount: orderData.discount,
+          promoCode: orderData.promoCode || null,
+          deliveryFee: orderData.deliveryFee,
+          total: orderData.total,
+          paymentMethod: orderData.paymentMethod,
+          paymentReference: orderData.paymentReference,
+          paymentStatus: orderData.paymentStatus,
+          status: "Confirmed",
+          statusHistory: [
+            {
+              status: "Confirmed",
+              date: new Date(),
+            },
+          ],
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+        rawResult: true,
+      },
+    );
 
-      console.log("✅ Order saved successfully:", order._id);
+    const order = result.value;
+    const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
+
+    if (isExistingOrder) {
+      console.log("⚠️ Duplicate request — order already exists:", order._id);
+      return Response.json({
+        verified: true,
+        message: "Payment already verified and order exists",
+        provider: verificationData.provider,
+        orderData: orderData,
+        order: order,
+      });
+    }
+
+    console.log("✅ Order saved successfully:", order._id);
 
       // ✅ NOW SEND EMAILS
       const emailHtml = `

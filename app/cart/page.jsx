@@ -174,6 +174,7 @@ const handleQuantityChange = (id, color, value) => {
           deliveryInfo: formData,
           discount,
           promoCode,
+          paymentMethod: selectedPaymentMethod,
         }),
       });
 

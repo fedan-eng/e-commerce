@@ -58,16 +58,30 @@ export async function GET(req) {
     }
 
     const total  = await Order.countDocuments(query);
+const [statsResults] = await Order.aggregate([
+  {
+    $group: {
+      _id: null,
+      total:     { $sum: 1 },
+      confirmed: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "confirmed"] }, 1, 0] } },
+      shipped:   { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "shipped"]   }, 1, 0] } },
+      delivered: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "delivered"] }, 1, 0] } },
+      cancelled: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "cancelled"] }, 1, 0] } },
+    },
+  },
+]);
+
+const stats = statsResults ?? { total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    return new Response(
-      JSON.stringify({ orders, total, page, totalPages: Math.ceil(total / limit) }),
-      { status: 200 }
-    );
+   return new Response(
+  JSON.stringify({ orders, total, page, totalPages: Math.ceil(total / limit), stats }),
+  { status: 200 }
+);
   } catch (err) {
     console.error("[admin/orders GET]", err);
     return new Response(JSON.stringify({ message: "Server error" }), { status: 500 });

@@ -326,7 +326,10 @@ export default function AdminOrderDetailPage() {
               <div className="space-y-1.5 text-[12px] text-[#777]">
                 {order.paymentMethod && <div className="text-[#ccc]">{order.paymentMethod}</div>}
                 {order.paymentReference && (
+              <>
+              <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-3">Payment Reference</div>
                   <div className="font-mono text-[#444] break-all">{order.paymentReference}</div>
+                  </>
                 )}
                 {!order.paymentMethod && !order.paymentReference && (
                   <div className="text-[#333]">—</div>
