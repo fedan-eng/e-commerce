@@ -6,7 +6,7 @@ import { verifyToken } from "@/lib/auth";
 import User from "@/models/User";
 
 export async function POST(req) {
-  await connectDB(); // ✅ Connect to database
+  await connectDB();
 
   try {
     const { reference, provider } = await req.json();
@@ -16,9 +16,9 @@ export async function POST(req) {
         { message: "Missing reference or provider" },
         { status: 400 },
       );
-    } 
+    }
 
-    // ✅ Get token from cookies (for logged-in users)
+    // Get token from cookies (for logged-in users)
     const cookie = req.cookies.get("token")?.value;
 
     let user = null;
@@ -71,7 +71,8 @@ export async function POST(req) {
         paymentMethod: "paystack",
         paymentReference: reference,
         paymentStatus: "paid",
-      };    } else if (provider === "flutterwave") {
+      };
+    } else if (provider === "flutterwave") {
       console.log("🔍 Verifying Flutterwave transaction ID:", reference);
 
       const res = await axios.get(
@@ -201,6 +202,7 @@ export async function POST(req) {
         paymentReference: flutterwaveData.tx_ref || reference,
         paymentStatus: "paid",
       };
+
       console.log("📦 Final Order Data:", {
         ...orderData,
         cartItems: `${orderData.cartItems.length} items`,
@@ -219,12 +221,15 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-      // ✅ SAVE ORDER TO DATABASE USING ATOMIC UPSERT
-      console.log("💾 Saving order atomically with upsert...");
+      // ✅ Declare order and isExistingOrder OUTSIDE the try block
+      //    so they're accessible when building the email template below
+      let order;
+      let isExistingOrder;
 
-      let result;
       try {
-        result = await Order.findOneAndUpdate(
+        console.log("💾 Saving order atomically with upsert...");
+
+        const result = await Order.findOneAndUpdate(
           { paymentReference: orderData.paymentReference },
           {
             $setOnInsert: {
@@ -265,13 +270,15 @@ export async function POST(req) {
             rawResult: true,
           },
         );
+
         console.log("🔎 Raw upsert result:", JSON.stringify(result.lastErrorObject));
         console.log("🔎 result.value:", result.value);
 
-        const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
+        // ✅ Assign to outer-scoped variables (no const/let here)
+        isExistingOrder = result.lastErrorObject?.updatedExisting === true;
 
         // result.value can be null on new insert in some Mongoose versions — fetch manually
-        let order = result.value;
+        order = result.value;
         if (!order) {
           order = await Order.findOne({ paymentReference: orderData.paymentReference });
         }
@@ -299,7 +306,7 @@ export async function POST(req) {
         return Response.json({ message: "Order save failed" }, { status: 500 });
       }
 
-      // ✅ NOW SEND EMAILS
+      // ✅ Build email AFTER the try block — order is now in scope
       const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -383,7 +390,7 @@ export async function POST(req) {
     }
     .items-table {
       width: 100%;
-      margin: 20px 0; 
+      margin: 20px 0;
       border-collapse: collapse;
     }
     .items-table th {
@@ -553,7 +560,7 @@ export async function POST(req) {
             <th>Item</th>
             <th style="text-align: center;">Qty</th>
             <th style="text-align: right;">Price</th>
-            ${orderData.cartItems.some(item => item.color) ? '<th style="text-align: right;">Color</th>' : ''}
+            ${orderData.cartItems.some(item => item.color) ? '<th style="text-align: center;">Color</th>' : ''}
             <th style="text-align: right;">Total</th>
           </tr>
         </thead>
@@ -563,12 +570,13 @@ export async function POST(req) {
               <td>${item.name}</td>
               <td style="text-align: center;">${item.quantity}</td>
               <td style="text-align: right;">₦${Number(item.price).toLocaleString()}</td>
-              ${item.color ? `<td style="text-align: center;">${item.color}</td>` : ''}
+              ${orderData.cartItems.some(i => i.color) ? `<td style="text-align: center;">${item.color || '-'}</td>` : ''}
               <td style="text-align: right;">₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
+
       <div class="summary-box">
         <div class="summary-row">
           <span>Subtotal:</span>
@@ -666,14 +674,14 @@ Visit: https://filstore.com.ng
         console.error("❌ Email sending failed:", emailError);
       }
 
-   
-return Response.json({
-  verified: true,
-  message: "Payment verified and order created successfully",
-  provider: verificationData.provider,
-  orderData: orderData, // ✅ Correct property name that frontend expects
-  order: order, // ✅ Keep this too for backward compatibility
-});
+      return Response.json({
+        verified: true,
+        message: "Payment verified and order created successfully",
+        provider: verificationData.provider,
+        orderData: orderData,
+        order: order,
+      });
+
     } else {
       console.error("❌ Payment verification failed:", verificationData);
 
