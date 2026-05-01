@@ -60,11 +60,21 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  paymentMethod: {
+    type: String,
+    enum: ["paystack", "flutterwave"],
+    required: false,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["paid", "pending", "failed"],
+    default: "paid",
+  },
   paymentReference: {
-  type: String,
-  unique: true,  
-  sparse: true, 
-},
+    type: String,
+    unique: true,
+    sparse: true,
+  },
   status: {
     type: String,
     enum: [

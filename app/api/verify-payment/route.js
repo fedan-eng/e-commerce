@@ -550,6 +550,11 @@ export async function POST(req) {
           `).join('')}
         </tbody>
       </table>
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>₦${Number(orderData.subTotal).toLocaleString()}</span>
+        </div>
         <div class="summary-row">
           <span>Delivery Fee:</span>
           <span>₦${Number(orderData.deliveryFee).toLocaleString()}</span>

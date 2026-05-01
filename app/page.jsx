@@ -168,19 +168,25 @@ const page = () => {
       {/* Sitelinks Searchbox & WebSite */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLinksJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(siteLinksJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       
       {/* Organization Info */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       
       {/* Breadcrumbs */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
 
       <Hero />
