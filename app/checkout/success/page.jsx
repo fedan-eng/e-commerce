@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import VerifyPaymentPage from "@/components/VerifyPaymentPage";
 import Loading from "@/components/Loading";
 
-export default function Page() {
+export default function VerifyPage() {
   return (
     <Suspense
       fallback={

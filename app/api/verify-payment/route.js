@@ -267,32 +267,37 @@ export async function POST(req) {
         );
         console.log("🔎 Raw upsert result:", JSON.stringify(result.lastErrorObject));
         console.log("🔎 result.value:", result.value);
-      } catch (dbErr) {
-        console.error("❌ DB upsert error:", dbErr.message);
-        return Response.json({ message: "DB error", error: dbErr.message }, { status: 500 });
-      }
 
-      const order = result.value;
-      const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
+        const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
 
-      // Add guard for null order
-      if (!order) {
-        console.error("❌ Order upsert returned null value:", result);
+        // result.value can be null on new insert in some Mongoose versions — fetch manually
+        let order = result.value;
+        if (!order) {
+          order = await Order.findOne({ paymentReference: orderData.paymentReference });
+        }
+
+        if (!order) {
+          console.error("❌ Could not retrieve order after upsert");
+          return Response.json({ message: "Order save failed" }, { status: 500 });
+        }
+
+        if (isExistingOrder) {
+          console.log("⚠️ Duplicate request — order already exists:", order._id);
+          return Response.json({
+            verified: true,
+            message: "Payment already verified and order exists",
+            provider: verificationData.provider,
+            orderData: orderData,
+            order: order,
+          });
+        }
+
+        console.log("✅ Order saved successfully:", order._id);
+
+      } catch (e) {
+        console.error("❌ Error saving order:", e);
         return Response.json({ message: "Order save failed" }, { status: 500 });
       }
-
-      if (isExistingOrder) {
-        console.log("⚠️ Duplicate request — order already exists:", order._id);
-        return Response.json({
-          verified: true,
-          message: "Payment already verified and order exists",
-          provider: verificationData.provider,
-          orderData: orderData,
-          order: order,
-        });
-      }
-
-      console.log("✅ Order saved successfully:", order._id);
 
       // ✅ NOW SEND EMAILS
       const emailHtml = `
