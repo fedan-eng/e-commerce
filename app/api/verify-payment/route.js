@@ -280,8 +280,10 @@ export async function POST(req) {
 
     console.log("✅ Order saved successfully:", order._id);
 
-      // ✅ NOW SEND EMAILS
-      const emailHtml = `
+      // ✅ NOW SEND EMAILS (separate from order creation - failures won't affect verification)
+      let emailHtml = "";
+      try {
+        emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -584,6 +586,10 @@ export async function POST(req) {
 </body>
 </html>
 `;
+      } catch (templateError) {
+        console.error("❌ Email template generation failed:", templateError);
+        emailHtml = ""; // Fallback to empty template
+      }
 
       const itemList = orderData.cartItems
         .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
@@ -628,33 +634,37 @@ Visit: https://filstore.com.ng
       console.log("Admin email:", adminEmail);
 
       try {
-        await Promise.all([
-          sendEmail(
-            orderData.email,
-            "Your Order Confirmation - FIL Store",
-            plainText,
-            emailHtml
-          ),
-          sendEmail(
-            adminEmail,
-            `New Order from ${orderData.email}`,
-            plainText,
-            emailHtml
-          ),
-        ]);
-        console.log("✅ Emails sent successfully");
+        if (emailHtml) {
+          await Promise.all([
+            sendEmail(
+              orderData.email,
+              "Your Order Confirmation - FIL Store",
+              plainText,
+              emailHtml
+            ),
+            sendEmail(
+              adminEmail,
+              `New Order from ${orderData.email}`,
+              plainText,
+              emailHtml
+            ),
+          ]);
+          console.log("✅ Emails sent successfully");
+        } else {
+          console.warn("⚠️ Skipping email send due to template generation failure");
+        }
       } catch (emailError) {
         console.error("❌ Email sending failed:", emailError);
+        // Don't fail the verification if email fails - order is already saved
       }
 
-   
-return Response.json({
-  verified: true,
-  message: "Payment verified and order created successfully",
-  provider: verificationData.provider,
-  orderData: orderData, // ✅ Correct property name that frontend expects
-  order: order, // ✅ Keep this too for backward compatibility
-});
+      return Response.json({
+        verified: true,
+        message: "Payment verified and order created successfully",
+        provider: verificationData.provider,
+        orderData: orderData,
+        order: order,
+      });
     } else {
       console.error("❌ Payment verification failed:", verificationData);
 
