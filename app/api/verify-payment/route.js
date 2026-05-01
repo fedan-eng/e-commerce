@@ -219,71 +219,83 @@ export async function POST(req) {
         amount: verificationData.amount,
       });
 
-    // ✅ SAVE ORDER TO DATABASE USING ATOMIC UPSERT
-    console.log("💾 Saving order atomically with upsert...");
+      // ✅ SAVE ORDER TO DATABASE USING ATOMIC UPSERT
+      console.log("💾 Saving order atomically with upsert...");
 
-    const result = await Order.findOneAndUpdate(
-      { paymentReference: orderData.paymentReference },
-      {
-        $setOnInsert: {
-          userId: user?.id || null,
-          email: orderData.email,
-          address: orderData.address,
-          region: {
-            name: orderData.region?.name || orderData.region,
-            fee: orderData.deliveryFee,
-          },
-          city: orderData.city,
-          deliveryType: orderData.deliveryType,
-          phone: orderData.phone,
-          addPhone: orderData.addPhone,
-          firstName: orderData.firstName,
-          items: orderData.cartItems,
-          subTotal: orderData.subTotal,
-          discount: orderData.discount,
-          promoCode: orderData.promoCode || null,
-          deliveryFee: orderData.deliveryFee,
-          total: orderData.total,
-          paymentMethod: orderData.paymentMethod,
-          paymentReference: orderData.paymentReference,
-          paymentStatus: orderData.paymentStatus,
-          status: "Confirmed",
-          statusHistory: [
-            {
-              status: "Confirmed",
-              date: new Date(),
-            },
-          ],
-        },
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-        rawResult: true,
-      },
-    );
-
-    const order = result.value;
-    const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
-
-    if (isExistingOrder) {
-      console.log("⚠️ Duplicate request — order already exists:", order._id);
-      return Response.json({
-        verified: true,
-        message: "Payment already verified and order exists",
-        provider: verificationData.provider,
-        orderData: orderData,
-        order: order,
-      });
-    }
-
-    console.log("✅ Order saved successfully:", order._id);
-
-      // ✅ NOW SEND EMAILS (separate from order creation - failures won't affect verification)
-      let emailHtml = "";
+      let result;
       try {
-        emailHtml = `
+        result = await Order.findOneAndUpdate(
+          { paymentReference: orderData.paymentReference },
+          {
+            $setOnInsert: {
+              userId: user?.id || null,
+              email: orderData.email,
+              address: orderData.address,
+              region: {
+                name: orderData.region?.name || orderData.region,
+                fee: orderData.deliveryFee,
+              },
+              city: orderData.city,
+              deliveryType: orderData.deliveryType,
+              phone: orderData.phone,
+              addPhone: orderData.addPhone,
+              firstName: orderData.firstName,
+              items: orderData.cartItems,
+              subTotal: orderData.subTotal,
+              discount: orderData.discount,
+              promoCode: orderData.promoCode || null,
+              deliveryFee: orderData.deliveryFee,
+              total: orderData.total,
+              paymentMethod: orderData.paymentMethod,
+              paymentReference: orderData.paymentReference,
+              paymentStatus: orderData.paymentStatus,
+              status: "Confirmed",
+              statusHistory: [
+                {
+                  status: "Confirmed",
+                  date: new Date(),
+                },
+              ],
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true,
+            rawResult: true,
+          },
+        );
+        console.log("🔎 Raw upsert result:", JSON.stringify(result.lastErrorObject));
+        console.log("🔎 result.value:", result.value);
+      } catch (dbErr) {
+        console.error("❌ DB upsert error:", dbErr.message);
+        return Response.json({ message: "DB error", error: dbErr.message }, { status: 500 });
+      }
+
+      const order = result.value;
+      const isExistingOrder = result.lastErrorObject?.updatedExisting === true;
+
+      // Add guard for null order
+      if (!order) {
+        console.error("❌ Order upsert returned null value:", result);
+        return Response.json({ message: "Order save failed" }, { status: 500 });
+      }
+
+      if (isExistingOrder) {
+        console.log("⚠️ Duplicate request — order already exists:", order._id);
+        return Response.json({
+          verified: true,
+          message: "Payment already verified and order exists",
+          provider: verificationData.provider,
+          orderData: orderData,
+          order: order,
+        });
+      }
+
+      console.log("✅ Order saved successfully:", order._id);
+
+      // ✅ NOW SEND EMAILS
+      const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -586,10 +598,6 @@ export async function POST(req) {
 </body>
 </html>
 `;
-      } catch (templateError) {
-        console.error("❌ Email template generation failed:", templateError);
-        emailHtml = ""; // Fallback to empty template
-      }
 
       const itemList = orderData.cartItems
         .map((item) => `- ${item.name} × ${item.quantity} — ₦${item.price}`)
@@ -634,37 +642,33 @@ Visit: https://filstore.com.ng
       console.log("Admin email:", adminEmail);
 
       try {
-        if (emailHtml) {
-          await Promise.all([
-            sendEmail(
-              orderData.email,
-              "Your Order Confirmation - FIL Store",
-              plainText,
-              emailHtml
-            ),
-            sendEmail(
-              adminEmail,
-              `New Order from ${orderData.email}`,
-              plainText,
-              emailHtml
-            ),
-          ]);
-          console.log("✅ Emails sent successfully");
-        } else {
-          console.warn("⚠️ Skipping email send due to template generation failure");
-        }
+        await Promise.all([
+          sendEmail(
+            orderData.email,
+            "Your Order Confirmation - FIL Store",
+            plainText,
+            emailHtml
+          ),
+          sendEmail(
+            adminEmail,
+            `New Order from ${orderData.email}`,
+            plainText,
+            emailHtml
+          ),
+        ]);
+        console.log("✅ Emails sent successfully");
       } catch (emailError) {
         console.error("❌ Email sending failed:", emailError);
-        // Don't fail the verification if email fails - order is already saved
       }
 
-      return Response.json({
-        verified: true,
-        message: "Payment verified and order created successfully",
-        provider: verificationData.provider,
-        orderData: orderData,
-        order: order,
-      });
+   
+return Response.json({
+  verified: true,
+  message: "Payment verified and order created successfully",
+  provider: verificationData.provider,
+  orderData: orderData, // ✅ Correct property name that frontend expects
+  order: order, // ✅ Keep this too for backward compatibility
+});
     } else {
       console.error("❌ Payment verification failed:", verificationData);
 
