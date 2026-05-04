@@ -52,6 +52,20 @@ export const GET = async (req, context) => {
 
   const { id } = await context.params;
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  let currentUserId = null;
+  if (token) {
+    try {
+      const userData = jwt.verify(token, process.env.JWT_SECRET);
+      currentUserId = userData.id;
+    } catch (error) {
+      // Token is invalid, but we'll continue without user context
+      console.log("Invalid token provided for comments fetch");
+    }
+  }
+
   try {
     const product = await Product.findById(id).populate("comments.user", "firstName");
     if (!product) {
@@ -65,7 +79,26 @@ export const GET = async (req, context) => {
       (c) => !c.status || c.status === "approved"
     );
 
-    return NextResponse.json(approved, { status: 200 });
+    // Add like/dislike status for the current user
+    const commentsWithStatus = approved.map(comment => {
+      const commentObj = comment.toObject();
+      
+      if (currentUserId) {
+        commentObj.isLiked = comment.likes.some(
+          userId => userId.toString() === currentUserId
+        );
+        commentObj.isDisliked = comment.dislikes.some(
+          userId => userId.toString() === currentUserId
+        );
+      } else {
+        commentObj.isLiked = false;
+        commentObj.isDisliked = false;
+      }
+
+      return commentObj;
+    });
+
+    return NextResponse.json(commentsWithStatus, { status: 200 });
   } catch (error) {
     console.error("Error fetching comments:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

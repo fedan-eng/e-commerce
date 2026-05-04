@@ -50,6 +50,7 @@ const productSchema = new mongoose.Schema(
     ratings: [ratingSchema],
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     ratingsCount: { type: Number, default: 0 },
+    soldCount: { type: Number, default: 0 },
     comments: [
   {
     user: {
@@ -64,6 +65,8 @@ const productSchema = new mongoose.Schema(
       enum: ["pending", "approved", "archived"],
       default: "pending",  // all new comments need approval
     },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
 ],
 sortOrder: {        // ✅ correct position

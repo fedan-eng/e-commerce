@@ -1,6 +1,7 @@
 // app/api/checkout/verify/route.js
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
+import Product from "@/models/Product";
 import { verifyPayment } from "@/lib/paystack";
 import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
@@ -102,6 +103,16 @@ export async function POST(req) {
         },
       ],
     });
+
+    // ✅ Step 3.5: Increment soldCount for each product
+    for (const item of cartItems) {
+      if (item.productId) {
+        await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { soldCount: item.quantity || 1 } }
+        );
+      }
+    }
 
     // ✅ Step 4: Send confirmation emails
     const itemList = cartItems

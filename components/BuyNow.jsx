@@ -87,7 +87,7 @@ const BuyNow = ({ product, className }) => {
       disabled={loading}
       className={`${className} cursor-pointer`}
     >
-      {loading ? "Redirecting..." : "Buy Now"}
+      {loading ? "Redirecting..." : "Checkout Now"}
     </button>
   );
 };
