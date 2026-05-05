@@ -3,7 +3,7 @@
 import Link from "next/link";
 import ProductForm from "../ProductForm";
  
-export function NewProductPage() {
+export default function NewProductPage() {
   return (
     <div>
       <div className="mb-8">
@@ -19,5 +19,3 @@ export function NewProductPage() {
     </div>
   );
 }
- 
-export default NewProductPage;

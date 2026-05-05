@@ -934,10 +934,10 @@ export default function ProductDetailsPage() {
         </h2>
 
         {/* Top: Rating Summary */}
-        <div className="border-b border-gray-200 pb-8 mb-8">
+        <div className="border-dashed border-4 p-5 md:p-10 rounded-md border-gray-200 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             {/* Score */}
-            <div className="flex flex-col items-center gap-1 shrink-0 min-w-[80px]">
+            <div className="flex flex-row items-center gap-1 shrink-0 min-w-[80px]">
               <div className="relative w-16 h-16">
                 <svg className="absolute inset-0 w-16 h-16 -rotate-90">
                   <circle
@@ -952,7 +952,7 @@ export default function ProductDetailsPage() {
                     cx="32"
                     cy="32"
                     r="28"
-                    stroke="#FB923C"
+                    stroke="#6a7282"
                     strokeWidth="4"
                     fill="none"
                     strokeDasharray={`${2 * Math.PI * 28}`}
@@ -967,12 +967,14 @@ export default function ProductDetailsPage() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-0.5">
+              <div className='flex flex-col gap-5' >
+                <div className="flex  items-center gap-0.5">
                 {renderStars(Math.round(product.averageRating))}
               </div>
               <p className="text-xs text-gray-500 text-center">
                 from {product.ratingsCount} reviews
               </p>
+              </div>
             </div>
 
             {/* Bars */}
