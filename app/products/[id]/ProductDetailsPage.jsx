@@ -949,7 +949,7 @@ export default function ProductDetailsPage() {
                     cx="32"
                     cy="32"
                     r="28"
-                    stroke="#6a7282"
+                    stroke="#f3f4f6"
                     strokeWidth="4"
                     fill="none"
                   />
