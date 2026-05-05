@@ -50,9 +50,11 @@ const ProductCard = ({
             {/* fast */}
             {product.tag === "fast" && (
               <> 
-                <img
+                <Image
                   src="/redtag.png"
                   alt="Fast tag"
+                  width={60}
+                  height={24}
                 />
                 <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                   Selling fast
@@ -63,9 +65,11 @@ const ProductCard = ({
             {/* new */}
             {product.tag === "new" && (
               <>
-                <img
+                <Image
                   src="/blacktag.png"
                   alt="New tag"
+                  width={60}
+                  height={24}
                 />
                 <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                   New
@@ -75,9 +79,11 @@ const ProductCard = ({
             {/* discount */}
             {product.tag === "discount" && (
               <>
-                <img
+                <Image
                   src="/bluetag.png"
                   alt="Discount tag"
+                  width={60}
+                  height={24}
                 />
                 <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                   Save{" "}
@@ -94,9 +100,11 @@ const ProductCard = ({
             {/* hurry */}
             {product.tag === "hurry" && (
               <>
-                <img
+                <Image
                   src="/orangetag.png"
                   alt="New tag"
+                  width={60}
+                  height={24}
                 />
                 <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                   Hurry 2 Left
@@ -131,7 +139,7 @@ const ProductCard = ({
           </p>
 
           <div className="flex gap-0.5">
-            <img src="/star.png" />
+            <Image src="/star.png" width={16} height={16} alt="star" />
             <p className="text-[#1c1b1f] text-[10px] sm:text-xs">
               {productAverageRating}
             </p>

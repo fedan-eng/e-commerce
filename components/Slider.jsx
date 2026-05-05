@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { homeImages } from "../constants/homeCarousel";
 import Description from "./Description";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const Slider = () => {
   const [activeImage, setActiveImage] = useState(0);
@@ -42,14 +43,18 @@ const Slider = () => {
               ease: "easeOut",
             }}
           >
-            <motion.img
+            <Image
               src={item.src}
               alt={item.title}
               title={item.title}
+              width={1920}
+              height={1080}
               className={`w-full h-full ${item.id === 1 ? "object-right" : ""} object-cover`}
-              initial={{ scale: 1.1 }} // Slight scale for effect
-              animate={idx === activeImage ? { scale: 1 } : {}} 
+              initial={{ scale: 1.1 }}
+              animate={idx === activeImage ? { scale: 1 } : {}}
               transition={{ duration: 3 }}
+              priority={idx === 0}
+              unoptimized
             />
           </motion.div>
         ))}
@@ -59,13 +64,13 @@ const Slider = () => {
           onClick={clickPrev}
           className="absolute  hover:cursor-pointer left-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
         >
-          <img src="/homearrow.svg" className="w-8 h-8 rotate-180 brightness-200" alt="Prev" />
+          <Image src="/homearrow.svg" width={32} height={32} className="w-8 h-8 rotate-180 brightness-200" alt="Prev" />
         </button>
         <button 
           onClick={clickNext}
           className="absolute hover:cursor-pointer  right-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-black/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 hidden md:block"
         >
-          <img src="/homearrow.svg" className="w-8 h-8 brightness-200" alt="Next" />
+          <Image src="/homearrow.svg" width={32} height={32} className="w-8 h-8 brightness-200" alt="Next" />
         </button>
 
         {/* --- Dot Navigation --- */}
@@ -127,14 +132,14 @@ const Slider = () => {
             className="-rotate-180 text-white text-lg hover:scale-110 transition-transform"
             onClick={clickPrev}
           >
-            <img src="/homearrow.svg" alt="Back" />
+            <Image src="/homearrow.svg" width={24} height={24} alt="Back" />
           </button>
 
           <button
             className="text-white text-lg hover:scale-110 transition-transform"
             onClick={clickNext}
           >
-             <img src="/homearrow.svg" alt="Forward" />
+             <Image src="/homearrow.svg" width={24} height={24} alt="Forward" />
           </button>
         </div>
       </div>

@@ -32,6 +32,7 @@ import {
   Usb,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import BuyNow from "@/components/BuyNow";
 
 // ─── Feature Icon Helper ───────────────────────────────────────────────────────
@@ -328,7 +329,7 @@ export default function ProductDetailsPage() {
       await axios.post(`/api/products/${id}/comments`, {
         text: commentText,
         rating: commentRating,
-      });
+      }, { withCredentials: true });
       setCommentText("");
       setCommentRating(5);
       setCommentSubmitted(true);
@@ -363,7 +364,9 @@ export default function ProductDetailsPage() {
     try {
       // 2. Confirm with server
       const res = await axios.post(
-        `/api/products/${id}/comments/${commentId}/like`
+        `/api/products/${id}/comments/${commentId}/like`,
+        {},
+        { withCredentials: true }
       );
       // 3. Reconcile with actual server values
       setComments((prev) =>
@@ -383,7 +386,7 @@ export default function ProductDetailsPage() {
       console.error(err);
       // 4. Revert on error - refetch comments to restore correct state
       try {
-        const res = await axios.get(`/api/products/${id}/comments`);
+        const res = await axios.get(`/api/products/${id}/comments`, { withCredentials: true });
         setComments(
           res.data.filter((c) => !c.status || c.status === "approved")
         );
@@ -415,7 +418,9 @@ export default function ProductDetailsPage() {
     try {
       // 2. Confirm with server
       const res = await axios.post(
-        `/api/products/${id}/comments/${commentId}/dislike`
+        `/api/products/${id}/comments/${commentId}/dislike`,
+        {},
+        { withCredentials: true }
       );
       // 3. Reconcile with actual server values
       setComments((prev) =>
@@ -435,7 +440,7 @@ export default function ProductDetailsPage() {
       console.error(err);
       // 4. Revert on error - refetch comments to restore correct state
       try {
-        const res = await axios.get(`/api/products/${id}/comments`);
+        const res = await axios.get(`/api/products/${id}/comments`, { withCredentials: true });
         setComments(
           res.data.filter((c) => !c.status || c.status === "approved")
         );
@@ -538,19 +543,21 @@ export default function ProductDetailsPage() {
       </nav>
 
       {/* ── Product Section ── */}
-      <div className="md:flex gap-3 nav:gap-6">
+      <div className="md:flex gap-3 border-dashed border-b-3 border-gray-200 md:py-5 nav:gap-6">
         {/* Left — Images */}
         <div className="flex flex-col mx-5 md:max-w-[50%] items-center gap-4 md:gap-10 mt-3 md:mt-12 basis-[546px]">
           {/* Main Image */}
           <div className="flex w-full gap-3">
             <div
-              className="flex-1 aspect-square max-h-[480px] overflow-hidden relative bg-white rounded-lg"
+              className="flex-1 aspect-square max-h-[480px] overflow-hidden relative bg-[#fafafa] rounded-lg"
               style={{cursor: isZoomed ? "zoom-out" : "zoom-in"}}
             >
               {selectedImage ? (
-                <img
+                <Image
                   src={selectedImage}
                   alt={product.name}
+                  width={480}
+                  height={480}
                   className="w-full h-full object-contain transition-transform duration-300 ease-out"
                   style={{
                     transform: isZoomed ? "scale(2)" : "scale(1)",
@@ -558,7 +565,8 @@ export default function ProductDetailsPage() {
                   }}
                   onClick={handleImageClick}
                   draggable={false}
-                  loading="lazy"
+                  priority
+                  unoptimized
                 />
               ) : (
                 <div className="flex justify-center items-center w-full h-full text-gray-400 bg-gray-100">
@@ -572,18 +580,18 @@ export default function ProductDetailsPage() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="w-9 h-9 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <Share className="w-4 h-4 text-gray-600" />
                 </button>
                 <WishlistButtonPD
                   product={product}
                   selectedColor={selectedColor}
-                  className="w-9 h-9 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 />
                 <button
                   onClick={() => setFullViewImage(selectedImage)}
-                  className="w-9 h-9 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   title="Full view"
                 >
                   <svg
@@ -610,7 +618,7 @@ export default function ProductDetailsPage() {
                     );
                     setIsZoomed(false);
                   }}
-                  className="w-9 h-9 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4 text-gray-700" />
                 </button>
@@ -622,7 +630,7 @@ export default function ProductDetailsPage() {
                     );
                     setIsZoomed(false);
                   }}
-                  className="w-9 h-9 flex items-center justify-center bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <ChevronRight className="w-4 h-4 text-gray-700" />
                 </button>
@@ -639,17 +647,19 @@ export default function ProductDetailsPage() {
                   setSelectedImage(img);
                   setIsZoomed(false);
                 }}
-                className={`w-[65px] h-[65px] flex-shrink-0 rounded-lg border-2 overflow-hidden p-1.5 transition-all ${
+                className={`w-[65px] bg-[#fafafa] h-[65px] flex-shrink-0 rounded-lg border-2 overflow-hidden p-1.5 transition-all ${
                   selectedImage === img
                     ? "border-filgreen"
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
-                <img
+                <Image
                   src={img}
                   alt={`Thumbnail ${idx + 1}`}
+                  width={65}
+                  height={65}
                   className="w-full h-full object-contain"
-                  loading="lazy"
+                  unoptimized
                 />
               </button>
             ))}
@@ -699,7 +709,7 @@ export default function ProductDetailsPage() {
                           muted
                         />
                         <div className="absolute">
-                          <img src="/play.svg" alt="play" />
+                          <Image src="/play.svg" alt="play" width={50} height={50} />
                         </div>
                       </div>
                     )}
@@ -711,7 +721,7 @@ export default function ProductDetailsPage() {
         </div>
 
         {/* Right — Details */}
-        <div className="flex flex-col md:max-w-[50%] gap-5 bg-[#fafafa] rounded-xl p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col md:max-w-[50%] gap-5 p-4 sm:p-6 lg:p-8">
           {/* Save Badge */}
           {product.originalPrice && (
             <div className="bg-black text-white text-xs font-medium px-4 py-1.5 rounded-full w-fit">
@@ -731,7 +741,7 @@ export default function ProductDetailsPage() {
           </h1>
 
           {/* Price & Rating */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex border-dashed border-gray-200 border-b-3 flex-wrap items-center gap-3">
             {product.originalPrice && (
               <span className="text-gray-400 text-lg line-through">
                 {formatAmount(product.originalPrice)}
@@ -825,9 +835,11 @@ export default function ProductDetailsPage() {
                   key={idx}
                   className="flex items-center gap-3 py-3 border-b border-gray-100"
                 >
-                  <img
+                  <Image
                     src={point.img}
                     alt={point.text}
+                    width={20}
+                    height={20}
                     className="w-5 h-5 object-contain"
                   />
                   <p className="text-sm text-gray-700">{point.text}</p>
@@ -843,7 +855,12 @@ export default function ProductDetailsPage() {
               <p className="text-sm text-gray-700">Payment method</p>
             </div>
             <div className="flex items-center gap-3 mt-3">
-              <img width="100px" src="/paystack.png" alt="paystack" />
+              <Image
+                width={100}
+                height={40}
+                src="/paystack.png"
+                alt="paystack"
+              />
             </div>
           </div>
 
@@ -878,7 +895,7 @@ export default function ProductDetailsPage() {
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (
-        <section className="mt-14 px-1">
+        <section className="mt-14 border-dashed border-b-3 border-gray-200 md:py-5 px-1">
           <div className="flex max-sm:px-5 items-center justify-between mb-5">
             <h2 className="font-oswald font-medium text-2xl md:text-3xl">
               Related Product
@@ -898,10 +915,13 @@ export default function ProductDetailsPage() {
                 className="snap-start flex-shrink-0 w-[190px] sm:w-[210px] rounded-xl border border-gray-100 bg-white hover:shadow-md transition-shadow overflow-hidden group"
               >
                 <div className="w-full aspect-square bg-gray-50 overflow-hidden">
-                  <img
+                  <Image
                     src={rp.image}
                     alt={rp.name}
+                    width={210}
+                    height={210}
                     className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+                    unoptimized
                   />
                 </div>
                 <div className="p-3">
@@ -959,11 +979,13 @@ export default function ProductDetailsPage() {
                     : "aspect-square"
                 }`}
               >
-                <img
+                <Image
                   src={img}
                   alt={`Overview ${idx + 1}`}
+                  width={400}
+                  height={400}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
+                  unoptimized
                 />
                 <button
                   onClick={() => setFullViewImage(img)}
@@ -1077,7 +1099,7 @@ export default function ProductDetailsPage() {
         {/* Bottom: Filter + Reviews */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Sidebar Filter */}
-          <div className="hidden lg:block lg:col-span-3">
+          <div className="hidden lg:block border-2 border-dashed border-gray-200 md:p-5 rounded-md lg:col-span-3">
             <h3 className="text-sm font-semibold text-gray-700 mb-4">
               Reviews Filter
             </h3>
@@ -1203,10 +1225,13 @@ export default function ProductDetailsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 flex items-center justify-center overflow-hidden shrink-0">
                           {comment.user?.avatar ? (
-                            <img
+                            <Image
                               src={comment.user.avatar}
                               alt=""
+                              width={32}
+                              height={32}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <span className="text-xs font-semibold text-gray-600">
@@ -1409,11 +1434,13 @@ export default function ProductDetailsPage() {
             >
               <X className="w-5 h-5" />
             </button>
-            <img
+            <Image
               src={fullViewImage}
               alt="Full view"
+              width={1200}
+              height={800}
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
-              loading="lazy"
+              unoptimized
             />
           </div>
         </div>

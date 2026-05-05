@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
+import Image from "next/image";
 
 const items = [
   {
@@ -231,7 +232,7 @@ export default function InfiniteCarousel() {
         className="top-1/2 left-2 md:left-10 lg:left-20 z-50 absolute -translate-y-1/2"
       >
         <div className="flex justify-center items-center bg-black opacity-[48%] hover:opacity-[100%] rounded-full w-[50px] h-[50px]">
-          <img className="opacity-[100%] -rotate-180" src="/back.png" alt="previous" />
+          <Image className="opacity-[100%] -rotate-180" src="/back.png" width={32} height={32} alt="previous" />
         </div>
       </button>
 
@@ -241,7 +242,7 @@ export default function InfiniteCarousel() {
         className="top-1/2 right-2 md:right-10 lg:right-20 z-50 absolute -translate-y-1/2"
       >
         <div className="flex justify-center items-center bg-black opacity-[48%] hover:opacity-[100%] rounded-full w-[50px] h-[50px]">
-          <img className="opacity-[100%]" src="/back.png" alt="next" />
+          <Image className="opacity-[100%]" src="/back.png" width={32} height={32} alt="next" />
         </div>
       </button>
 
@@ -355,7 +356,7 @@ export default function InfiniteCarousel() {
                   animate={isCenter ? "hidden" : "visible"}
                   variants={contentVariants}
                 >
-                  <img src="play.svg" alt="play" />
+                  <Image src="/play.svg" width={24} height={24} alt="play" />
                   <p className="px-1 py-2 text-white">Play</p>
                 </motion.div>
               </motion.div>

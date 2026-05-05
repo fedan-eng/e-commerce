@@ -2,14 +2,35 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "res.cloudinary.com",
-      "cdn.bmstores.co.uk",
-      "bigfootdigital.co.uk",
-      "t3.ftcdn.net",
-      "filstore.com.ng",
-      "www.filstore.com.ng",
-      "i.ibb.co",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.bmstores.co.uk",
+      },
+      {
+        protocol: "https",
+        hostname: "bigfootdigital.co.uk",
+      },
+      {
+        protocol: "https",
+        hostname: "t3.ftcdn.net",
+      },
+      {
+        protocol: "https",
+        hostname: "filstore.com.ng",
+      },
+      {
+        protocol: "https",
+        hostname: "www.filstore.com.ng",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
+      },
     ],
   },
 
