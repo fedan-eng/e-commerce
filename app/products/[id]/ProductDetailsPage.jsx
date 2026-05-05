@@ -1120,7 +1120,9 @@ export default function ProductDetailsPage() {
                   <div key={index} className="py-5 first:pt-0">
                     {/* Stars */}
                     <div className="flex items-center gap-0.5 mb-2">
-                      {renderStars(comment.rating ?? 5)}
+                      {renderStars(
+                        product.ratings?.find(r => r.user?._id === comment.user?._id)?.value ?? 5
+                      )}
                     </div>
 
                     {/* Text */}

@@ -37,6 +37,7 @@ export const POST = async (req, context) => {
   const comment = {
     user: userData.id,
     text: text.trim(),
+    rating: rating || 5, // Store rating with default of 5
     createdAt: new Date(),
     status: "pending", // 👈 requires admin approval before showing publicly
   };
