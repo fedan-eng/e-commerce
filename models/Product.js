@@ -101,5 +101,5 @@ productSchema.methods.recalcRatings = function () {
     ? arr.reduce((sum, r) => sum + r.value, 0) / arr.length
     : 0;
 };
-
+ 
 export default mongoose.models.Product || mongoose.model("Product", productSchema);

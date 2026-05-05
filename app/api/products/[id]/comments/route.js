@@ -1,3 +1,4 @@
+//api/products/[id]/comments/route.js
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
@@ -51,14 +52,6 @@ export const POST = async (req, context) => {
   };
 
   product.comments.push(comment);
-
-  // Also add to ratings array for average calculation
-  product.ratings.push({ user: userData.id, value: comment.rating });
-
-  // Recalculate averages
-  const sum = product.ratings.reduce((acc, r) => acc + r.value, 0);
-  product.ratingsCount = product.ratings.length;
-  product.averageRating = parseFloat((sum / product.ratingsCount).toFixed(1));
 
   await product.save();
 

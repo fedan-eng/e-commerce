@@ -343,10 +343,29 @@ export default function ProductDetailsPage() {
 
   const handleLike = async (commentId) => {
     if (!user) return alert("Please log in to like reviews");
+
+    // 1. Optimistic update immediately
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c._id !== commentId) return c;
+        const currentLikes = typeof c.likes === "number" ? c.likes : c.likes?.length ?? 0;
+        const alreadyLiked = c.isLiked;
+        return {
+          ...c,
+          likes: alreadyLiked ? currentLikes - 1 : currentLikes + 1,
+          dislikes: typeof c.dislikes === "number" ? c.dislikes : c.dislikes?.length ?? 0,
+          isLiked: !alreadyLiked,
+          isDisliked: false,
+        };
+      })
+    );
+
     try {
+      // 2. Confirm with server
       const res = await axios.post(
-        `/api/products/${id}/comments/${commentId}/like`,
+        `/api/products/${id}/comments/${commentId}/like`
       );
+      // 3. Reconcile with actual server values
       setComments((prev) =>
         prev.map((c) =>
           c._id === commentId
@@ -357,20 +376,48 @@ export default function ProductDetailsPage() {
                 isLiked: res.data.isLiked,
                 isDisliked: res.data.isDisliked,
               }
-            : c,
-        ),
+            : c
+        )
       );
     } catch (err) {
       console.error(err);
+      // 4. Revert on error - refetch comments to restore correct state
+      try {
+        const res = await axios.get(`/api/products/${id}/comments`);
+        setComments(
+          res.data.filter((c) => !c.status || c.status === "approved")
+        );
+      } catch (fetchErr) {
+        console.error("Error refetching comments:", fetchErr);
+      }
     }
   };
 
   const handleDislike = async (commentId) => {
     if (!user) return alert("Please log in to dislike reviews");
+
+    // 1. Optimistic update immediately
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c._id !== commentId) return c;
+        const currentDislikes = typeof c.dislikes === "number" ? c.dislikes : c.dislikes?.length ?? 0;
+        const alreadyDisliked = c.isDisliked;
+        return {
+          ...c,
+          likes: typeof c.likes === "number" ? c.likes : c.likes?.length ?? 0,
+          dislikes: alreadyDisliked ? currentDislikes - 1 : currentDislikes + 1,
+          isLiked: false,
+          isDisliked: !alreadyDisliked,
+        };
+      })
+    );
+
     try {
+      // 2. Confirm with server
       const res = await axios.post(
-        `/api/products/${id}/comments/${commentId}/dislike`,
+        `/api/products/${id}/comments/${commentId}/dislike`
       );
+      // 3. Reconcile with actual server values
       setComments((prev) =>
         prev.map((c) =>
           c._id === commentId
@@ -381,11 +428,20 @@ export default function ProductDetailsPage() {
                 isLiked: res.data.isLiked,
                 isDisliked: res.data.isDisliked,
               }
-            : c,
-        ),
+            : c
+        )
       );
     } catch (err) {
       console.error(err);
+      // 4. Revert on error - refetch comments to restore correct state
+      try {
+        const res = await axios.get(`/api/products/${id}/comments`);
+        setComments(
+          res.data.filter((c) => !c.status || c.status === "approved")
+        );
+      } catch (fetchErr) {
+        console.error("Error refetching comments:", fetchErr);
+      }
     }
   };
 

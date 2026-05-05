@@ -1,3 +1,4 @@
+//api/products/[id]/comments/[commentId]/like/route.js
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";

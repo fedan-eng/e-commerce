@@ -45,7 +45,18 @@ export async function PATCH(req, context) {
     if (!product) return new Response(JSON.stringify({ message: "Comment not found" }), { status: 404 });
 
     const comment = product.comments.id(commentId);
+    const oldStatus = comment.status;
     comment.status = status;
+    
+    // Recalculate averageRating from ONLY approved comments' ratings
+    const approvedComments = product.comments.filter(c => c.status === "approved" || (!c.status && c.rating));
+    product.ratingsCount = approvedComments.length;
+    product.averageRating = approvedComments.length
+      ? parseFloat(
+          (approvedComments.reduce((sum, c) => sum + (c.rating ?? 5), 0) / approvedComments.length).toFixed(1)
+        )
+      : 0;
+    
     await product.save();
 
     return new Response(JSON.stringify({ message: "Status updated", status }), { status: 200 });
@@ -74,6 +85,16 @@ export async function DELETE(req, context) {
     if (!product) return new Response(JSON.stringify({ message: "Comment not found" }), { status: 404 });
 
     product.comments.pull({ _id: commentId });
+    
+    // Recalculate averageRating from ONLY approved comments' ratings
+    const approvedComments = product.comments.filter(c => c.status === "approved" || (!c.status && c.rating));
+    product.ratingsCount = approvedComments.length;
+    product.averageRating = approvedComments.length
+      ? parseFloat(
+          (approvedComments.reduce((sum, c) => sum + (c.rating ?? 5), 0) / approvedComments.length).toFixed(1)
+        )
+      : 0;
+    
     await product.save();
 
     return new Response(JSON.stringify({ message: "Comment deleted" }), { status: 200 });
