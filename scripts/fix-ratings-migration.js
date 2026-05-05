@@ -23,6 +23,7 @@ async function fixRatings() {
       
       const oldRatingsCount = product.ratingsCount;
       const oldAverageRating = product.averageRating;
+      const oldRatingsArray = product.ratings?.length || 0;
       
       product.ratingsCount = approvedComments.length;
       product.averageRating = approvedComments.length
@@ -30,12 +31,19 @@ async function fixRatings() {
             (approvedComments.reduce((sum, c) => sum + (c.rating ?? 5), 0) / approvedComments.length).toFixed(1)
           )
         : 0;
+      
+      // Also sync the ratings array to only approved comments
+      product.ratings = approvedComments
+        .filter(c => c.rating != null)
+        .map(c => ({ user: c.user, value: c.rating }));
 
       // Only save if there's a change
-      if (oldRatingsCount !== product.ratingsCount || oldAverageRating !== product.averageRating) {
+      if (oldRatingsCount !== product.ratingsCount || 
+          oldAverageRating !== product.averageRating ||
+          oldRatingsArray !== product.ratings.length) {
         await product.save();
         updatedCount++;
-        console.log(`Updated product "${product.name}": ${oldRatingsCount}→${product.ratingsCount} reviews, ${oldAverageRating}→${product.averageRating} avg rating`);
+        console.log(`Updated product "${product.name}": ${oldRatingsCount}→${product.ratingsCount} reviews, ${oldAverageRating}→${product.averageRating} avg rating, ${oldRatingsArray}→${product.ratings.length} ratings array entries`);
       }
     }
 

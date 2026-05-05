@@ -57,6 +57,11 @@ export async function PATCH(req, context) {
         )
       : 0;
     
+    // Also sync the ratings array to only approved comments
+    product.ratings = approvedComments
+      .filter(c => c.rating != null)
+      .map(c => ({ user: c.user, value: c.rating }));
+    
     await product.save();
 
     return new Response(JSON.stringify({ message: "Status updated", status }), { status: 200 });
@@ -94,6 +99,11 @@ export async function DELETE(req, context) {
           (approvedComments.reduce((sum, c) => sum + (c.rating ?? 5), 0) / approvedComments.length).toFixed(1)
         )
       : 0;
+    
+    // Also sync the ratings array to only approved comments
+    product.ratings = approvedComments
+      .filter(c => c.rating != null)
+      .map(c => ({ user: c.user, value: c.rating }));
     
     await product.save();
 
