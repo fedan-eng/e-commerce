@@ -102,6 +102,7 @@ export default function ProductDetailsPage() {
   const [selectedColor, setSelectedColor] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState(5);
   const [commentSubmitted, setCommentSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
@@ -324,8 +325,12 @@ export default function ProductDetailsPage() {
     if (!commentText.trim()) return;
     try {
       setSubmitting(true);
-      await axios.post(`/api/products/${id}/comments`, {text: commentText});
+      await axios.post(`/api/products/${id}/comments`, {
+        text: commentText,
+        rating: commentRating,
+      });
       setCommentText("");
+      setCommentRating(5);
       setCommentSubmitted(true);
       setTimeout(() => setCommentSubmitted(false), 4000);
     } catch (err) {
@@ -934,7 +939,7 @@ export default function ProductDetailsPage() {
         </h2>
 
         {/* Top: Rating Summary */}
-        <div className="border-dashed border-4 p-5 md:p-10 rounded-md border-gray-200 mb-8">
+        <div className="border-dashed border-2 p-5 md:p-10 rounded-md border-gray-200 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             {/* Score */}
             <div className="flex flex-row items-center gap-1 shrink-0 min-w-[80px]">
@@ -944,7 +949,7 @@ export default function ProductDetailsPage() {
                     cx="32"
                     cy="32"
                     r="28"
-                    stroke="#FED7AA"
+                    stroke="#6a7282"
                     strokeWidth="4"
                     fill="none"
                   />
@@ -952,7 +957,7 @@ export default function ProductDetailsPage() {
                     cx="32"
                     cy="32"
                     r="28"
-                    stroke="#6a7282"
+                    stroke="#FB923C"
                     strokeWidth="4"
                     fill="none"
                     strokeDasharray={`${2 * Math.PI * 28}`}
@@ -967,7 +972,7 @@ export default function ProductDetailsPage() {
                   </span>
                 </div>
               </div>
-              <div className='flex flex-col gap-5' >
+              <div className='flex flex-col gap-2' >
                 <div className="flex  items-center gap-0.5">
                 {renderStars(Math.round(product.averageRating))}
               </div>
@@ -978,7 +983,7 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Bars */}
-            <div className="flex-1 space-y-2">
+            <div className="w-full md:flex-1 space-y-2">
               {[5, 4, 3, 2, 1].map((star) => {
                 const count =
                   product.ratings?.filter((r) => r === star).length || 0;
@@ -1049,6 +1054,34 @@ export default function ProductDetailsPage() {
                     className="w-full p-3 bg-gray-50 border border-transparent focus:bg-white focus:border-filgreen rounded-lg text-sm transition-all resize-none"
                     required
                   />
+                  
+                  {/* Star Rating Selection */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Your Rating:</span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setCommentRating(star)}
+                          className="transition-colors hover:scale-110"
+                          title={`${star} star${star > 1 ? 's' : ''}`}
+                        >
+                          <Star
+                            className={`w-5 h-5 ${
+                              star <= commentRating
+                                ? "text-orange-400 fill-orange-400"
+                                : "text-gray-300 hover:text-orange-200"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {commentRating} star{commentRating > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-400">
                       {commentText.trim() === ""
