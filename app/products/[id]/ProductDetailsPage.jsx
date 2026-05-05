@@ -1121,7 +1121,7 @@ export default function ProductDetailsPage() {
                     {/* Stars */}
                     <div className="flex items-center gap-0.5 mb-2">
                       {renderStars(
-                        product.ratings?.find(r => r.user?._id === comment.user?._id)?.value ?? 5
+                        comment.rating ?? 5
                       )}
                     </div>
 
