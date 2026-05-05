@@ -24,7 +24,7 @@ export const POST = async (req, context) => {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  const { text } = await req.json();
+  const { text, rating } = await req.json();
   if (!text || typeof text !== "string" || text.trim() === "") {
     return NextResponse.json({ error: "Comment text required" }, { status: 400 });
   }
