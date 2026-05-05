@@ -166,7 +166,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
         <div className="flex items-center gap-2 mb-3">
           {renderStars(rating)}
           <span className="text-[10px] text-[#555]">
-            {rating}/5
+            {rating}/5 
           </span>
         </div>
       )}

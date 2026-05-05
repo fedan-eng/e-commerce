@@ -34,6 +34,14 @@ export const POST = async (req, context) => {
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
   }
 
+  // Check if user has already rated this product (via comment or rating)
+  const existingRating = product.ratings.find(
+    (r) => r.user.toString() === userData.id
+  );
+  if (existingRating) {
+    return NextResponse.json({ error: "Already rated" }, { status: 400 });
+  }
+
   const comment = {
     user: userData.id,
     text: text.trim(),
@@ -43,6 +51,15 @@ export const POST = async (req, context) => {
   };
 
   product.comments.push(comment);
+
+  // Also add to ratings array for average calculation
+  product.ratings.push({ user: userData.id, value: comment.rating });
+
+  // Recalculate averages
+  const sum = product.ratings.reduce((acc, r) => acc + r.value, 0);
+  product.ratingsCount = product.ratings.length;
+  product.averageRating = parseFloat((sum / product.ratingsCount).toFixed(1));
+
   await product.save();
 
   return NextResponse.json(comment, { status: 200 });

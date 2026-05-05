@@ -33,6 +33,9 @@ export async function GET(req) {
         reviews.push({
           _id: comment._id,
           text: comment.text,
+          rating: comment.rating,
+          likes: comment.likes || [],
+          dislikes: comment.dislikes || [],
           status: comment.status || "pending",
           createdAt: comment.createdAt,
           user: comment.user,
@@ -68,6 +71,7 @@ export async function GET(req) {
     const total = reviews.length;
     const paginated = reviews.slice((page - 1) * limit, page * limit);
 
+    console.log("Admin reviews response sample:", paginated[0]);
     return new Response(
       JSON.stringify({ reviews: paginated, total, page, totalPages: Math.ceil(total / limit) }),
       { status: 200 }

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    browsersListForSwc: true,
+  },
   images: {
     domains: [
       "res.cloudinary.com",

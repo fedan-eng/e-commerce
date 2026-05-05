@@ -9,7 +9,28 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import CookieBanner from "@/components/CookieBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { Oswald, Poppins, Roboto } from "next/font/google";
 
+const oswald = Oswald({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  variable: "--font-oswald",
+  display: "swap",
+});
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  variable: "--font-roboto",
+  display: "swap",
+});
 
 export const metadata = {
   title: "FIL Store",
@@ -22,25 +43,17 @@ export const metadata = {
   verification: {
     google: "F4YtRJObu3UIQ0aKa9qg3vBcTduL3MxF5mlHoxLyr94",
   },
-  other: {
-    preconnect: [
-      { href: "https://fonts.googleapis.com", rel: "preconnect" },
-      { href: "https://fonts.gstatic.com", rel: "preconnect", crossOrigin: "anonymous" },
-    ],
-  },
-  links: [
-    {
-      href: "https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap",
-      rel: "stylesheet",
-    },
-  ],
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${oswald.variable} ${poppins.variable} ${roboto.variable}`}
+      suppressHydrationWarning
+    >
       <body suppressHydrationWarning>
-<TiktokPixel />
+        <TiktokPixel />
         <ErrorBoundary>
           <CookieConsentProvider>
             <Providers>

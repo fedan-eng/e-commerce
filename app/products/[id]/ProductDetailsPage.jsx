@@ -1184,7 +1184,7 @@ export default function ProductDetailsPage() {
                           <ThumbsUp
                             className={`w-4 h-4 ${comment.isLiked ? "fill-current" : ""}`}
                           />
-                          <span>{comment.likes?.length ?? 0}</span>
+                          <span>{typeof comment.likes === 'number' ? comment.likes : comment.likes?.length ?? 0}</span>
                         </button>
                         <button
                           onClick={() => handleDislike(comment._id)}
@@ -1197,7 +1197,7 @@ export default function ProductDetailsPage() {
                           <ThumbsDown
                             className={`w-4 h-4 ${comment.isDisliked ? "fill-current" : ""}`}
                           />
-                          <span>{comment.dislikes?.length ?? 0}</span>
+                          <span>{typeof comment.dislikes === 'number' ? comment.dislikes : comment.dislikes?.length ?? 0}</span>
                         </button>
                       </div>
                     </div>
