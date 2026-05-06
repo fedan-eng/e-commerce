@@ -99,7 +99,7 @@ export default function ProductDetailsPage() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedColor, setSelectedColor] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
@@ -155,7 +155,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     if (product?._id) {
       dispatch(addRecentlyViewed(product));
-      setSelectedImage(product.image || "");
+      setSelectedImageId("main");
     }
   }, [product, dispatch]);
 
@@ -336,7 +336,8 @@ export default function ProductDetailsPage() {
       setTimeout(() => setCommentSubmitted(false), 4000);
     } catch (err) {
       console.error(err);
-      alert("Failed to post comment. Please log in.");
+      const errorMessage = err.response?.data?.error || "Failed to post comment. Please log in.";
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -480,7 +481,24 @@ export default function ProductDetailsPage() {
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = `Check out ${product.name} on FIL Store!`;
-  const currentImages = [product.image, ...(product.secondaryImages || [])];
+  // Map all images from all colors into the carousel with unique IDs
+  const colorImages = product.colors?.flatMap((color, colorIdx) =>
+    (color.images || []).map((img, imgIdx) => ({
+      id: `${color._id}-${imgIdx}`,
+      url: img,
+      colorName: color.name
+    }))
+  ) || [];
+  const secondaryImagesWithIds = (product.secondaryImages || []).map((img, idx) => ({
+    id: `secondary-${idx}`,
+    url: img
+  }));
+  const currentImages = [
+    { id: "main", url: product.image },
+    ...colorImages,
+    ...secondaryImagesWithIds
+  ];
+  const selectedImage = currentImages.find(img => img.id === selectedImageId)?.url || product.image;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -612,10 +630,9 @@ export default function ProductDetailsPage() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => {
-                    const i = currentImages.indexOf(selectedImage);
-                    setSelectedImage(
-                      currentImages[i === 0 ? currentImages.length - 1 : i - 1],
-                    );
+                    const i = currentImages.findIndex(img => img.id === selectedImageId);
+                    const newImage = currentImages[i === 0 ? currentImages.length - 1 : i - 1];
+                    setSelectedImageId(newImage.id);
                     setIsZoomed(false);
                   }}
                   className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -624,10 +641,9 @@ export default function ProductDetailsPage() {
                 </button>
                 <button
                   onClick={() => {
-                    const i = currentImages.indexOf(selectedImage);
-                    setSelectedImage(
-                      currentImages[i === currentImages.length - 1 ? 0 : i + 1],
-                    );
+                    const i = currentImages.findIndex(img => img.id === selectedImageId);
+                    const newImage = currentImages[i === currentImages.length - 1 ? 0 : i + 1];
+                    setSelectedImageId(newImage.id);
                     setIsZoomed(false);
                   }}
                   className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -640,22 +656,22 @@ export default function ProductDetailsPage() {
 
           {/* Thumbnails */}
           <div className="flex md:justify-center gap-3 pt-4 pb-2 w-full overflow-x-auto px-4 sm:px-0">
-            {currentImages.map((img, idx) => (
+            {currentImages.map((img) => (
               <button
-                key={idx}
+                key={img.id}
                 onClick={() => {
-                  setSelectedImage(img);
+                  setSelectedImageId(img.id);
                   setIsZoomed(false);
                 }}
                 className={`w-[65px] bg-[#fafafa] h-[65px] flex-shrink-0 rounded-lg border-2 overflow-hidden p-1.5 transition-all ${
-                  selectedImage === img
+                  selectedImageId === img.id
                     ? "border-filgreen"
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
                 <Image
-                  src={img}
-                  alt={`Thumbnail ${idx + 1}`}
+                  src={img.url}
+                  alt={`Thumbnail`}
                   width={65}
                   height={65}
                   className="w-full h-full object-contain"
@@ -741,7 +757,7 @@ export default function ProductDetailsPage() {
           </h1>
 
           {/* Price & Rating */}
-          <div className="flex border-dashed border-gray-200 border-b-3 flex-wrap items-center gap-3">
+          <div className="flex border-dashed pb-10 border-gray-200 border-b-3 flex-wrap items-center gap-3">
             {product.originalPrice && (
               <span className="text-gray-400 text-lg line-through">
                 {formatAmount(product.originalPrice)}
@@ -781,35 +797,35 @@ export default function ProductDetailsPage() {
             </p>
           </div>
 
-          {/* Colors */}
-          {product.colors?.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Color:{" "}
-                <span className="font-normal text-gray-600">
-                  {selectedColor?.name || "Select a color"}
-                </span>
-              </p>
-              <div className="flex items-center gap-3">
-                {product.colors.map((color, idx) => (
-                  <button
-                    key={idx}
-                    className={`w-10 h-10 rounded-lg border-2 transition-all ${
-                      selectedColor === color
-                        ? "border-filgreen ring-2 ring-filgreen/20"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                    style={{backgroundColor: color.name.toLowerCase()}}
-                    onClick={() => {
-                      setSelectedColor(color);
-                      setIsZoomed(false);
-                    }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+         {/* Colors */}
+{product.colors?.length > 0 && (
+  <div>
+    <p className="text-md font-bold text-gray-500 mb-2">
+      Color:{" "}
+      <span className="font-bold text-black">
+        {selectedColor?.name || "Select a color"}
+      </span>
+    </p>
+    <div className="flex items-center gap-3">
+      {product.colors.map((color, idx) => (
+        <button
+          key={idx}
+          className={`w-14 h-8 rounded-md transition-all ${
+            selectedColor === color
+              ? "ring-2 ring-gray-400 ring-offset-4"
+              : "ring-0"
+          }`}
+          style={{ backgroundColor: color.name.toLowerCase() }}
+          onClick={() => {
+            setSelectedColor(color);
+            setIsZoomed(false);
+          }}
+          title={color.name}
+        />
+      ))}
+    </div>
+  </div>
+)}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
@@ -895,7 +911,7 @@ export default function ProductDetailsPage() {
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (
-        <section className="mt-14 border-dashed border-b-3 border-gray-200 md:py-5 px-1">
+        <section className="mt-14 border-dashed border-b-3 border-gray-200 md:pb-20 pt-10 px-1">
           <div className="flex max-sm:px-5 items-center justify-between mb-5">
             <h2 className="font-oswald font-medium text-2xl md:text-3xl">
               Related Product
@@ -968,11 +984,11 @@ export default function ProductDetailsPage() {
           Overview
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {[product.image, ...(product.secondaryImages || [])]
+          {currentImages
             .slice(0, 8)
             .map((img, idx) => (
               <div
-                key={idx}
+                key={img.id}
                 className={`group relative overflow-hidden border border-[#eee] rounded-2xl md:rounded-3xl ${
                   idx === 0
                     ? "col-span-2 row-span-2 aspect-square"
@@ -980,7 +996,7 @@ export default function ProductDetailsPage() {
                 }`}
               >
                 <Image
-                  src={img}
+                  src={img.url}
                   alt={`Overview ${idx + 1}`}
                   width={400}
                   height={400}
@@ -988,7 +1004,7 @@ export default function ProductDetailsPage() {
                   unoptimized
                 />
                 <button
-                  onClick={() => setFullViewImage(img)}
+                  onClick={() => setFullViewImage(img.url)}
                   className="absolute bottom-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white shadow-lg"
                 >
                   <svg
@@ -1099,7 +1115,7 @@ export default function ProductDetailsPage() {
         {/* Bottom: Filter + Reviews */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Sidebar Filter */}
-          <div className="hidden lg:block border-2 border-dashed border-gray-200 md:p-5 rounded-md lg:col-span-3">
+          <div className="hidden lg:block border-2 border-dashed max-h-fit border-gray-200 md:p-5 rounded-md lg:col-span-3">
             <h3 className="text-sm font-semibold text-gray-700 mb-4">
               Reviews Filter
             </h3>
