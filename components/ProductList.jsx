@@ -140,7 +140,6 @@ function ProductListInner() {
                 onChange={(e) => dispatch(setSort(e.target.value))}
                 className="p-2 px-[10px] border border-[#d9d9d9] rounded-md outline-0 text-[#1c1b1f] text-xs"
               >
-                <option value="sortOrder.__all__">Sort By Custom Order</option>
                 <option value="default">Sort By Default</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>

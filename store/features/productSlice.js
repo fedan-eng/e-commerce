@@ -85,7 +85,7 @@ const initialState = {
     minPrice: null,
     maxPrice: null,
     minRating: null,
-    sort: "sortOrder.__all__",
+    sort: "default",
     search: "",
   },
   error: null,

@@ -76,10 +76,11 @@ export async function GET(req) {
     query.averageRating = { $gte: minRating };
   }
 
-  // ✅ Custom sort key — customSortKey (e.g., "__all__") OR single category OR single special
+  // ✅ Custom sort key — customSortKey (e.g., "__all__") OR single category OR single special OR default with no filters
   const singleCategory = categories.length === 1 ? categories[0] : null;
   const singleSpecial  = specials.length === 1 ? specials[0] : null;
-  const sortKey        = customSortKey || singleCategory || singleSpecial || null;
+  const hasFilters     = categories.length > 0 || specials.length > 0 || search;
+  const sortKey        = customSortKey || singleCategory || singleSpecial || (!hasFilters && sortBy === "default" ? "__all__" : null);
   const useCustomSort  = sortKey && (sortBy === "default" || isCustomSortKey);
 
   const totalCount = await Product.countDocuments(query);
