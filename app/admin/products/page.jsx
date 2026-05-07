@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 const CATEGORIES = [
+  "__all__",
   "Power Bank","Wearables","Chargers","Lifestyle","Extensions",
   "isBestseller","isWhatsNew","isTodaysDeal",
 ];
@@ -28,6 +29,7 @@ export default function AdminProductsPage() {
     setLoading(true);
     const params = new URLSearchParams({ page, limit: 15 });
     if (search) params.append("search", search);
+    params.append("sort", "sortOrder.__all__");
     const res  = await fetch(`/api/products?${params}`);
     const data = await res.json();
     setProducts(data.products || []);
@@ -50,7 +52,12 @@ export default function AdminProductsPage() {
   const handleCategorySelect = async (cat) => {
     setSortCategory(cat); setSortableProducts([]);
     const isSpecial = cat.startsWith("is");
-    const url = isSpecial ? `/api/products?specials=${cat}&limit=500` : `/api/products?categories=${encodeURIComponent(cat)}&limit=500`;
+    const isAll = cat === "__all__";
+    const url = isAll
+      ? `/api/products?limit=500`
+      : isSpecial
+      ? `/api/products?specials=${cat}&limit=500`
+      : `/api/products?categories=${encodeURIComponent(cat)}&limit=500`;
     const res  = await fetch(url);
     const data = await res.json();
     setSortableProducts((data.products || []).sort((a, b) => (a.sortOrder?.[cat] ?? 9999) - (b.sortOrder?.[cat] ?? 9999)));
@@ -249,6 +256,16 @@ export default function AdminProductsPage() {
             <button onClick={() => setSortMode(false)}
               className="bg-transparent border border-[#222] text-[#666] rounded px-3 py-1 cursor-pointer text-[11px] font-mono hover:border-[#444] transition-colors">
               Close
+            </button>
+          </div>
+          <div className="mb-3">
+            <button
+              onClick={() => handleCategorySelect("__all__")}
+              className={`px-3.5 py-1.5 rounded text-[11px] cursor-pointer border transition-all font-mono
+                ${sortCategory === "__all__"
+                  ? "border-[#e8c46a] bg-[#e8c46a18] text-[#e8c46a] font-bold"
+                  : "border-[#222] bg-transparent text-[#666] hover:border-[#333]"}`}>
+              All Products
             </button>
           </div>
           <div className="mb-4">

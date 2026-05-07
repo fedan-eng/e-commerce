@@ -35,6 +35,10 @@ export async function GET(req) {
     "rating-low-high": { averageRating: 1 },
   };
 
+  // Handle custom sortOrder keys like "sortOrder.__all__"
+  const isCustomSortKey = sortBy.startsWith("sortOrder.");
+  const customSortKey = isCustomSortKey ? sortBy.replace("sortOrder.", "") : null;
+
   // Build the MongoDB query object
   const query = {};
 
@@ -72,11 +76,11 @@ export async function GET(req) {
     query.averageRating = { $gte: minRating };
   }
 
-  // ✅ Custom sort key — single category OR single special, default sort only
+  // ✅ Custom sort key — customSortKey (e.g., "__all__") OR single category OR single special
   const singleCategory = categories.length === 1 ? categories[0] : null;
   const singleSpecial  = specials.length === 1 ? specials[0] : null;
-  const sortKey        = singleCategory || singleSpecial || null;
-  const useCustomSort  = sortKey && sortBy === "default";
+  const sortKey        = customSortKey || singleCategory || singleSpecial || null;
+  const useCustomSort  = sortKey && (sortBy === "default" || isCustomSortKey);
 
   const totalCount = await Product.countDocuments(query);
 
