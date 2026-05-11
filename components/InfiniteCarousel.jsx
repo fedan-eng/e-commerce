@@ -7,28 +7,28 @@ import Image from "next/image";
 const items = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/dyf0wsiaf/video/upload/v1753861460/qnhszpzr7ggftmskvymv.mp4",
-    poster: "https://res.cloudinary.com/dyf0wsiaf/video/upload/so_0/v1753861460/qnhszpzr7ggftmskvymv.jpg",
+    img: "",
+    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514725/video-capture-t0002.27seg-4682_qgv5ci.png",
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/dyf0wsiaf/video/upload/v1753861462/tziomqejz0invbax2dfj.mp4",
-    poster: "https://res.cloudinary.com/dyf0wsiaf/video/upload/so_0/v1753861462/tziomqejz0invbax2dfj.jpg",
+    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514072/Dammy_2_uolk1d.mp4",
+    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514679/video-capture-t0002.65seg-5531_ufuwi2.png",
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/dyf0wsiaf/video/upload/v1753861466/wsfu4g2qqtxmobkvv2vj.mp4",
-    poster: "https://res.cloudinary.com/dyf0wsiaf/video/upload/so_0/v1753861466/wsfu4g2qqtxmobkvv2vj.jpg",
+    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514004/Dammy_1_intske.mp4",
+    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514710/video-capture-t0000.59seg-3278_zo1g08.png",
   },
   {
     id: 4,
-    img: "https://res.cloudinary.com/dyf0wsiaf/video/upload/v1753861467/oidc91wiime1eedrjf9j.mp4",
-    poster: "https://res.cloudinary.com/dyf0wsiaf/video/upload/so_0/v1753861467/oidc91wiime1eedrjf9j.jpg",
+    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514007/Papeetyah_l8cwtm.mp4",
+    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514683/video-capture-t0000.71seg-3288_zauyaf.png",
   },
   {
     id: 5,
-    img: "https://res.cloudinary.com/dyf0wsiaf/video/upload/v1753864791/nc7j92nsr7oztwhzuk3i.mp4",
-    poster: "https://res.cloudinary.com/dyf0wsiaf/video/upload/so_0/v1753864791/nc7j92nsr7oztwhzuk3i.jpg",
+    img: "",
+    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514712/video-capture-t0003.88seg-2836_k1anwy.png",
   },
 ];
 
