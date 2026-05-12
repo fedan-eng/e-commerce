@@ -88,6 +88,7 @@ export default function InfiniteCarousel() {
   const isInViewRef = useRef(true);
   const autoSlideTimer = useRef(null);
   const progressRef = useRef(null); // for the progress bar animation
+  const fullscreenVideoRef = useRef(null);
 
   // ── Slide helpers ────────────────────────────────────────────────────────
   const goTo = useCallback((index, dir) => {
@@ -445,14 +446,20 @@ export default function InfiniteCarousel() {
               transition={{ type: "spring", stiffness: 220, damping: 22 }}
             >
               <video
+                ref={fullscreenVideoRef}
                 key={activeItem.id}
                 src={activeItem.img}
                 poster={activeItem.poster}
                 muted={isMuted}
-                autoPlay
                 playsInline
                 controls
                 className="w-full h-auto max-h-[85vh] object-contain bg-black"
+                onLoadedMetadata={() => {
+                  if (fullscreenVideoRef.current) {
+                    fullscreenVideoRef.current.currentTime = 0;
+                    fullscreenVideoRef.current.play().catch(() => {});
+                  }
+                }}
                 onEnded={() => {
                   setIsFullscreen(false);
                   goTo((active + 1) % items.length, 1);
