@@ -80,7 +80,7 @@ const CartPage = () => {
   const options = [
     {
       id: "Regular",
-      label: "Regular Delivery (3-5 Working Days)",
+      label: "Regular Delivery (2-3 Working Days)",
     },
     {
       id: "Express",
@@ -89,7 +89,7 @@ const CartPage = () => {
     },
     {
       id: "Free",
-      label: "Free Delivery on Thursdays (Lagos Only)",
+      label: "Free Delivery on Thursdays (5-7 working days, Lagos Only)",
     },
   ];
 

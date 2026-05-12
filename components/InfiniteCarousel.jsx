@@ -7,7 +7,7 @@ import Image from "next/image";
 const items = [
   {
     id: 1,
-    img: "",
+    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778585953/MAGFLEX_gg6xy8.mov",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514725/video-capture-t0002.27seg-4682_qgv5ci.png",
   },
   {
@@ -27,7 +27,7 @@ const items = [
   },
   {
     id: 5,
-    img: "",
+    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778584712/Thunder_power_bank_bxhgww.mov",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514712/video-capture-t0003.88seg-2836_k1anwy.png",
   },
 ];
