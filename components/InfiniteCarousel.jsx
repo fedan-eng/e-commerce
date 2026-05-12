@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import Image from "next/image";
 
 const items = [
@@ -9,26 +9,31 @@ const items = [
     id: 1,
     img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778585953/MAGFLEX_gg6xy8.mov",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514725/video-capture-t0002.27seg-4682_qgv5ci.png",
+    previewStart: 0,
   },
   {
     id: 2,
     img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514072/Dammy_2_uolk1d.mp4",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514679/video-capture-t0002.65seg-5531_ufuwi2.png",
+    previewStart: 0,
   },
   {
     id: 3,
     img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514004/Dammy_1_intske.mp4",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514710/video-capture-t0000.59seg-3278_zo1g08.png",
+    previewStart: 0,
   },
   {
     id: 4,
     img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514007/Papeetyah_l8cwtm.mp4",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514683/video-capture-t0000.71seg-3288_zauyaf.png",
+    previewStart: 87,
   },
   {
     id: 5,
     img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778584712/Thunder_power_bank_bxhgww.mov",
     poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514712/video-capture-t0003.88seg-2836_k1anwy.png",
+    previewStart: 0,
   },
 ];
 
@@ -74,6 +79,7 @@ export default function InfiniteCarousel() {
   const [active, setActive] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [direction, setDirection] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // "preview" = auto-sliding mode | "watching" = user clicked, stay on this video
   const [mode, setMode] = useState("preview");
 
@@ -122,14 +128,16 @@ export default function InfiniteCarousel() {
   // ── Play/pause center video on active or mode change ────────────────────
   useEffect(() => {
     const centerId = items[active].id;
+    const centerItem = items[active];
 
     Object.entries(videoRefs.current).forEach(([id, videoEl]) => {
       if (!videoEl) return;
       const numId = Number(id);
       if (numId === centerId) {
         if (isInViewRef.current) {
-          // Always reset to start in preview mode; continue from current pos in watching mode
-          if (mode === "preview") videoEl.currentTime = 0;
+          if (mode === "preview") {
+            videoEl.currentTime = centerItem.previewStart ?? 0;
+          }
           safePlay(videoEl);
         }
       } else {
@@ -176,6 +184,17 @@ export default function InfiniteCarousel() {
       goTo(indexOrFn, dir);
     }
   }, [goTo]);
+
+  // ── Fullscreen Modal ─────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isFullscreen) setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
+
+  const activeItem = items[active];
 
   // ── Click handler on center video ───────────────────────────────────────
   const handleVideoClick = useCallback((e, itemId, itemOffset) => {
@@ -290,12 +309,21 @@ export default function InfiniteCarousel() {
                       applyIOSInlineAttributes(el);
                       el.onended = () => {
                         if (isCenter && mode === "watching") {
-                          // After full video ends, switch back to preview and advance
                           setMode("preview");
                           goTo((active + 1) % items.length, 1);
                         } else {
-                          el.currentTime = 0;
+                          el.currentTime = item.previewStart ?? 0;
                           if (isInViewRef.current) safePlay(el);
+                        }
+                      };
+
+                      el.ontimeupdate = () => {
+                        if (mode === "preview" && isCenter) {
+                          const start = item.previewStart ?? 0;
+                          if (el.currentTime >= start + PREVIEW_DURATION / 1000) {
+                            safePause(el, false);
+                            goTo((active + 1) % items.length, 1);
+                          }
                         }
                       };
                     } else {
@@ -332,6 +360,18 @@ export default function InfiniteCarousel() {
                     ) : (
                       <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(false)} />
                     )}
+                  </div>
+                )}
+
+                {/* Fullscreen icon — center video only */}
+                {isCenter && (
+                  <div className="absolute left-3 bottom-6 z-10">
+                    <Maximize2
+                      size={20}
+                      color="#fff"
+                      className="cursor-pointer drop-shadow"
+                      onClick={() => setIsFullscreen(true)}
+                    />
                   </div>
                 )}
 
@@ -377,6 +417,55 @@ export default function InfiniteCarousel() {
           />
         ))}
       </div>
+
+      {/* Fullscreen Modal */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => { if (e.target === e.currentTarget) setIsFullscreen(false); }}
+          >
+            <motion.div
+              className="relative w-full max-w-sm md:max-w-md lg:max-w-lg rounded-xl overflow-hidden shadow-2xl"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <video
+                key={activeItem.id}
+                src={activeItem.img}
+                poster={activeItem.poster}
+                muted={isMuted}
+                autoPlay
+                playsInline
+                controls
+                className="w-full h-auto max-h-[85vh] object-contain bg-black"
+              />
+
+              {/* Close button */}
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className="absolute top-3 right-3 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 transition-colors"
+              >
+                <X size={20} color="white" />
+              </button>
+
+              {/* Mute toggle inside modal */}
+              <div className="absolute bottom-4 right-4 z-10">
+                {!isMuted ? (
+                  <Volume2 size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(true)} />
+                ) : (
+                  <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(false)} />
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
