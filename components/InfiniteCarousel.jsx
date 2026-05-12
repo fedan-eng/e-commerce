@@ -78,6 +78,7 @@ function applyIOSInlineAttributes(el) {
 export default function InfiniteCarousel() {
   const [active, setActive] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [direction, setDirection] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // "preview" = auto-sliding mode | "watching" = user clicked, stay on this video
@@ -195,12 +196,17 @@ export default function InfiniteCarousel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreen]);
 
-  // Stop auto-slide when in fullscreen, resume when exiting
+  // Pause carousel and stop auto-slide when fullscreen opens, resume when closes
   useEffect(() => {
+    const centerId = items[active].id;
+    const centerVideo = videoRefs.current[centerId];
+
     if (isFullscreen) {
       stopAutoSlide();
-    } else if (mode === "preview") {
-      startAutoSlide();
+      if (centerVideo) safePause(centerVideo);
+    } else {
+      if (centerVideo && isInViewRef.current) safePlay(centerVideo);
+      if (mode === "preview") startAutoSlide();
     }
   }, [isFullscreen, mode, startAutoSlide, stopAutoSlide]);
 
@@ -328,7 +334,7 @@ export default function InfiniteCarousel() {
                       };
 
                       el.ontimeupdate = () => {
-                        if (mode === "preview" && isCenter) {
+                        if (mode === "preview" && isCenter && !isFullscreen) {
                           const start = item.previewStart ?? 0;
                           if (el.currentTime >= start + PREVIEW_DURATION / 1000) {
                             safePause(el, false);
@@ -450,7 +456,7 @@ export default function InfiniteCarousel() {
                 key={activeItem.id}
                 src={activeItem.img}
                 poster={activeItem.poster}
-                muted={isMuted}
+                muted={isFullscreenMuted}
                 playsInline
                 controls
                 className="w-full h-auto max-h-[85vh] object-contain bg-black"
@@ -476,10 +482,10 @@ export default function InfiniteCarousel() {
 
               {/* Mute toggle inside modal */}
               <div className="absolute bottom-4 right-4 z-10">
-                {!isMuted ? (
-                  <Volume2 size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(true)} />
+                {!isFullscreenMuted ? (
+                  <Volume2 size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsFullscreenMuted(true)} />
                 ) : (
-                  <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(false)} />
+                  <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsFullscreenMuted(false)} />
                 )}
               </div>
             </motion.div>
