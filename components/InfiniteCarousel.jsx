@@ -194,6 +194,15 @@ export default function InfiniteCarousel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreen]);
 
+  // Stop auto-slide when in fullscreen, resume when exiting
+  useEffect(() => {
+    if (isFullscreen) {
+      stopAutoSlide();
+    } else if (mode === "preview") {
+      startAutoSlide();
+    }
+  }, [isFullscreen, mode, startAutoSlide, stopAutoSlide]);
+
   const activeItem = items[active];
 
   // ── Click handler on center video ───────────────────────────────────────
@@ -444,6 +453,10 @@ export default function InfiniteCarousel() {
                 playsInline
                 controls
                 className="w-full h-auto max-h-[85vh] object-contain bg-black"
+                onEnded={() => {
+                  setIsFullscreen(false);
+                  goTo((active + 1) % items.length, 1);
+                }}
               />
 
               {/* Close button */}
