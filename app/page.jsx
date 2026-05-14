@@ -100,8 +100,9 @@ const page = () => {
       "addressCountry": "NG"
     },
     "sameAs": [
-      "https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz",
-    ],
+  "https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz",
+  "https://www.tiktok.com/@filstoreng_",
+],
     "priceRange": "$",
     "areaServed": [
       {
