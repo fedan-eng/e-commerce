@@ -15,7 +15,6 @@ export default function GoogleAnalytics() {
     mounted,
     status,
     preferences: preferences ? { ...preferences } : null,
-    GA_ID: !!GA_ID,
     shouldLoad
   })
 
@@ -41,7 +40,6 @@ export default function GoogleAnalytics() {
     return null
   }
 
-  console.log('[GA DEBUG] Loading Google Analytics with ID:', GA_ID)
   return (
     <>
       <Script
