@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import User from "@/models/User";
 
 export const POST = async (req, context) => {
   await connectDB();
@@ -48,7 +49,7 @@ export const POST = async (req, context) => {
     text: text.trim(),
     rating: rating || 5, // Store rating with default of 5
     createdAt: new Date(),
-    status: "pending", // 👈 requires admin approval before showing publicly
+    status: "pending", 
   };
 
   product.comments.push(comment);
@@ -78,7 +79,11 @@ export const GET = async (req, context) => {
   }
 
   try {
-    const product = await Product.findById(id).populate("comments.user", "firstName");
+    const product = await Product.findById(id).populate({
+      path: "comments.user",
+      model: "User",
+      select: "firstName",
+    });
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -91,19 +96,19 @@ export const GET = async (req, context) => {
     );
 
     // Add like/dislike status for the current user
-    const commentsWithStatus = approved.map(comment => {
+    const commentsWithStatus = approved.map((comment) => {
       const commentObj = comment.toObject();
-      
+
       // Handle legacy comments that may not have likes/dislikes arrays
-      const likes = comment.likes || [];
-      const dislikes = comment.dislikes || [];
-      
+      const likes = commentObj.likes || [];
+      const dislikes = commentObj.dislikes || [];
+
       if (currentUserId) {
         commentObj.isLiked = likes.some(
-          userId => userId.toString() === currentUserId
+          (userId) => userId.toString() === currentUserId
         );
         commentObj.isDisliked = dislikes.some(
-          userId => userId.toString() === currentUserId
+          (userId) => userId.toString() === currentUserId
         );
       } else {
         commentObj.isLiked = false;
