@@ -94,11 +94,15 @@ export const GET = async (req, context) => {
     const commentsWithStatus = approved.map(comment => {
       const commentObj = comment.toObject();
       
+      // Handle legacy comments that may not have likes/dislikes arrays
+      const likes = comment.likes || [];
+      const dislikes = comment.dislikes || [];
+      
       if (currentUserId) {
-        commentObj.isLiked = comment.likes.some(
+        commentObj.isLiked = likes.some(
           userId => userId.toString() === currentUserId
         );
-        commentObj.isDisliked = comment.dislikes.some(
+        commentObj.isDisliked = dislikes.some(
           userId => userId.toString() === currentUserId
         );
       } else {
