@@ -15,7 +15,6 @@ export default function GoogleAnalytics() {
     mounted,
     status,
     preferences: preferences ? { ...preferences } : null,
-    shouldLoad
   })
 
   // If user later withdraws analytics consent, disable GA for this session
