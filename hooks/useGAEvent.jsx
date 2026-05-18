@@ -13,14 +13,30 @@ export function useGAEvent() {
   const { preferences } = useCookieConsent()
 
   const trackEvent = (eventName, params = {}) => {
-    if (!preferences.analytics) return
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
+    console.log('[GA DEBUG] Attempting to track event:', eventName, params)
+    if (!preferences.analytics) {
+      console.log('[GA DEBUG] Analytics consent not given, skipping event:', eventName)
+      return
+    }
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+      console.log('[GA DEBUG] Window or gtag not available, skipping event:', eventName)
+      return
+    }
+    console.log('[GA DEBUG] Firing GA event:', eventName, params)
     window.gtag('event', eventName, params)
   }
 
   const trackPageView = (url) => {
-    if (!preferences.analytics) return
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
+    console.log('[GA DEBUG] Attempting to track page view:', url)
+    if (!preferences.analytics) {
+      console.log('[GA DEBUG] Analytics consent not given, skipping page view:', url)
+      return
+    }
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+      console.log('[GA DEBUG] Window or gtag not available, skipping page view:', url)
+      return
+    }
+    console.log('[GA DEBUG] Firing GA page view:', url)
     window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, { page_path: url })
   }
 

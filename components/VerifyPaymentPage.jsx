@@ -59,6 +59,22 @@ useEffect(() => {
     return;
   }
 
+  console.log("[GA purchase] Preparing GA4 ecommerce purchase event:", {
+    transaction_id: txId,
+    currency: "NGN",
+    value: orderValue,
+    coupon: orderDetails.couponCode || undefined,
+    shipping: Number(orderDetails.deliveryFee || 0),
+    tax: 0,
+    items: lineItems.map((item, index) => ({
+      item_id: String(item._id || item.productId || index),
+      item_name: item.name || "Unknown",
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+      index,
+    })),
+  });
+
   trackEvent("purchase", {
     transaction_id: txId,
     currency: "NGN",
@@ -72,7 +88,6 @@ useEffect(() => {
       item_name: item.name || "Unknown",
       quantity: Number(item.quantity || 1),
       price: Number(item.price || 0),
-      index,
     })),
   });
 

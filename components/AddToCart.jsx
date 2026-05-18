@@ -28,10 +28,12 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
     );
 
     trackEvent("add_to_cart", {
-      item_id: product._id,
-      item_name: product.name,
-      currency: "NGN",
-      value: product.price,
+      items: [{
+        item_id: product._id,
+        item_name: product.name,
+        price: product.price,
+        quantity: 1,
+      }]
     });
 
     showNotification("Added to cart", "bg-green-600");

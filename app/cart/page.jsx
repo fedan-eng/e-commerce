@@ -149,6 +149,17 @@ const handleQuantityChange = (id, color, value) => {
 
     try {
       // Track checkout funnel step
+      console.log("[GA DEBUG] About to fire begin_checkout event with:", {
+        currency: "NGN",
+        value: total,
+        items: cartItems.map((item) => ({
+          item_id: item._id,
+          item_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      });
+
       trackEvent("begin_checkout", {
         currency: "NGN",
         value: total,
@@ -159,6 +170,8 @@ const handleQuantityChange = (id, color, value) => {
           price: item.price,
         })),
       });
+
+      console.log("[GA DEBUG] begin_checkout event fired");
 
       // Determine which API endpoint to use based on selected payment method
       const endpoint =
