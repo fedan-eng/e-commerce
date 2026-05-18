@@ -50,7 +50,6 @@ export default function GoogleAnalytics() {
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
-          console.log('[GA DEBUG] Initializing GA with ID:', '${GA_ID}')
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
