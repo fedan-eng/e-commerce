@@ -65,6 +65,15 @@ const CartPage = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (formData.deliveryType === "Free" && subTotal < 10000) {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryType: "Regular",
+      }));
+    }
+  }, [subTotal, formData.deliveryType]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
