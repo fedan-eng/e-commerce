@@ -65,15 +65,6 @@ const CartPage = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (formData.deliveryType === "Free" && subTotal < 10000) {
-      setFormData((prev) => ({
-        ...prev,
-        deliveryType: "Regular",
-      }));
-    }
-  }, [subTotal, formData.deliveryType]);
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -141,6 +132,15 @@ const handleQuantityChange = (id, color, value) => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
+
+  useEffect(() => {
+    if (subTotal < 10000 && formData.deliveryType === "Free") {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryType: "Regular",
+      }));
+    }
+  }, [subTotal, formData.deliveryType]);
 
   const handleCheckout = async () => {
     // If the user is not logged in, and the form is not open, show the form
