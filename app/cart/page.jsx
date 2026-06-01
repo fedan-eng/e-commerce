@@ -149,7 +149,7 @@ const handleQuantityChange = (id, color, value) => {
     }
 
     // Check if the form is fully filled out before proceeding
-    if (!formData.email || !formData.phone || !formData.address) {
+    if (!formData.email || !formData.phone || !formData.address || !formData.region?.name || !formData.city || !formData.firstName || !formData.lastName) {
       alert("Please fill in all required delivery information.");
       return;
     }
