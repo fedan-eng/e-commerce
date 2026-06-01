@@ -732,24 +732,34 @@ const handleQuantityChange = (id, color, value) => {
               )}
 
               <div className="">
-                {options.map((option) => (
-                  <label
-                    key={option.id}
-                    className={`flex items-center gap-2 md:gap-4 border-[#e5e5e5] border-t py-[18px] cursor-pointer ${
-                      formData.deliveryType === option.id ? "text-filgreen" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="deliveryType"
-                      value={option.id}
-                      checked={formData.deliveryType === option.id}
-                      onChange={handleChange}
-                      className="before:top-1/2 before:left-1/2 before:absolute relative before:bg-filgreen before:opacity-0 checked:before:opacity-100 border border-gray-400 checked:border-green-600 rounded-full before:rounded-full before:w-2 min-w-4 before:h-2 min-h-4 before:content-[''] before:-translate-x-1/2 before:-translate-y-1/2 appearance-none"
-                    />
-                    <span className="text-sm">{option.label}</span>
-                  </label>
-                ))}
+                {options.map((option) => {
+                  const isFreeDelivery = option.id === "Free";
+                  const isDisabled = isFreeDelivery && subTotal < 10000;
+                  
+                  return (
+                    <label
+                      key={option.id}
+                      className={`flex items-center gap-2 md:gap-4 border-[#e5e5e5] border-t py-[18px] ${
+                        isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                      } ${
+                        formData.deliveryType === option.id && !isDisabled ? "text-filgreen" : ""
+                      } ${
+                        isDisabled ? "text-[#999999]" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="deliveryType"
+                        value={option.id}
+                        checked={formData.deliveryType === option.id}
+                        onChange={handleChange}
+                        disabled={isDisabled}
+                        className="before:top-1/2 before:left-1/2 before:absolute relative before:bg-filgreen before:opacity-0 checked:before:opacity-100 border border-gray-400 checked:border-green-600 rounded-full before:rounded-full before:w-2 min-w-4 before:h-2 min-h-4 before:content-[''] before:-translate-x-1/2 before:-translate-y-1/2 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <span className="text-sm">{option.label}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
