@@ -109,8 +109,6 @@ const CartPage = () => {
     // },
   ];
 
-  if (!hasMounted) return null;
-
 const handleRemove = (id, color) => {
   dispatch(removeFromCart({ _id: id, color }));
   setDiscount(0);                          // ← reset discount amount
@@ -222,6 +220,8 @@ const handleQuantityChange = (id, color, value) => {
     deliveryFee = formData.region?.fee || 0;
   }
   const total = Math.max(0, subTotal - discount + deliveryFee);
+
+  if (!hasMounted) return null;
 
   return (
     <div className="mx-auto mt-6 w-full max-w-[1140px]">
