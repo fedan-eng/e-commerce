@@ -81,13 +81,17 @@ const BuyNow = ({ product, className }) => {
     }
   };
 
+  if (!product?.availability) {
+    return null;
+  }
+
   return (
     <button
       onClick={handleBuyNow}
-      disabled={loading || !product?.availability}
+      disabled={loading}
       className={`${className} cursor-pointer`}
     >
-      {loading ? "Redirecting..." : product?.availability ? "Checkout Now" : "Out of Stock"}
+      {loading ? "Redirecting..." : "Checkout Now"}
     </button>
   );
 };
