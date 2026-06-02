@@ -84,12 +84,12 @@ const BuyNow = ({ product, className }) => {
   return (
     <button
       onClick={handleBuyNow}
-      disabled={loading}
+      disabled={loading || !product?.availability}
       className={`${className} cursor-pointer`}
     >
-      {loading ? "Redirecting..." : "Checkout Now"}
+      {loading ? "Redirecting..." : product?.availability ? "Checkout Now" : "Out of Stock"}
     </button>
   );
 };
 
-export default BuyNow;
+export default BuyNow; 
