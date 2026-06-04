@@ -34,8 +34,8 @@ export const ImageCarousel = () => {
         style={isLargeScreen ? { opacity } : {}}
         className="max-sm:order-2 bg-white shadow-lg p-4"
       >
-        <h3 className="font-semibold text-blue-500">FAST / FREE DELIVERY</h3>
-        <p>Free shipping in 3-7 days on all orders.</p>
+        {/* <h3 className="font-semibold text-blue-500">FAST / FREE DELIVERY</h3>
+        <p>Free shipping in 3-7 days on all orders.</p> */}
       </motion.div>
 
       {/* SCALE THIS ONE */}

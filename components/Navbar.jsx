@@ -122,10 +122,10 @@ export default function Navbar() {
 
   return (
     <nav className="relative bg-dark">
-      <div className="bg-lightgreen py-4 text-black text-xs text-center">
+      {/* <div className="bg-lightgreen py-4 text-black text-xs text-center">
         All deliveries in Lagos are free on Thursday but express deliveries are
         priced
-      </div>
+      </div> */}
       <div className="bg-dark w-full transition-all duration-300">
         <div className="px-3 lg:px-12 nav:px-5 py-4">
           {/* LOGO */}

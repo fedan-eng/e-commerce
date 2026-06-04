@@ -14,7 +14,7 @@ const data = [
   {
     title: "How long does shipping take, and what are the delivery charges?",
     content:
-      "Shipping times vary based on your location, but most orders are delivered within 3-7 business days. Delivery charges depend on the shipping method and destination, with free shipping available on Thursdays.",
+      "Shipping times vary based on your location, but most orders are delivered within 3-7 business days. Delivery charges depend on the shipping method and destination.",
   },
   {
     title: "What is our return and refund policy?",

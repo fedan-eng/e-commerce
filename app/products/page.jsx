@@ -19,7 +19,7 @@ export async function generateMetadata({ searchParams }) {
   const categoryMetadata = {
     "Power Bank": {
       title: "Power Banks in Nigeria - 5,000mAh to 60,000mAh | Fast Charging | FIL Store",
-      description: "Buy original power banks in Nigeria. FIL Storm, Mag-Flex, Volt Cube, Thunder. 5,000mAh - 60,000mAh capacity. Magnetic wireless charging, solar power, fast charging. Free delivery in Lagos, Abuja, Port Harcourt. Shop authentic power banks at FIL Store.",
+      description: "Buy original power banks in Nigeria. FIL Storm, Mag-Flex, Volt Cube, Thunder. 5,000mAh - 60,000mAh capacity. Magnetic wireless charging, solar power, fast charging. Shop authentic power banks at FIL Store.",
       keywords: "power bank Nigeria, portable charger Lagos, magnetic power bank, wireless charging, solar power bank Nigeria, 20000mah power bank, 50000mah power bank, buy power bank online Nigeria"
     },
     "Wearables": {
