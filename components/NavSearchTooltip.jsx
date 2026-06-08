@@ -83,7 +83,19 @@ const NavSearchTooltip = () => {
   };
 
   return (
-    <li ref={containerRef} className="flex justify-center items-center relative">
+    <li
+  ref={containerRef}
+  className="flex justify-center items-center relative"
+  onMouseLeave={() => {
+    // Don't close if user is actively typing in the search input
+    const activeEl = document.activeElement;
+    const isTypingInSearch =
+      activeEl &&
+      containerRef.current?.contains(activeEl) &&
+      activeEl.tagName === "INPUT";
+    if (!isTypingInSearch) setOpen(false);
+  }}
+>
       {/* ── Desktop trigger: icon + label ── */}
       <button
         onClick={() => setOpen((o) => !o)}

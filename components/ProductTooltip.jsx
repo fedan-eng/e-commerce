@@ -80,7 +80,7 @@ const ArrivalTooltip = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.2 }}
-            className="top-28 left-0 z-60 absolute bg-white w-full"
+            className="top-full left-0 z-60 absolute bg-white w-full shadow-lg"
           >
             <div className="flex items-center gap-5 px-13 py-4">
               {/* SECTION A - Categories */}
