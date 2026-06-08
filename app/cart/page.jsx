@@ -80,7 +80,7 @@ const CartPage = () => {
   const options = [
     {
       id: "Regular",
-      label: "Regular Delivery (2-3 Working Days)",
+      label: "Regular Delivery: 2–3 Days (Lagos), 3–5 Days (Interstate)",
     },
     {
       id: "Express",

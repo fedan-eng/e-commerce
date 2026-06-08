@@ -126,7 +126,7 @@ export default function ProductDetailsPage() {
   ];
 
   const deliveryOptions = [
-    {text: "Regular Delivery (1-3 Working Days)"},
+    {text: "Regular Delivery: 2–3 Days (Lagos), 3–5 Days (Interstate)"},
     {text: "Express Delivery (Within 24 hours, for orders placed before 10am)"},
   ];
 
