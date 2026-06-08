@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {motion, AnimatePresence} from "framer-motion";
+import {Search, X as XIcon} from "lucide-react";
 import {IoMdSearch} from "react-icons/io";
 import {useState, useEffect, useRef} from "react";
 import {useRouter} from "next/navigation";
@@ -86,19 +87,19 @@ const NavSearchTooltip = () => {
       {/* ── Desktop trigger: icon + label ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="hidden nav:flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors group"
+        className="hidden nav:flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors"
       >
-        <IoMdSearch size={18} className="text-[#1a1a1a] group-hover:text-filgreen" />
+        <Search size={18} strokeWidth={1.75} />
         <span className="font-roboto text-sm">Search</span>
       </button>
 
       {/* ── Mobile icon ── */}
       <button
-        className="nav:hidden flex items-center"
+        className="nav:hidden flex items-center text-[#1a1a1a]"
         onClick={() => setOpen((o) => !o)}
         aria-label="Search"
       >
-        <IoMdSearch className="text-[#1a1a1a] text-2xl" />
+        <Search size={22} strokeWidth={1.75} />
       </button>
 
       {/* ── Dropdown ── */}
@@ -123,7 +124,7 @@ const NavSearchTooltip = () => {
 
                 {/* Desktop search input above categories */}
                 <div className="hidden sm:flex items-center gap-2 mb-3 bg-[#f7f7f7] px-3 py-2.5 border border-[#e5e5e5] rounded-full focus-within:border-filgreen transition-colors">
-                  <IoMdSearch className="text-[#929292] text-base flex-shrink-0" />
+                  <Search className="text-[#929292] flex-shrink-0" size={14} />
                   <input
                     name="search"
                     type="text"
@@ -140,9 +141,9 @@ const NavSearchTooltip = () => {
                         setSearchTerm("");
                         setResults([]);
                       }}
-                      className="text-[#929292] hover:text-black text-xs flex-shrink-0"
+                      className="text-[#929292] hover:text-black flex-shrink-0"
                     >
-                      ✕
+                      <XIcon size={14} />
                     </button>
                   )}
                 </div>
@@ -177,7 +178,7 @@ const NavSearchTooltip = () => {
 
                 {/* Mobile search input */}
                 <div className="sm:hidden flex items-center gap-2 bg-[#f7f7f7] px-3 py-2.5 border border-[#e5e5e5] rounded-full">
-                  <IoMdSearch className="text-[#929292] text-base flex-shrink-0" />
+                  <Search className="text-[#929292] flex-shrink-0" size={16} />
                   <input
                     type="text"
                     placeholder="Search products..."
@@ -193,9 +194,9 @@ const NavSearchTooltip = () => {
                         setSearchTerm("");
                         setResults([]);
                       }}
-                      className="text-gray-400 text-xs"
+                      className="text-gray-400"
                     >
-                      ✕
+                      <XIcon size={14} />
                     </button>
                   )}
                 </div>
@@ -297,7 +298,7 @@ const NavSearchTooltip = () => {
                           onClick={() => setOpen(false)}
                           className="flex items-center gap-2 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors"
                         >
-                          <IoMdSearch className="text-black text-base flex-shrink-0" />
+                          <Search className="text-black flex-shrink-0" size={14} />
                           <p className="text-sm underline line-clamp-1">{s.name}</p>
                         </Link>
                       ))}

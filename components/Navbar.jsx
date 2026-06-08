@@ -1,7 +1,15 @@
 "use client";
-import {useState, useRef, useEffect} from "react";
+import {useState, useEffect} from "react";
 import Link from "next/link";
-import {Menu, X, ChevronDown, ChevronUp} from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
+  ShoppingBag,
+  HelpCircle,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import {usePathname, useRouter} from "next/navigation";
 import ProfileTooltip from "./ProfileTooltip";
@@ -24,7 +32,6 @@ export default function Navbar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const menuRef = useRef(null);
 
   const cartItems = useSelector((state) => state.cart.items);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -47,11 +54,7 @@ export default function Navbar() {
 
   // Lock body scroll when drawer is open
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -74,170 +77,137 @@ export default function Navbar() {
       {/* Top green accent stripe */}
       <div className="h-1 w-full bg-gradient-to-r from-[#b8e8c8] via-[#7ed09a] to-[#b8e8c8]" />
 
-      <div className="w-full">
-        <div className="px-4 lg:px-12 nav:px-8 py-4">
-          <div className="flex items-center">
-            {/* LEFT: Hamburger (mobile) + Logo */}
-            <div className="flex items-center gap-3">
-              <Link href="/" className="flex items-center">
-                <Image
-                  width={56}
-                  height={26}
-                  alt="FIL"
-                  src="/fillogo.png"
-                  priority
-                />
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center py-5 nav:py-6">
+          {/* LEFT: Logo */}
+          <Link href="/" className="flex items-center flex-shrink-0">
+            <Image
+              width={64}
+              height={30}
+              alt="FIL"
+              src="/fillogo.png"
+              priority
+              className="h-auto w-auto"
+            />
+          </Link>
+
+          {/* CENTER: Desktop nav links */}
+          <ul className="hidden nav:flex items-center gap-12 mx-auto text-sm">
+            <ProductTooltip />
+            <ArrivalTooltip />
+            <li>
+              <Link
+                href="/track"
+                className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200"
+              >
+                Bulk Order
               </Link>
-            </div>
+            </li>
+          </ul>
 
-            {/* CENTER: Desktop nav links */}
-            <ul className="hidden nav:flex items-center gap-10 mx-auto text-sm">
-              <ProductTooltip />
-              <ArrivalTooltip />
-              <li>
-                <Link
-                  href="/track"
-                  className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200 relative group"
-                >
-                  Bulk Order
-                  <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-filgreen group-hover:w-full transition-all duration-300" />
-                </Link>
-              </li>
-            </ul>
-
-            {/* RIGHT: Desktop icons */}
-            <ul className="hidden nav:flex items-center gap-6 ml-auto">
-              <NavSearchTooltip />
-              <ProfileTooltip
-                isAuthenticated={isAuthenticated}
-                userName={user?.firstName}
-              />
-              <li>
-                <Link
-                  href="/contact"
-                  className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors"
-                  aria-label="Help"
-                >
-                  <Image
-                    alt="help"
-                    width={22}
-                    height={22}
-                    src="/help.svg"
-                    className="opacity-80 hover:opacity-100"
-                  />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/cart"
-                  className="relative flex items-center hover:text-filgreen transition-colors"
-                  aria-label="Cart"
-                >
-                  <Image
-                    src="/cart.svg"
-                    alt="cart"
-                    width={24}
-                    height={24}
-                    className="opacity-80 hover:opacity-100"
-                  />
-                  {hasMounted && totalItems > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex justify-center items-center bg-[#1a1a1a] rounded-full w-[18px] h-[18px] text-white text-[10px] font-semibold">
-                      {totalItems}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            </ul>
-
-            {/* MOBILE: Right icons */}
-            <div className="nav:hidden flex items-center gap-5 ml-auto">
-              <NavSearchTooltip />
+          {/* RIGHT: Desktop icons */}
+          <ul className="hidden nav:flex items-center gap-7 ml-auto">
+            <NavSearchTooltip />
+            <ProfileTooltip />
+            <li>
+              <Link
+                href="/contact"
+                className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors"
+                aria-label="Help"
+              >
+                <HelpCircle size={20} strokeWidth={1.75} />
+              </Link>
+            </li>
+            <li>
               <Link
                 href="/cart"
-                className="relative flex items-center"
+                className="relative flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors"
                 aria-label="Cart"
               >
-                <Image
-                  src="/cart.svg"
-                  alt="cart"
-                  width={24}
-                  height={24}
-                  className="opacity-80"
-                />
+                <ShoppingBag size={20} strokeWidth={1.75} />
                 {hasMounted && totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex justify-center items-center bg-[#1a1a1a] rounded-full w-[18px] h-[18px] text-white text-[10px] font-semibold">
+                  <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[18px] h-[18px] px-1 text-white text-[10px] font-semibold leading-none">
                     {totalItems}
                   </span>
                 )}
               </Link>
-              <button
-                className="text-[#1a1a1a] hover:text-filgreen transition-colors"
-                onClick={() => setMenuOpen(true)}
-                aria-label="Open menu"
-              >
-                <Menu size={26} strokeWidth={2} />
-              </button>
-            </div>
+            </li>
+          </ul>
+
+          {/* MOBILE: Right icons */}
+          <div className="nav:hidden flex items-center gap-5 ml-auto">
+            <NavSearchTooltip />
+            <Link
+              href="/cart"
+              className="relative flex items-center text-[#1a1a1a]"
+              aria-label="Cart"
+            >
+              <ShoppingBag size={22} strokeWidth={1.75} />
+              {hasMounted && totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[18px] h-[18px] px-1 text-white text-[10px] font-semibold leading-none">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+            <button
+              className="text-[#1a1a1a] hover:text-filgreen transition-colors"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} strokeWidth={2} />
+            </button>
           </div>
         </div>
-
-        {/* Bottom dashed divider */}
-        <div className="border-b border-dashed border-[#d9d9d9]" />
       </div>
 
-      {/* ───── MOBILE DRAWER ───── */}
+      {/* Bottom dashed divider */}
+      <div
+        className="w-full h-px"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(to right, #d1d1d1 0, #d1d1d1 4px, transparent 4px, transparent 10px)",
+        }}
+      />
+
+      {/* ───── MOBILE FULLSCREEN DRAWER ───── */}
       <AnimatePresence>
         {menuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{opacity: 0}}
-              animate={{opacity: 1}}
-              exit={{opacity: 0}}
-              transition={{duration: 0.25}}
-              className="fixed inset-0 bg-black/40 z-40 nav:hidden"
-              onClick={() => setMenuOpen(false)}
-            />
+          <motion.aside
+            key="mobile-drawer"
+            initial={{opacity: 0, x: -20}}
+            animate={{opacity: 1, x: 0}}
+            exit={{opacity: 0, x: -20}}
+            transition={{duration: 0.25, ease: [0.32, 0.72, 0, 1]}}
+            className="fixed inset-0 z-50 nav:hidden bg-white overflow-y-auto"
+          >
+            {/* Green top accent */}
+            <div className="h-1 w-full bg-gradient-to-r from-[#b8e8c8] via-[#7ed09a] to-[#b8e8c8]" />
 
-            {/* Drawer */}
-            <motion.aside
-              ref={menuRef}
-              key="mobile-drawer"
-              initial={{x: "-100%"}}
-              animate={{x: 0}}
-              exit={{x: "-100%"}}
-              transition={{duration: 0.3, ease: [0.32, 0.72, 0, 1]}}
-              className="fixed top-0 left-0 z-50 nav:hidden w-[82%] max-w-[340px] h-full bg-white shadow-2xl flex flex-col"
-            >
-              {/* Green top accent */}
-              <div className="h-1 w-full bg-gradient-to-r from-[#b8e8c8] via-[#7ed09a] to-[#b8e8c8]" />
-
-              {/* Header: Close button */}
-              <div className="px-5 pt-5 pb-2">
-                <button
-                  onClick={() => setMenuOpen(false)}
-                  className="text-[#1a1a1a] hover:text-filgreen transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X size={24} strokeWidth={2} />
-                </button>
-              </div>
+            <div className="px-6 pt-6 pb-10">
+              {/* Close button */}
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="text-[#1a1a1a] hover:text-filgreen transition-colors mb-6"
+                aria-label="Close menu"
+              >
+                <X size={26} strokeWidth={2} />
+              </button>
 
               {/* Nav items */}
-              <div className="flex-1 px-5 py-3 overflow-y-auto">
+              <div className="flex flex-col">
                 {/* PRODUCT (accordion) */}
-                <div className="border-b border-[#ececec]">
+                <div>
                   <button
                     onClick={() => setProductOpen((o) => !o)}
                     className="w-full flex items-center justify-between py-4 text-left"
                   >
-                    <span className="font-semibold text-[15px] text-[#1a1a1a]">
+                    <span className="font-medium text-[17px] text-[#1a1a1a]">
                       Product
                     </span>
                     {productOpen ? (
-                      <ChevronUp size={18} className="text-[#1a1a1a]" />
+                      <ChevronUp size={20} className="text-[#1a1a1a]" />
                     ) : (
-                      <ChevronDown size={18} className="text-[#1a1a1a]" />
+                      <ChevronDown size={20} className="text-[#1a1a1a]" />
                     )}
                   </button>
 
@@ -250,7 +220,7 @@ export default function Navbar() {
                         transition={{duration: 0.25, ease: "easeInOut"}}
                         className="overflow-hidden"
                       >
-                        <ul className="pb-3 pl-1 space-y-3">
+                        <ul className="pb-2 space-y-4">
                           {MOBILE_CATEGORIES.map((cat) => (
                             <li key={cat.key}>
                               <Link
@@ -258,7 +228,7 @@ export default function Navbar() {
                                   cat.key,
                                 )}`}
                                 onClick={() => setMenuOpen(false)}
-                                className="block text-[14px] text-[#9a9a9a] hover:text-filgreen transition-colors"
+                                className="block text-[15px] text-[#b5b5b5] hover:text-filgreen transition-colors"
                               >
                                 {cat.name}
                               </Link>
@@ -271,86 +241,70 @@ export default function Navbar() {
                 </div>
 
                 {/* NEW ARRIVALS */}
-                <div className="border-b border-[#ececec]">
-                  <Link
-                    href="/products?sort=newest"
-                    onClick={() => setMenuOpen(false)}
-                    className="block py-4 font-semibold text-[15px] text-[#1a1a1a] hover:text-filgreen transition-colors"
-                  >
-                    New Arrivals
-                  </Link>
-                </div>
+                <Link
+                  href="/products?sort=newest"
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                >
+                  New Arrivals
+                </Link>
 
                 {/* BULK ORDER */}
-                <div className="border-b border-[#ececec]">
-                  <Link
-                    href="/track"
-                    onClick={() => setMenuOpen(false)}
-                    className="block py-4 font-semibold text-[15px] text-[#1a1a1a] hover:text-filgreen transition-colors"
-                  >
-                    Bulk Order
-                  </Link>
-                </div>
+                <Link
+                  href="/track"
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                >
+                  Bulk Order
+                </Link>
 
                 {/* Authenticated extras */}
                 {isAuthenticated && (
                   <>
-                    <div className="border-b border-[#ececec]">
-                      <Link
-                        href="/profile"
-                        onClick={() => setMenuOpen(false)}
-                        className="block py-4 font-semibold text-[15px] text-[#1a1a1a] hover:text-filgreen transition-colors"
-                      >
-                        My Profile
-                      </Link>
-                    </div>
-                    <div className="border-b border-[#ececec]">
-                      <Link
-                        href="/profile?tab=My%20Orders"
-                        onClick={() => setMenuOpen(false)}
-                        className="block py-4 font-semibold text-[15px] text-[#1a1a1a] hover:text-filgreen transition-colors"
-                      >
-                        My Orders
-                      </Link>
-                    </div>
-                    <div className="border-b border-[#ececec]">
-                      <Link
-                        href="/profile?tab=Wishlist"
-                        onClick={() => setMenuOpen(false)}
-                        className="block py-4 font-semibold text-[15px] text-[#1a1a1a] hover:text-filgreen transition-colors"
-                      >
-                        Wishlist
-                      </Link>
-                    </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      href="/profile?tab=My%20Orders"
+                      onClick={() => setMenuOpen(false)}
+                      className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                    >
+                      My Orders
+                    </Link>
+                    <Link
+                      href="/profile?tab=Wishlist"
+                      onClick={() => setMenuOpen(false)}
+                      className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                    >
+                      Wishlist
+                    </Link>
                   </>
                 )}
               </div>
 
-              {/* Bottom CTA */}
-              <div className="px-5 pt-4 pb-6 border-t border-[#ececec]">
+              {/* Bottom CTA — flows inline */}
+              <div className="mt-8">
                 {!isAuthenticated ? (
                   <>
-                    <p className="text-[13px] text-[#1a1a1a] mb-3">
+                    <p className="text-[15px] text-[#1a1a1a] mb-4">
                       You are not a member?
                     </p>
                     <Link
                       href="/login"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#1a1a1a] hover:bg-black rounded-full text-white text-[14px] font-medium transition-colors"
+                      className="flex items-center justify-center gap-2 w-full py-4 bg-[#1a1a1a] hover:bg-black rounded-full text-white text-[15px] font-medium transition-colors"
                     >
-                      <Image
-                        src="/profile.svg"
-                        alt=""
-                        width={16}
-                        height={16}
-                        className="invert"
-                      />
+                      <User size={16} strokeWidth={2} />
                       Sign in
                     </Link>
                   </>
                 ) : (
                   <>
-                    <p className="text-[13px] text-[#1a1a1a] mb-3">
+                    <p className="text-[15px] text-[#1a1a1a] mb-4">
                       Signed in as{" "}
                       <span className="font-semibold">
                         {user?.firstName || "User"}
@@ -358,15 +312,15 @@ export default function Navbar() {
                     </p>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#1a1a1a] hover:bg-black rounded-full text-white text-[14px] font-medium transition-colors"
+                      className="flex items-center justify-center gap-2 w-full py-4 bg-[#1a1a1a] hover:bg-black rounded-full text-white text-[15px] font-medium transition-colors"
                     >
                       Logout
                     </button>
                   </>
                 )}
               </div>
-            </motion.aside>
-          </>
+            </div>
+          </motion.aside>
         )}
       </AnimatePresence>
     </nav>

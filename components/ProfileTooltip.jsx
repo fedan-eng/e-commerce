@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import {useSelector} from "react-redux";
 import {motion, AnimatePresence} from "framer-motion";
+import {User} from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import {useState} from "react";
 
@@ -25,15 +25,9 @@ const ProfileTooltip = () => {
     >
       <Link
         href={isAuthenticated ? "/profile" : "/login"}
-        className="flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors group"
+        className="flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors"
       >
-        <Image
-          alt="profile"
-          width={18}
-          height={18}
-          src="/profile.svg"
-          className="opacity-80 group-hover:opacity-100"
-        />
+        <User size={18} strokeWidth={1.75} />
         <span className="font-roboto text-sm">
           {isAuthenticated ? `Hi, ${user?.firstName || "User"}` : "Sign in"}
         </span>
