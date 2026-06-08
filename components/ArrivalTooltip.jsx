@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const categories = [
-  { name: "Power Bank", key: "Power Bank" },
+  { name: "Power Bank", key: "Power Bank" }, 
   { name: "Wearables", key: "Wearables" },
   { name: "Chargers", key: "Chargers" },
   { name: "Lifestyle", key: "Lifestyle" },
@@ -53,9 +53,9 @@ const ArrivalTooltip = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <p className="font-roboto text-white hover:text-mustard text-sm">
-        NEW ARRIVALS
-      </p>
+      <p className="font-roboto text-[#1a1a1a] hover:text-filgreen text-sm cursor-pointer transition-colors">
+  New Arrivals
+</p>
 
       <AnimatePresence>
         {isHovered && (

@@ -9,43 +9,17 @@ import axios from "axios";
 import {formatAmount} from "@/lib/utils";
 
 const categories = [
-  {
-    name: "Power Banks",
-    image: "/powerbanks.png",
-    link: "/products?categories=Power Bank",
-  },
-  {
-    name: "Wearables",
-    image: "/wearables.png",
-    link: "/products?categories=Wearables",
-  },
-  {
-    name: "Chargers",
-    image: "/chargers.png",
-    link: "/products?categories=Chargers",
-  },
-  {
-    name: "Lifestyle",
-    image: "/lifestyle.png",
-    link: "/products?categories=Lifestyle",
-  },
-  {
-    name: "Extensions",
-    image: "/extensions.png",
-    link: "/products?categories=Extensions",
-  },
+  {name: "Power Banks", image: "/powerbanks.png", link: "/products?categories=Power Bank"},
+  {name: "Wearables", image: "/wearables.png", link: "/products?categories=Wearables"},
+  {name: "Chargers", image: "/chargers.png", link: "/products?categories=Chargers"},
+  {name: "Lifestyle", image: "/lifestyle.png", link: "/products?categories=Lifestyle"},
+  {name: "Extensions", image: "/extensions.png", link: "/products?categories=Extensions"},
 ];
 
 const TOP_SUGGESTIONS = [
-  {
-    name: "FIL Bolt Pro 32,500 mAh Power Bank",
-    href: "/products/691b041af0ddc5e1e75e1ed0",
-  },
+  {name: "FIL Bolt Pro 32,500 mAh Power Bank", href: "/products/691b041af0ddc5e1e75e1ed0"},
   {name: "FIL Pulse 3", href: "/products/691b18d96ab12366ceef60e4"},
-  {
-    name: "FIL Mag-Flex 10,000mAh Powerbank",
-    href: "/products/691b18d96ab12366ceef60dc",
-  },
+  {name: "FIL Mag-Flex 10,000mAh Powerbank", href: "/products/691b18d96ab12366ceef60dc"},
 ];
 
 const NavSearchTooltip = () => {
@@ -56,7 +30,6 @@ const NavSearchTooltip = () => {
   const containerRef = useRef(null);
   const router = useRouter();
 
-  // Close when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -67,7 +40,6 @@ const NavSearchTooltip = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Debounced search
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults([]);
@@ -94,17 +66,15 @@ const NavSearchTooltip = () => {
   const hasSearch = searchTerm.trim().length > 0;
   const hasResults = results.length > 0;
 
-  // ✅ Navigate to results page and clear the input
   const handleViewAll = () => {
     const term = searchTerm.trim();
     if (!term) return;
     setOpen(false);
-    setSearchTerm(""); // clear input after navigating
+    setSearchTerm("");
     setResults([]);
     router.push(`/products?search=${encodeURIComponent(term)}`);
   };
 
-  // ✅ Also submit on Enter key
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && searchTerm.trim()) {
       handleViewAll();
@@ -113,44 +83,23 @@ const NavSearchTooltip = () => {
 
   return (
     <li ref={containerRef} className="flex justify-center items-center relative">
-      {/* ── Desktop search bar ── */}
-      <div
-        className="max-nav:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-4xl cursor-text"
-        onClick={() => setOpen(true)}
+      {/* ── Desktop trigger: icon + label ── */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="hidden nav:flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors group"
       >
-        <IoMdSearch size={12} className="text-black flex-shrink-0" />
-        <input
-          name="search"
-          type="text"
-          placeholder="Search"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-          className="block outline-0 w-full placeholder-text-xs text-xs placeholder-[#929292]"
-          autoComplete="off"
-        />
-        {hasSearch && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setSearchTerm("");
-              setResults([]);
-            }}
-            className="text-[#929292] hover:text-black text-xs flex-shrink-0"
-          >
-            ✕
-          </button>
-        )}
-      </div>
+        <IoMdSearch size={18} className="text-[#1a1a1a] group-hover:text-filgreen" />
+        <span className="font-roboto text-sm">Search</span>
+      </button>
 
       {/* ── Mobile icon ── */}
-      <div className="nav:hidden" onClick={() => setOpen((o) => !o)}>
-        <IoMdSearch className="text-white text-3xl cursor-pointer" />
-      </div>
+      <button
+        className="nav:hidden flex items-center"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Search"
+      >
+        <IoMdSearch className="text-[#1a1a1a] text-2xl" />
+      </button>
 
       {/* ── Dropdown ── */}
       <AnimatePresence>
@@ -160,20 +109,46 @@ const NavSearchTooltip = () => {
             animate={{opacity: 1, y: 0}}
             exit={{opacity: 0, y: -8}}
             transition={{duration: 0.18}}
-           className="sm:top-12 sm:right-0 sm:absolute z-50 bg-white sm:rounded-md shadow-lg border border-[#e5e5e5] sm:w-[560px] max-sm:fixed max-sm:top-16 max-sm:left-0 max-sm:w-full max-sm:max-h-[80vh] max-sm:overflow-y-auto"
+            className="sm:top-12 sm:right-0 sm:absolute z-50 bg-white sm:rounded-lg shadow-2xl border border-[#e5e5e5] sm:w-[580px] max-sm:fixed max-sm:top-[68px] max-sm:left-0 max-sm:w-full max-sm:max-h-[80vh] max-sm:overflow-y-auto"
           >
-            <div className="flex max-sm:flex-col gap-5 p-4">
-              {/* ── LEFT: Categories (desktop) / Search (mobile) ── */}
-              <div className="flex-shrink-0">
-                <p className="hidden sm:block mb-4 font-oswald text-sm uppercase">
+            <div className="flex max-sm:flex-col gap-5 p-5">
+              {/* LEFT */}
+              <div className="flex-shrink-0 sm:w-[260px]">
+                <p className="hidden sm:block mb-4 font-oswald text-sm uppercase tracking-wide text-[#1a1a1a]">
                   FIL Categories
                 </p>
-                <p className="sm:hidden block mb-4 font-oswald text-sm uppercase">
+                <p className="sm:hidden block mb-4 font-oswald text-sm uppercase tracking-wide text-[#1a1a1a]">
                   Search Product
                 </p>
 
-                {/* Category grid — desktop */}
-                <div className="hidden sm:grid gap-3 grid-cols-2">
+                {/* Desktop search input above categories */}
+                <div className="hidden sm:flex items-center gap-2 mb-3 bg-[#f7f7f7] px-3 py-2.5 border border-[#e5e5e5] rounded-full focus-within:border-filgreen transition-colors">
+                  <IoMdSearch className="text-[#929292] text-base flex-shrink-0" />
+                  <input
+                    name="search"
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="block outline-0 w-full bg-transparent text-sm placeholder-[#929292]"
+                    autoFocus
+                  />
+                  {hasSearch && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setResults([]);
+                      }}
+                      className="text-[#929292] hover:text-black text-xs flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Category grid */}
+                <div className="hidden sm:grid gap-2 grid-cols-2">
                   {categories.map((cat, i) => (
                     <Link
                       href={cat.link}
@@ -184,13 +159,13 @@ const NavSearchTooltip = () => {
                       }}
                       className="flex bg-[#f2f2f2] rounded-md overflow-hidden hover:bg-[#e8e8e8] transition-colors"
                     >
-                      <span className="pt-2 pl-2 font-oswald text-sm uppercase">
+                      <span className="pt-2 pl-2 font-oswald text-xs uppercase">
                         {cat.name}
                       </span>
                       <div className="ml-auto">
                         <Image
-                          width={70}
-                          height={70}
+                          width={60}
+                          height={60}
                           src={cat.image}
                           alt={cat.name}
                           className="w-full h-full object-cover"
@@ -201,15 +176,15 @@ const NavSearchTooltip = () => {
                 </div>
 
                 {/* Mobile search input */}
-                <div className="sm:hidden flex items-center gap-2 bg-white px-2 py-2 border border-[#d9d9d9] rounded-md">
-                  <IoMdSearch className="text-filgrey text-base flex-shrink-0" />
+                <div className="sm:hidden flex items-center gap-2 bg-[#f7f7f7] px-3 py-2.5 border border-[#e5e5e5] rounded-full">
+                  <IoMdSearch className="text-[#929292] text-base flex-shrink-0" />
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="block outline-0 w-full text-sm placeholder-filgrey"
+                    className="block outline-0 w-full bg-transparent text-sm placeholder-[#929292]"
                     autoFocus
                   />
                   {hasSearch && (
@@ -226,9 +201,8 @@ const NavSearchTooltip = () => {
                 </div>
               </div>
 
-              {/* ── RIGHT: Results or suggestions ── */}
+              {/* RIGHT */}
               <div className="sm:px-4 sm:border-[#dfdfdf] sm:border-l flex-1 min-w-0">
-                {/* Loading */}
                 {loading && (
                   <div className="flex items-center gap-2 py-6 text-gray-400 text-sm">
                     <div className="w-3 h-3 border border-gray-300 border-t-black rounded-full animate-spin" />
@@ -236,10 +210,9 @@ const NavSearchTooltip = () => {
                   </div>
                 )}
 
-                {/* Search results */}
                 {!loading && hasSearch && hasResults && (
                   <>
-                    <p className="mb-3 font-oswald text-sm uppercase">
+                    <p className="mb-3 font-oswald text-sm uppercase tracking-wide">
                       Results{" "}
                       <span className="text-[#929292] normal-case font-sans text-xs">
                         for "{searchTerm}"
@@ -257,15 +230,13 @@ const NavSearchTooltip = () => {
                           }}
                           className="flex items-center gap-3 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors group"
                         >
-                          <div className="w-8 h-8 flex-shrink-0 rounded overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
+                          <div className="w-9 h-9 flex-shrink-0 rounded overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
                             {product.image ? (
                               <img
                                 src={product.image}
                                 alt=""
                                 className="w-full h-full object-cover"
-                                onError={(e) =>
-                                  (e.target.style.display = "none")
-                                }
+                                onError={(e) => (e.target.style.display = "none")}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
@@ -287,8 +258,6 @@ const NavSearchTooltip = () => {
                         </Link>
                       ))}
                     </div>
-
-                    {/* ✅ View all — uses router.push + clears input */}
                     <button
                       onClick={handleViewAll}
                       className="flex items-center gap-1 mt-3 pt-3 border-t border-[#f0f0f0] text-xs text-filgreen hover:underline w-full"
@@ -298,12 +267,9 @@ const NavSearchTooltip = () => {
                   </>
                 )}
 
-                {/* No results */}
                 {!loading && hasSearch && !hasResults && (
                   <div className="py-6 text-center">
-                    <p className="text-sm text-gray-500">
-                      No products found for
-                    </p>
+                    <p className="text-sm text-gray-500">No products found for</p>
                     <p className="text-sm font-medium">"{searchTerm}"</p>
                     <Link
                       href="/products"
@@ -318,10 +284,9 @@ const NavSearchTooltip = () => {
                   </div>
                 )}
 
-                {/* Top suggestions */}
-                {!hasSearch && (
+                {!hasSearch && !loading && (
                   <>
-                    <p className="mb-4 font-oswald text-sm uppercase">
+                    <p className="mb-4 font-oswald text-sm uppercase tracking-wide">
                       Top Suggestions
                     </p>
                     <div>
@@ -333,9 +298,7 @@ const NavSearchTooltip = () => {
                           className="flex items-center gap-2 hover:bg-gray-50 px-1 py-2 rounded-md transition-colors"
                         >
                           <IoMdSearch className="text-black text-base flex-shrink-0" />
-                          <p className="text-sm underline line-clamp-1">
-                            {s.name}
-                          </p>
+                          <p className="text-sm underline line-clamp-1">{s.name}</p>
                         </Link>
                       ))}
                     </div>

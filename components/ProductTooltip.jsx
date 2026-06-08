@@ -19,7 +19,7 @@ const ArrivalTooltip = () => {
 
   function shuffleArray(array) {
     const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
+    for (let i = arr.length - 1; i > 0; i--) { 
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
@@ -65,12 +65,12 @@ const ArrivalTooltip = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link
-        href="/products"
-        className="font-roboto text-white hover:text-mustard text-sm"
-      >
-        PRODUCT
-      </Link>
+     <Link
+  href="/products"
+  className="font-roboto text-[#1a1a1a] hover:text-filgreen text-sm transition-colors"
+>
+  Product
+</Link>
 
       <AnimatePresence>
         {isHovered && (
