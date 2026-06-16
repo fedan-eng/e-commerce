@@ -8,6 +8,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    typecheck: {
+      tsconfig: './tsconfig.vitest.json',  // ← point to separate tsconfig
+    },
   },
   resolve: {
     alias: {

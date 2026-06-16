@@ -8,12 +8,12 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { clearCart } from "@/store/features/cartSlice";
 import axios from "axios";
 import Loading from "@/components/Loading";
-import { formatAmount } from "lib/utils";
 import Link from "next/link";
 import TextSlider from "@/components/TextSlider";
 import FeedbackForm from "@/components/FeedbackForm";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatAmount } from "@/lib/utils";
 
 export default function VerifyPaymentPage() {
   const [orderDetails, setOrderDetails] = useState(null); 
