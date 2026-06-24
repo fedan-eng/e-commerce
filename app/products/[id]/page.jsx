@@ -16,7 +16,7 @@ export async function generateMetadata({params}) {
   const {id} = await params;
   const product = await fetchProduct(id);
 
-  const title = product ? `${product.name} | FIL Store` : "Product | FIL Store";
+  const title = product ? `${product.name} | ${product.category || 'Products'} | FIL Store` : "Product | FIL Store";
   const description =
     product?.description || "Quality tech products at FIL Store Nigeria.";
   const url = `https://www.filstore.com.ng/products/${id}`;
