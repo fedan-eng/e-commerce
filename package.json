@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@reduxjs/toolkit": "^2.6.1",
     "@vercel/analytics": "^2.0.1",

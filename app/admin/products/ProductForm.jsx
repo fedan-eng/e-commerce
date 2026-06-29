@@ -219,6 +219,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [success, setSuccess] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const set = f => e => setForm(p => ({ ...p, [f]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
   const swap = (setter, i, dir) => setter(prev => {
@@ -309,6 +310,41 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     finally { setSaving(false); }
   };
 
+  const generateDescription = async () => {
+    if (!form.name || !form.category) {
+      setError("Please enter product name and category first");
+      return;
+    }
+
+    setGenerating(true); setError(null);
+    try {
+      const featuresArray = form.features.split(",").map(f => f.trim()).filter(Boolean);
+      const res = await fetch("/api/admin/products/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          category: form.category,
+          price: form.price,
+          features: featuresArray,
+          existingDescription: form.description || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Failed to generate description");
+      }
+
+      const data = await res.json();
+      setForm(p => ({ ...p, description: data.description }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const CHECKBOX_ACCENTS = {
     gold:  { border: "border-[#e8c46a44]", bg: "bg-[#e8c46a0a]", checkBorder: "border-[#e8c46a]", checkBg: "bg-[#e8c46a22]", checkText: "text-[#e8c46a]" },
     amber: { border: "border-[#e8a06a44]", bg: "bg-[#e8a06a0a]", checkBorder: "border-[#e8a06a]", checkBg: "bg-[#e8a06a22]", checkText: "text-[#e8a06a]" },
@@ -343,6 +379,31 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           </div>
         </Field>
         <Field label="Description">
+          <div className="flex gap-2 mb-1.5">
+            <button
+              type="button"
+              onClick={generateDescription}
+              disabled={generating || !form.name || !form.category}
+              className="px-3 py-1.5 bg-[#6ab4e8] border border-[#6ab4e8] rounded-md text-[#0a0a0a] text-[11px] tracking-[0.1em] uppercase font-bold cursor-pointer transition-all font-mono hover:bg-[#5aa0d8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              {generating ? (
+                <>
+                  <span className="animate-spin">⟳</span>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <span>✨</span>
+                  AI Generate
+                </>
+              )}
+            </button>
+            {form.description && (
+              <span className="text-[10px] text-[#666] flex items-center">
+                {form.description.length} chars
+              </span>
+            )}
+          </div>
           <textarea value={form.description} onChange={set("description")} placeholder="Product description..." rows={5}
             className={`${INPUT_CLASS} resize-y leading-relaxed`} />
         </Field>
