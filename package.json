@@ -36,6 +36,7 @@
     "next-auth": "^4.24.11",
     "node-cron": "^4.0.7",
     "nodemailer": "^6.10.1",
+    "openai": "^6.45.0",
     "phosphor-react": "^1.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
