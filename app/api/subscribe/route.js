@@ -90,7 +90,7 @@ export async function POST(req) {
     }
     .message {
       font-size: 16px;
-      color: #555;
+      color: #fff;
       margin-bottom: 30px;
     }
     .promo-box {
@@ -144,7 +144,7 @@ export async function POST(req) {
       display: flex;
       align-items: start;
       margin: 15px 0;
-      color: #555;
+      color: #fff;
     }
     .benefit-icon {
       font-size: 24px;

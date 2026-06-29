@@ -163,7 +163,7 @@ function AdminOrdersPage() {
 
       {/* Page header */}
       <div className="mb-6">
-        <div className="text-[10px] tracking-[.2em] text-[#555] uppercase mb-1">Management</div>
+        <div className="text-[10px] tracking-[.2em] text-[#fff] uppercase mb-1">Management</div>
         <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">
           Orders
           <span className="text-[#3a3a3a] text-base font-normal ml-2">({total})</span>
@@ -237,7 +237,7 @@ function AdminOrdersPage() {
                     className={`px-3 py-1.5 rounded-full text-[10px] tracking-[.08em] uppercase cursor-pointer border transition-all font-mono whitespace-nowrap
                       ${active
                         ? `${ss.text} ${ss.bg} ${ss.border}`
-                        : "text-[#555] bg-transparent border-[#1e1e1e] hover:border-[#333] hover:text-[#777]"
+                        : "text-[#fff] bg-transparent border-[#1e1e1e] hover:border-[#333] hover:text-[#777]"
                       }`}
                   >
                     {s}
@@ -289,7 +289,7 @@ function AdminOrdersPage() {
                 setSearch(""); setSearchInput(""); setDays(""); setStatusFilter("all"); setPage(1);
                 router.replace("/admin/orders", { scroll: false });
               }}
-              className="text-[11px] text-[#555] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
+              className="text-[11px] text-[#fff] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
             >
               Clear all filters
             </button>
@@ -365,7 +365,7 @@ function AdminOrdersPage() {
                           <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                             <Link
                               href={`/admin/orders/${order._id}`}
-                              className="text-[11px] text-[#555] no-underline px-3 py-1.5 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#3a3a3a] transition-all whitespace-nowrap font-mono"
+                              className="text-[11px] text-[#fff] no-underline px-3 py-1.5 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#3a3a3a] transition-all whitespace-nowrap font-mono"
                             >
                               View details ↗
                             </Link>
@@ -400,7 +400,7 @@ function AdminOrdersPage() {
                                             <span className="text-[12px] text-[#ccc] truncate max-w-[160px]">{item.name}</span>
                                           </div>
                                         </td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#555] whitespace-nowrap">{item.category || "—"}</td>
+                                        <td className="pt-2.5 pr-5 text-[12px] text-[#fff] whitespace-nowrap">{item.category || "—"}</td>
                                         <td className="pt-2.5 pr-5 text-[12px] text-[#888] whitespace-nowrap">₦{parseFloat(item.price).toLocaleString()}</td>
                                         <td className="pt-2.5 pr-5 text-[12px] text-[#888]">{item.quantity}</td>
                                         <td className="pt-2.5 pr-5 whitespace-nowrap">
@@ -471,7 +471,7 @@ function AdminOrdersPage() {
                       </select>
                       <Link
                         href={`/admin/orders/${order._id}`}
-                        className="shrink-0 text-[11px] text-[#555] no-underline px-3.5 py-2 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#444] transition-all font-mono"
+                        className="shrink-0 text-[11px] text-[#fff] no-underline px-3.5 py-2 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#444] transition-all font-mono"
                       >
                         VIEW →
                       </Link>

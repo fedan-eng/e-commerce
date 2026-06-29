@@ -115,7 +115,7 @@ export async function POST(req) {
     }
     .detail-label {
       font-weight: 600;
-      color: #555;
+      color: #fff;
     }
     .detail-value {
       color: #333;
@@ -196,7 +196,7 @@ export async function POST(req) {
     </div>
     
     <div class="content">
-      <p style="font-size: 16px; color: #555; margin-bottom: 30px;">
+      <p style="font-size: 16px; color: #fff; margin-bottom: 30px;">
         A customer has initiated a return request. Please review the details below and process accordingly.
       </p>
       

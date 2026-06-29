@@ -119,13 +119,13 @@ function buildAbandonedCartEmail(user) {
     <div style="padding:40px 30px;color:#333;line-height:1.8;">
       <p style="font-size:16px;color:#222;margin:0 0 16px;">Hi <strong>${firstName}</strong>,</p>
 
-      <p style="color:#555;margin:0 0 14px;">
+      <p style="color:#fff;margin:0 0 14px;">
         We noticed you left ${totalItems} item${totalItems > 1 ? "s" : ""} in your cart a few days ago — and we just wanted to check in. 💙
       </p>
-      <p style="color:#555;margin:0 0 14px;">
+      <p style="color:#fff;margin:0 0 14px;">
         Is everything okay? Sometimes life gets busy, sometimes it's a question about the product, and sometimes it just slips through the cracks. Whatever the reason, we're here.
       </p>
-      <p style="color:#555;margin:0 0 28px;">
+      <p style="color:#fff;margin:0 0 28px;">
         Your items are still available — but we can't hold them forever. Don't miss out!
       </p>
 
@@ -144,7 +144,7 @@ function buildAbandonedCartEmail(user) {
           <tbody>${itemRows}</tbody>
         </table>
         <div style="margin-top:16px;padding-top:16px;border-top:2px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:15px;color:#555;">Estimated subtotal</span>
+          <span style="font-size:15px;color:#fff;">Estimated subtotal</span>
           <span style="font-size:18px;font-weight:700;color:#16a05f;">&#8358;${subtotal.toLocaleString()}</span>
         </div>
       </div>

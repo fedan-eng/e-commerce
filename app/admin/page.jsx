@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa", callbacks: { label: ctx => "₦" + fmt(ctx.raw) } } },
-        scales: { x: { grid: { color: "#1a1a1a" }, ticks: { color: "#555", font: { size: 11 } } }, y: { grid: { color: "#1a1a1a" }, ticks: { color: "#555", font: { size: 11 }, callback: v => "₦" + fmtK(v) } } },
+        scales: { x: { grid: { color: "#1a1a1a" }, ticks: { color: "#fff", font: { size: 11 } } }, y: { grid: { color: "#1a1a1a" }, ticks: { color: "#fff", font: { size: 11 }, callback: v => "₦" + fmtK(v) } } },
       },
     });
   }
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="mb-6 flex justify-between items-start flex-wrap gap-3">
         <div>
-          <div className="text-[10px] tracking-[0.2em] text-[#555] uppercase mb-1.5">Overview</div>
+          <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Overview</div>
           <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">Dashboard</h1>
         </div>
         <div className="flex gap-2 items-center">
@@ -265,7 +265,7 @@ export default function AdminDashboard() {
                 <button
                   key={m}
                   onClick={() => setChartMode(m)}
-                  className={`text-[11px] px-3 py-1.5 border-none cursor-pointer transition-all ${chartMode === m ? "bg-[#1e1e1e] text-[#e8e8e8]" : "bg-transparent text-[#555]"}`}
+                  className={`text-[11px] px-3 py-1.5 border-none cursor-pointer transition-all ${chartMode === m ? "bg-[#1e1e1e] text-[#e8e8e8]" : "bg-transparent text-[#fff]"}`}
                 >
                   {m.charAt(0).toUpperCase() + m.slice(1)}
                 </button>
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
               }
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                 <div className="text-[18px] font-bold text-[#e8e8e8]">{fmtK(catTotal)}</div>
-                <div className="text-[10px] text-[#555] uppercase tracking-[.08em] mt-0.5">Total</div>
+                <div className="text-[10px] text-[#fff] uppercase tracking-[.08em] mt-0.5">Total</div>
               </div>
             </div>
             <div className="flex-1 flex flex-col gap-2">
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
               }
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                 <div className="text-[18px] font-bold text-[#e8e8e8]">{statusTotal}</div>
-                <div className="text-[10px] text-[#555] uppercase tracking-[.08em] mt-0.5">Orders</div>
+                <div className="text-[10px] text-[#fff] uppercase tracking-[.08em] mt-0.5">Orders</div>
               </div>
             </div>
             <div className="flex-1 flex flex-col gap-2">
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
               <tbody>
                 {topProducts.map((p, i) => (
                   <tr key={i} className="border-b border-[#161616] hover:bg-[#131313] transition-colors last:border-0">
-                    <td className="px-4 py-2.5 text-[#555] text-[13px]">{i + 1}</td>
+                    <td className="px-4 py-2.5 text-[#fff] text-[13px]">{i + 1}</td>
                     <td className="px-4 py-2.5 text-[#e8e8e8] text-[13px] max-w-[200px] truncate">{p.name}</td>
                     <td className="px-4 py-2.5">
                       <span className="text-[11px] text-[#888] bg-[#1a1a1a] px-2 py-0.5 rounded">{p.category}</span>

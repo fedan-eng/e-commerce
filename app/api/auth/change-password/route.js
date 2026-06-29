@@ -111,7 +111,7 @@ export async function PUT(req) {
       display: flex;
       align-items: center;
       margin: 10px 0;
-      color: #555;
+      color: #fff;
     }
     .info-item span {
       margin-right: 10px;

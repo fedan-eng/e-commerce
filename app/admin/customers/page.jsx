@@ -55,7 +55,7 @@ export default function AdminCustomersPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <div className="text-[11px] tracking-[0.2em] text-[#555] uppercase mb-1.5">Management</div>
+        <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Management</div>
         <h1 className="m-0 text-[28px] font-bold text-[#e8e8e8] tracking-tight">
           Customers <span className="text-[#444] text-lg">({total})</span>
         </h1>
@@ -72,7 +72,7 @@ export default function AdminCustomersPage() {
           {ROLE_TABS.map(r => (
             <button key={r.key} onClick={() => { setRoleFilter(r.key); setPage(1); }}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase cursor-pointer border transition-all font-mono
-                ${roleFilter === r.key ? r.activeClass : "border-[#222] text-[#555] bg-transparent hover:border-[#333] hover:text-[#777]"}`}>
+                ${roleFilter === r.key ? r.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333] hover:text-[#777]"}`}>
               {r.label}
             </button>
           ))}
@@ -130,12 +130,12 @@ export default function AdminCustomersPage() {
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-[12px] text-[#555] whitespace-nowrap">
+                        <td className="px-5 py-3.5 text-[12px] text-[#fff] whitespace-nowrap">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <Link href={`/admin/customers/${user._id}`}
-                            className="text-[11px] text-[#555] no-underline tracking-[0.08em] px-2.5 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
+                            className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-2.5 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
                             VIEW
                           </Link>
                         </td>
@@ -196,7 +196,7 @@ export default function AdminCustomersPage() {
                       <span>{new Date(user.createdAt).toLocaleDateString()}</span>
                     </div>
                     <Link href={`/admin/customers/${user._id}`}
-                      className="text-[11px] text-[#555] no-underline tracking-[0.08em] px-3 py-1.5 border border-[#222] rounded hover:text-[#e8e8e8] hover:border-[#444] transition-all">
+                      className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-3 py-1.5 border border-[#222] rounded hover:text-[#e8e8e8] hover:border-[#444] transition-all">
                       VIEW →
                     </Link>
                   </div>

@@ -28,7 +28,7 @@ export default function AdminLayout({ children }) {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0a0a0a] text-[#555] font-mono text-sm tracking-widest">
+      <div className="flex items-center justify-center h-screen bg-[#0a0a0a] text-[#fff] font-mono text-sm tracking-widest">
         VERIFYING ACCESS...
       </div>
     );
@@ -50,7 +50,7 @@ export default function AdminLayout({ children }) {
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] tracking-[0.03em] no-underline transition-all duration-150 group
           ${active
             ? "bg-[#1c1c1c] text-[#e8e8e8] border-l-2 border-[#e8c46a] pl-[10px]"
-            : "text-[#555] border-l-2 border-transparent hover:text-[#999] hover:bg-[#161616]"
+            : "text-[#fff] border-l-2 border-transparent hover:text-[#999] hover:bg-[#161616]"
           }`}
       >
         <Icon size={15} className={`flex-shrink-0 transition-colors ${active ? "text-[#e8c46a]" : "text-[#444] group-hover:text-[#777]"}`} />
@@ -129,7 +129,7 @@ export default function AdminLayout({ children }) {
         <button
           onClick={() => setOpen(false)}
           className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center
-            text-[#555] hover:text-[#e8e8e8] transition-colors"
+            text-[#fff] hover:text-[#e8e8e8] transition-colors"
           aria-label="Close menu"
         >
           <X size={16} />

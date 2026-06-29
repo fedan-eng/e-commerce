@@ -85,7 +85,7 @@ export async function POST(req) {
     }
     .message {
       font-size: 15px;
-      color: #555;
+      color: #fff;
       margin-bottom: 30px;
     }
     .code-box {
@@ -123,7 +123,7 @@ export async function POST(req) {
     .info-box p {
       margin: 0;
       font-size: 14px;
-      color: #555;
+      color: #fff;
     }
     .footer {
       background-color: #f8f9fa;
@@ -182,7 +182,7 @@ export async function POST(req) {
         <p>If you didn't create an account with FIL Store, you can safely ignore this email.</p>
         
         <p>Once verified, you'll have access to:</p>
-        <ul style="color: #555; line-height: 2;">
+        <ul style="color: #fff; line-height: 2;">
           <li>✓ Exclusive deals and promotions</li>
           <li>✓ Order tracking and history</li>
           <li>✓ Faster checkout experience</li>

@@ -18,7 +18,7 @@ const STATUS_COLORS = {
 const TIMELINE_STEPS = ["Confirmed", "Processing", "Shipped", "Delivered"];
 const ALL_STATUSES   = ["Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase()] || "#555";
+const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase()] || "#fff";
 
 const getTotal = (order) => {
   if (order.total    != null) return parseFloat(order.total).toFixed(2);
@@ -57,7 +57,7 @@ function OrderTimeline({ currentStatus }) {
 
       {steps.map((s, i) => {
         const key        = s.toLowerCase();
-        const color      = STATUS_COLORS[key] || "#555";
+        const color      = STATUS_COLORS[key] || "#fff";
         const isActive   = key === norm;
         const isPast     = !isCancelled && stepIdx > i;
         const isCancStep = s === "Cancelled";

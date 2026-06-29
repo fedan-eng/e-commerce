@@ -89,7 +89,7 @@ export default function AdminCustomerDetailPage() {
     <div className="max-w-[960px]">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/admin/customers" className="text-[11px] text-[#555] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
+        <Link href="/admin/customers" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
           ← BACK TO CUSTOMERS
         </Link>
         <div className="mt-4 flex items-center gap-4">
@@ -97,7 +97,7 @@ export default function AdminCustomerDetailPage() {
             {initials}
           </div>
           <div>
-            <div className="text-[11px] tracking-[0.2em] text-[#555] uppercase mb-1">Customer</div>
+            <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1">Customer</div>
             <h1 className="m-0 text-[24px] font-bold text-[#e8e8e8] tracking-tight flex items-center flex-wrap gap-3">
               {fullName}
               {user.isActive === false && (
@@ -182,7 +182,7 @@ export default function AdminCustomerDetailPage() {
                                 {order.status}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-[12px] text-[#555] whitespace-nowrap">
+                            <td className="px-5 py-3 text-[12px] text-[#fff] whitespace-nowrap">
                               {new Date(order.createdAt).toLocaleDateString()}
                             </td>
                           </tr>
@@ -212,7 +212,7 @@ export default function AdminCustomerDetailPage() {
                             </span>
                             <span className="text-[11px] text-[#444]">{order.items?.length || 0} item(s)</span>
                           </div>
-                          <span className="text-[11px] text-[#555]">{new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span className="text-[11px] text-[#fff]">{new Date(order.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     );
@@ -283,12 +283,12 @@ export default function AdminCustomerDetailPage() {
             <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
               <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2.5">Quick Links</div>
               <a href={`mailto:${user.email}`}
-                className="block py-2 text-[12px] text-[#555] no-underline border-b border-[#161616] transition-colors hover:text-[#888]">
+                className="block py-2 text-[12px] text-[#fff] no-underline border-b border-[#161616] transition-colors hover:text-[#888]">
                 ✉ Email customer
               </a>
               {orders.length > 0 && (
                 <Link href={`/admin/orders?search=${user._id}`}
-                  className="block pt-2 text-[12px] text-[#555] no-underline transition-colors hover:text-[#888]">
+                  className="block pt-2 text-[12px] text-[#fff] no-underline transition-colors hover:text-[#888]">
                   ◈ View all orders
                 </Link>
               )}

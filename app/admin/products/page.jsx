@@ -111,7 +111,7 @@ export default function AdminProductsPage() {
     <div className="w-full max-w-full">
       {/* Header — stacks on mobile */}
       <div className="mb-6">
-        <div className="text-[10px] tracking-[0.2em] text-[#555] uppercase mb-1">Management</div>
+        <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1">Management</div>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h1 className="m-0 text-2xl font-bold text-[#e8e8e8] tracking-tight">
             Products <span className="text-[#444] text-base font-normal">({total})</span>
@@ -185,7 +185,7 @@ export default function AdminProductsPage() {
                                 {deleting === p._id ? "…" : "Confirm"}
                               </button>
                               <button onClick={() => setConfirmDelete(null)}
-                                className="text-[10px] text-[#555] bg-transparent border border-[#222] rounded px-2 py-1 cursor-pointer font-mono">
+                                className="text-[10px] text-[#fff] bg-transparent border border-[#222] rounded px-2 py-1 cursor-pointer font-mono">
                                 Cancel
                               </button>
                             </div>
@@ -213,7 +213,7 @@ export default function AdminProductsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] text-[#e8e8e8] truncate font-medium">{p.name}</div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[11px] text-[#555] capitalize">{p.category || "—"}</span>
+                    <span className="text-[11px] text-[#fff] capitalize">{p.category || "—"}</span>
                     <span className="text-[12px] text-[#e8e8e8] font-semibold">₦{p.price?.toFixed(2)}</span>
                     <span className={`text-[9px] uppercase px-1.5 py-px rounded border ${p.availability ? "text-[#6ae8a0] bg-[#6ae8a018] border-[#6ae8a033]" : "text-[#e86a6a] bg-[#e86a6a18] border-[#e86a6a33]"}`}>
                       {p.availability ? "In Stock" : "Out"}
@@ -232,7 +232,7 @@ export default function AdminProductsPage() {
                         {deleting === p._id ? "…" : "✓"}
                       </button>
                       <button onClick={() => setConfirmDelete(null)}
-                        className="text-[10px] text-[#555] bg-transparent border border-[#222] rounded px-2 py-1.5 cursor-pointer font-mono">✕</button>
+                        className="text-[10px] text-[#fff] bg-transparent border border-[#222] rounded px-2 py-1.5 cursor-pointer font-mono">✕</button>
                     </div>
                   ) : (
                     <button onClick={() => setConfirmDelete(p._id)}
@@ -269,7 +269,7 @@ export default function AdminProductsPage() {
             </button>
           </div>
           <div className="mb-4">
-            <p className="text-[10px] text-[#555] uppercase tracking-[0.12em] mb-1.5">Categories</p>
+            <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-1.5">Categories</p>
             <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               <div className="flex gap-2 pb-2 w-max">
                 {CATEGORIES.filter(c => !c.startsWith("is")).map(cat => (
@@ -281,7 +281,7 @@ export default function AdminProductsPage() {
                 ))}
               </div>
             </div>
-            <p className="text-[10px] text-[#555] uppercase tracking-[0.12em] mb-1.5 mt-3">Specials</p>
+            <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-1.5 mt-3">Specials</p>
             <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               <div className="flex gap-2 pb-1 w-max">
                 {CATEGORIES.filter(c => c.startsWith("is")).map(cat => (
@@ -299,7 +299,7 @@ export default function AdminProductsPage() {
 
           {sortableProducts.length > 0 && (
             <>
-              <p className="text-[10px] text-[#555] uppercase tracking-[0.12em] mb-2">Drag to reorder</p>
+              <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-2">Drag to reorder</p>
               <div className="flex flex-col gap-1.5">
                 {sortableProducts.map((p, idx) => (
                   <div key={p._id} draggable

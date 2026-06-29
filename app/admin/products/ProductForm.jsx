@@ -9,7 +9,7 @@ const TAG_COLORS  = {
   fast:     { text: "text-[#e8a06a]", border: "border-[#e8a06a77]", bg: "bg-[#e8a06a18]" },
   new:      { text: "text-[#6ae8a0]", border: "border-[#6ae8a077]", bg: "bg-[#6ae8a018]" },
   discount: { text: "text-[#6ab4e8]", border: "border-[#6ab4e877]", bg: "bg-[#6ab4e818]" },
-  "":       { text: "text-[#444]",    border: "border-[#2a2a2a]",   bg: "bg-transparent" },
+  "":       { text: "text-[#fff]",    border: "border-[#2a2a2a]",   bg: "bg-transparent" },
 };
 
 const INPUT_CLASS = "w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-md px-3.5 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono box-border";
@@ -34,13 +34,13 @@ function useDragSort(setter) {
 
 const Section = ({ title, children }) => (
   <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-3.5">
-    <div className="text-[9px] tracking-[0.22em] text-[#444] uppercase mb-5 font-semibold">{title}</div>
+    <div className="text-[9px] tracking-[0.22em] text-[#fff] uppercase mb-5 font-semibold">{title}</div>
     {children}
   </div>
 );
 
 const Label = ({ children }) => (
-  <div className="text-[9px] tracking-[0.18em] text-[#444] uppercase mb-1.5 font-semibold">{children}</div>
+  <div className="text-[9px] tracking-[0.18em] text-[#fff] uppercase mb-1.5 font-semibold">{children}</div>
 );
 
 const Field = ({ label, children, className = "" }) => (
@@ -61,7 +61,7 @@ const Checkbox = ({ label, checked, onChange, accentClass }) => (
 
 const AddBtn = ({ onClick, label }) => (
   <button type="button" onClick={onClick}
-    className="px-4 py-1.5 bg-transparent border border-dashed border-[#2a2a2a] rounded-md text-[#444] text-[11px] tracking-[0.1em] cursor-pointer transition-all mt-1.5 font-mono hover:border-[#555] hover:text-[#999]">
+    className="px-4 py-1.5 bg-transparent border border-dashed border-[#2a2a2a] rounded-md text-[#fff] text-[11px] tracking-[0.1em] cursor-pointer transition-all mt-1.5 font-mono hover:border-[#fff] hover:text-[#999]">
     + {label}
   </button>
 );
@@ -72,8 +72,8 @@ const IconBtn = ({ onClick, title, children, danger, disabled }) => (
       ${disabled
         ? "text-[#252525] cursor-default"
         : danger
-          ? "text-[#444] cursor-pointer hover:border-[#e86a6a55] hover:text-[#e86a6a] hover:bg-[#e86a6a0a]"
-          : "text-[#444] cursor-pointer hover:border-[#555] hover:text-[#bbb] hover:bg-[#1a1a1a]"
+          ? "text-[#fff] cursor-pointer hover:border-[#e86a6a55] hover:text-[#e86a6a] hover:bg-[#e86a6a0a]"
+          : "text-[#fff] cursor-pointer hover:border-[#fff] hover:text-[#bbb] hover:bg-[#1a1a1a]"
       }`}
   >{children}</button>
 );
@@ -90,7 +90,7 @@ const DragDots = () => (
 );
 
 const Badge = ({ n }) => (
-  <div className="min-w-[20px] h-5 rounded bg-[#161616] border border-[#1e1e1e] flex items-center justify-center text-[9px] text-[#444] font-bold flex-shrink-0 px-1">{n}</div>
+  <div className="min-w-[20px] h-5 rounded bg-[#161616] border border-[#1e1e1e] flex items-center justify-center text-[9px] text-[#fff] font-bold flex-shrink-0 px-1">{n}</div>
 );
 
 const Thumb = ({ url }) => (
@@ -115,7 +115,7 @@ const SortRow = ({ dragH, i, total, onUp, onDown, onRemove, children }) => {
       onDragLeave={() => setOver(false)}
       onDragEnd={(e) => { h.onDragEnd(e); setOver(false); }}
       className={`flex gap-1.5 items-center mb-1.5 px-1.5 py-1 rounded-lg border transition-all
-        ${over ? "border-[#444] bg-[#161616]" : "border-transparent bg-transparent"}`}
+        ${over ? "border-[#fff] bg-[#161616]" : "border-transparent bg-transparent"}`}
     >
       <DragDots />
       <Badge n={i + 1} />
@@ -138,7 +138,7 @@ const ColorImageRow = ({ img, ii, total, onUpdate, onMoveUp, onMoveDown, onRemov
       onDragLeave={() => setOver(false)}
       onDragEnd={(e) => { ih.onDragEnd(e); setOver(false); }}
       className={`flex gap-1.5 items-center mb-1.5 px-1 py-1 rounded-md border transition-all
-        ${over ? "border-[#555] bg-[#1a1a1a]" : "border-transparent bg-transparent"}`}
+        ${over ? "border-[#fff] bg-[#1a1a1a]" : "border-transparent bg-transparent"}`}
     >
       <DragDots />
       <Badge n={ii + 1} />
@@ -162,12 +162,12 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
       onDragEnter={() => { ch.onDragEnter(); setCardOver(true); }}
       onDragLeave={() => setCardOver(false)}
       onDragEnd={(e) => { ch.onDragEnd(e); setCardOver(false); }}
-      className={`border rounded-lg p-4 mb-2.5 transition-all ${cardOver ? "bg-[#141414] border-[#444]" : "bg-[#0c0c0c] border-[#1e1e1e]"}`}
+      className={`border rounded-lg p-4 mb-2.5 transition-all ${cardOver ? "bg-[#141414] border-[#fff]" : "bg-[#0c0c0c] border-[#1e1e1e]"}`}
     >
       <div className="flex justify-between items-center mb-3.5">
         <div className="flex items-center gap-2">
           <DragDots />
-          <span className="text-[9px] tracking-[0.18em] text-[#444] uppercase font-semibold">
+          <span className="text-[9px] tracking-[0.18em] text-[#fff] uppercase font-semibold">
             Variant {ci + 1}{color.name ? ` — ${color.name}` : ""}
           </span>
         </div>
@@ -335,7 +335,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
               return (
                 <button key={t} type="button" onClick={() => setForm(p => ({ ...p, tag: t }))}
                   className={`px-3.5 py-1.5 rounded-full cursor-pointer text-[11px] tracking-[0.1em] uppercase border transition-all font-mono
-                    ${active ? `${c.text} ${c.border} ${c.bg} font-bold` : "text-[#444] border-[#1e1e1e] bg-transparent hover:text-[#666] hover:border-[#333]"}`}>
+                    ${active ? `${c.text} ${c.border} ${c.bg} font-bold` : "text-[#fff] border-[#1e1e1e] bg-transparent hover:text-[#666] hover:border-[#333]"}`}>
                   {t === "" ? "None" : t}
                 </button>
               );
@@ -370,7 +370,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Secondary Images */}
       <Section title="Secondary Images">
-        <div className="text-[11px] text-[#444] mb-2.5">Gallery thumbnails shown on the product page.</div>
+        <div className="text-[11px] text-[#fff] mb-2.5">Gallery thumbnails shown on the product page.</div>
         <DragTip />
         {secondaryImages.map((url, i) => (
           <SortRow key={i} dragH={secDrag} i={i} total={secondaryImages.length}
@@ -385,7 +385,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Color Variants */}
       <Section title="Color Variants">
-        <div className="text-[11px] text-[#444] mb-2.5">Each color has a name and its own set of images. Drag cards to reorder.</div>
+        <div className="text-[11px] text-[#fff] mb-2.5">Each color has a name and its own set of images. Drag cards to reorder.</div>
         {colors.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No color variants yet.</div>}
         {colors.map((color, ci) => (
           <ColorCard key={ci} color={color} ci={ci} totalColors={colors.length}
@@ -417,7 +417,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Box Content */}
       <Section title="Box Contents (optional)">
-        <div className="text-[11px] text-[#444] mb-2.5">What's included in the box — each item with quantity.</div>
+        <div className="text-[11px] text-[#fff] mb-2.5">What's included in the box — each item with quantity.</div>
         {boxContent.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No box items yet.</div>}
         {boxContent.length > 1 && <DragTip />}
         {boxContent.map((b, i) => (
@@ -449,7 +449,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       <button onClick={handleSubmit} disabled={saving || success}
         className={`w-full py-3.5 border-none rounded-lg text-[11px] tracking-[0.18em] uppercase font-bold cursor-pointer transition-all font-mono
           ${success  ? "bg-[#1a2e1a] text-[#6ae8a0] cursor-default"
-          : saving   ? "bg-[#141414] text-[#444] cursor-default"
+          : saving   ? "bg-[#141414] text-[#fff] cursor-default"
           : "bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#d4b05e]"}`}
         style={{ boxShadow: (!saving && !success) ? "0 0 24px #e8c46a22" : "none" }}>
         {success ? "✓ Saved — Redirecting..." : saving ? "Saving..." : isEdit ? "Save Changes" : "Create Product"}

@@ -81,7 +81,7 @@ export async function GET() {
     }
     .message {
       font-size: 16px;
-      color: #555;
+      color: #fff;
       margin-bottom: 30px;
     }
     .product-box {
@@ -152,7 +152,7 @@ export async function GET() {
       display: flex;
       align-items: center;
       margin: 10px 0;
-      color: #555;
+      color: #fff;
     }
     .support-icon {
       font-size: 20px;
@@ -219,14 +219,14 @@ export async function GET() {
       </div>
       
       <div style="text-align: center; margin: 30px 0;">
-        <p style="font-size: 16px; color: #555; line-height: 1.8;">
+        <p style="font-size: 16px; color: #fff; line-height: 1.8;">
           We'd love to hear how your experience has been so far. Your voice not only helps us improve — it helps us care better for every member of our FIL family.
         </p>
       </div>
       
       <div class="support-box">
         <h3>💬 We're Here For You</h3>
-        <p style="margin: 0 0 15px 0; color: #555;">
+        <p style="margin: 0 0 15px 0; color: #fff;">
           Our support doesn't end after delivery. We're here whenever you need us:
         </p>
         <div class="support-item">
@@ -241,7 +241,7 @@ export async function GET() {
           <span class="support-icon">💡</span>
           <span>Get quick tips and guidance</span>
         </div>
-        <p style="margin: 15px 0 0 0; color: #555; font-size: 14px;">
+        <p style="margin: 15px 0 0 0; color: #fff; font-size: 14px;">
           Whether it's for guidance, quick tips, or just to listen — we're only a message away.
         </p>
       </div>

@@ -26,7 +26,7 @@ const ActionBtn = ({ onClick, label, color, disabled, loading }) => {
     "#e8c46a": "border-[#e8c46a44] text-[#e8c46a] hover:bg-[#e8c46a12]",
     "#888":    "border-[#88888844] text-[#888]    hover:bg-[#88888812]",
     "#e86a6a": "border-[#e86a6a44] text-[#e86a6a] hover:bg-[#e86a6a12]",
-    "#555":    "border-[#55555544] text-[#555]    hover:bg-[#55555512]",
+    "#fff":    "border-[#fff55544] text-[#fff]    hover:bg-[#fff55512]",
   };
   return (
     <button
@@ -148,7 +148,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
           >
             {review.product?.name || "Unknown Product"}
           </Link>
-          <div className="text-[10px] text-[#555] mt-0.5 truncate">
+          <div className="text-[10px] text-[#fff] mt-0.5 truncate">
             by <span className="text-[#777]">{userName}</span>
           </div>
         </div>
@@ -165,7 +165,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       {rating !== null && (
         <div className="flex items-center gap-2 mb-3">
           {renderStars(rating)}
-          <span className="text-[10px] text-[#555]">
+          <span className="text-[10px] text-[#fff]">
             {rating}/5 
           </span>
         </div>
@@ -187,7 +187,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
               onClick={handleSave}
               disabled={savingEdit || !editText.trim()}
               className={`px-4 py-1.5 rounded text-[10px] tracking-[0.1em] uppercase font-bold border-none cursor-pointer font-mono
-                ${savingEdit ? "bg-[#1a1a1a] text-[#555]" : "bg-[#e8c46a] text-[#0a0a0a]"}`}
+                ${savingEdit ? "bg-[#1a1a1a] text-[#fff]" : "bg-[#e8c46a] text-[#0a0a0a]"}`}
             >
               {savingEdit ? "Saving…" : "Save"}
             </button>
@@ -216,12 +216,12 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-[#6ae8a0]">▲</span>
-          <span className="text-[11px] text-[#555]">{likeCount}</span>
+          <span className="text-[11px] text-[#fff]">{likeCount}</span>
           <span className="text-[9px] text-[#3a3a3a] tracking-wide">helpful</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-[#e86a6a]">▼</span>
-          <span className="text-[11px] text-[#555]">{dislikeCount}</span>
+          <span className="text-[11px] text-[#fff]">{dislikeCount}</span>
           <span className="text-[9px] text-[#3a3a3a] tracking-wide">not helpful</span>
         </div>
       </div>
@@ -247,7 +247,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
           <div className="flex gap-1.5 items-center flex-wrap">
             <span className="text-[10px] text-[#e86a6a]">Delete?</span>
             <ActionBtn onClick={handleDelete}                  label="Yes" color="#e86a6a" loading={actioning === "delete"} />
-            <ActionBtn onClick={() => setConfirmDelete(false)} label="No"  color="#555" />
+            <ActionBtn onClick={() => setConfirmDelete(false)} label="No"  color="#fff" />
           </div>
         ) : (
           <ActionBtn onClick={() => setConfirmDelete(true)} label="Delete" color="#e86a6a"
@@ -352,7 +352,7 @@ export default function AdminReviewsPage() {
     <div className="w-full max-w-full">
       {/* Header */}
       <div className="mb-5">
-        <div className="text-[10px] tracking-[0.2em] text-[#555] uppercase mb-1">Management</div>
+        <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1">Management</div>
         <h1 className="m-0 text-2xl font-bold text-[#e8e8e8] tracking-tight">
           Reviews <span className="text-[#444] text-base font-normal">({total})</span>
         </h1>
@@ -377,7 +377,7 @@ export default function AdminReviewsPage() {
                 key={tab.key}
                 onClick={() => { setStatusFilter(tab.key); setPage(1); }}
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-[0.08em] uppercase cursor-pointer border transition-all font-mono
-                  ${isActive ? tab.activeClass : "border-[#222] text-[#555] bg-transparent hover:border-[#333]"}`}
+                  ${isActive ? tab.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333]"}`}
               >
                 {tab.label}
                 {tab.count != null && (

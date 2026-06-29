@@ -86,9 +86,9 @@ export async function POST(req) {
         </div>
         <div style="padding:30px;color:#333;line-height:1.8;">
           <p style="font-size:16px;">Hi <strong>${name}</strong>,</p>
-          <p style="color:#555;">Thank you for reaching out. We've received your ${inquiryType === "redress" ? "complaint" : inquiryType === "suggestion" ? "suggestion" : "message"} and our team will get back to you within <strong>24–48 hours</strong>.</p>
-          ${orderId ? `<p style="color:#555;">This is regarding order <strong>#${orderId}</strong>.</p>` : ""}
-          <p style="color:#555;">In the meantime, feel free to browse our store or check your order status.</p>
+          <p style="color:#fff;">Thank you for reaching out. We've received your ${inquiryType === "redress" ? "complaint" : inquiryType === "suggestion" ? "suggestion" : "message"} and our team will get back to you within <strong>24–48 hours</strong>.</p>
+          ${orderId ? `<p style="color:#fff;">This is regarding order <strong>#${orderId}</strong>.</p>` : ""}
+          <p style="color:#fff;">In the meantime, feel free to browse our store or check your order status.</p>
           <div style="text-align:center;margin:24px 0;">
             <a href="https://filstore.com.ng/products" style="display:inline-block;background:linear-gradient(135deg,#1cc978,#16a05f);color:#fff;padding:12px 32px;text-decoration:none;border-radius:30px;font-weight:700;font-size:14px;">Continue Shopping</a>
           </div>

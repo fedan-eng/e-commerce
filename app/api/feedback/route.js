@@ -92,7 +92,7 @@ export async function POST(req) {
       font-size: 18px;
     }
     .comment-text {
-      color: #555;
+      color: #fff;
       font-size: 15px;
       line-height: 1.8;
       font-style: italic;
@@ -109,7 +109,7 @@ export async function POST(req) {
       margin: 20px 0;
       border-radius: 5px;
       font-size: 14px;
-      color: #555;
+      color: #fff;
     }
     .timestamp {
       text-align: center;

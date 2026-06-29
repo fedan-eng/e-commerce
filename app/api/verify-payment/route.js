@@ -356,7 +356,7 @@ export async function POST(req) {
     }
     .message {
       font-size: 15px;
-      color: #555;
+      color: #fff;
       margin-bottom: 30px;
     }
     .order-box {
@@ -382,7 +382,7 @@ export async function POST(req) {
     }
     .order-detail-label {
       font-weight: 600;
-      color: #555;
+      color: #fff;
     }
     .order-detail-value {
       color: #333;
