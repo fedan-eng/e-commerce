@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatAmount } from "@/lib/utils";
 import AddToCartButton from "./AddToCart";
 import WishlistButton from "@/components/WishlistButton";
+import { useGAEvent } from "@/hooks/useGAEvent";
 
 const ProductCard = ({
   productName,
@@ -19,6 +20,18 @@ const ProductCard = ({
   className = "",
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { trackEvent } = useGAEvent();
+
+  const handleProductClick = () => {
+    trackEvent("select_item", {
+      items: [{
+        item_id: product._id,
+        item_name: product.name,
+        price: product.price,
+        category: productCategory,
+      }]
+    });
+  };
 
   const discountPercentage = Math.round(
     ((originalPrice - productPrice) / originalPrice) * 100
@@ -40,6 +53,7 @@ const ProductCard = ({
   return (
     <Link
       href={`/products/${product._id}`}
+      onClick={handleProductClick}
       className={`relative flex flex-col justify-between rounded-md w-[163px] sm:w-[273px]  ${className}`}
     >
       <div className="bottom-0 left-1/2 absolute bg-bright rounded-tl-[200px] rounded-tr-[200px] rounded-bl-md rounded-br-md w-[163px] sm:w-[273px] h-[185px] sm:h-[260px] -translate-x-1/2 transform"></div>

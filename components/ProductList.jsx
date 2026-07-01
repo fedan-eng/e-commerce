@@ -21,6 +21,7 @@ import {MdNavigateNext} from "react-icons/md";
 import {MdKeyboardDoubleArrowRight} from "react-icons/md";
 import RecentlyViewed from "./RecentlyViewed";
 import FAQ from "./FAQ";
+import { useGAEvent } from "@/hooks/useGAEvent";
 
 function ProductListInner() {
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,18 @@ function ProductListInner() {
   const [isLargeScreenTwo, setIsLargeScreenTwo] = useState(false);
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
+  const { trackEvent } = useGAEvent();
+
+  const handleProductClick = (product) => {
+    trackEvent("select_item", {
+      items: [{
+        item_id: product._id,
+        item_name: product.name,
+        price: product.price,
+        category: product.category,
+      }]
+    });
+  };
 
   const {
     items: products,
@@ -187,6 +200,7 @@ function ProductListInner() {
                   <Link
                     className="relative"
                     href={`/products/${product._id}`}
+                    onClick={() => handleProductClick(product)}
                     title={`View ${product.name}`}
                   >
                     <div className="xs:top-4 relative flex justify-between items-center xs:mr-4 px-2">
