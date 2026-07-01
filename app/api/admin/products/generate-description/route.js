@@ -6,12 +6,9 @@ const MAX_WORDS = 120;
 const MIN_WORDS = 80;
 
 const MODELS = [
-  "mistralai/mistral-7b-instruct:free",
-  "mistralai/mistral-small-3.2-24b-instruct:free",
-  "qwen/qwen3-8b:free",
-  "microsoft/phi-3-mini-128k-instruct:free",
-  "tngtech/deepseek-r1t-chimera:free",
-  "moonshotai/kimi-dev-72b:free",
+  "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "deepseek/deepseek-r1-0528:free",
 ];
 
 // ─── SEO KEYWORDS GENERATOR ──────────────────────────────────────────────────
