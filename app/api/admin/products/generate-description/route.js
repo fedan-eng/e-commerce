@@ -65,6 +65,11 @@ Output ONLY the description. No labels, no thinking, no extra text.`;
     }
 
     const data = await res.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+      throw new Error("Invalid API response: no content returned");
+    }
+    
     let raw = data.choices[0].message.content.trim();
 
     // Strip markdown
