@@ -4,12 +4,14 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "@/store/features/cartSlice";
 import { useState } from "react";
 import { useGAEvent } from "@/hooks/useGAEvent";
+import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 
 const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
   const dispatch = useDispatch();
   const [notification, setNotification] = useState("");
   const [notificationColor, setNotificationColor] = useState("");
   const { trackEvent } = useGAEvent();
+  const { trackAddToCart } = useTikTokEvent();
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
       })
     );
 
+    // Track Google Analytics event
     trackEvent("add_to_cart", {
       items: [{
         item_id: product._id,
@@ -35,6 +38,9 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
         quantity: 1,
       }]
     });
+
+    // Track TikTok AddToCart event
+    trackAddToCart(product, 1);
 
     showNotification("Added to cart", "bg-green-600");
   };

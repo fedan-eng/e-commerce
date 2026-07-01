@@ -8,6 +8,7 @@ import {useState, useEffect, useRef} from "react";
 import {useRouter} from "next/navigation";
 import axios from "axios";
 import {formatAmount} from "@/lib/utils";
+import {useTikTokEvent} from "@/hooks/useTikTokEvent";
 
 const categories = [
   {name: "Power Banks", image: "/powerbanks.png", link: "/products?categories=Power Bank"},
@@ -30,6 +31,7 @@ const NavSearchTooltip = () => {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
   const router = useRouter();
+  const { trackSearch } = useTikTokEvent();
 
   useEffect(() => {
     const handler = (e) => {
@@ -70,6 +72,10 @@ const NavSearchTooltip = () => {
   const handleViewAll = () => {
     const term = searchTerm.trim();
     if (!term) return;
+    
+    // Track TikTok Search event
+    trackSearch(term, results.length);
+    
     setOpen(false);
     setSearchTerm("");
     setResults([]);

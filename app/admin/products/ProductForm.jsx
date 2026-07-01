@@ -381,28 +381,34 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         <Field label="Description">
           <div className="flex gap-2 mb-1.5">
             <button
-              type="button"
-              onClick={generateDescription}
-              disabled={generating || !form.name || !form.category}
-              className="px-3 py-1.5 bg-[#6ab4e8] border border-[#6ab4e8] rounded-md text-[#0a0a0a] text-[11px] tracking-[0.1em] uppercase font-bold cursor-pointer transition-all font-mono hover:bg-[#5aa0d8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-              {generating ? (
-                <>
-                  <span className="animate-spin">⟳</span>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <span>✨</span>
-                  AI Generate
-                </>
-              )}
-            </button>
-            {form.description && (
-              <span className="text-[10px] text-[#666] flex items-center">
-                {form.description.length} chars
-              </span>
-            )}
+  type="button"
+  onClick={generateDescription}
+  disabled={generating || !form.name || !form.category}
+  className={`
+    relative inline-flex items-center gap-2 px-4 h-[34px] rounded-md font-mono
+    text-[11px] font-bold tracking-[0.12em] uppercase transition-all duration-200
+    border overflow-hidden cursor-pointer
+    disabled:opacity-35 disabled:cursor-not-allowed active:scale-[0.98]
+    ${form.description
+      ? 'border-[#6ae8a055] text-[#6ae8a0] bg-[#001a0d] hover:border-[#6ae8a0aa] hover:bg-[#002a15]'
+      : 'border-[#e8c46a55] text-[#e8c46a] bg-[#1a1500] hover:border-[#e8c46aaa] hover:bg-[#211a00]'
+    }
+  `}
+>
+  <span
+    className={`text-[13px] leading-none flex-shrink-0 ${generating ? 'animate-spin' : ''}`}
+  >
+    {generating ? '⟳' : '✦'}
+  </span>
+  <span className="leading-none">
+    {generating ? 'Generating...' : form.description ? 'Improve' : 'AI Generate'}
+  </span>
+  {form.description && !generating && (
+    <span className="text-[10px] font-normal opacity-50 ml-1">
+      {form.description.length}chars
+    </span>
+  )}
+</button>
           </div>
           <textarea value={form.description} onChange={set("description")} placeholder="Product description..." rows={5}
             className={`${INPUT_CLASS} resize-y leading-relaxed`} />

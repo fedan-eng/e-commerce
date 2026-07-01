@@ -1,4 +1,3 @@
-// app/api/admin/products/generate-description/route.js
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -16,8 +15,12 @@ export async function POST(request) {
       ? `Key features: ${features.join(", ")}.`
       : "";
 
-    const prompt = existingDescription
-      ? `Improve this product description to be more SEO-optimized, engaging, and professional.
+    const systemPrompt = `You are an e-commerce SEO copywriter. Output ONLY a concise product description. No thinking, no labels, no markdown, no filler. Just the description.`;
+
+    const userPrompt = existingDescription
+      ? `Rewrite this product description. Keep it concise (80-120 words), SEO-optimized, and easy to read.
+
+Include these keywords naturally: fast charging in Nigeria, USB-C, ${category}, affordable, reliable.
 
 Product: ${name}
 Category: ${category}
@@ -27,15 +30,17 @@ ${featuresText}
 Current description:
 ${existingDescription}
 
-Return only the improved description, no preamble.`
-      : `Generate a compelling, SEO-optimized product description.
+Output ONLY the rewritten description. No labels, no thinking, no extra text.`
+      : `Write a concise product description (80-120 words). Make it SEO-optimized and easy to read.
+
+Include these keywords naturally: fast charging in Nigeria, USB-C, ${category}, affordable, reliable.
 
 Product: ${name}
 Category: ${category}
 Price: ₦${price}
 ${featuresText}
 
-Return only the description (150-250 words), no preamble.`;
+Output ONLY the description. No labels, no thinking, no extra text.`;
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -45,13 +50,10 @@ Return only the description (150-250 words), no preamble.`;
         "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-8b-instruct:free", // free tier
+        model: "openrouter/free",
         messages: [
-          {
-            role: "system",
-            content: "You are an expert e-commerce copywriter. Write SEO-optimized product descriptions that convert. Return only the description text, nothing else.",
-          },
-          { role: "user", content: prompt },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
         ],
         max_tokens: 500,
       }),
@@ -63,7 +65,38 @@ Return only the description (150-250 words), no preamble.`;
     }
 
     const data = await res.json();
-    const description = data.choices[0].message.content.trim();
+    let raw = data.choices[0].message.content.trim();
+
+    // Strip markdown
+    raw = raw
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/^#+\s+/gm, "")
+      .replace(/^[-•]\s+/gm, "")
+      .replace(/`([^`]*)`/g, "$1");
+
+    // Remove reasoning/planning lines — anything that looks like internal thought
+    const reasoningPatterns = [
+      /^(okay|alright|sure|let me|i (need|will|should|must|have to)|we need|we must|we (can|should)|let's|now,|so,|first,|next,|then,|finally,|note:|output:|result:|here (is|are)|paragraph \d|hook:|benefit:|specs:|compat)/i,
+      /^\d+\.\s/,           // numbered list lines
+      /^-{2,}/,             // separator lines
+      /word count:/i,
+      /structure:/i,
+      /aim for/i,
+    ];
+
+    const lines = raw.split("\n");
+    const cleaned = lines.filter(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return true; // keep blank lines (paragraph breaks)
+      return !reasoningPatterns.some(p => p.test(trimmed));
+    });
+
+    // Collapse multiple blank lines, trim
+    const description = cleaned
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
 
     return NextResponse.json({ description, source: "openrouter" });
   } catch (error) {
