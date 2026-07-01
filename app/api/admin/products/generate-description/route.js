@@ -42,21 +42,38 @@ function trimToWordLimit(text, maxWords) {
 }
 
 function cleanDescription(raw) {
+  // 1. Remove reasoning blocks
   raw = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+
+  // 2. Remove markdown formatting
   raw = raw
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/\*(.*?)\*/g, "$1")
     .replace(/^#+\s+/gm, "")
     .replace(/^[-•]\s+/gm, "")
     .replace(/`([^`]*)`/g, "$1");
+
+  // 3. Remove labels
   raw = raw.replace(/^Paragraph\s*\d+\s*:\s*/gim, "");
   raw = raw.replace(/^Count:.*$/gim, "");
   raw = raw.replace(/=>.*$/gim, "");
 
+  // 4. ✅ REMOVE word-count tokens like "the2", "power6", "10,000mAh5"
+  //    Pattern: word immediately followed by digits (no space)
+  raw = raw.replace(/\b([A-Za-z][A-Za-z'‑-]*|[\d,\.]+[A-Za-z]+)\d+\b/g, "");
+
+  // 5. ✅ REMOVE stray numbered tokens like " 27 " between words
+  raw = raw.replace(/\s+\d+\s+/g, " ");
+
+  // 6. Filter meta-talk lines
   const metaPatterns = [
     /^(okay|alright|sure|let me|here (is|are))/i,
     /^(note:|output:|result:|description:)/i,
-    /^paragraph/i, /^~?\d+\s*words/i,
+    /^paragraph/i,
+    /^~?\d+\s*words/i,
+    /^count:/i,
+    /^word count/i,
+    /^total/i,
   ];
 
   const lines = raw.split("\n").filter((line) => {
@@ -65,7 +82,20 @@ function cleanDescription(raw) {
     return !metaPatterns.some((p) => p.test(t));
   });
 
-  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  let cleaned = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+
+  // 7. ✅ STRIP surrounding quotes (both straight and curly)
+  cleaned = cleaned.replace(/^["“”'']+|["“”'']+$/g, "").trim();
+
+  // 8. ✅ EXTRACT only the first clean paragraph block
+  //    This kills any counting text that follows the description
+  const blocks = cleaned.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  
+  //    Return the FIRST substantial block (the actual description)
+  //    Word-counting garbage usually appears as a separate block
+  const firstBlock = blocks.find((b) => b.length > 50 && !/\w+\d+\s/.test(b));
+  
+  return firstBlock || blocks[0] || cleaned;
 }
 
 export async function POST(request) {
@@ -95,7 +125,7 @@ ${featuresText}
 Current description:
 ${existingDescription}
 
-Output ONLY the rewritten description.`
+Output ONLY the rewritten description. Do NOT wrap it in quotes. Do NOT count words. Do NOT explain anything.`
       : `You are an e-commerce SEO copywriter. Write a product description in ${MIN_WORDS}-${MAX_WORDS} words. Plain text only, no labels, no markdown, no thinking.
 
 Include these keywords naturally: ${seoKeywords}.
@@ -105,7 +135,7 @@ Category: ${category}
 Price: ₦${price}
 ${featuresText}
 
-Output ONLY the description.`;
+Output ONLY the description. Do NOT wrap it in quotes. Do NOT count words. Do NOT explain anything.`;
 
     const res = await fetchWithTimeout(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
