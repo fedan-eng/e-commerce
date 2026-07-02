@@ -4,9 +4,16 @@ const TIMEOUT_MS = 30000;
 const MAX_WORDS = 120;
 const MIN_WORDS = 80;
 
+// ✅ Fallback chain — tries next if one is rate-limited
+const GEMINI_MODELS = [
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-8b",
+  "gemini-2.0-flash",
+];
+
 function getSeoKeywords(category) {
   const cleanCategory = category.trim();
-
   if (["Power Bank", "Chargers"].includes(cleanCategory)) {
     return `fast charging in Nigeria, USB-C, ${cleanCategory}, affordable, reliable`;
   }
@@ -32,6 +39,58 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   }
 }
 
+async function callGeminiWithFallback(prompt) {
+  const errors = [];
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      console.log(`🔄 Trying model: ${model}`);
+
+      const res = await fetchWithTimeout(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500,
+            },
+          }),
+        },
+        TIMEOUT_MS
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        const reason = data.error?.message || `HTTP ${res.status}`;
+        console.warn(`⚠️ ${model} failed: ${reason.slice(0, 100)}`);
+        errors.push({ model, reason });
+        continue;
+      }
+
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!content) {
+        console.warn(`⚠️ ${model} returned empty content`);
+        errors.push({ model, reason: "Empty content" });
+        continue;
+      }
+
+      console.log(`✅ Success with: ${model}`);
+      return { content, model };
+    } catch (err) {
+      console.warn(`⚠️ ${model} error: ${err.message}`);
+      errors.push({ model, reason: err.message });
+    }
+  }
+
+  throw new Error(
+    `All Gemini models failed or rate-limited. Last: ${errors[errors.length - 1]?.reason}`
+  );
+}
+
 function trimToWordLimit(text, maxWords) {
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text.trim();
@@ -42,10 +101,7 @@ function trimToWordLimit(text, maxWords) {
 }
 
 function cleanDescription(raw) {
-  // 1. Remove reasoning blocks
   raw = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-
-  // 2. Remove markdown formatting
   raw = raw
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/\*(.*?)\*/g, "$1")
@@ -53,27 +109,17 @@ function cleanDescription(raw) {
     .replace(/^[-•]\s+/gm, "")
     .replace(/`([^`]*)`/g, "$1");
 
-  // 3. Remove labels
   raw = raw.replace(/^Paragraph\s*\d+\s*:\s*/gim, "");
   raw = raw.replace(/^Count:.*$/gim, "");
   raw = raw.replace(/=>.*$/gim, "");
-
-  // 4. ✅ REMOVE word-count tokens like "the2", "power6", "10,000mAh5"
-  //    Pattern: word immediately followed by digits (no space)
   raw = raw.replace(/\b([A-Za-z][A-Za-z'‑-]*|[\d,\.]+[A-Za-z]+)\d+\b/g, "");
-
-  // 5. ✅ REMOVE stray numbered tokens like " 27 " between words
   raw = raw.replace(/\s+\d+\s+/g, " ");
 
-  // 6. Filter meta-talk lines
   const metaPatterns = [
     /^(okay|alright|sure|let me|here (is|are))/i,
     /^(note:|output:|result:|description:)/i,
-    /^paragraph/i,
-    /^~?\d+\s*words/i,
-    /^count:/i,
-    /^word count/i,
-    /^total/i,
+    /^paragraph/i, /^~?\d+\s*words/i, /^count:/i,
+    /^word count/i, /^total/i,
   ];
 
   const lines = raw.split("\n").filter((line) => {
@@ -83,18 +129,10 @@ function cleanDescription(raw) {
   });
 
   let cleaned = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-
-  // 7. ✅ STRIP surrounding quotes (both straight and curly)
   cleaned = cleaned.replace(/^["“”'']+|["“”'']+$/g, "").trim();
 
-  // 8. ✅ EXTRACT only the first clean paragraph block
-  //    This kills any counting text that follows the description
   const blocks = cleaned.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
-  
-  //    Return the FIRST substantial block (the actual description)
-  //    Word-counting garbage usually appears as a separate block
   const firstBlock = blocks.find((b) => b.length > 50 && !/\w+\d+\s/.test(b));
-  
   return firstBlock || blocks[0] || cleaned;
 }
 
@@ -137,34 +175,9 @@ ${featuresText}
 
 Output ONLY the description. Do NOT wrap it in quotes. Do NOT count words. Do NOT explain anything.`;
 
-    const res = await fetchWithTimeout(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          },
-        }),
-      },
-      TIMEOUT_MS
-    );
+    const { content, model: usedModel } = await callGeminiWithFallback(prompt);
 
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      throw new Error(data.error?.message || `HTTP ${res.status}`);
-    }
-
-    const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawContent) {
-      throw new Error("Empty response from Gemini");
-    }
-
-    let description = cleanDescription(rawContent);
+    let description = cleanDescription(content);
 
     if (description.split(/\s+/).length > MAX_WORDS) {
       description = trimToWordLimit(description, MAX_WORDS);
@@ -177,7 +190,7 @@ Output ONLY the description. Do NOT wrap it in quotes. Do NOT count words. Do NO
     return NextResponse.json({
       description,
       source: "gemini",
-      model: "gemini-2.0-flash",
+      model: usedModel,
       wordCount: description.split(/\s+/).length,
     });
   } catch (error) {
