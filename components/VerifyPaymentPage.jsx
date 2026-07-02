@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { useGAEvent } from "@/hooks/useGAEvent";
+import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 import { clearCart } from "@/store/features/cartSlice";
 import axios from "axios";
 import Loading from "@/components/Loading";
@@ -28,6 +29,7 @@ export default function VerifyPaymentPage() {
   const cartItems = useSelector((state) => state.cart.items || []);
   const user = useSelector((state) => state.auth.user || null);
   const { trackEvent } = useGAEvent();
+  const { trackPurchase } = useMetaPixelEvent();
   const hasVerified = useRef(false);
 
   // Get payment reference based on provider
@@ -96,7 +98,10 @@ useEffect(() => {
     value: orderValue,
     items: lineItems.length,
   });
-}, [orderDetails, trackEvent]);
+
+  // Track Meta Pixel Purchase event
+  trackPurchase(orderDetails, lineItems);
+}, [orderDetails, trackEvent, trackPurchase]);
 
   useEffect(() => {
     // Prevent double verification

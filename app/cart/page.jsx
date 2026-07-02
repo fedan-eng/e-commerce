@@ -5,6 +5,7 @@ import {useState, useEffect} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import { useGAEvent } from "@/hooks/useGAEvent";
+import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 import {
   removeFromCart,
   updateQuantity,
@@ -22,6 +23,7 @@ const CartPage = () => {
   const cartItems = useSelector((state) => state.cart.items);
   const user = useSelector((state) => state.auth.user);
   const { trackEvent } = useGAEvent();
+  const { trackInitiateCheckout } = useMetaPixelEvent();
 
   const [hasMounted, setHasMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -179,6 +181,9 @@ const handleQuantityChange = (id, color, value) => {
       });
 
       console.log("[GA DEBUG] begin_checkout event fired");
+
+      // Track Meta Pixel InitiateCheckout event
+      trackInitiateCheckout(cartItems, total);
 
       // Determine which API endpoint to use based on selected payment method
       const endpoint =

@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import { useTikTokEvent } from '@/hooks/useTikTokEvent';
+import { useMetaPixelEvent } from '@/hooks/useMetaPixelEvent';
 
 const BuyNow = ({ product, className }) => {
   const [loading, setLoading] = useState(false);
   const { user } = useSelector((state) => state.auth);
   
   const router = useRouter();
+  const { trackInitiateCheckout: trackTikTokInitiateCheckout } = useTikTokEvent();
+  const { trackInitiateCheckout: trackMetaInitiateCheckout } = useMetaPixelEvent();
 
   const handleBuyNow = async () => {
     // 1. Requirement: Must be logged in
@@ -37,15 +41,23 @@ const BuyNow = ({ product, className }) => {
     setLoading(true);
 
     try {
+      const cartItems = [{
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        quantity: 1,
+        image: product.image
+      }];
+
+      // Track TikTok InitiateCheckout event
+      trackTikTokInitiateCheckout(cartItems, product.price);
+
+      // Track Meta Pixel InitiateCheckout event
+      trackMetaInitiateCheckout(cartItems, product.price);
+
       const payload = {
-        cartItems: [{
-          _id: product._id,
-          name: product.name,
-          price: product.price,
-          category: product.category,
-          quantity: 1,
-          image: product.image
-        }],
+        cartItems,
         deliveryInfo: {
           firstName: user.firstName,
           email: user.email,

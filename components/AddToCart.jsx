@@ -5,13 +5,15 @@ import { addToCart } from "@/store/features/cartSlice";
 import { useState } from "react";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
+import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
 const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
   const dispatch = useDispatch();
   const [notification, setNotification] = useState("");
   const [notificationColor, setNotificationColor] = useState("");
   const { trackEvent } = useGAEvent();
-  const { trackAddToCart } = useTikTokEvent();
+  const { trackAddToCart: trackTikTokAddToCart } = useTikTokEvent();
+  const { trackAddToCart: trackMetaAddToCart } = useMetaPixelEvent();
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -40,7 +42,10 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
     });
 
     // Track TikTok AddToCart event
-    trackAddToCart(product, 1);
+    trackTikTokAddToCart(product, 1);
+
+    // Track Meta Pixel AddToCart event
+    trackMetaAddToCart(product, 1);
 
     showNotification("Added to cart", "bg-green-600");
   };

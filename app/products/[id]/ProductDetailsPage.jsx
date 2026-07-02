@@ -4,6 +4,7 @@ import {useEffect, useMemo, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useParams} from "next/navigation";
 import {useGAEvent} from "@/hooks/useGAEvent";
+import {useMetaPixelEvent} from "@/hooks/useMetaPixelEvent";
 import {addRecentlyViewed} from "@/store/features/recentlyViewedSlice";
 import {getProduct} from "@/store/features/productSlice";
 import AddToCartButton from "@/components/AddToCart";
@@ -96,6 +97,7 @@ export default function ProductDetailsPage() {
   const {single: product, loading, error} = useSelector((s) => s.products);
   const {user} = useSelector((s) => s.auth);
   const {trackEvent} = useGAEvent();
+  const {trackViewContent} = useMetaPixelEvent();
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -143,6 +145,12 @@ export default function ProductDetailsPage() {
       ],
     });
   }, [product?._id, product?.name, product?.price, trackEvent]);
+
+  // ── Meta Pixel ViewContent Tracking ───────────────────────────────────────
+  useEffect(() => {
+    if (!product?._id) return;
+    trackViewContent(product);
+  }, [product?._id, trackViewContent]);
 
   // ── Fetch Product ──────────────────────────────────────────────────────────
   useEffect(() => {
