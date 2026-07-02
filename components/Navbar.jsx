@@ -97,7 +97,7 @@ export default function Navbar() {
             <ArrivalTooltip />
             <li>
               <Link
-                href="/track"
+                href="/contact"
                 className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200"
               >
                 Bulk Order
