@@ -5,6 +5,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {useParams} from "next/navigation";
 import {useGAEvent} from "@/hooks/useGAEvent";
 import {useMetaPixelEvent} from "@/hooks/useMetaPixelEvent";
+import {useTikTokEvent} from "@/hooks/useTikTokEvent";
 import {addRecentlyViewed} from "@/store/features/recentlyViewedSlice";
 import {getProduct} from "@/store/features/productSlice";
 import AddToCartButton from "@/components/AddToCart";
@@ -97,7 +98,8 @@ export default function ProductDetailsPage() {
   const {single: product, loading, error} = useSelector((s) => s.products);
   const {user} = useSelector((s) => s.auth);
   const {trackEvent} = useGAEvent();
-  const {trackViewContent} = useMetaPixelEvent();
+  const {trackViewContent: trackMetaViewContent} = useMetaPixelEvent();
+  const {trackViewContent: trackTikTokViewContent} = useTikTokEvent();
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -149,8 +151,14 @@ export default function ProductDetailsPage() {
   // ── Meta Pixel ViewContent Tracking ───────────────────────────────────────
   useEffect(() => {
     if (!product?._id) return;
-    trackViewContent(product);
-  }, [product?._id, trackViewContent]);
+    trackMetaViewContent(product);
+  }, [product?._id, trackMetaViewContent]);
+
+  // ── TikTok ViewContent Tracking ───────────────────────────────────────────
+  useEffect(() => {
+    if (!product?._id) return;
+    trackTikTokViewContent(product);
+  }, [product?._id, trackTikTokViewContent]);
 
   // ── Fetch Product ──────────────────────────────────────────────────────────
   useEffect(() => {
