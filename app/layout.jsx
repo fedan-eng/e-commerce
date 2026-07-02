@@ -11,6 +11,7 @@ import CookieBanner from "@/components/CookieBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Oswald, Poppins, Roboto } from "next/font/google";
 import TiktokPageView from "@/components/TiktokPageView";
+import MetaPixel from "@/components/MetaPixel";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -55,6 +56,7 @@ export default function RootLayout({ children }) {
     >
       <body suppressHydrationWarning>
         <TiktokPixel />
+        <MetaPixel />
         <TiktokPageView /> 
         <ErrorBoundary>
           <CookieConsentProvider>
