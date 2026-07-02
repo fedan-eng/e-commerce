@@ -3,10 +3,12 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 
 export default function CheckoutButton() {
   const { items } = useSelector((state) => state.cart);
   const router = useRouter();
+  const { trackInitiateCheckout } = useTikTokEvent();
 
   const [user, setUser] = useState(null); // e.g., { email, address }
 
@@ -37,6 +39,12 @@ export default function CheckoutButton() {
         address = prompt("Enter your delivery address:");
         if (!email || !address) return alert("Email and address are required.");
       }
+
+      // Calculate total value for TikTok event
+      const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      // Track TikTok InitiateCheckout event
+      trackInitiateCheckout(items, totalValue);
 
       const res = await axios.post("/api/paystack", {
         items,

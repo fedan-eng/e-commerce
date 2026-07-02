@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
+import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { clearCart } from "@/store/features/cartSlice";
 import axios from "axios";
 import Loading from "@/components/Loading";
@@ -29,7 +30,8 @@ export default function VerifyPaymentPage() {
   const cartItems = useSelector((state) => state.cart.items || []);
   const user = useSelector((state) => state.auth.user || null);
   const { trackEvent } = useGAEvent();
-  const { trackPurchase } = useMetaPixelEvent();
+  const { trackPurchase: trackMetaPurchase } = useMetaPixelEvent();
+  const { trackPurchase: trackTikTokPurchase } = useTikTokEvent();
   const hasVerified = useRef(false);
 
   // Get payment reference based on provider
@@ -100,8 +102,11 @@ useEffect(() => {
   });
 
   // Track Meta Pixel Purchase event
-  trackPurchase(orderDetails, lineItems);
-}, [orderDetails, trackEvent, trackPurchase]);
+  trackMetaPurchase(orderDetails, lineItems);
+
+  // Track TikTok Purchase event
+  trackTikTokPurchase(lineItems, orderValue, txId);
+}, [orderDetails, trackEvent, trackMetaPurchase, trackTikTokPurchase]);
 
   useEffect(() => {
     // Prevent double verification
