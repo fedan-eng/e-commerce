@@ -27,6 +27,17 @@ function getDescription(product) {
   return `${product.name} - ${product.category} available at Filstore Nigeria`;
 }
 
+// Map Filstore categories to Google Product Category taxonomy
+function getGoogleProductCategory(category) {
+  const categoryMap = {
+    "Power Bank": "Electronics > Electronics Accessories > Power Banks",
+    "Wearables": "Electronics > Wearable Technology",
+    "Chargers": "Electronics > Electronics Accessories > Chargers",
+    "Lifestyle": "Apparel & Accessories",
+  };
+  return categoryMap[category] || "Electronics";
+}
+
 export async function GET(req) {
   try {
     await connectDB();
@@ -84,6 +95,7 @@ ${additionalImages ? additionalImages + "\n" : ""}${priceElement}${salePriceElem
       <g:condition>new</g:condition>
       <g:brand>${escapeXml(brand)}</g:brand>
       <g:product_type>${escapeXml(product.category || "")}</g:product_type>
+      <g:google_product_category>${escapeXml(getGoogleProductCategory(product.category))}</g:google_product_category>
       <g:mpn>${escapeXml(productId)}</g:mpn>
     </item>
 `;
