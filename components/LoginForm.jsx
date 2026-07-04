@@ -1,16 +1,19 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import ImageSlider from "./ImageSlider";
 import Link from "next/link";
 import Loading from "./Loading";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
+import { fetchUser } from "@/store/features/authSlice";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const dispatch = useDispatch();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +35,7 @@ export default function LoginForm() {
       const data = await res.json();
 
       if (res.ok) {
+        await dispatch(fetchUser());
         router.push("/products");
       } else {
         setError(data.message || "Invalid email or password");
@@ -146,9 +150,7 @@ export default function LoginForm() {
             <div className="">
               <button
                 type="submit"
-                className={`flex text-sm justify-center text-white text-center mt-6 ${
-                  loading ? "" : "  w-full bg-black rounded-md py-3"
-                } `}
+                className="flex text-sm justify-center text-white text-center mt-6 w-full bg-black rounded-md py-3 disabled:opacity-70 disabled:cursor-not-allowed"
                 disabled={loading}
               >
                 {loading ? <Loading /> : "Login"}

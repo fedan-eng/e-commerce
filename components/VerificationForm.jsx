@@ -85,9 +85,7 @@ const VerificationForm = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`flex text-sm justify-center text-white text-center mt-6 ${
-              isLoading ? "" : "  w-full bg-black rounded-md py-3"
-            } `}
+            className="flex text-sm justify-center text-white text-center mt-6 w-full bg-black rounded-md py-3 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? <Loading /> : "Verify"}
           </button>
