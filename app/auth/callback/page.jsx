@@ -3,13 +3,11 @@ export const dynamic = 'force-dynamic';
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { fetchUser } from "@/store/features/authSlice";
 import Loading from "@/components/Loading";
 
 export default function AuthCallback() {
-  const router = useRouter();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -35,12 +33,12 @@ export default function AuthCallback() {
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        router.push(redirectTo);
+        window.location.href = redirectTo;
       }
     };
 
     handleCallback();
-  }, [dispatch, router]);
+  }, [dispatch]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
