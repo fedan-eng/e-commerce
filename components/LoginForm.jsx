@@ -1,6 +1,6 @@
 "use client";
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import ImageSlider from "./ImageSlider";
 import Link from "next/link";
@@ -15,6 +15,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordRef = useRef(null);
+  const redirectTo = searchParams.get("redirect") || "/products";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ export default function LoginForm() {
 
       if (res.ok) {
         await dispatch(fetchUser());
-        router.push("/products");
+        router.push(redirectTo);
       } else {
         setError(data.message || "Invalid email or password");
       }
@@ -64,7 +66,6 @@ export default function LoginForm() {
     try {
       const result = await signIn("google", { 
         redirect: false,
-        callbackUrl: "/api/auth/google"
       });
 
       if (result?.error) {
@@ -73,19 +74,13 @@ export default function LoginForm() {
         return;
       }
 
-      // Call our backend API to handle the user creation and token
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        await dispatch(fetchUser());
-        router.push("/products");
-      } else {
-        setError(data.message || "Google authentication failed");
-      }
+      // Wait a moment for NextAuth session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // NextAuth handles the session automatically
+      // Just fetch the user and redirect
+      await dispatch(fetchUser());
+      router.push(redirectTo);
     } catch (err) {
       setError("Something went wrong with Google sign-in");
     } finally {

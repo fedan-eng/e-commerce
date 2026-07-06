@@ -17,7 +17,7 @@ export async function POST(req) {
 
   const resetCode = generateCode();
   const expiry = new Date(Date.now() + 10 * 60 * 1000);
-
+ 
   user.resetPasswordCode = resetCode;
   user.resetPasswordExpiry = expiry;
   await user.save();

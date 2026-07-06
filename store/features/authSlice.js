@@ -73,6 +73,26 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+// Google logout thunk
+export const logoutGoogleUser = createAsyncThunk(
+  "auth/logoutGoogleUser",
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      const { signOut } = await import("next-auth/react");
+      await signOut({ redirect: false });
+
+      // ── On logout, wipe the cart from localStorage ──────────────────────
+      dispatch(clearCart());
+      dispatch(clearWishlist());
+      // ────────────────────────────────────────────────────────────────────
+
+      return true;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 const initialState = {
   user: null,
   isAuthenticated: false,
@@ -130,6 +150,15 @@ const authSlice = createSlice({
         state.updateMessage = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(logoutGoogleUser.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = null;
+        state.updateMessage = null;
+      })
+      .addCase(logoutGoogleUser.rejected, (state, action) => {
         state.error = action.payload;
       });
   },

@@ -1,3 +1,3 @@
-import { handler } from "@/lib/nextauth";
+import { GET, POST } from "@/lib/nextauth";
 
-export { handler as GET, handler as POST };
+export { GET, POST };
