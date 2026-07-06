@@ -12,11 +12,21 @@ export async function GET(req) {
     // First, try to get NextAuth session (for Google login)
     const session = await getServerSession(handler);
     
+    console.log("/api/auth/me - Session check:", session ? "Session found" : "No session");
+    
     if (session && session.user) {
-      // User authenticated via NextAuth (Google)
-      const user = await User.findById(session.user.id).select("-password");
+      console.log("/api/auth/me - Session user:", session.user);
+      
+      // Try to get user by ID first, fall back to email if ID is missing
+      let user;
+      if (session.user.id) {
+        user = await User.findById(session.user.id).select("-password");
+      } else if (session.user.email) {
+        user = await User.findOne({ email: session.user.email }).select("-password");
+      }
       
       if (!user) {
+        console.log("/api/auth/me - User not found in DB for ID:", session.user.id, "or email:", session.user.email);
         return new Response(JSON.stringify({ message: "User not found" }), {
           status: 404,
           headers: { "Content-Type": "application/json" },
@@ -30,6 +40,7 @@ export async function GET(req) {
         });
       }
 
+      console.log("/api/auth/me - User found:", user.email);
       return new Response(
         JSON.stringify({
           message: "User authenticated",

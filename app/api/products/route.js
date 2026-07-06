@@ -43,7 +43,10 @@ export async function GET(req) {
   const query = {};
 
   if (search) {
-    query.name = { $regex: search, $options: "i" };
+    query.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
   }
 
   if (categories.length > 0) {

@@ -64,26 +64,13 @@ export default function LoginForm() {
     setGoogleLoading(true);
 
     try {
-      const result = await signIn("google", { 
-        redirect: false,
+      // Let NextAuth handle the OAuth flow and redirect
+      // The callback page will handle fetching user and redirecting
+      await signIn("google", { 
+        callbackUrl: redirectTo,
       });
-
-      if (result?.error) {
-        setError("Google sign-in failed");
-        setGoogleLoading(false);
-        return;
-      }
-
-      // Wait a moment for NextAuth session to be established
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // NextAuth handles the session automatically
-      // Just fetch the user and redirect
-      await dispatch(fetchUser());
-      router.push(redirectTo);
     } catch (err) {
       setError("Something went wrong with Google sign-in");
-    } finally {
       setGoogleLoading(false);
     }
   };
