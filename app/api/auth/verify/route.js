@@ -30,12 +30,14 @@ export async function POST(req) {
     );
   }
 
-  const { firstName } = pending;
+  const { firstName, lastName } = pending;
 
   await User.create({
     email: pending.email,
     password: pending.hashedPassword,
     isVerified: true,
+    firstName: firstName || "",
+    lastName: lastName || "",
   });
 
   const welcomeEmailHtml = `
