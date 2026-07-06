@@ -12,12 +12,15 @@ export async function POST(req) {
     const session = await getServerSession(handler);
     
     if (!session || !session.user) {
+      console.error("No session found in Google auth callback");
       return new Response(JSON.stringify({ message: "No session found" }), {
         status: 401,
       });
     }
 
     const { email, googleId, firstName, lastName } = session.user;
+ 
+    console.log("Google auth session:", { email, googleId, firstName, lastName });
 
     // Check if user exists
     let user = await User.findOne({ email });
@@ -28,6 +31,9 @@ export async function POST(req) {
         user.googleId = googleId;
         user.provider = "google";
         await user.save();
+        console.log("Updated existing user with Google ID");
+      } else {
+        console.log("User already has Google ID");
       }
     } else {
       // Create new user
@@ -39,6 +45,7 @@ export async function POST(req) {
         provider: "google",
         password: "", // No password for Google users
       });
+      console.log("Created new user from Google auth");
     }
 
     // Create JWT token
@@ -98,7 +105,7 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Google auth error:", error);
-    return new Response(JSON.stringify({ message: "Authentication failed" }), {
+    return new Response(JSON.stringify({ message: "Authentication failed", error: error.message }), {
       status: 500,
     });
   }

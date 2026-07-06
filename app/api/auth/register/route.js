@@ -17,7 +17,7 @@ export async function POST(req) {
       return new Response(
         JSON.stringify({ redirect: true, email }),
         { status: 200 }
-      );
+      ); 
     }
 
     // Code expired — delete the old record and allow re-registration
@@ -85,7 +85,7 @@ export async function POST(req) {
     }
     .message {
       font-size: 15px;
-      color: #fff;
+      color: #333;
       margin-bottom: 30px;
     }
     .code-box {
@@ -123,7 +123,7 @@ export async function POST(req) {
     .info-box p {
       margin: 0;
       font-size: 14px;
-      color: #fff;
+      color: #333;
     }
     .footer {
       background-color: #f8f9fa;

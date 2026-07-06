@@ -29,7 +29,7 @@ export async function GET() {
       
       const followUpEmailHtml = `
 <!DOCTYPE html>
-<html>
+<html> 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,11 +78,6 @@ export async function GET() {
       color: #333;
       margin-bottom: 20px;
       font-weight: 600;
-    }
-    .message {
-      font-size: 16px;
-      color: #fff;
-      margin-bottom: 30px;
     }
     .product-box {
       background-color: #f8f9fa;
@@ -148,15 +143,15 @@ export async function GET() {
       color: #1565c0;
       font-size: 18px;
     }
+    .support-icon {
+      font-size: 20px;
+      margin-right: 10px;
+    }
     .support-item {
       display: flex;
       align-items: center;
       margin: 10px 0;
-      color: #fff;
-    }
-    .support-icon {
-      font-size: 20px;
-      margin-right: 10px;
+      color: #333;
     }
     .footer {
       background-color: #f8f9fa;
@@ -219,14 +214,14 @@ export async function GET() {
       </div>
       
       <div style="text-align: center; margin: 30px 0;">
-        <p style="font-size: 16px; color: #fff; line-height: 1.8;">
+        <p style="font-size: 16px; color: #333; line-height: 1.8;">
           We'd love to hear how your experience has been so far. Your voice not only helps us improve — it helps us care better for every member of our FIL family.
         </p>
       </div>
       
       <div class="support-box">
         <h3>💬 We're Here For You</h3>
-        <p style="margin: 0 0 15px 0; color: #fff;">
+        <p style="margin: 0 0 15px 0; color: #333;">
           Our support doesn't end after delivery. We're here whenever you need us:
         </p>
         <div class="support-item">
@@ -241,7 +236,7 @@ export async function GET() {
           <span class="support-icon">💡</span>
           <span>Get quick tips and guidance</span>
         </div>
-        <p style="margin: 15px 0 0 0; color: #fff; font-size: 14px;">
+        <p style="margin: 15px 0 0 0; color: #333; font-size: 14px;">
           Whether it's for guidance, quick tips, or just to listen — we're only a message away.
         </p>
       </div>

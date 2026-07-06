@@ -64,7 +64,6 @@ export default function LoginForm() {
     try {
       const result = await signIn("google", { 
         redirect: false,
-        callbackUrl: "/api/auth/google"
       });
 
       if (result?.error) {
@@ -73,19 +72,10 @@ export default function LoginForm() {
         return;
       }
 
-      // Call our backend API to handle the user creation and token
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        await dispatch(fetchUser());
-        router.push("/products");
-      } else {
-        setError(data.message || "Google authentication failed");
-      }
+      // NextAuth handles the session automatically
+      // Just fetch the user and redirect
+      await dispatch(fetchUser());
+      router.push("/products");
     } catch (err) {
       setError("Something went wrong with Google sign-in");
     } finally {
