@@ -29,7 +29,7 @@ const ProfileTooltip = () => {
       >
         <User size={18} strokeWidth={1.75} />
         <span className="font-roboto text-sm">
-          {isAuthenticated ? `Hi, ${user?.firstName || "User"}` : "Sign in"}
+          {isAuthenticated ? `Hi, ${user?.firstName || user?.email?.split('@')[0] || "User"}` : "Sign in"}
         </span>
       </Link>
 
@@ -48,7 +48,7 @@ const ProfileTooltip = () => {
             {isAuthenticated ? (
               <div>
                 <p className="py-2 px-4 border-[#E5E5E5] border-b text-[#1a1a1a] text-sm font-medium">
-                  Hello, {user?.firstName || "User"}
+                  Hello, {user?.firstName || user?.email?.split('@')[0] || "User"}
                 </p>
                 {profileLinks.map((link, index) => (
                   <Link

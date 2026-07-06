@@ -3,14 +3,14 @@ import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 import { parse } from "cookie";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextauth";
+import { handler } from "@/lib/nextauth";
 
 export async function GET(req) {
   try {
     await connectDB();
 
     // First, try to get NextAuth session (for Google login)
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(handler);
     
     if (session && session.user) {
       // User authenticated via NextAuth (Google)

@@ -41,7 +41,7 @@ export default function LoginForm() {
 
       if (res.ok) {
         await dispatch(fetchUser());
-        router.push("/products");
+        router.push(redirectTo);
       } else {
         setError(data.message || "Invalid email or password");
       }
@@ -74,10 +74,13 @@ export default function LoginForm() {
         return;
       }
 
+      // Wait a moment for NextAuth session to be established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // NextAuth handles the session automatically
       // Just fetch the user and redirect
       await dispatch(fetchUser());
-      router.push("/products");
+      router.push(redirectTo);
     } catch (err) {
       setError("Something went wrong with Google sign-in");
     } finally {
