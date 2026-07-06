@@ -7,7 +7,9 @@ import Link from "next/link";
 import Loading from "./Loading";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { fetchUser } from "@/store/features/authSlice";
+import { signIn } from "next-auth/react";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,6 +18,7 @@ export default function LoginForm() {
   const dispatch = useDispatch();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordRef = useRef(null);
@@ -51,6 +54,42 @@ export default function LoginForm() {
     if (e.key === "Enter") {
       e.preventDefault();
       passwordRef.current?.focus(); // Move focus to password input
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setGoogleLoading(true);
+
+    try {
+      const result = await signIn("google", { 
+        redirect: false,
+        callbackUrl: "/api/auth/google"
+      });
+
+      if (result?.error) {
+        setError("Google sign-in failed");
+        setGoogleLoading(false);
+        return;
+      }
+
+      // Call our backend API to handle the user creation and token
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        await dispatch(fetchUser());
+        router.push("/products");
+      } else {
+        setError(data.message || "Google authentication failed");
+      }
+    } catch (err) {
+      setError("Something went wrong with Google sign-in");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -154,6 +193,33 @@ export default function LoginForm() {
                 disabled={loading}
               >
                 {loading ? <Loading /> : "Login"}
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-[#fafafa] text-gray-500">Or continue with</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-2 text-sm mt-4 w-full bg-white border border-gray-300 rounded-md py-3 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+                disabled={googleLoading}
+              >
+                {googleLoading ? (
+                  <Loading />
+                ) : (
+                  <>
+                    <FcGoogle className="w-5 h-5" />
+                    <span>Sign in with Google</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
