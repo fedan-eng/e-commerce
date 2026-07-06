@@ -5,6 +5,8 @@ import { useDispatch } from "react-redux";
 import { fetchUser } from "@/store/features/authSlice";
 import Loading from "@/components/Loading";
 
+export const dynamic = 'force-dynamic';
+
 export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
