@@ -12,6 +12,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Oswald, Poppins, Roboto } from "next/font/google";
 import TiktokPageView from "@/components/TiktokPageView";
 import MetaPixel from "@/components/MetaPixel";
+import ClarityInit from "@/components/analytics/ClarityInit";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning>
         <TiktokPixel />
         <MetaPixel />
+        <ClarityInit />
         <TiktokPageView /> 
         <ErrorBoundary>
           <CookieConsentProvider>
