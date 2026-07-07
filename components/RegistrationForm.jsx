@@ -10,10 +10,13 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import ImageSlider from "./ImageSlider";
 import { FaArrowLeft } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { signIn } from "next-auth/react";
 
 const RegistrationForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
   const { isRegistered, isLoading, error } = useSelector(
@@ -64,6 +67,18 @@ const RegistrationForm = () => {
       router.push("/verify");
     }
   }, [isRegistered, router]);
+
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+
+    try {
+      await signIn("google", { 
+        callbackUrl: "/products",
+      });
+    } catch (err) {
+      setGoogleLoading(false);
+    }
+  };
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
@@ -235,6 +250,33 @@ const RegistrationForm = () => {
               {isLoading ? <Loading /> : "Register"}
             </button>
             {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <div className="mt-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-[#fafafa] text-gray-500">Or sign up with</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleSignUp}
+                className="flex items-center justify-center gap-2 text-sm mt-4 w-full bg-white border border-gray-300 rounded-md py-3 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+                disabled={googleLoading}
+              >
+                {googleLoading ? (
+                  <Loading />
+                ) : (
+                  <>
+                    <FcGoogle className="w-5 h-5" />
+                    <span>Sign up with Google</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
           <div className="mt-4">
             <p className="text-[#b7b7b7] text-xs">

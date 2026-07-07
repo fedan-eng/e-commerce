@@ -15,6 +15,13 @@ export async function POST(req) {
     });
   }
 
+  if (user.provider === "google" && !user.password) {
+    return new Response(
+      JSON.stringify({ message: "This account was created with Google. Please sign in with Google instead." }),
+      { status: 400 }
+    );
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return new Response(JSON.stringify({ message: "Invalid credentials" }), {

@@ -109,11 +109,12 @@ export default function PriceRange({ min = 0, max = 500000, onChange }) {
             type="number"
             placeholder="Min"
             value={minPrice}
-            onChange={(e) =>
+            onChange={(e) => {
+              const value = e.target.value;
               setMinPrice(
-                Math.min(Number(e.target.value) || min, maxPrice - 100)
-              )
-            }
+                Math.min(value === "" ? min : Number(value), maxPrice - 100)
+              );
+            }}
             className="p-1 border-transparent rounded outline-none w-full appearance-none"
           />
         </div>
@@ -123,11 +124,12 @@ export default function PriceRange({ min = 0, max = 500000, onChange }) {
             type="number"
             placeholder="Max"
             value={maxPrice}
-            onChange={(e) =>
+            onChange={(e) => {
+              const value = e.target.value;
               setMaxPrice(
-                Math.max(Number(e.target.value) || max, minPrice + 100)
-              )
-            }
+                Math.max(value === "" ? max : Number(value), minPrice + 100)
+              );
+            }}
             className="p-1 border-transparent rounded outline-none w-full appearance-none"
           />
         </div>

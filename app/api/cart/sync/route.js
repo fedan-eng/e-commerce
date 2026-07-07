@@ -5,20 +5,33 @@
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { handler } from "@/lib/nextauth";
 
 export async function POST(req) {
      console.log("🛒 Cart sync hit"); 
   await connectDB();
 
   try {
-    const token = req.cookies.get("token")?.value;
-    console.log("Token exists:", !!token); 
-    if (!token) {
-      // Not logged in — silently ignore, cart stays in localStorage only
-      return new Response(JSON.stringify({ ok: false, message: "Not logged in" }), { status: 200 });
+    // First, try to get NextAuth session (for Google login)
+    const session = await getServerSession(handler);
+    let userId;
+
+    if (session && session.user) {
+      userId = session.user.id;
+      console.log("Cart sync - Using NextAuth session, user ID:", userId);
+    } else {
+      // Fall back to custom JWT token (for regular login)
+      const token = req.cookies.get("token")?.value;
+      console.log("Token exists:", !!token); 
+      if (!token) {
+        // Not logged in — silently ignore, cart stays in localStorage only
+        return new Response(JSON.stringify({ ok: false, message: "Not logged in" }), { status: 200 });
+      }
+      const userData = verifyToken(token);
+      userId = userData.id;
     }
 
-    const userData = verifyToken(token);
     const { items } = await req.json();
 
     if (!Array.isArray(items)) {
@@ -27,7 +40,7 @@ export async function POST(req) {
 
     // If cart is being cleared (checkout or manual clear), wipe the DB cart too
     if (items.length === 0) {
-      await User.findByIdAndUpdate(userData.id, {
+      await User.findByIdAndUpdate(userId, {
         "cart.items":             [],
         "cart.updatedAt":         null,
         "cart.abandonedEmailSent": false,
@@ -37,7 +50,7 @@ export async function POST(req) {
 
     // Save cart + refresh timestamp + reset abandoned flag
     // (reset flag so if they add new items after email, they can get another email)
-    await User.findByIdAndUpdate(userData.id, {
+    await User.findByIdAndUpdate(userId, {
       "cart.items":             items,
       "cart.updatedAt":         new Date(),
       "cart.abandonedEmailSent": false,
