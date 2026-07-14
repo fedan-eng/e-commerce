@@ -123,7 +123,7 @@ const STATUS_EMAIL_CONFIG = {
     accentColor: "#0fa968",
     accentLight: "#f0faf5",
     accentBorder: "#b2dfca",
-    ctaText: "Continue Shopping",
+    ctaText: "Leave a Review",
     ctaLink: "https://filstore.com.ng/products",
     messageLines: [
       "Your order has been marked as delivered. We hope everything arrived in perfect condition!",
@@ -183,6 +183,16 @@ function buildStatusEmail(order, cfg) {
   const delivFee  = order.deliveryFee ?? 0;
   const discount  = order.discount ?? 0;
   const regionName = order.region?.name || order.region || "—";
+
+  // Determine CTA link for delivered status - link to product review section if single item
+  let ctaLink = cfg.ctaLink;
+  if (cfg.badge === "Delivered" && order.items && order.items.length === 1) {
+    const singleItem = order.items[0];
+    const productId = singleItem.productId || singleItem._id;
+    if (productId) {
+      ctaLink = `https://filstore.com.ng/products/${productId}#reviews-section`;
+    }
+  }
 
   // ── item rows ───────────────────────────────────────────────────────────────
   const itemRowsHtml = (order.items || [])
@@ -265,7 +275,7 @@ ${emailHead(cfg.headline)}
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
                       <tr>
                         <td style="border-radius:30px; background-color:${cfg.accentColor};">
-                          <a href="${cfg.ctaLink}" target="_blank" class="cta-td"
+                          <a href="${ctaLink}" target="_blank" class="cta-td"
                             style="display:inline-block; padding:15px 38px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:30px; letter-spacing:0.3px;">
                             ${cfg.ctaText} &#8594;
                           </a>
@@ -501,6 +511,16 @@ function buildPlainText(order, cfg) {
   const discount   = order.discount ?? 0;
   const regionName = order.region?.name || order.region || "—";
 
+  // Determine CTA link for delivered status - link to product review section if single item
+  let ctaLink = cfg.ctaLink;
+  if (cfg.badge === "Delivered" && order.items && order.items.length === 1) {
+    const singleItem = order.items[0];
+    const productId = singleItem.productId || singleItem._id;
+    if (productId) {
+      ctaLink = `https://filstore.com.ng/products/${productId}#reviews-section`;
+    }
+  }
+
   const itemLines = (order.items || [])
     .map(
       (i) =>
@@ -536,7 +556,7 @@ Delivery Fee : NGN ${Number(delivFee).toLocaleString()}${discount > 0 ? `\nDisco
 TOTAL        : NGN ${Number(total).toLocaleString()}
 
 ==========================================
-${cfg.ctaText}: ${cfg.ctaLink}
+${cfg.ctaText}: ${ctaLink}
 
 Thank you for choosing FIL Store.
 Think Quality, Think FIL.

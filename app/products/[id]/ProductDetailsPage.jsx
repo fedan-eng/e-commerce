@@ -221,6 +221,18 @@ export default function ProductDetailsPage() {
     return () => document.removeEventListener("keydown", handleEsc);
   }, []);
 
+  // ── Auto-scroll to reviews section if hash is present ─────────────────────
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#reviews-section") {
+      const element = document.getElementById("reviews-section");
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 500);
+      }
+    }
+  }, []);
+
   // ── Pagination & Filtering ─────────────────────────────────────────────────
   const filteredComments = useMemo(() => {
     const base =
@@ -1046,7 +1058,7 @@ export default function ProductDetailsPage() {
       </section>
 
       {/* ── Product Reviews ── */}
-      <div className="max-w-4xl mx-auto my-20 px-4">
+      <div id="reviews-section" className="max-w-4xl mx-auto my-20 px-4">
         <h2 className="font-oswald font-medium text-2xl md:text-3xl mb-6">
           Product Reviews
         </h2>
