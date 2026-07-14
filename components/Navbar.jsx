@@ -64,7 +64,7 @@ export default function Navbar() {
     const result = await dispatch(logoutUser());
     if (logoutUser.fulfilled.match(result)) {
       setMenuOpen(false);
-      router.push("/");
+      window.location.href = "/login";
     } else {
       console.error("Logout failed:", result.payload);
     }

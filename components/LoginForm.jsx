@@ -17,35 +17,42 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showGoogleHint, setShowGoogleHint] = useState(false);
 
   const passwordRef = useRef(null);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setShowGoogleHint(false);
+  setLoading(true);
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        await dispatch(fetchUser());
-        router.push("/products");
+    if (res.ok) {
+      await dispatch(fetchUser());
+      router.push("/products");
+    } else {
+      if (data.provider === "google") {
+        setShowGoogleHint(true); // trigger the UI hint below
+        setError(""); // clear generic error — we show a custom block instead
       } else {
         setError(data.message || "Invalid email or password");
       }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEmailKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -142,10 +149,28 @@ export default function LoginForm() {
             </div>
 
             {error && (
-              <div className="mt-2 font-medium text-red-500 text-sm text-center">
-                {error}
-              </div>
-            )}
+  <div className="mt-2 font-medium text-red-500 text-sm text-center">
+    {error}
+  </div>
+)}
+
+            {showGoogleHint && (
+  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800 text-center">
+    This account was created with Google.{" "}
+    <button
+      type="button"
+      onClick={() => setShowGoogleHint(false)}
+      className="underline"
+    >
+      Use Google Sign-In below
+    </button>{" "}
+    or{" "}
+    <Link href="/reset-password" className="underline font-medium">
+      set a password
+    </Link>
+    .
+  </div>
+)}
 
             <div className="">
               <button
@@ -158,16 +183,20 @@ export default function LoginForm() {
             </div>
           </form>
 
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-xs text-gray-500">or</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
+<div className="mt-4 flex items-center gap-4">
+  <div className="flex-1 h-px bg-gray-300"></div>
+  <span className="text-xs text-gray-500">or</span>
+  <div className="flex-1 h-px bg-gray-300"></div>
+</div>
 
-          <Link
-            href="/api/auth/google"
-            className="flex items-center justify-center gap-2 mt-4 w-full bg-white border border-gray-300 rounded-md py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
+<Link
+  href="/api/auth/google"
+  className={`flex items-center justify-center gap-2 mt-4 w-full border rounded-md py-3 text-sm font-medium transition-colors ${
+    showGoogleHint
+      ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300" 
+      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"      
+  }`}
+>
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
@@ -186,7 +215,7 @@ export default function LoginForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Sign in with Google
+             {showGoogleHint ? "Continue with Google →" : "Sign in with Google"}
           </Link>
           <div className="mt-4">
             <p className="text-[#b7b7b7] text-xs">
