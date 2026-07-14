@@ -64,6 +64,8 @@ export const logoutUser = createAsyncThunk(
       // So the next user who logs in starts clean.
       dispatch(clearCart());
       dispatch(clearWishlist());
+
+      localStorage.removeItem("nextauth.message");
       // ────────────────────────────────────────────────────────────────────
 
       return true;

@@ -13,7 +13,6 @@ export async function POST() {
     expires: new Date(0),
   });
 
-  // Also clear the secure version (used in production)
   const clearNextAuthSecure = serialize("__Secure-next-auth.session-token", "", {
     httpOnly: true,
     path: "/",
