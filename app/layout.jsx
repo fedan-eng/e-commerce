@@ -3,35 +3,33 @@ import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import TiktokPixel from "@/components/TiktokPixel";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { CookieConsentProvider } from "@/context/CookieConsentContext";
-import CookieBanner from "@/components/CookieBanner";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Oswald, Poppins, Roboto } from "next/font/google";
-import TiktokPageView from "@/components/TiktokPageView";
-import MetaPixel from "@/components/MetaPixel";
+import { CookieConsentProvider } from "@/context/CookieConsentContext";
+import AnalyticsProvider from "./AnalyticsProvider";
 
 const oswald = Oswald({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-oswald",
   display: "swap",
+  preload: true,
 });
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  style: ["normal", "italic"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal"],
   variable: "--font-poppins",
   display: "swap",
+  preload: true,
 });
 
 const roboto = Roboto({
   subsets: ["latin"],
+  weight: ["400", "500"],
   variable: "--font-roboto",
   display: "swap",
+  preload: true,
 });
 
 export const metadata = {
@@ -45,6 +43,11 @@ export const metadata = {
   verification: {
     google: "F4YtRJObu3UIQ0aKa9qg3vBcTduL3MxF5mlHoxLyr94",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -54,19 +57,22 @@ export default function RootLayout({ children }) {
       className={`${oswald.variable} ${poppins.variable} ${roboto.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://filstore.com.ng" />
+        <link rel="preconnect" href="https://www.filstore.com.ng" />
+        <link rel="dns-prefetch" href="https://cdn.bmstores.co.uk" />
+        <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="dns-prefetch" href="https://ufs.sh" />
+      </head>
       <body suppressHydrationWarning>
-        <TiktokPixel />
-        <MetaPixel />
-        <TiktokPageView /> 
         <ErrorBoundary>
           <CookieConsentProvider>
             <Providers>
               <AuthInitializer />
-              <Analytics />
-              <SpeedInsights />
               <ConditionalShell>{children}</ConditionalShell>
-              <CookieBanner />
-              <GoogleAnalytics />
+              {/* Load analytics after main content */}
+              <AnalyticsProvider />
             </Providers>
           </CookieConsentProvider>
         </ErrorBoundary>

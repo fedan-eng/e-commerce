@@ -85,14 +85,13 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
 
       {/* Login required message with link */}
       {requiresLogin && (
-        <p className="mt-2 text-red-500 text-sm">
-          Please{" "}
-          <Link href="/login" className="underline text-filgreen font-medium">
-            log in
-          </Link>{" "}
-          to use this promo code.
-        </p>
-      )}
+  <p className="mt-2 text-sm text-[#1a1a1a]">
+    👉{" "}
+    <Link href="/login?redirect=/cart" className="underline text-filgreen font-medium">
+      Click here to claim your promo code
+    </Link>
+  </p>
+)}
 
       {/* Success message */}
       {discount > 0 && (

@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "filstore.com.ng",
       },
+        {
+        protocol: "https",
+        hostname: "ufs.sh",
+      },
       {
         protocol: "https",
         hostname: "www.filstore.com.ng",

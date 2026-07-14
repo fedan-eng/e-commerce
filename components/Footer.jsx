@@ -72,7 +72,10 @@ const Footer = () => {
   const noNavigationMenu = staticPaths.includes(pathname);
 
   // ✅ ALL hooks at the top — before any early returns
-  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
+  if (typeof window === "undefined") return false;
+  return !localStorage.getItem("fil_promo_seen");
+});
   const [isTagVisible, setIsTagVisible] = useState(true);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -98,14 +101,14 @@ const Footer = () => {
   const SNAP_PEEK = 35;
 
   // Auto open overlay after 10s on homepage
-  useEffect(() => {
-    if (pathname === "/") {
-      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
-    }
-    return () => {
-      if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
-    };
-  }, [pathname]);
+ useEffect(() => {
+  if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
+    autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
+  }
+  return () => {
+    if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
+  };
+}, [pathname]);
 
   // Auto change slides every 3s while overlay is open
   useEffect(() => {
@@ -224,6 +227,11 @@ const Footer = () => {
     }
   };
 
+  const closeOverlay = () => {
+  localStorage.setItem("fil_promo_seen", "true");
+  setIsOverlayOpen(false);
+};
+
   const rotation = side === "left" ? "-90deg" : "90deg";
 
   return (
@@ -233,12 +241,12 @@ const Footer = () => {
         <div className="z-[1000] fixed inset-0 flex justify-center items-center">
           <div
             className="absolute inset-0 bg-black opacity-70"
-            onClick={() => setIsOverlayOpen(false)}
+            onClick={closeOverlay}
           />
           <div className="z-10 relative flex bg-white mx-2 p-2 rounded-md w-full max-w-[745px] h-[409px] overflow-hidden">
             <button
               aria-label="Close discount popup"
-              onClick={() => setIsOverlayOpen(false)}
+              onClick={closeOverlay}
               className="top-6 right-6 absolute flex justify-center items-center rounded-full w-6 h-6 cursor-pointer"
             >
               ✕
@@ -319,7 +327,7 @@ const Footer = () => {
 
       <footer className="bg-black pt-9">
         {/* Draggable discount tag — only on homepage and when visible */}
-        {pathname === "/" && isTagVisible && (
+        {/* {pathname === "/" && isTagVisible && (
           <div
             ref={elementRef}
             onPointerDown={onPointerDown}
@@ -359,7 +367,7 @@ const Footer = () => {
               </button>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* WhatsApp & scroll-to-top */}
         <div className="right-4 md:right-[34px] bottom-[105px] z-50 fixed">

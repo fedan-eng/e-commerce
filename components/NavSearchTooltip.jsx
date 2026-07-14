@@ -8,6 +8,7 @@ import {useState, useEffect, useRef} from "react";
 import {useRouter} from "next/navigation";
 import axios from "axios";
 import {formatAmount} from "@/lib/utils";
+import {useGAEvent} from "@/hooks/useGAEvent";
 import {useTikTokEvent} from "@/hooks/useTikTokEvent";
 
 const categories = [
@@ -32,6 +33,7 @@ const NavSearchTooltip = () => {
   const containerRef = useRef(null);
   const router = useRouter();
   const { trackSearch } = useTikTokEvent();
+  const { trackEvent } = useGAEvent();
 
   useEffect(() => {
     const handler = (e) => {
@@ -75,6 +77,9 @@ const NavSearchTooltip = () => {
     
     // Track TikTok Search event
     trackSearch(term, results.length);
+    
+     // Track Google Analytics Search event
+    trackEvent('search', { search_term: term });
     
     setOpen(false);
     setSearchTerm("");

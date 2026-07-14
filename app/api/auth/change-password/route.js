@@ -179,7 +179,7 @@ export async function PUT(req) {
       
       <div class="warning">
         ⚠️ <strong>Didn't make this change?</strong><br>
-        If you didn't change your password, your account may be compromised. Please contact our support team immediately at support@filstore.com.ng or call us.
+        If you didn't change your password, your account may be compromised. Please contact our support team immediately at filfilecommerce@gmail.com or call us.
       </div>
       
       <p style="color: #666; font-size: 14px; margin-top: 30px;">
@@ -224,7 +224,7 @@ Account Details:
 - Name: ${user.firstName} ${user.lastName || ''}
 - Phone: ${user.phone || 'Not provided'}
 
-⚠️ IMPORTANT: If you didn't make this change, please contact our support team immediately at support@filstore.com.ng
+⚠️ IMPORTANT: If you didn't make this change, please contact our support team immediately at filfilecommerce@gmail.com
 
 Security Tips:
 - Never share your password with anyone

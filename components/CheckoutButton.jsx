@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
+import { useGAEvent } from "@/hooks/useGAEvent";
 
 export default function CheckoutButton() {
   const { items } = useSelector((state) => state.cart);
   const router = useRouter();
   const { trackInitiateCheckout } = useTikTokEvent();
+  const { trackEvent } = useGAEvent();
 
   const [user, setUser] = useState(null); // e.g., { email, address }
 
@@ -40,8 +42,21 @@ export default function CheckoutButton() {
         if (!email || !address) return alert("Email and address are required.");
       }
 
-      // Calculate total value for TikTok event
+      // Calculate total value for events
       const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+       // Track GA begin_checkout event
+      trackEvent('begin_checkout', {
+        currency: 'NGN',
+        value: totalValue,
+        items: items.map((item, index) => ({
+          item_id: String(item._id || item.productId || index),
+          item_name: item.name || 'Unknown',
+          quantity: Number(item.quantity || 1),
+          price: Number(item.price || 0),
+          index,
+        })),
+      });
 
       // Track TikTok InitiateCheckout event
       trackInitiateCheckout(items, totalValue);

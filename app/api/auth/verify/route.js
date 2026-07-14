@@ -245,7 +245,7 @@ export async function POST(req) {
       <p style="margin: 0 0 20px 0; font-style: italic; color: #1cc978;">Think Quality, Think FIL.</p>
       <p>Visit us at <a href="https://filstore.com.ng">filstore.com.ng</a></p>
       <p style="margin-top: 20px; font-size: 12px; color: #999;">
-        Need help? Contact us at support@filstore.com.ng
+        Need help? Contact us at filfilecommerce@gmail.com
       </p>
     </div>
   </div>
@@ -278,7 +278,7 @@ Warm regards,
 The FIL Team
 Think Quality, Think FIL.
 
-Need help? Contact us at support@filstore.com.ng
+Need help? Contact us at filfilecommerce@gmail.com
   `.trim();
 
   // Send success email

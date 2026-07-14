@@ -171,8 +171,9 @@ export default function ProductDetailsPage() {
     if (product?._id) {
       dispatch(addRecentlyViewed(product));
       setSelectedImageId("main");
+      setSelectedColor(product.colors?.length > 0 ? product.colors[0] : null);
     }
-  }, [product, dispatch]);
+  }, [product?._id, dispatch]);
 
   // ── Fetch Related Products ─────────────────────────────────────────────────
   useEffect(() => {
@@ -599,7 +600,8 @@ export default function ProductDetailsPage() {
                   onClick={handleImageClick}
                   draggable={false}
                   priority
-                  unoptimized
+                  sizes="(max-width: 768px) 100vw, 480px"
+                  quality={90}
                 />
               ) : (
                 <div className="flex justify-center items-center w-full h-full text-gray-400 bg-gray-100">
@@ -690,7 +692,9 @@ export default function ProductDetailsPage() {
                   width={65}
                   height={65}
                   className="w-full h-full object-contain"
-                  unoptimized
+                  loading="lazy"
+                  sizes="65px"
+                  quality={75}
                 />
               </button>
             ))}
@@ -755,7 +759,7 @@ export default function ProductDetailsPage() {
         <div className="flex flex-col md:max-w-[50%] gap-5 p-4 sm:p-6 lg:p-8">
           {/* Save Badge */}
           {product.originalPrice && (
-            <div className="bg-black text-white text-xs font-medium px-4 py-1.5 rounded-full w-fit">
+            <div className="border-2 border-black text-black text-xs font-medium px-4 py-1.5 rounded-full w-fit">
               Save{" "}
               {Math.round(
                 ((product.originalPrice - product.price) /

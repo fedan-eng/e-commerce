@@ -417,7 +417,7 @@ useEffect(() => {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
   doc.text('Thank you for choosing FIL Store!', pageWidth / 2, footerY + 6, { align: 'center' });
-  doc.text('For support: support@filstore.com.ng | Visit: filstore.com.ng', pageWidth / 2, footerY + 11, { align: 'center' });
+  doc.text('For support: filfilecommerce@gmail.com | Visit: filstore.com.ng', pageWidth / 2, footerY + 11, { align: 'center' });
   
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');

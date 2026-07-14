@@ -47,15 +47,15 @@ const FAQ = () => {
             Still have questions?
           </h2>
           <p className="mb-8 text-[#3e3e3e] text-sm">
-            Can't find answers to your questions? Send us an email and we'll get
+            Can't find answers to your questions? Send us a message and we'll get
             back to you as soon as possible.
           </p>
 
           <Link
-            href="/contact"
+            href="https://wa.me/2347018900705"
             className="shadow-button buttons"
           >
-            Send Email
+            Send Message
           </Link>
         </div>
       </div>
