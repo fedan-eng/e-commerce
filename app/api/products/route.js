@@ -43,9 +43,31 @@ export async function GET(req) {
   const query = {};
 
   if (search) {
-   query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
+    // Split search term into words and create partial matches
+    const searchWords = search.split(/\s+/).filter(Boolean);
+    const searchPatterns = [];
+
+    // For each word, add the full word and its partials (3+ chars)
+    searchWords.forEach(word => {
+      searchPatterns.push(word); // Full word match
+      
+      // Add partial matches (3+ character substrings)
+      if (word.length >= 3) {
+        for (let i = 0; i <= word.length - 3; i++) {
+          const partial = word.substring(i, i + 3);
+          if (!searchPatterns.includes(partial)) {
+            searchPatterns.push(partial);
+          }
+        }
+      }
+    });
+
+    // Build regex pattern that matches any of the search patterns
+    const regexPattern = searchPatterns.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    
+    query.$or = [
+      { name: { $regex: regexPattern, $options: "i" } },
+      { description: { $regex: regexPattern, $options: "i" } },
     ];
   }
 
