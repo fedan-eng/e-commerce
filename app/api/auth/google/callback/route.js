@@ -112,7 +112,8 @@ export async function GET(req) {
 }
 
 async function sendGoogleWelcomeEmail(email, firstName) {
-  const emailHtml = `
+
+  const welcomeEmailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -136,18 +137,22 @@ async function sendGoogleWelcomeEmail(email, firstName) {
     .header {
       background: linear-gradient(135deg, #1cc978 0%, #16a05f 100%);
       color: white;
-      padding: 40px 30px;
+      padding: 50px 30px;
       text-align: center;
     }
     .header h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 600;
     }
     .header p {
-      margin: 10px 0 0 0;
-      font-size: 16px;
-      opacity: 0.9;
+      margin: 15px 0 0 0;
+      font-size: 18px;
+      opacity: 0.95;
+    }
+    .celebration {
+      font-size: 60px;
+      margin-bottom: 10px;
     }
     .content {
       padding: 40px 30px;
@@ -155,47 +160,80 @@ async function sendGoogleWelcomeEmail(email, firstName) {
       line-height: 1.8;
     }
     .greeting {
-      font-size: 18px;
+      font-size: 20px;
       color: #333;
       margin-bottom: 20px;
+      font-weight: 600;
     }
     .message {
-      font-size: 15px;
-      color: #333;
+      font-size: 16px;
+      color: #fff;
       margin-bottom: 30px;
     }
-    .success-box {
+    .promo-box {
       background: linear-gradient(135deg, #1cc978 0%, #16a05f 100%);
       color: white;
       padding: 30px;
-      text-align: center;
-      border-radius: 10px;
       margin: 30px 0;
+      border-radius: 10px;
+      text-align: center;
     }
-    .success-icon {
-      font-size: 48px;
-      margin-bottom: 10px;
+    .promo-box h2 {
+      margin: 0 0 15px 0;
+      font-size: 24px;
     }
-    .success-label {
+    .promo-code {
+      background-color: white;
+      color: #1cc978;
+      padding: 15px 30px;
+      font-size: 28px;
+      font-weight: bold;
+      border-radius: 8px;
+      display: inline-block;
+      margin: 15px 0;
+      letter-spacing: 3px;
+      font-family: 'Courier New', monospace;
+      border: 3px dashed #16a05f;
+    }
+    .promo-details {
       font-size: 14px;
       opacity: 0.9;
-      margin-bottom: 10px;
+      margin-top: 10px;
     }
-    .success-text {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .info-box {
+    .features-box {
       background-color: #f8f9fa;
       border-left: 4px solid #1cc978;
-      padding: 20px;
+      padding: 25px;
       margin: 30px 0;
       border-radius: 5px;
     }
-    .info-box p {
-      margin: 0;
-      font-size: 14px;
+    .features-box h3 {
+      margin: 0 0 20px 0;
       color: #333;
+      font-size: 20px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: start;
+      margin: 15px 0;
+      color: #fff;
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #1cc978 0%, #16a05f 100%);
+      color: white;
+      padding: 18px 50px;
+      text-decoration: none;
+      border-radius: 30px;
+      margin: 20px 0;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
     }
     .footer {
       background-color: #f8f9fa;
@@ -208,21 +246,19 @@ async function sendGoogleWelcomeEmail(email, firstName) {
       color: #1cc978;
       text-decoration: none;
     }
-    @media only screen and (max-width: 600px) {
-      .content {
-        padding: 30px 20px;
-      }
-      .header {
-        padding: 30px 20px;
-      }
+    .divider {
+      height: 2px;
+      background: linear-gradient(to right, transparent, #1cc978, transparent);
+      margin: 30px 0;
     }
   </style>
 </head>
 <body>
   <div class="email-container">
     <div class="header">
-      <h1>🎉 Welcome to FIL Store!</h1>
-      <p>Your account has been created successfully</p>
+      <div class="celebration">🎉</div>
+      <h1>Welcome to FIL Store!</h1>
+      <p>We're thrilled to have you join our family</p>
     </div>
     
     <div class="content">
@@ -231,30 +267,51 @@ async function sendGoogleWelcomeEmail(email, firstName) {
       </div>
       
       <div class="message">
-        <p>Welcome to <strong>Fedan Investment Limited (FIL)</strong>! We're thrilled to have you join our family. 💚</p>
+        <p>We're so excited to welcome you to the <strong>Fedan Investment Limited (FIL)</strong> community! 🎉</p>
         
-        <p>Your account has been successfully created using Google Sign-In. You can now start shopping right away!</p>
+        <p>At FIL, we don't just make accessories – we believe in empowering people by giving them the tools they need to stay connected, productive, and unstoppable. Every product we create is built with care, empathy, and a drive to make your everyday life a little easier.</p>
       </div>
       
-      <div class="success-box">
-        <div class="success-icon">✓</div>
-        <div class="success-label">ACCOUNT STATUS</div>
-        <div class="success-text">Active & Verified</div>
+      <div class="promo-box">
+        <h2>🎁 Your Welcome Gift</h2>
+        <p style="margin: 0 0 10px 0; font-size: 18px;">Enjoy <strong>10% OFF</strong> your first order!</p>
+        <div class="promo-code">WELCOME10</div>
+        <div class="promo-details">
+          Valid for the next 14 days • Use at checkout
+        </div>
       </div>
       
-      <div class="info-box">
-        <p>💡 <strong>Tip:</strong> You can now use either your Google account or email/password to sign in to your account.</p>
+      <div class="features-box">
+        <h3>🌟 What Makes FIL Special?</h3>
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div>
+            <strong>Quality Products:</strong> From power banks that keep you charged on the go, to accessories designed to fit seamlessly into your lifestyle.
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💚</div>
+          <div>
+            <strong>Customer First:</strong> We're not just here to sell to you—we're here to grow with you. Your satisfaction is our priority.
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <div>
+            <strong>Built with Care:</strong> Every product is created with empathy and a commitment to making your life easier and more connected.
+          </div>
+        </div>
       </div>
       
-      <div class="message">
-        <p>Once verified, you'll have access to:</p>
-        <ul style="color: #333; line-height: 2;">
-          <li>✓ Exclusive deals and promotions</li>
-          <li>✓ Order tracking and history</li>
-          <li>✓ Faster checkout experience</li>
-          <li>✓ Priority customer support</li>
-        </ul>
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="https://filstore.com.ng/products" class="cta-button">Start Shopping Now</a>
       </div>
+      
+      <div class="divider"></div>
+      
+      <p style="color: #666; font-size: 15px; text-align: center;">
+        We're not just a store—we're a community. Welcome aboard, and thank you for trusting FIL. We're honored to be part of your journey! 💙
+      </p>
     </div>
     
     <div class="footer">
@@ -262,32 +319,46 @@ async function sendGoogleWelcomeEmail(email, firstName) {
       <p style="margin: 0 0 20px 0; font-style: italic; color: #1cc978;">Think Quality, Think FIL.</p>
       <p>Visit us at <a href="https://filstore.com.ng">filstore.com.ng</a></p>
       <p style="margin-top: 20px; font-size: 12px; color: #999;">
-        This is an automated email. Please do not reply directly to this message.
+        Need help? Contact us at filfilecommerce@gmail.com
       </p>
     </div>
   </div>
 </body>
 </html>
-`;
+  `;
 
   const plainText = `
 Hi ${firstName},
 
-Welcome to Fedan Investment Limited (FIL)!
+We're so excited to welcome you to the Fedan Investment Limited (FIL) community! 🎉
 
-Your account has been successfully created using Google Sign-In. You can now start shopping right away!
+At FIL, we don't just make accessories – we believe in empowering people by giving them the tools they need to stay connected, productive, and unstoppable. Every product we create is built with care, empathy, and a drive to make your everyday life a little easier.
 
-Your account is active and verified. You can use either your Google account or email/password to sign in.
+🎁 YOUR WELCOME GIFT
+Enjoy 10% off your first order.
+Use code: WELCOME10 at checkout
+Valid for the next 14 days
 
-Thanks,
+WHAT MAKES FIL SPECIAL?
+⚡ Quality Products - From power banks that keep you charged on the go, to accessories designed to fit seamlessly into your lifestyle.
+💚 Customer First - We're not just here to sell to you—we're here to grow with you.
+🛡️ Built with Care - Every product is created with empathy and commitment.
+
+Start shopping now: https://filstore.com.ng/products
+
+Welcome aboard—we're thrilled to have you with us!
+
+Warm regards,
 The FIL Team
-Think Quality, Think FIL
-`.trim();
+Think Quality, Think FIL.
+
+Need help? Contact us at filfilecommerce@gmail.com
+  `.trim();
 
   await sendEmail(
     email,
-    "Welcome to FIL Store!",
+    "Welcome to FIL Store! 🎉",
     plainText,
-    emailHtml
+    welcomeEmailHtml
   );
 }
