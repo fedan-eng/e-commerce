@@ -531,7 +531,7 @@ const handleQuantityChange = (id, color, value) => {
 
               <div className="flex justify-center items-center gap-2 xxs:gap-4 py-4">
                 <Link
-                  href="/product"
+                  href="/products"
                   className="px-2 sm:px-6 py-3 border border-[#d9d9d9] rounded-md font-roboto font-medium text-dark text-sm max-xxs:whitespace-nowrap"
                 >
                   Back to Shopping
