@@ -1,4 +1,4 @@
-// middleware.js (place in your project root)
+// middleware.js
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
@@ -8,7 +8,6 @@ export async function middleware(req) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
 
-  // Helper: verify token and return payload, or null if invalid
   const getPayload = async () => {
     if (!token) return null;
     try {
@@ -20,7 +19,19 @@ export async function middleware(req) {
     }
   };
 
-  // Redirect logged-in users away from /login and /register
+  // ✅ Handle logout: clear cookie and redirect to login
+  if (pathname === "/logout") {
+    const response = NextResponse.redirect(new URL("/login", req.url));
+    response.cookies.set("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+    return response;
+  }
+
   if (AUTH_ROUTES.includes(pathname)) {
     const payload = await getPayload();
     if (payload) {
@@ -30,18 +41,10 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // Protect all /admin routes
   if (pathname.startsWith("/admin")) {
     const payload = await getPayload();
-
-    if (!payload) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-
-    if (payload.role !== "admin") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
+    if (!payload) return NextResponse.redirect(new URL("/login", req.url));
+    if (payload.role !== "admin") return NextResponse.redirect(new URL("/", req.url));
     return NextResponse.next();
   }
 
@@ -49,5 +52,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/register"],
+  matcher: ["/admin/:path*", "/login", "/register", "/logout"], // ✅ added /logout
 };

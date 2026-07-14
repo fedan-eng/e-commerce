@@ -11,7 +11,7 @@ const LogoutButton = () => {
     const result = await dispatch(logoutUser());
 
     if (logoutUser.fulfilled.match(result)) {
-      router.push("/");
+     window.location.href = "/login";
     } else {
       console.error("Logout failed:", result.payload);
     }
