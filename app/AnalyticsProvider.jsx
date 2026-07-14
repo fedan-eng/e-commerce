@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-// Dynamically import analytics components to reduce initial bundle size
+// Dynamically import analytics components to reduce initial bundle size..
 // Using ssr: false to ensure they only run on the client
 const TiktokPixel = dynamic(() => import("@/components/TiktokPixel"), { ssr: false });
 const TiktokPageView = dynamic(() => import("@/components/TiktokPageView"), { ssr: false });
