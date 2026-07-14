@@ -65,11 +65,6 @@ export const logoutUser = createAsyncThunk(
       dispatch(clearCart());
       dispatch(clearWishlist());
 
-      localStorage.removeItem("nextauth.message");
-document.cookie = "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie = "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure";
-      document.cookie = "next-auth.csrf-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie = "next-auth.callback-url=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       // ────────────────────────────────────────────────────────────────────
 
       return true;
