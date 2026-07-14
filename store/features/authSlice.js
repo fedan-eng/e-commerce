@@ -3,6 +3,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setCartFromDB, clearCart } from "./cartSlice"; 
 import { setWishlistFromDB, clearWishlist } from "./wishlistSlice";
+import { signOut } from "next-auth/react";
 
 // Fetch current user info
 export const fetchUser = createAsyncThunk(
@@ -66,6 +67,8 @@ export const logoutUser = createAsyncThunk(
       dispatch(clearWishlist());
 
       localStorage.removeItem("nextauth.message");
+
+      await signOut({ redirect: false });
       // ────────────────────────────────────────────────────────────────────
 
       return true;
