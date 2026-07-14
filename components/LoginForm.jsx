@@ -148,6 +148,12 @@ export default function LoginForm() {
               </Link>
             </div>
 
+            {error && (
+  <div className="mt-2 font-medium text-red-500 text-sm text-center">
+    {error}
+  </div>
+)}
+
             {showGoogleHint && (
   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800 text-center">
     This account was created with Google.{" "}
