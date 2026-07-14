@@ -25,6 +25,7 @@
     "dotenv": "^17.2.2",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.12",
+    "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
