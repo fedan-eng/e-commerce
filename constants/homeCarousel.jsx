@@ -1,13 +1,13 @@
 export const homeImages = [
-    {
-    id: 1,
-    src: "https://i.ibb.co/rGRzj86Q/EASTER-2.jpg",
-    title: "Easter SALES",
-    link: "/products?specials=isTodaysDeal",
-    desc: "Up to 30% discount",
-    titleStyle: "",
-    descStyle: "",
-  },
+  //   {
+  //   id: 1,
+  //   src: "https://i.ibb.co/rGRzj86Q/EASTER-2.jpg",
+  //   title: "Easter SALES",
+  //   link: "/products?specials=isTodaysDeal",
+  //   desc: "Up to 30% discount",
+  //   titleStyle: "",
+  //   descStyle: "",
+  // },
   {
     id: 2,
     src: "https://i.ibb.co/TMV3FQhF/HERO-SECTION-8.jpg",
