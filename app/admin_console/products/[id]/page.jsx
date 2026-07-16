@@ -1,4 +1,4 @@
-//app/admin/products/[id]/page.jsx
+//app/admin_console/products/[id]/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -22,7 +22,7 @@ export default function EditProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
+        <Link href="/admin_console/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
           ← BACK TO PRODUCTS
         </Link>
         <div className="mt-4 flex flex-wrap justify-between items-end gap-2.5">

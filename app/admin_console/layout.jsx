@@ -1,4 +1,4 @@
-// app/admin/layout.jsx
+// app/admin_console_console/layout.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -35,16 +35,16 @@ export default function AdminLayout({ children }) {
   }
 
   const navItems = [
-    { href: "/admin",           label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/orders",    label: "Orders",    icon: ShoppingBag },
-    { href: "/admin/products",  label: "Products",  icon: Package },
-    { href: "/admin/customers", label: "Customers", icon: Users },
-    { href: "/admin/reviews",   label: "Reviews",   icon: Star },
+    { href: "/admin_console",           label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin_console/orders",    label: "Orders",    icon: ShoppingBag },
+    { href: "/admin_console/products",  label: "Products",  icon: Package },
+    { href: "/admin_console/customers", label: "Customers", icon: Users },
+    { href: "/admin_console/reviews",   label: "Reviews",   icon: Star },
   ];
 
   const NavLink = ({ item }) => {
     const Icon   = item.icon;
-    const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
+    const active = pathname === item.href || (item.href !== "/admin_console" && pathname.startsWith(item.href));
     return (
       <Link href={item.href}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] tracking-[0.03em] no-underline transition-all duration-150 group

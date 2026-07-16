@@ -1,4 +1,4 @@
-// app/admin/products/ProductForm.jsx
+// app/admin_console/products/ProductForm.jsx
 "use client";
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -305,7 +305,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) { const d = await res.json(); throw new Error(d.message || "Failed"); }
       setSuccess(true);
-      setTimeout(() => router.push("/admin/products"), 900);
+      setTimeout(() => router.push("/admin_console/products"), 900);
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };

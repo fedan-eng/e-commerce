@@ -1,4 +1,4 @@
-// app/admin/products/page.jsx
+// app/admin_console/products/page.jsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -122,7 +122,7 @@ export default function AdminProductsPage() {
               className="flex-1 sm:flex-none px-4 py-2.5 bg-transparent text-[#e8c46a] border border-[#e8c46a44] rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase cursor-pointer hover:bg-[#e8c46a0a] transition-colors font-mono">
               ⠿ Sort
             </button>
-            <Link href="/admin/products/new"
+            <Link href="/admin_console/products/new"
               className="flex-1 sm:flex-none text-center px-4 py-2.5 bg-[#e8c46a] text-[#0a0a0a] no-underline rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase hover:bg-[#d4b05e] transition-colors">
               + Add Product
             </Link>
@@ -177,7 +177,7 @@ export default function AdminProductsPage() {
                       <td className="px-5 py-3.5 text-[13px] text-[#e8c46a]">{p.averageRating > 0 ? `★ ${p.averageRating.toFixed(1)}` : "—"}</td>
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex gap-2">
-                          <Link href={`/admin/products/${p._id}`} className="text-[11px] text-[#6ab4e8] no-underline px-2.5 py-1 border border-[#6ab4e822] rounded hover:bg-[#6ab4e812] transition-colors">EDIT</Link>
+                          <Link href={`/admin_console/products/${p._id}`} className="text-[11px] text-[#6ab4e8] no-underline px-2.5 py-1 border border-[#6ab4e822] rounded hover:bg-[#6ab4e812] transition-colors">EDIT</Link>
                           {confirmDelete === p._id ? (
                             <div className="flex gap-1">
                               <button onClick={() => deleteProduct(p._id)} disabled={deleting === p._id}
@@ -221,7 +221,7 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  <Link href={`/admin/products/${p._id}`}
+                  <Link href={`/admin_console/products/${p._id}`}
                     className="text-[11px] text-[#6ab4e8] no-underline px-2.5 py-1.5 border border-[#6ab4e822] rounded hover:bg-[#6ab4e812] transition-colors">
                     EDIT
                   </Link>

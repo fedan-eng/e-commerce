@@ -1,4 +1,4 @@
-// app/admin/customers/[id]/page.jsx
+// app/admin_console/customers/[id]/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -89,7 +89,7 @@ export default function AdminCustomerDetailPage() {
     <div className="max-w-[960px]">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/admin/customers" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
+        <Link href="/admin_console/customers" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
           ← BACK TO CUSTOMERS
         </Link>
         <div className="mt-4 flex items-center gap-4">
@@ -170,7 +170,7 @@ export default function AdminCustomerDetailPage() {
                         return (
                           <tr key={order._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
                             <td className="px-5 py-3 whitespace-nowrap">
-                              <Link href={`/admin/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                              <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
                                 #{String(order._id).slice(-8).toUpperCase()}
                               </Link>
                             </td>
@@ -199,7 +199,7 @@ export default function AdminCustomerDetailPage() {
                     return (
                       <div key={order._id} className="px-4 py-3 hover:bg-[#141414] transition-colors">
                         <div className="flex justify-between items-start mb-1.5">
-                          <Link href={`/admin/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                          <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
                             #{String(order._id).slice(-8).toUpperCase()}
                           </Link>
                           <span className="text-[13px] text-[#e8e8e8] font-semibold">₦{getTotal(order)}</span>
@@ -287,7 +287,7 @@ export default function AdminCustomerDetailPage() {
                 ✉ Email customer
               </a>
               {orders.length > 0 && (
-                <Link href={`/admin/orders?search=${user._id}`}
+                <Link href={`/admin_console/orders?search=${user._id}`}
                   className="block pt-2 text-[12px] text-[#fff] no-underline transition-colors hover:text-[#888]">
                   ◈ View all orders
                 </Link>

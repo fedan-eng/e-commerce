@@ -1,4 +1,4 @@
-// app/admin/reviews/page.jsx
+// app/admin_console/reviews/page.jsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";

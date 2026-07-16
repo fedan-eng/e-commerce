@@ -1,4 +1,4 @@
-// app/admin/orders/page.jsx
+// app/admin_console/orders/page.jsx
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -74,7 +74,7 @@ function AdminOrdersPage() {
     if (d)            params.set("days",   d);
     if (pg > 1)       params.set("page",   pg);
     const qs = params.toString();
-    router.replace(qs ? `/admin/orders?${qs}` : "/admin/orders", { scroll: false });
+    router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
   }, [statusFilter, search, days, page, router]);
 
   const fetchOrders = useCallback(async () => {
@@ -287,7 +287,7 @@ function AdminOrdersPage() {
             <button
               onClick={() => {
                 setSearch(""); setSearchInput(""); setDays(""); setStatusFilter("all"); setPage(1);
-                router.replace("/admin/orders", { scroll: false });
+                router.replace("/admin_console/orders", { scroll: false });
               }}
               className="text-[11px] text-[#fff] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
             >
@@ -338,7 +338,7 @@ function AdminOrdersPage() {
                             {new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                           </td>
                           <td className="px-4 py-3.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                            <Link href={`/admin/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                            <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
                               Order #{String(order._id).slice(-8).toUpperCase()}
                             </Link>
                           </td>
@@ -364,7 +364,7 @@ function AdminOrdersPage() {
                           </td>
                           <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                             <Link
-                              href={`/admin/orders/${order._id}`}
+                              href={`/admin_console/orders/${order._id}`}
                               className="text-[11px] text-[#fff] no-underline px-3 py-1.5 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#3a3a3a] transition-all whitespace-nowrap font-mono"
                             >
                               View details ↗
@@ -408,7 +408,7 @@ function AdminOrdersPage() {
                                         </td>
                                         <td className="pt-2.5">
                                           {item.productId && (
-                                            <Link href={`/admin/products/${item.productId}`} className="text-[10px] text-[#444] hover:text-[#888] no-underline font-mono border border-[#1e1e1e] rounded px-2 py-1 whitespace-nowrap hover:border-[#333] transition-all">
+                                            <Link href={`/admin_console/products/${item.productId}`} className="text-[10px] text-[#444] hover:text-[#888] no-underline font-mono border border-[#1e1e1e] rounded px-2 py-1 whitespace-nowrap hover:border-[#333] transition-all">
                                               View details ↗
                                             </Link>
                                           )}
@@ -440,7 +440,7 @@ function AdminOrdersPage() {
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div>
-                        <Link href={`/admin/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                        <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
                           Order #{String(order._id).slice(-8).toUpperCase()}
                         </Link>
                         <div className="text-[10px] text-[#444] mt-0.5 font-mono">
@@ -470,7 +470,7 @@ function AdminOrdersPage() {
                         ))}
                       </select>
                       <Link
-                        href={`/admin/orders/${order._id}`}
+                        href={`/admin_console/orders/${order._id}`}
                         className="shrink-0 text-[11px] text-[#fff] no-underline px-3.5 py-2 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#444] transition-all font-mono"
                       >
                         VIEW →

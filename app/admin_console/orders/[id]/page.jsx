@@ -1,4 +1,4 @@
-// app/admin/orders/[id]/page.jsx
+// app/admin_console/orders/[id]/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -158,7 +158,7 @@ export default function AdminOrderDetailPage() {
       {/* Back + header */}
       <div className="mb-6">
         <Link
-          href="/admin/orders"
+          href="/admin_console/orders"
           className="inline-flex items-center gap-1.5 text-[#6ae8a0] no-underline text-[11px] font-mono tracking-[.1em] uppercase hover:opacity-80 transition-opacity mb-4"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

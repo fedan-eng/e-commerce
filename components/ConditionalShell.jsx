@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 export default function ConditionalShell({ children }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/admin_console");
 
   return (
     <>

@@ -1,4 +1,4 @@
-//app/admin/products/new/page.jsx
+//app/admin_console/products/new/page.jsx
 "use client";
 import Link from "next/link";
 import ProductForm from "../ProductForm";
@@ -7,7 +7,7 @@ export default function NewProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
+        <Link href="/admin_console/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
           ← BACK TO PRODUCTS
         </Link>
         <div className="mt-4">

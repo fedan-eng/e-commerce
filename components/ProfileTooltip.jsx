@@ -61,7 +61,7 @@ const ProfileTooltip = () => {
                 ))}
                 {user?.role === "admin" && (
                   <Link
-                    href="/admin"
+                    href="/admin_console"
                     className="block py-2 px-4 text-[#1a1a1a] hover:bg-gray-50 hover:text-filgreen text-sm transition-colors"
                   >
                     Admin Dashboard
