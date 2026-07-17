@@ -7,13 +7,13 @@ import Image from "next/image";
 const items = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778585953/MAGFLEX_gg6xy8.mov",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/magflex.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
     previewStart: 0,
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514072/Dammy_2_uolk1d.mp4",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-2.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-2-thumb.png",
     previewStart: 0,
   },
@@ -31,7 +31,7 @@ const items = [
   },
   {
     id: 5,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778584712/Thunder_power_bank_bxhgww.mov",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/thunder-power-bank.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/thunder-power-bank-thumb.png",
     previewStart: 0,
   },
