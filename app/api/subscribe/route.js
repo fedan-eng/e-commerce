@@ -294,7 +294,7 @@ export async function POST(req) {
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
             <tr>
               <td style="border-radius: 30px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                <a href="https://filstore.com.ng/sign-in" target="_blank" class="cta-button-td" style="display: inline-block; padding: 16px 44px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 30px; letter-spacing: 0.3px;">
+                <a href="https://filstore.com.ng/register" target="_blank" class="cta-button-td" style="display: inline-block; padding: 16px 44px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 30px; letter-spacing: 0.3px;">
                   🔐 Sign In / Create Account
                 </a>
               </td>
@@ -432,7 +432,7 @@ export async function POST(req) {
             <tr>
               <td style="padding: 18px 22px; text-align: center;">
                 <p style="margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; color: #2e7d57; line-height: 20px;">
-                  💚 <strong>Remember:</strong> Sign in to your account before applying <strong>WELCOME10</strong> at checkout. No account yet? <a href="https://filstore.com.ng/sign-up" target="_blank" style="color: #0d9460; font-weight: 700; text-decoration: underline;">Create one here</a> — it only takes 30 seconds!
+                  💚 <strong>Remember:</strong> Sign in to your account before applying <strong>WELCOME10</strong> at checkout. No account yet? <a href="https://filstore.com.ng/register" target="_blank" style="color: #0d9460; font-weight: 700; text-decoration: underline;">Create one here</a> — it only takes 30 seconds!
                 </p>
               </td>
             </tr>
@@ -551,7 +551,7 @@ How to redeem:
 2. Add items to your cart and proceed to checkout
 3. Enter WELCOME10 in the promo code field & enjoy your discount!
 
-👉 Sign in / Create account: https://filstore.com.ng/sign-in
+👉 Sign in / Create account: https://filstore.com.ng/register
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -567,7 +567,7 @@ Ready to explore? 🛍️
 Shop now at: https://filstore.com.ng/products
 
 💚 Remember: Sign in to your account before applying WELCOME10 at checkout.
-No account yet? Create one here: https://filstore.com.ng/sign-up — it only takes 30 seconds!
+No account yet? Create one here: https://filstore.com.ng/register — it only takes 30 seconds!
 
 We're excited to have you with us! 😊
 Stay tuned for amazing deals, new products, and more.

@@ -7,32 +7,32 @@ import Image from "next/image";
 const items = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778585953/MAGFLEX_gg6xy8.mov",
-    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514725/video-capture-t0002.27seg-4682_qgv5ci.png",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/magflex.mp4",
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
     previewStart: 0,
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514072/Dammy_2_uolk1d.mp4",
-    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514679/video-capture-t0002.65seg-5531_ufuwi2.png",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-2.mp4",
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-2-thumb.png",
     previewStart: 0,
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514004/Dammy_1_intske.mp4",
-    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514710/video-capture-t0000.59seg-3278_zo1g08.png",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-1.mp4",
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-1-thumb.png",
     previewStart: 0,
-  },
+  }, 
   {
     id: 4,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778514007/Papeetyah_l8cwtm.mp4",
-    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514683/video-capture-t0000.71seg-3288_zauyaf.png",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/papeetyah.mp4",
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/papeetyah-thumb.png",
     previewStart: 87,
   },
   {
     id: 5,
-    img: "https://res.cloudinary.com/dm2igxywk/video/upload/v1778584712/Thunder_power_bank_bxhgww.mov",
-    poster: "https://res.cloudinary.com/dm2igxywk/image/upload/v1778514712/video-capture-t0003.88seg-2836_k1anwy.png",
+    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/thunder-power-bank.mp4",
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/thunder-power-bank-thumb.png",
     previewStart: 0,
   },
 ];
