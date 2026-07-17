@@ -85,13 +85,36 @@ export async function PATCH(req, context) {
 
 // ── Status email config ───────────────────────────────────────────────────────
 const STATUS_EMAIL_CONFIG = {
+  processing: {
+    subject: "We're Processing Your FIL Order!",
+    headline: "Your Order Is Being Processed!",
+    subheading: "We've received your order and are getting it ready",
+    badge: "Processing",
+    badgeEmoji: "&#9201;",
+    headerBg: "#f57c00",
+    headerText: "#fff3e0",
+    badgeBg: "#ffffff",
+    badgeTextColor: "#e65100",
+    accentColor: "#f57c00",
+    accentLight: "#fff8f0",
+    accentBorder: "#ffcc80",
+    ctaText: "View Our Store",
+    ctaLink: "https://filstore.com.ng/products",
+    messageLines: [
+      "Great news — we've received your order and our team is now carefully processing it for you!",
+      "Our team is reviewing your order details and preparing everything with the utmost care. At FIL, every order matters, and we want to make sure yours is handled perfectly before it gets on its way to you.",
+      "We'll send you another update as soon as your order has been shipped. In the meantime, feel free to browse our store or reach out if you have any questions.",
+      "Thank you for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We're excited to get this to you! &#128153;",
+    ],
+    plainMessage: () =>
+      `We've received your order and our team is now processing it!\nYou'll receive another update once your order has been shipped.\nVisit our store: https://filstore.com.ng/products`,
+  },
   shipped: {
     subject: "Your FIL Order Has Been Shipped!",
     headline: "Your Order Is On Its Way!",
     subheading: "Great news — your order has been shipped",
     badge: "Shipped",
     badgeEmoji: "&#128666;",
-    // solid colors — no gradients (email client support)
     headerBg: "#7b2ff7",
     headerText: "#f0e6ff",
     badgeBg: "#ffffff",
