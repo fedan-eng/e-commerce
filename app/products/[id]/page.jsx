@@ -16,14 +16,29 @@ export async function generateMetadata({params}) {
   const {id} = await params;
   const product = await fetchProduct(id);
 
-  const title = product ? `${product.name} | ${product.category || 'Products'} | FIL Store` : "Product | FIL Store";
-  const description =
-    product?.description || "Quality tech products at FIL Store Nigeria.";
+  const productName = product?.name || "Product";
+  const category = product?.category || "Tech Accessories";
+  const price = product?.price ? `₦${product.price}` : "";
+  
+  // Nigerian e-commerce SEO pattern: [action] + [product] + [location/nigeria]
+  const title = product 
+    ? `Buy ${productName} Online Nigeria | ${category} | ${price ? price + ' | ' : ''}FIL Store`
+    : "Product | FIL Store";
+  
+  const description = product
+    ? `Buy ${productName} online Nigeria at best prices. Original ${category.toLowerCase()} with warranty. Pay on delivery available. Fast delivery in Lagos, Abuja, Port Harcourt. ${product.description?.substring(0, 100) || "Quality tech products at FIL Store Nigeria."} Trusted online tech store.`
+    : "Quality tech products at FIL Store Nigeria.";
+  
+  const keywords = product
+    ? `buy ${productName.toLowerCase()} online Nigeria, ${productName.toLowerCase()} price in Nigeria, ${productName.toLowerCase()} for sale in Nigeria, original ${productName.toLowerCase()} Nigeria, ${category.toLowerCase()} Nigeria, buy ${category.toLowerCase()} online Nigeria, pay on delivery Nigeria, ${productName.toLowerCase()} delivery Lagos`
+    : "tech products Nigeria, buy electronics online Nigeria";
+
   const url = `https://www.filstore.com.ng/products/${id}`;
 
   return {
     title,
     description,
+    keywords,
     alternates: {canonical: url},
     openGraph: {
       title,

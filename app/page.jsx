@@ -7,13 +7,13 @@ import VideoSection from "../components/VideoSection";
 import FAQ from "./../components/FAQ";
 
 export const metadata = {
-  title: "FIL Store - Buy Power Banks, Wearables, Chargers & Tech Accessories in Nigeria",
-  description: "Shop quality tech products at unbeatable prices in Nigeria. Power banks, smartwatches, phone chargers, cables, and lifestyle accessories. Fast delivery in Lagos, Abuja, Port Harcourt. Authentic products, best prices. Think quality, think FIL.",
-  keywords: "FIL Store, buy tech products Nigeria, power bank Lagos, smartwatch Nigeria, phone charger, tech accessories, electronics store Nigeria",
+  title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
+  description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available. Trusted online tech store.",
+  keywords: "buy power bank online Nigeria, power bank price in Nigeria, wireless earbuds Nigeria, phone charger Nigeria, buy tech accessories online Nigeria, pay on delivery Nigeria, fast delivery Lagos, original power bank Nigeria",
   metadataBase: new URL('https://www.filstore.com.ng'),
   openGraph: {
-    title: "FIL Store - Quality Tech Products in Nigeria",
-    description: "Power banks, wearables, chargers & accessories at unbeatable prices. Fast delivery nationwide.",
+    title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
+    description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available.",
     url: 'https://www.filstore.com.ng',
     siteName: 'FIL Store',
     images: [
@@ -29,8 +29,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "FIL Store - Quality Tech Products in Nigeria",
-    description: "Shop power banks, wearables, chargers & tech accessories. Fast delivery nationwide.",
+    title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
+    description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available.",
     images: ['https://www.filstore.com.ng/fillogo.png'],
   },
   verification: {
