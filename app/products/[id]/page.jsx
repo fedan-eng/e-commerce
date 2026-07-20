@@ -86,7 +86,7 @@ export async function generateMetadata({ params }) {
       description,
       url,
       siteName: "FIL Store",
-      type: "product",
+      type: "website",
       images: product?.image ? [{ url: product.image, alt: productName }] : [],
     },
     twitter: {
