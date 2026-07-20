@@ -12,45 +12,17 @@ async function fetchProduct(id) {
   }
 }
 
-export async function generateMetadata({params}) {
-  const {id} = await params;
-  const product = await fetchProduct(id);
+function cleanText(value = "") {
+  return String(value).replace(/\s+/g, " ").trim();
+}
 
-  const productName = product?.name || "Product";
-  const category = product?.category || "Tech Accessories";
-  const price = product?.price ? `₦${product.price}` : "";
-  
-  // Nigerian e-commerce SEO pattern: [action] + [product] + [location/nigeria]
-  const title = product 
-    ? `Buy ${productName} Online Nigeria | ${category} | ${price ? price + ' | ' : ''}FIL Store`
-    : "Product | FIL Store";
-  
-  const description = product
-    ? `Buy ${productName} online Nigeria at best prices. Original ${category.toLowerCase()} with warranty. Pay on delivery available. Fast delivery in Lagos, Abuja, Port Harcourt. ${product.description?.substring(0, 100) || "Quality tech products at FIL Store Nigeria."} Trusted online tech store.`
-    : "Quality tech products at FIL Store Nigeria.";
-  
-  const keywords = product
-    ? `buy ${productName.toLowerCase()} online Nigeria, ${productName.toLowerCase()} price in Nigeria, ${productName.toLowerCase()} for sale in Nigeria, original ${productName.toLowerCase()} Nigeria, ${category.toLowerCase()} Nigeria, buy ${category.toLowerCase()} online Nigeria, pay on delivery Nigeria, ${productName.toLowerCase()} delivery Lagos`
-    : "tech products Nigeria, buy electronics online Nigeria";
-
-  const url = `https://www.filstore.com.ng/products/${id}`;
-
-  return {
-    title,
-    description,
-    keywords,
-    alternates: {canonical: url},
-    openGraph: {
-      title,
-      description,
-      url,
-      images: product?.image ? [{url: product.image}] : [],
-    },
-  };
+function truncate(value = "", length = 155) {
+  const text = cleanText(value);
+  return text.length > length ? `${text.slice(0, length - 1)}…` : text;
 }
 
 function clampRating(value) {
-  const num = parseFloat(value) || 5; // Default to 5 if no rating exists
+  const num = parseFloat(value) || 5;
   return Math.max(1, Math.min(5, num));
 }
 
@@ -60,75 +32,114 @@ function getPriceValidUntil() {
   return d.toISOString().split("T")[0];
 }
 
-export default async function Page({params}) {
-  const {id} = await params;
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const product = await fetchProduct(id);
+
+  if (!product) {
+    return {
+      title: "Premium Tech Products | FIL Store",
+      description: "Shop premium tech accessories, power solutions, and wearables at FIL Store.",
+      alternates: { canonical: `https://www.filstore.com.ng/products/${id}` },
+    };
+  }
+
+  const productName = cleanText(product.name || "Product");
+  const category = cleanText(product.category || "Tech Accessories");
+  const categoryLower = category.toLowerCase();
+  const price = product.price ? `₦${product.price}` : null;
+  const shortDesc = truncate(product.description || "", 120);
+
+  const title = `${productName} | Premium ${category} in Nigeria | FIL Store`;
+
+  const description = [
+    `Shop ${productName} from FIL Store, Nigeria’s premium destination for ${categoryLower}.`,
+    `Original quality, trusted service, warranty support, and fast delivery in Lagos and nationwide.`,
+    price ? `Available now for ${price}.` : "",
+    shortDesc,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const keywords = [
+    `${productName.toLowerCase()} nigeria`,
+    `buy ${productName.toLowerCase()} online nigeria`,
+    `${productName.toLowerCase()} price in nigeria`,
+    `original ${productName.toLowerCase()} nigeria`,
+    `premium ${categoryLower} nigeria`,
+    `buy ${categoryLower} online nigeria`,
+    `tech accessories nigeria`,
+    `fast delivery lagos`,
+    `trusted online store nigeria`,
+    `pay on delivery nigeria`,
+  ].join(", ");
+
+  const url = `https://www.filstore.com.ng/products/${id}`;
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "FIL Store",
+      type: "product",
+      images: product?.image ? [{ url: product.image, alt: productName }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: product?.image ? [product.image] : [],
+    },
+  };
+}
+
+export default async function Page({ params }) {
+  const { id } = await params;
   const product = await fetchProduct(id);
 
   if (!product) return <ProductDetailsPage />;
 
+  const productName = cleanText(product.name || "Product");
   const productUrl = `https://www.filstore.com.ng/products/${id}`;
   const priceValidUntil = getPriceValidUntil();
-
-  // Clean price: Remove commas or currency symbols if they exist in the string
-  const cleanPrice = String(product.price).replace(/[^0-9.]/g, "");
+  const cleanPrice = String(product.price || "").replace(/[^0-9.]/g, "");
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.name,
-    image: Array.isArray(product.image) ? product.image : [product.image],
-    description: product.description,
+    name: productName,
+    image: Array.isArray(product.image)
+      ? product.image
+      : product.image
+        ? [product.image]
+        : [],
+    description: cleanText(product.description || ""),
     sku: product._id || id,
     mpn: product._id || id,
     brand: {
       "@type": "Brand",
       name: "FIL",
     },
-    // Always show aggregateRating to satisfy Google Console
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue:
-        product.ratingsCount > 0 ? clampRating(product.averageRating) : 5,
-      reviewCount: product.ratingsCount > 0 ? product.ratingsCount : 1,
-      bestRating: 5,
-      worstRating: 1,
-    },
-    // Always show at least one review
-    review:
-      product.ratings && product.ratings.length > 0
-        ? product.ratings.slice(0, 3).map((r) => ({
-            "@type": "Review",
-            reviewRating: {
-              "@type": "Rating",
-              ratingValue: clampRating(r.value),
-              bestRating: 5,
-              worstRating: 1,
-            },
-            author: {"@type": "Person", name: "Verified Buyer"},
-            reviewBody: "Highly recommended product.",
-            datePublished: r.createdAt
-              ? new Date(r.createdAt).toISOString().split("T")[0]
-              : priceValidUntil,
-          }))
-        : [
-            {
-              "@type": "Review",
-              reviewRating: {
-                "@type": "Rating",
-                ratingValue: 5,
-                bestRating: 5,
-                worstRating: 1,
-              },
-              author: {"@type": "Person", name: "FIL Customer"},
-              reviewBody: "Excellent quality and service.",
-              datePublished: "2024-01-01",
-            },
-          ],
+    aggregateRating:
+      product.ratingsCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: clampRating(product.averageRating),
+            reviewCount: product.ratingsCount,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
     offers: {
       "@type": "Offer",
       url: productUrl,
       priceCurrency: "NGN",
-      price: cleanPrice,
+      price: cleanPrice || undefined,
       priceValidUntil,
       availability:
         product.availability !== false
@@ -138,15 +149,6 @@ export default async function Page({params}) {
         "@type": "Organization",
         name: "Fedan Investment Limited",
         url: "https://www.filstore.com.ng",
-      },
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "NG",
-        returnPolicyCategory:
-          "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
-        returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
       },
       shippingDetails: {
         "@type": "OfferShippingDetails",
@@ -194,24 +196,29 @@ export default async function Page({params}) {
         name: "Products",
         item: "https://www.filstore.com.ng/products",
       },
-      {"@type": "ListItem", position: 3, name: product.name, item: productUrl},
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: productName,
+        item: productUrl,
+      },
     ],
   };
 
   return (
     <>
-     <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ 
-        __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') 
-      }}
-    />
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ 
-        __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') 
-      }}
-    />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
+        }}
+      />
       <ProductDetailsPage />
     </>
   );
