@@ -15,6 +15,8 @@ const isValidPhone = (phone) => {
 };
 
 export async function POST(req) {
+
+  const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/, "") || process.env.NEXT_PUBLIC_BASE_URL;
   try {
     const body = await req.json();
 
@@ -102,7 +104,7 @@ export async function POST(req) {
           },
           promoCode,
         },
-        callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
+        callback_url: `${origin}/checkout/success`,
       },
       {
         headers: {
