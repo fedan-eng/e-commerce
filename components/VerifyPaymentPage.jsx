@@ -105,7 +105,7 @@ export default function VerifyPaymentPage() {
         });
 
         if (data.verified) {
-          setOrderDetails(data.orderData);
+          setOrderDetails(data.order || data.orderData);
           dispatch(clearCart());
           localStorage.removeItem("cart");
           localStorage.removeItem("checkoutEmail");
