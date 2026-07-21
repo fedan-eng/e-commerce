@@ -18,101 +18,57 @@ import autoTable from "jspdf-autotable";
 import { formatAmount } from "@/lib/utils";
 
 export default function VerifyPaymentPage() {
-  const [orderDetails, setOrderDetails] = useState(null); 
+  const [orderDetails, setOrderDetails] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentProvider, setPaymentProvider] = useState(null);
-  
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const cartItems = useSelector((state) => state.cart.items || []);
-  const user = useSelector((state) => state.auth.user || null);
   const { trackEvent } = useGAEvent();
   const { trackPurchase: trackMetaPurchase } = useMetaPixelEvent();
   const { trackPurchase: trackTikTokPurchase } = useTikTokEvent();
   const hasVerified = useRef(false);
 
-  // Get payment reference based on provider
   const paystackRef = searchParams.get("reference");
   const flutterwaveRef = searchParams.get("transaction_id");
   const flutterwaveStatus = searchParams.get("status");
 
-
-useEffect(() => {
-  if (!orderDetails) return;
-
-  // Debug: log what fields actually came back from API
-  console.log("[GA purchase] orderDetails fields:", {
-    id: orderDetails._id,
-    ref: orderDetails.paymentReference,
-    total: orderDetails.total,
-    subTotal: orderDetails.subTotal,
-    cartItems: orderDetails.cartItems,
-    items: orderDetails.items, // check which one exists
-  });
-
-  // Support both field names your API might return
-  const lineItems = orderDetails.cartItems || orderDetails.items || [];
-  const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
-  const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
-
-  if (!txId) {
-    console.warn("[GA purchase] Missing transaction_id — event not fired");
-    return;
-  }
-
-  console.log("[GA purchase] Preparing GA4 ecommerce purchase event:", {
-    transaction_id: txId,
-    currency: "NGN",
-    value: orderValue,
-    coupon: orderDetails.couponCode || undefined,
-    shipping: Number(orderDetails.deliveryFee || 0),
-    tax: 0,
-    items: lineItems.map((item, index) => ({
-      item_id: String(item._id || item.productId || index),
-      item_name: item.name || "Unknown",
-      quantity: Number(item.quantity || 1),
-      price: Number(item.price || 0),
-      index,
-    })),
-  });
-
-  trackEvent("purchase", {
-    transaction_id: txId,
-    currency: "NGN",
-    value: orderValue,
-    // Optional but recommended
-    coupon: orderDetails.couponCode || undefined,
-    shipping: Number(orderDetails.deliveryFee || 0),
-    tax: 0,
-    items: lineItems.map((item, index) => ({
-      item_id: String(item._id || item.productId || index),
-      item_name: item.name || "Unknown",
-      quantity: Number(item.quantity || 1),
-      price: Number(item.price || 0),
-    })),
-  });
-
-  console.log("[GA purchase] Event fired:", {
-    transaction_id: txId,
-    value: orderValue,
-    items: lineItems.length,
-  });
-
-  // Track Meta Pixel Purchase event
-  trackMetaPurchase(orderDetails, lineItems);
-
-  // Track TikTok Purchase event
-  trackTikTokPurchase(lineItems, orderValue, txId);
-}, [orderDetails, trackEvent, trackMetaPurchase, trackTikTokPurchase]);
-
+  // ── Tracking ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    // Prevent double verification
+    if (!orderDetails) return;
+
+    const lineItems = orderDetails.cartItems || orderDetails.items || [];
+    const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
+    const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
+
+    if (!txId) return;
+
+    trackEvent("purchase", {
+      transaction_id: txId,
+      currency: "NGN",
+      value: orderValue,
+      coupon: orderDetails.couponCode || undefined,
+      shipping: Number(orderDetails.deliveryFee || 0),
+      tax: 0,
+      items: lineItems.map((item, index) => ({
+        item_id: String(item._id || item.productId || index),
+        item_name: item.name || "Unknown",
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0),
+      })),
+    });
+
+    trackMetaPurchase(orderDetails, lineItems);
+    trackTikTokPurchase(lineItems, orderValue, txId);
+  }, [orderDetails, trackEvent, trackMetaPurchase, trackTikTokPurchase]);
+
+  // ── Verification ──────────────────────────────────────────────────────────
+  useEffect(() => {
     if (hasVerified.current) return;
 
-    // Determine payment provider and reference
     let reference, provider;
 
     if (paystackRef) {
@@ -121,9 +77,7 @@ useEffect(() => {
     } else if (flutterwaveRef) {
       reference = flutterwaveRef;
       provider = "flutterwave";
-
-      // Check Flutterwave status from URL
-     if (flutterwaveStatus !== "successful" && flutterwaveStatus !== "completed") {
+      if (flutterwaveStatus !== "successful" && flutterwaveStatus !== "completed") {
         setError("Payment was not successful. Please try again.");
         setLoading(false);
         return;
@@ -140,9 +94,7 @@ useEffect(() => {
     const verify = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        // Call unified verification endpoint
         const { data } = await axios.post("/api/verify-payment", {
           reference,
           provider,
@@ -151,13 +103,6 @@ useEffect(() => {
         if (data.verified) {
           setOrderDetails(data.orderData);
           dispatch(clearCart());
-
-
-  
-
-         
-
-          // Clear localStorage checkout data
           localStorage.removeItem("cart");
           localStorage.removeItem("checkoutEmail");
           localStorage.removeItem("checkoutFirstName");
@@ -171,13 +116,9 @@ useEffect(() => {
           setError("Payment verification failed. Please contact support.");
         }
       } catch (err) {
-        console.error(
-          "Payment verification failed:",
-          err.response?.data || err.message
-        );
         setError(
-          err.response?.data?.message || 
-          "We couldn't verify your payment. Please try again or contact support."
+          err.response?.data?.message ||
+            "We couldn't verify your payment. Please try again or contact support."
         );
       } finally {
         setLoading(false);
@@ -187,285 +128,221 @@ useEffect(() => {
     verify();
   }, [paystackRef, flutterwaveRef, flutterwaveStatus, dispatch]);
 
- const generateReceipt = () => {
-  if (!orderDetails) return;
+  // ── PDF receipt ───────────────────────────────────────────────────────────
+  const generateReceipt = () => {
+    if (!orderDetails) return;
 
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
 
-  // Add watermark
-  doc.setGState(new doc.GState({ opacity: 0.1 }));
-  doc.setFontSize(60);
-  doc.setTextColor(28, 201, 120);
-  doc.text('FIL', pageWidth / 2, pageHeight / 2, {
-    align: 'center',
-    angle: 45
-  });
-  doc.setGState(new doc.GState({ opacity: 1 }));
+    doc.setGState(new doc.GState({ opacity: 0.1 }));
+    doc.setFontSize(60);
+    doc.setTextColor(28, 201, 120);
+    doc.text("FIL", pageWidth / 2, pageHeight / 2, { align: "center", angle: 45 });
+    doc.setGState(new doc.GState({ opacity: 1 }));
 
-  // Add logo at the top
-  try {
-    const logo = new Image();
-    logo.src = '/fillogo.png';
-    doc.addImage(logo, 'PNG', pageWidth / 2 - 20, 10, 40, 40);
-  } catch (error) {
-    console.log('Logo not found, skipping');
-  }
+    try {
+      const logo = new Image();
+      logo.src = "/fillogo.png";
+      doc.addImage(logo, "PNG", pageWidth / 2 - 20, 10, 40, 40);
+    } catch {}
 
-  // Company name and tagline
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(28, 201, 120);
-  doc.text('Fedan Investment Limited', pageWidth / 2, 58, { align: 'center' });
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Think Quality, Think FIL', pageWidth / 2, 65, { align: 'center' });
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(28, 201, 120);
+    doc.text("Fedan Investment Limited", pageWidth / 2, 58, { align: "center" });
 
-  // Divider line
-  doc.setDrawColor(28, 201, 120);
-  doc.setLineWidth(0.5);
-  doc.line(14, 70, pageWidth - 14, 70);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Think Quality, Think FIL", pageWidth / 2, 65, { align: "center" });
 
-  // Receipt title
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(51, 51, 51);
-  doc.text('ORDER RECEIPT', pageWidth / 2, 80, { align: 'center' });
+    doc.setDrawColor(28, 201, 120);
+    doc.setLineWidth(0.5);
+    doc.line(14, 70, pageWidth - 14, 70);
 
-  // Order reference box
-  doc.setFillColor(248, 249, 250);
-  doc.roundedRect(14, 88, pageWidth - 28, 16, 3, 3, 'F');
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(28, 201, 120);
-  doc.text('Order Reference:', 18, 96);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(51, 51, 51);
-  doc.text(orderDetails.paymentReference, 58, 96);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(28, 201, 120);
-  doc.text('Date:', 18, 101);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(51, 51, 51);
-  doc.text(new Date().toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }), 32, 101);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(51, 51, 51);
+    doc.text("ORDER RECEIPT", pageWidth / 2, 80, { align: "center" });
 
-  // Customer Information Section
-  let yPos = 114;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(51, 51, 51);
-  doc.text('CUSTOMER INFORMATION', 14, yPos);
-  
-  yPos += 2;
-  doc.setDrawColor(28, 201, 120);
-  doc.setLineWidth(0.3);
-  doc.line(14, yPos, 70, yPos);
+    doc.setFillColor(248, 249, 250);
+    doc.roundedRect(14, 88, pageWidth - 28, 16, 3, 3, "F");
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(28, 201, 120);
+    doc.text("Order Reference:", 18, 96);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(51, 51, 51);
+    doc.text(orderDetails.paymentReference, 58, 96);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(28, 201, 120);
+    doc.text("Date:", 18, 101);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(51, 51, 51);
+    doc.text(
+      new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      32,
+      101
+    );
 
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  
-  const customerInfo = [
-    { label: 'Name:', value: `${orderDetails.firstName} ${orderDetails.lastName || ''}` },
-    { label: 'Email:', value: orderDetails.email },
-    { label: 'Phone:', value: orderDetails.phone },
-    { label: 'Address:', value: `${orderDetails.address}, ${orderDetails.city}` },
-    { label: 'Region:', value: orderDetails.region?.name || orderDetails.region },
-    { label: 'Delivery:', value: orderDetails.deliveryType },
-  ];
+    let yPos = 114;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(51, 51, 51);
+    doc.text("CUSTOMER INFORMATION", 14, yPos);
+    yPos += 2;
+    doc.setDrawColor(28, 201, 120);
+    doc.setLineWidth(0.3);
+    doc.line(14, yPos, 70, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80, 80, 80);
 
-  customerInfo.forEach((info) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(info.label, 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(info.value, 40, yPos);
+    const customerInfo = [
+      { label: "Name:", value: `${orderDetails.firstName} ${orderDetails.lastName || ""}` },
+      { label: "Email:", value: orderDetails.email },
+      { label: "Phone:", value: orderDetails.phone },
+      { label: "Address:", value: `${orderDetails.address}, ${orderDetails.city}` },
+      { label: "Region:", value: orderDetails.region?.name || orderDetails.region },
+      { label: "Delivery:", value: orderDetails.deliveryType },
+    ];
+
+    customerInfo.forEach((info) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(info.label, 14, yPos);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(info.value || ""), 40, yPos);
+      yPos += 6;
+    });
+
+    yPos += 4;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(51, 51, 51);
+    doc.text("PAYMENT DETAILS", 14, yPos);
+    yPos += 2;
+    doc.setDrawColor(28, 201, 120);
+    doc.line(14, yPos, 70, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(80, 80, 80);
+    doc.text("Payment Method:", 14, yPos);
+    doc.setFont("helvetica", "normal");
+    const paymentMethod = paymentProvider
+      ? paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1)
+      : "N/A";
+    doc.text(paymentMethod, 50, yPos);
     yPos += 6;
-  });
+    doc.setFont("helvetica", "bold");
+    doc.text("Status:", 14, yPos);
+    doc.setTextColor(28, 201, 120);
+    doc.text("✓ PAID", 50, yPos);
 
-  // Payment Information Section
-  yPos += 4;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(51, 51, 51);
-  doc.text('PAYMENT DETAILS', 14, yPos);
-  
-  yPos += 2;
-  doc.setDrawColor(28, 201, 120);
-  doc.line(14, yPos, 70, yPos);
+    yPos += 12;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(51, 51, 51);
+    doc.text("ORDER ITEMS", 14, yPos);
+    yPos += 2;
+    doc.setDrawColor(28, 201, 120);
+    doc.line(14, yPos, 70, yPos);
 
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Payment Method:', 14, yPos);
-  doc.setFont('helvetica', 'normal');
-  const paymentMethod = paymentProvider ? 
-    paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1) : 
-    'N/A';
-  doc.text(paymentMethod, 50, yPos);
-  
-  yPos += 6;
-  doc.setFont('helvetica', 'bold');
-  doc.text('Status:', 14, yPos);
-  doc.setTextColor(28, 201, 120);
-  doc.setFont('helvetica', 'bold');
-  doc.text('✓ PAID', 50, yPos);
+    const tableData = orderDetails.cartItems.map((item, i) => [
+      String(i + 1),
+      item.name,
+      String(item.quantity),
+      `₦${Number(item.price).toLocaleString()}`,
+      `₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}`,
+    ]);
 
-  // Order Items Section
-  yPos += 12;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(51, 51, 51);
-  doc.text('ORDER ITEMS', 14, yPos);
-  
-  yPos += 2;
-  doc.setDrawColor(28, 201, 120);
-  doc.line(14, yPos, 70, yPos);
+    autoTable(doc, {
+      startY: yPos + 5,
+      head: [["#", "Product", "Qty", "Unit Price", "Total"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [28, 201, 120], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 10, halign: "center" },
+      bodyStyles: { textColor: [51, 51, 51], fontSize: 9 },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 10 },
+        1: { cellWidth: 70 },
+        2: { halign: "center", cellWidth: 20 },
+        3: { halign: "right", cellWidth: 35 },
+        4: { halign: "right", cellWidth: 35 },
+      },
+      margin: { left: 14, right: 14 },
+    });
 
-  // Items Table
-  const tableData = orderDetails.cartItems.map((item, i) => [
-    String(i + 1),
-    item.name,
-    String(item.quantity),
-    `₦${Number(item.price).toLocaleString()}`,
-    `₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}`,
-  ]);
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFillColor(248, 249, 250);
+    doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, "F");
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80, 80, 80);
+    const summaryY = finalY + 8;
+    doc.text("Subtotal:", pageWidth - 85, summaryY);
+    doc.text(`₦${Number(orderDetails.subTotal).toLocaleString()}`, pageWidth - 20, summaryY, { align: "right" });
+    doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
+    doc.text(`₦${Number(orderDetails.deliveryFee).toLocaleString()}`, pageWidth - 20, summaryY + 7, { align: "right" });
+    doc.text("Discount:", pageWidth - 85, summaryY + 14);
+    doc.setTextColor(28, 201, 120);
+    doc.text(`-₦${Number(orderDetails.discount).toLocaleString()}`, pageWidth - 20, summaryY + 14, { align: "right" });
+    doc.setDrawColor(28, 201, 120);
+    doc.setLineWidth(0.5);
+    doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(28, 201, 120);
+    doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
+    doc.setFontSize(14);
+    doc.text(`₦${Number(orderDetails.total).toLocaleString()}`, pageWidth - 20, summaryY + 26, { align: "right" });
 
-  autoTable(doc, {
-    startY: yPos + 5,
-    head: [['#', 'Product', 'Qty', 'Unit Price', 'Total']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [28, 201, 120],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 10,
-      halign: 'center',
-    },
-    bodyStyles: {
-      textColor: [51, 51, 51],
-      fontSize: 9,
-    },
-    alternateRowStyles: {
-      fillColor: [248, 249, 250],
-    },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 10 },
-      1: { cellWidth: 70 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'right', cellWidth: 35 },
-      4: { halign: 'right', cellWidth: 35 },
-    },
-    margin: { left: 14, right: 14 },
-  });
+    const footerY = pageHeight - 30;
+    doc.setDrawColor(28, 201, 120);
+    doc.setLineWidth(0.3);
+    doc.line(14, footerY, pageWidth - 14, footerY);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Thank you for choosing FIL Store!", pageWidth / 2, footerY + 6, { align: "center" });
+    doc.text("For support: filfilecommerce@gmail.com | Visit: filstore.com.ng", pageWidth / 2, footerY + 11, { align: "center" });
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.text("This is a computer-generated receipt and does not require a signature.", pageWidth / 2, footerY + 18, { align: "center" });
 
-  // Summary Section
-  const finalY = doc.lastAutoTable.finalY + 10;
-  
-  // Summary box
-  doc.setFillColor(248, 249, 250);
-  doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, 'F');
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  
-  const summaryY = finalY + 8;
-  doc.text('Subtotal:', pageWidth - 85, summaryY);
-  doc.text(`₦${Number(orderDetails.subTotal).toLocaleString()}`, pageWidth - 20, summaryY, { align: 'right' });
-  
-  doc.text('Delivery Fee:', pageWidth - 85, summaryY + 7);
-  doc.text(`₦${Number(orderDetails.deliveryFee).toLocaleString()}`, pageWidth - 20, summaryY + 7, { align: 'right' });
-  
-  doc.text('Discount:', pageWidth - 85, summaryY + 14);
-  doc.setTextColor(28, 201, 120);
-  doc.text(`-₦${Number(orderDetails.discount).toLocaleString()}`, pageWidth - 20, summaryY + 14, { align: 'right' });
-  
-  // Total line
-  doc.setDrawColor(28, 201, 120);
-  doc.setLineWidth(0.5);
-  doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(28, 201, 120);
-  doc.text('TOTAL:', pageWidth - 85, summaryY + 26);
-  doc.setFontSize(14);
-  doc.text(`₦${Number(orderDetails.total).toLocaleString()}`, pageWidth - 20, summaryY + 26, { align: 'right' });
+    doc.save(`FIL-Receipt-${orderDetails.paymentReference}.pdf`);
+  };
 
-  // Footer
-  const footerY = pageHeight - 30;
-  doc.setDrawColor(28, 201, 120);
-  doc.setLineWidth(0.3);
-  doc.line(14, footerY, pageWidth - 14, footerY);
-  
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Thank you for choosing FIL Store!', pageWidth / 2, footerY + 6, { align: 'center' });
-  doc.text('For support: filfilecommerce@gmail.com | Visit: filstore.com.ng', pageWidth / 2, footerY + 11, { align: 'center' });
-  
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'italic');
-  doc.text('This is a computer-generated receipt and does not require a signature.', pageWidth / 2, footerY + 18, { align: 'center' });
+  // ── States ────────────────────────────────────────────────────────────────
+  if (loading) return <Loading />;
 
-  // Save PDF
-  doc.save(`FIL-Receipt-${orderDetails.paymentReference}.pdf`);
-};
-
-  // 1️⃣ Loading state
-  if (loading) {
-    return <Loading />;
-  }
-
-  // 2️⃣ Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-          {/* Error Icon */}
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-10 h-10 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-
-          <h1 className="text-3xl font-oswald font-bold text-gray-900 mb-2">
-            Payment Failed
-          </h1>
+          <h1 className="text-3xl font-oswald font-bold text-gray-900 mb-2">Payment Failed</h1>
           <p className="text-gray-600 mb-6">{error}</p>
-
           {paymentProvider && (
             <p className="text-xs text-gray-500 mb-6">
               Payment Provider:{" "}
               <span className="capitalize font-medium">{paymentProvider}</span>
             </p>
           )}
-
           <div className="space-y-3">
             <button
               onClick={() => router.push("/cart")}
@@ -480,32 +357,28 @@ useEffect(() => {
               Back to Home
             </button>
           </div>
-
           <p className="text-xs text-gray-500 mt-6">
             Need help?{" "}
-            <Link href="/contact" className="text-filgreen underline">
-              Contact Support
-            </Link>
+            <Link href="/contact" className="text-filgreen underline">Contact Support</Link>
           </p>
         </div>
       </div>
     );
   }
 
-  // 3️⃣ Success state
   if (!orderDetails) {
     return (
       <div className="p-4 text-center">
         <p className="text-gray-600">No order details available.</p>
-        <button
-          onClick={() => router.push("/")}
-          className="bg-filgreen mt-4 px-4 py-2 rounded text-white"
-        >
+        <button onClick={() => router.push("/")} className="bg-filgreen mt-4 px-4 py-2 rounded text-white">
           Back Home
         </button>
       </div>
     );
   }
+
+  // ── Success UI ────────────────────────────────────────────────────────────
+  const lineItems = orderDetails.cartItems || orderDetails.items || [];
 
   return (
     <div className="relative">
@@ -513,209 +386,168 @@ useEffect(() => {
         <FeedbackForm />
       </div>
 
-      <div className="mx-2">
-        <div className="bg-[#f6f6f6] m-4 mx-auto p-2 md:p-4 rounded-md w-full max-w-[1140px]">
-          <div className="mx-auto w-full max-w-[648px]">
-            <div className="flex justify-center w-full">
-              <div className="w-[85px] h-[85px]">
-                <img
-                  className="w-full h-full object-cover"
-                  src="/success.gif"
-                  alt="Order Success"
-                />
-              </div>
-            </div>
-            <h1 className="font-oswald text-[32px] text-filgreen text-center">
-              Order Confirmed
+      <div className="mx-auto max-w-[1140px] px-4 py-10">
+        {/* Thank you header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-filgreen rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="font-oswald font-bold text-2xl s:text-3xl text-dark">
+              Thank you, {orderDetails.firstName}!
             </h1>
-            <p className="font-medium">
-              Hello {orderDetails.firstName}
+            <p className="text-sm text-[#767676]">
+              Your order is confirmed. A receipt has been sent to {orderDetails.email}
             </p>
-            <p className="text-sm leading-[160%]">
-              Your order has been confirmed and will be on its way soon. Thank
-              you for shopping with us!
-            </p>
+          </div>
+        </div>
 
-            {/* Payment Provider Badge */}
-            {paymentProvider && (
-              <div className="mt-4 inline-block bg-green-50 border border-green-200 rounded-lg px-4 py-2">
-                <p className="text-sm text-gray-600">
-                  Paid via:{" "}
-                  <span className="font-medium capitalize">{paymentProvider}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Reference: {orderDetails.paymentReference}
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-2 s:gap-20 mt-7">
+        <div className="lg:flex gap-6 items-start">
+          {/* ── LEFT COLUMN ── */}
+          <div className="flex-1 min-w-0">
+            {/* Order info grid */}
+            <div className="border border-[#e3e3e3] rounded-lg p-4 mb-6 grid grid-cols-2 gap-x-6 gap-y-4">
               <div>
-                <p className="mb-4 text-[#929292] text-xs s:text-base">
-                  Order Reference
+                <p className="text-xs text-[#999] mb-1">Order number</p>
+                <p className="text-sm font-medium text-dark break-all">
+                  #{orderDetails.paymentReference}
                 </p>
-                <p className="text-[#929292] text-xs s:text-base">Order Date</p>
               </div>
               <div>
-                <p className="mb-4 font-medium text-dark text-xs s:text-base break-words">
-                  {orderDetails.paymentReference}
+                <p className="text-xs text-[#999] mb-1">Order date</p>
+                <p className="text-sm font-medium text-dark">
+                  {new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
-                <p className="font-medium text-dark text-xs s:text-base">
-                  {new Date().toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="items-justify-center gap-2 lg:gap-4 grid grid-cols-[minmax(100px,1fr)_30px_60px] xs:grid-cols-[20px_minmax(100px,1fr)_60px_60px] mt-4 py-4 border-[#d9d9d9] border-t border-b">
-              <span className="max-xs:hidden min-w-0 font-medium text-sm text-center">
-                #
-              </span>
-              <span className="min-w-0 font-medium text-sm">Product</span>
-              <span className="min-w-0 font-medium text-sm">Qty</span>
-              <span className="min-w-0 font-medium text-sm">Price</span>
-            </div>
-
-            {orderDetails.cartItems?.map((item, index) => (
-              <div
-                key={item._id || index}
-                className="items-center gap-2 lg:gap-4 grid grid-cols-[minmax(100px,1fr)_30px_60px] xs:grid-cols-[20px_minmax(100px,1fr)_60px_60px] py-2 text-sm sm:text-base"
-              >
-                <span className="max-xs:hidden min-w-0 text-sm text-center">
-                  {index + 1}
-                </span>
-
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex flex-shrink-0 justify-center items-center w-[40px] xs:w-[81px] h-[40px] xs:h-[81px]">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="min-w-0 font-oswald text-xs xs:text-sm line-clamp-1">
-                      {item.name}
-                    </p>
-                    <p className="xs:my-2 text-[#767676] text-xs">{item.category}</p>
-                    <p className="text-xs">{item.color}</p>
-                  </div>
-                </div>
-
-                <span className="min-w-0 text-dark text-sm">
-                  {item.quantity}
-                </span>
-
-                <span className="min-w-0 text-dark text-sm">
-                  {formatAmount(item.price)}
-                </span>
-              </div>
-            ))}
-
-            <div className="items-center gap-2 lg:gap-4 grid grid-cols-2 xs:grid-cols-[20px_minmax(100px,1fr)_100px_100px] mt-4 mb-6 py-4 border-[#d9d9d9] border-t border-b text-sm sm:text-base">
-              <div></div>
-              <div></div>
-              <div>
-                <p className="mb-2 text-[#929292] text-sm">Sub Total</p>
-                <p className="mb-2 text-[#929292] text-sm">Delivery Fees</p>
-                <p className="mb-2 text-[#929292] text-sm">Discount</p>
-                <p className="mb-2 font-medium text-sm">Total</p>
               </div>
               <div>
-                <p className="mb-2 font-medium text-sm">
-                  {formatAmount(orderDetails.subTotal || 0)}
-                </p>
-                <p className="mb-2 font-medium text-sm">
-                  {formatAmount(orderDetails.deliveryFee || 0)}
-                </p>
-                <p className="mb-2 font-medium text-sm">
-                  - {formatAmount(orderDetails.discount || 0)}
-                </p>
-                <p className="mb-2 font-medium text-sm">
-                  {formatAmount(orderDetails.total || 0)}
-                </p>
-              </div>
-            </div>
-
-            <div className="xs:flex gap-4 mt-6 w-full">
-              <div className="xs:w-1/2">
-                <h2 className="mb-4 font-oswald font-medium">
-                  Delivery Information
-                </h2>
-
-                <h3 className="font-medium text-sm">
-                  {orderDetails.firstName} {orderDetails.lastName}
-                </h3>
-
-                <h3 className="mb-3 font-medium text-sm">
-                  {orderDetails.email}
-                </h3>
-
-                <p className="my-3 text-[#575757] text-sm">
-                  {orderDetails.address}
-                </p>
-
-                <p className="mb-3 text-sm">
-                  {orderDetails.city}, {orderDetails.region?.name || orderDetails.region}
-                </p>
-
-                <p className="mb-4 text-sm">{orderDetails.phone}</p>
-
-                {orderDetails.addPhone && (
-                  <p className="mb-4 text-sm">Alt: {orderDetails.addPhone}</p>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <div className="w-[20px] h-[20px]">
-                    <img
-                      src="/delivery.png"
-                      alt="Delivery"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <p className="text-sm capitalize">
-                    {orderDetails.deliveryType}
-                  </p>
-                </div>
-              </div>
-
-              <div className="max-xs:hidden xs:w-1/2">
-                <h2 className="mb-4 font-oswald font-medium">Payment Method</h2>
-                <p className="text-sm capitalize font-medium mb-2">
+                <p className="text-xs text-[#999] mb-1">Payment method</p>
+                <p className="text-sm font-medium text-dark capitalize">
                   {paymentProvider || "N/A"}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Pay with Cards, Bank Transfer or USSD
-                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[#999] mb-1">Estimated delivery</p>
+                <p className="text-sm font-medium text-dark">2–4 working days</p>
               </div>
             </div>
 
-            <div className="flex justify-center items-center gap-2 xxs:gap-4 mt-6 pt-4 pb-12 border-[#d9d9d9] border-t">
+            {/* Shipping address */}
+            <div className="mb-6">
+              <h2 className="font-oswald font-medium text-lg mb-3">Shipping Address</h2>
+              <div className="text-sm text-[#575757] space-y-1">
+                <p className="font-medium text-dark">
+                  {orderDetails.firstName} {orderDetails.lastName}
+                </p>
+                <p>{orderDetails.address}</p>
+                <p>
+                  {orderDetails.city}, {orderDetails.region?.name || orderDetails.region}
+                </p>
+                <p>Nigeria</p>
+                <p>{orderDetails.phone}</p>
+                {orderDetails.addPhone && <p>{orderDetails.addPhone}</p>}
+              </div>
+            </div>
+
+            {/* Billing address */}
+            <div className="mb-6">
+              <h2 className="font-oswald font-medium text-lg mb-3">Billing Address</h2>
+              <p className="text-sm text-[#767676]">Same as shipping address</p>
+            </div>
+
+            {/* CTA buttons */}
+            <div className="flex gap-3 mb-10">
               <Link
-                href="/contact"
-                className="px-2 sm:px-6 py-3 border border-[#d9d9d9] rounded-md font-roboto font-medium text-dark text-xs sm:text-sm whitespace-nowrap"
+                href="/products"
+                className="bg-filgreen px-6 py-3 rounded-md font-roboto font-medium text-dark text-sm"
               >
-                Need Help
+                Track Order
               </Link>
               <Link
                 href="/products"
-                className="bg-filgreen px-2 sm:px-6 py-3 rounded-md font-roboto font-medium text-dark text-xs sm:text-sm whitespace-nowrap"
+                className="px-6 py-3 border border-[#d9d9d9] rounded-md font-roboto font-medium text-dark text-sm"
               >
                 Continue Shopping
               </Link>
             </div>
+
+            {/* PDF download link */}
+            <button
+              onClick={generateReceipt}
+              className="text-filgreen text-sm underline mb-10 cursor-pointer hover:text-green-700 transition-colors"
+            >
+              Download receipt (PDF)
+            </button>
+          </div>
+
+          {/* ── RIGHT SIDEBAR ── */}
+          <div className="lg:w-[380px] flex-shrink-0">
+            <div className="border border-[#e3e3e3] rounded-lg p-4">
+              {/* Items */}
+              <div className="divide-y divide-[#e5e5e5] mb-4">
+                {lineItems.map((item, index) => (
+                  <div key={item._id || index} className="flex items-center gap-3 py-3">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-[60px] h-[60px] bg-[#f6f6f6] rounded-md flex items-center justify-center">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-[52px] h-[52px] object-contain"
+                        />
+                      </div>
+                      {/* Quantity badge */}
+                      <span className="absolute -top-2 -right-2 bg-[#767676] text-white text-[10px] font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-oswald text-sm line-clamp-2">{item.name}</p>
+                      {item.color && (
+                        <p className="text-xs text-[#767676]">{item.color}</p>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-dark flex-shrink-0">
+                      {formatAmount(item.price * item.quantity)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="border-t border-[#e5e5e5] pt-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#767676]">
+                    Subtotal · {lineItems.length} {lineItems.length === 1 ? "item" : "items"}
+                  </span>
+                  <span className="font-medium">{formatAmount(orderDetails.subTotal || 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#767676]">Shipping</span>
+                  <span className="font-medium">{formatAmount(orderDetails.deliveryFee || 0)}</span>
+                </div>
+                {orderDetails.discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#767676]">Discount</span>
+                    <span className="font-medium text-filgreen">
+                      - {formatAmount(orderDetails.discount)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-3 border-t border-[#e5e5e5]">
+                  <span className="font-medium text-dark">Total</span>
+                  <span className="font-medium text-dark">
+                    {formatAmount(orderDetails.total || 0)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-center items-center gap-4 mt-6 mb-12">
-        <button
-          onClick={generateReceipt}
-          className="bg-filgreen px-2 sm:px-6 py-3 rounded-md font-roboto font-medium text-dark text-xs sm:text-sm whitespace-nowrap cursor-pointer hover:bg-green-600 transition-colors"
-        >
-          Download Receipt (PDF)
-        </button>
       </div>
 
       <div className="mt-12 overflow-hidden">

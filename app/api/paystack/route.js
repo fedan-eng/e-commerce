@@ -1,16 +1,15 @@
-// app/api/paystack/route.js (updated)
+// app/api/paystack/route.js
 import axios from "axios";
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    // Destructure the cartItems and deliveryInfo from the body
     const { cartItems, deliveryInfo, discount, promoCode } = body;
 
-    // Destructure the nested deliveryInfo object
     const {
       firstName,
+      lastName,
       email,
       phone,
       addPhone,
@@ -18,9 +17,9 @@ export async function POST(req) {
       city,
       deliveryType,
       address,
+      orderNote,
     } = deliveryInfo;
 
-    // Validate
     if (
       !firstName ||
       !email ||
@@ -38,7 +37,7 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Always recompute on backend
+    // Always recompute on backend
     const subTotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -55,7 +54,7 @@ export async function POST(req) {
 
     const safeDiscount = discount || 0;
     const rawTotal = subTotal - safeDiscount + deliveryFee;
-    const total = Math.max(0, rawTotal); // Ensure total is not negative
+    const total = Math.max(0, rawTotal);
 
     const amount = total * 100;
 
@@ -66,6 +65,7 @@ export async function POST(req) {
         amount,
         metadata: {
           firstName,
+          lastName,
           email,
           phone,
           addPhone,
@@ -73,6 +73,7 @@ export async function POST(req) {
           city,
           deliveryType,
           address,
+          orderNote: orderNote || "",
           cartItems,
           subTotal,
           discount: safeDiscount,

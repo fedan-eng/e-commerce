@@ -1,3 +1,4 @@
+//api/auth/update-profile
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
