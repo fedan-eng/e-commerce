@@ -1,85 +1,106 @@
 // app/api/paystack/route.js
 import axios from "axios";
+import { NextResponse } from "next/server";
+
+const isValidEmail = (email) => {
+  if (!email || typeof email !== "string") return false;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email.trim());
+};
+
+const isValidPhone = (phone) => {
+  if (!phone) return false;
+  const digits = String(phone).replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 14;
+};
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { cartItems, deliveryInfo, discount, promoCode } = body;
+    const { cartItems, deliveryInfo, discount = 0, promoCode } = body;
 
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      addPhone,
-      region,
-      city,
-      deliveryType,
-      address,
-      orderNote,
-    } = deliveryInfo;
-
-    if (
-      !firstName ||
-      !email ||
-      !phone ||
-      !region ||
-      !city ||
-      !deliveryType ||
-      !address ||
-      !cartItems ||
-      cartItems.length === 0
-    ) {
-      return new Response(
-        JSON.stringify({ message: "Missing required information" }),
+    // ── Server-side validation ──
+    if (!deliveryInfo) {
+      return NextResponse.json(
+        { message: "Delivery information is required" },
         { status: 400 }
       );
     }
 
-    // Always recompute on backend
+    const email = String(deliveryInfo.email || "").trim().toLowerCase();
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { message: "Invalid email address" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidPhone(deliveryInfo.phone)) {
+      return NextResponse.json(
+        { message: "Invalid phone number" },
+        { status: 400 }
+      );
+    }
+
+    if (!deliveryInfo.firstName?.trim() || !deliveryInfo.lastName?.trim()) {
+      return NextResponse.json(
+        { message: "First and last name are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!deliveryInfo.address?.trim() || !deliveryInfo.city?.trim()) {
+      return NextResponse.json(
+        { message: "Complete delivery address is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      return NextResponse.json(
+        { message: "Cart is empty" },
+        { status: 400 }
+      );
+    }
+
+    // Calculate total server-side (don't trust client)
     const subTotal = cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (acc, item) => acc + Number(item.price) * Number(item.quantity),
       0
     );
 
-    let deliveryFee = 0;
-    if (deliveryType === "Free") {
-      deliveryFee = 0;
-    } else if (deliveryType === "Express") {
-      deliveryFee = (region?.fee || 0) * 2;
-    } else {
-      deliveryFee = region?.fee || 0;
+    const deliveryFee =
+      deliveryInfo.deliveryType === "Free"
+        ? 0
+        : deliveryInfo.deliveryType === "Express"
+        ? (deliveryInfo.region?.fee || 0) * 2
+        : deliveryInfo.region?.fee || 0;
+
+    const total = Math.max(0, subTotal - Number(discount) + deliveryFee);
+
+    if (total <= 0) {
+      return NextResponse.json(
+        { message: "Invalid order total" },
+        { status: 400 }
+      );
     }
 
-    const safeDiscount = discount || 0;
-    const rawTotal = subTotal - safeDiscount + deliveryFee;
-    const total = Math.max(0, rawTotal);
-
-    const amount = total * 100;
-
-    const res = await axios.post(
+    // ── Call Paystack ──
+    const paystackRes = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        email,
-        amount,
+        email: email, // sanitized email
+        amount: Math.round(total * 100), // in kobo
+        currency: "NGN",
         metadata: {
-          firstName,
-          lastName,
-          email,
-          phone,
-          addPhone,
-          region,
-          city,
-          deliveryType,
-          address,
-          orderNote: orderNote || "",
           cartItems,
-          subTotal,
-          discount: safeDiscount,
-          promoCode: promoCode || null,
-          deliveryFee,
-          total,
+          deliveryInfo: {
+            ...deliveryInfo,
+            email,
+            phone: String(deliveryInfo.phone).replace(/\D/g, ""),
+          },
+          promoCode,
         },
         callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
       },
@@ -91,13 +112,14 @@ export async function POST(req) {
       }
     );
 
-    return Response.json({
-      authorization_url: res.data.data.authorization_url,
+    return NextResponse.json({
+      authorization_url: paystackRes.data.data.authorization_url,
+      reference: paystackRes.data.data.reference,
     });
   } catch (error) {
     console.error("Paystack Error:", error.response?.data || error.message);
-    return new Response(
-      JSON.stringify({ message: "Failed to initiate payment" }),
+    return NextResponse.json(
+      { message: error.response?.data?.message || "Payment initiation failed" },
       { status: 500 }
     );
   }

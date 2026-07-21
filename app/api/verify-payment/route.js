@@ -50,16 +50,19 @@ export async function POST(req) {
         reference: paystackData.reference,
       };
 
+      // Handle both old flat structure and new nested deliveryInfo structure
+      const deliveryInfo = paystackData.metadata.deliveryInfo || paystackData.metadata;
+      
       orderData = {
-        firstName: paystackData.metadata.firstName,
-        lastName: paystackData.metadata.lastName || "",
-        email: paystackData.metadata.email,
-        phone: paystackData.metadata.phone,
-        addPhone: paystackData.metadata.addPhone,
-        region: paystackData.metadata.region,
-        city: paystackData.metadata.city,
-        deliveryType: paystackData.metadata.deliveryType,
-        address: paystackData.metadata.address,
+        firstName: deliveryInfo.firstName || paystackData.metadata.firstName,
+        lastName: deliveryInfo.lastName || paystackData.metadata.lastName || "",
+        email: deliveryInfo.email || paystackData.metadata.email,
+        phone: deliveryInfo.phone || paystackData.metadata.phone,
+        addPhone: deliveryInfo.addPhone || paystackData.metadata.addPhone,
+        region: deliveryInfo.region || paystackData.metadata.region,
+        city: deliveryInfo.city || paystackData.metadata.city,
+        deliveryType: deliveryInfo.deliveryType || paystackData.metadata.deliveryType,
+        address: deliveryInfo.address || paystackData.metadata.address,
         cartItems: paystackData.metadata.cartItems,
         subTotal: paystackData.metadata.subTotal,
         discount: paystackData.metadata.discount,
