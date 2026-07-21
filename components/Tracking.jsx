@@ -7,24 +7,17 @@ import OrderProgressBar from "@/components/OrderTracking";
 import Loading from "@/components/Loading";
 import { MdDeliveryDining } from "react-icons/md";
 import { formatAmount } from "lib/utils";
+import { Suspense } from "react";
 
-export default function Tracking() {
+function TrackingContent() {
   const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState("");
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  // Ensure component is mounted before using searchParams
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Auto-populate and auto-submit if order param exists in URL
   useEffect(() => {
-    if (!mounted) return;
-
     const orderParam = searchParams.get("order");
     if (orderParam) {
       setOrderId(orderParam);
@@ -50,7 +43,7 @@ export default function Tracking() {
       };
       autoFetch();
     }
-  }, [searchParams, mounted]);
+  }, [searchParams]);
 
   const fetchOrder = async () => {
     if (!orderId.trim()) {
@@ -137,5 +130,13 @@ export default function Tracking() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Tracking() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <TrackingContent />
+    </Suspense>
   );
 }
