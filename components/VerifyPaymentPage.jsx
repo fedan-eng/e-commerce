@@ -559,7 +559,7 @@ export default function VerifyPaymentPage() {
             {/* CTA buttons */}
             <div className="flex gap-3 mb-6">
               <Link
-                href="/products"
+                href={`/contact?order=${orderDetails._id}`}
                 className="bg-filgreen hover:bg-green-700 px-8 py-3 rounded-md font-medium text-white text-sm transition-colors"
               >
                 Track Order
@@ -643,7 +643,7 @@ export default function VerifyPaymentPage() {
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center pt-3">
+                <div className="flex border-t border-[#e0e0e0] pt-4 space-y-2.5 justify-between items-center">
                   <span className="font-bold text-dark text-lg">Total</span>
                   <span className="font-bold text-dark text-lg">
                     {formatAmount(orderDetails.total || 0)}

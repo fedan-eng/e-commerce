@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import OrderProgressBar from "@/components/OrderTracking";
 import Loading from "@/components/Loading";
@@ -8,10 +9,40 @@ import { MdDeliveryDining } from "react-icons/md";
 import { formatAmount } from "lib/utils";
 
 export default function Tracking() {
+  const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState("");
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Auto-populate and auto-submit if order param exists in URL
+  useEffect(() => {
+    const orderParam = searchParams.get("order");
+    if (orderParam) {
+      setOrderId(orderParam);
+      // Auto-fetch the order
+      const autoFetch = async () => {
+        setLoading(true);
+        setError("");
+        setOrder(null);
+        try {
+          const res = await axios.get(`/api/orders/${orderParam}`);
+          setOrder(res.data.order);
+          setError("");
+        } catch (err) {
+          console.error("Tracking error:", err);
+          setError(
+            err.response?.data?.message ||
+              err.message ||
+              "Unable to fetch order. Please check the order number and try again."
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+      autoFetch();
+    }
+  }, [searchParams]);
 
   const fetchOrder = async () => {
     if (!orderId.trim()) {
