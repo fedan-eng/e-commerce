@@ -42,7 +42,8 @@ export default function VerifyPaymentPage() {
 
     const lineItems = orderDetails.cartItems || orderDetails.items || [];
     const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
-    const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
+    const txId =
+      orderDetails.paymentReference || String(orderDetails._id) || "";
 
     if (!txId) return;
 
@@ -77,7 +78,10 @@ export default function VerifyPaymentPage() {
     } else if (flutterwaveRef) {
       reference = flutterwaveRef;
       provider = "flutterwave";
-      if (flutterwaveStatus !== "successful" && flutterwaveStatus !== "completed") {
+      if (
+        flutterwaveStatus !== "successful" &&
+        flutterwaveStatus !== "completed"
+      ) {
         setError("Payment was not successful. Please try again.");
         setLoading(false);
         return;
@@ -128,7 +132,7 @@ export default function VerifyPaymentPage() {
     verify();
   }, [paystackRef, flutterwaveRef, flutterwaveStatus, dispatch]);
 
-  // ── PDF receipt ───────────────────────────────────────────────────────────
+  // ── PDF receipt (unchanged) ───────────────────────────────────────────────
   const generateReceipt = () => {
     if (!orderDetails) return;
 
@@ -139,7 +143,10 @@ export default function VerifyPaymentPage() {
     doc.setGState(new doc.GState({ opacity: 0.1 }));
     doc.setFontSize(60);
     doc.setTextColor(28, 201, 120);
-    doc.text("FIL", pageWidth / 2, pageHeight / 2, { align: "center", angle: 45 });
+    doc.text("FIL", pageWidth / 2, pageHeight / 2, {
+      align: "center",
+      angle: 45,
+    });
     doc.setGState(new doc.GState({ opacity: 1 }));
 
     try {
@@ -151,7 +158,9 @@ export default function VerifyPaymentPage() {
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(28, 201, 120);
-    doc.text("Fedan Investment Limited", pageWidth / 2, 58, { align: "center" });
+    doc.text("Fedan Investment Limited", pageWidth / 2, 58, {
+      align: "center",
+    });
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "italic");
@@ -208,11 +217,20 @@ export default function VerifyPaymentPage() {
     doc.setTextColor(80, 80, 80);
 
     const customerInfo = [
-      { label: "Name:", value: `${orderDetails.firstName} ${orderDetails.lastName || ""}` },
+      {
+        label: "Name:",
+        value: `${orderDetails.firstName} ${orderDetails.lastName || ""}`,
+      },
       { label: "Email:", value: orderDetails.email },
       { label: "Phone:", value: orderDetails.phone },
-      { label: "Address:", value: `${orderDetails.address}, ${orderDetails.city}` },
-      { label: "Region:", value: orderDetails.region?.name || orderDetails.region },
+      {
+        label: "Address:",
+        value: `${orderDetails.address}, ${orderDetails.city}`,
+      },
+      {
+        label: "Region:",
+        value: orderDetails.region?.name || orderDetails.region,
+      },
       { label: "Delivery:", value: orderDetails.deliveryType },
     ];
 
@@ -270,7 +288,13 @@ export default function VerifyPaymentPage() {
       head: [["#", "Product", "Qty", "Unit Price", "Total"]],
       body: tableData,
       theme: "grid",
-      headStyles: { fillColor: [28, 201, 120], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 10, halign: "center" },
+      headStyles: {
+        fillColor: [28, 201, 120],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 10,
+        halign: "center",
+      },
       bodyStyles: { textColor: [51, 51, 51], fontSize: 9 },
       alternateRowStyles: { fillColor: [248, 249, 250] },
       columnStyles: {
@@ -291,12 +315,27 @@ export default function VerifyPaymentPage() {
     doc.setTextColor(80, 80, 80);
     const summaryY = finalY + 8;
     doc.text("Subtotal:", pageWidth - 85, summaryY);
-    doc.text(`₦${Number(orderDetails.subTotal).toLocaleString()}`, pageWidth - 20, summaryY, { align: "right" });
+    doc.text(
+      `₦${Number(orderDetails.subTotal).toLocaleString()}`,
+      pageWidth - 20,
+      summaryY,
+      { align: "right" }
+    );
     doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
-    doc.text(`₦${Number(orderDetails.deliveryFee).toLocaleString()}`, pageWidth - 20, summaryY + 7, { align: "right" });
+    doc.text(
+      `₦${Number(orderDetails.deliveryFee).toLocaleString()}`,
+      pageWidth - 20,
+      summaryY + 7,
+      { align: "right" }
+    );
     doc.text("Discount:", pageWidth - 85, summaryY + 14);
     doc.setTextColor(28, 201, 120);
-    doc.text(`-₦${Number(orderDetails.discount).toLocaleString()}`, pageWidth - 20, summaryY + 14, { align: "right" });
+    doc.text(
+      `-₦${Number(orderDetails.discount).toLocaleString()}`,
+      pageWidth - 20,
+      summaryY + 14,
+      { align: "right" }
+    );
     doc.setDrawColor(28, 201, 120);
     doc.setLineWidth(0.5);
     doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
@@ -305,7 +344,12 @@ export default function VerifyPaymentPage() {
     doc.setTextColor(28, 201, 120);
     doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
     doc.setFontSize(14);
-    doc.text(`₦${Number(orderDetails.total).toLocaleString()}`, pageWidth - 20, summaryY + 26, { align: "right" });
+    doc.text(
+      `₦${Number(orderDetails.total).toLocaleString()}`,
+      pageWidth - 20,
+      summaryY + 26,
+      { align: "right" }
+    );
 
     const footerY = pageHeight - 30;
     doc.setDrawColor(28, 201, 120);
@@ -314,16 +358,28 @@ export default function VerifyPaymentPage() {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 100, 100);
-    doc.text("Thank you for choosing FIL Store!", pageWidth / 2, footerY + 6, { align: "center" });
-    doc.text("For support: filfilecommerce@gmail.com | Visit: filstore.com.ng", pageWidth / 2, footerY + 11, { align: "center" });
+    doc.text("Thank you for choosing FIL Store!", pageWidth / 2, footerY + 6, {
+      align: "center",
+    });
+    doc.text(
+      "For support: filfilecommerce@gmail.com | Visit: filstore.com.ng",
+      pageWidth / 2,
+      footerY + 11,
+      { align: "center" }
+    );
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
-    doc.text("This is a computer-generated receipt and does not require a signature.", pageWidth / 2, footerY + 18, { align: "center" });
+    doc.text(
+      "This is a computer-generated receipt and does not require a signature.",
+      pageWidth / 2,
+      footerY + 18,
+      { align: "center" }
+    );
 
     doc.save(`FIL-Receipt-${orderDetails.paymentReference}.pdf`);
   };
 
-  // ── States ────────────────────────────────────────────────────────────────
+  // ── Loading / Error / Empty States (unchanged) ────────────────────────────
   if (loading) return <Loading />;
 
   if (error) {
@@ -331,11 +387,23 @@ export default function VerifyPaymentPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-10 h-10 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
-          <h1 className="text-3xl font-oswald font-bold text-gray-900 mb-2">Payment Failed</h1>
+          <h1 className="text-3xl font-oswald font-bold text-gray-900 mb-2">
+            Payment Failed
+          </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           {paymentProvider && (
             <p className="text-xs text-gray-500 mb-6">
@@ -359,7 +427,9 @@ export default function VerifyPaymentPage() {
           </div>
           <p className="text-xs text-gray-500 mt-6">
             Need help?{" "}
-            <Link href="/contact" className="text-filgreen underline">Contact Support</Link>
+            <Link href="/contact" className="text-filgreen underline">
+              Contact Support
+            </Link>
           </p>
         </div>
       </div>
@@ -370,7 +440,10 @@ export default function VerifyPaymentPage() {
     return (
       <div className="p-4 text-center">
         <p className="text-gray-600">No order details available.</p>
-        <button onClick={() => router.push("/")} className="bg-filgreen mt-4 px-4 py-2 rounded text-white">
+        <button
+          onClick={() => router.push("/")}
+          className="bg-filgreen mt-4 px-4 py-2 rounded text-white"
+        >
           Back Home
         </button>
       </div>
@@ -379,6 +452,10 @@ export default function VerifyPaymentPage() {
 
   // ── Success UI ────────────────────────────────────────────────────────────
   const lineItems = orderDetails.cartItems || orderDetails.items || [];
+  const regionName = orderDetails.region?.name || orderDetails.region || "";
+  const paymentMethodLabel = paymentProvider
+    ? paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1)
+    : "N/A";
 
   return (
     <div className="relative">
@@ -387,19 +464,30 @@ export default function VerifyPaymentPage() {
       </div>
 
       <div className="mx-auto max-w-[1140px] px-4 py-10">
-        {/* Thank you header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-filgreen rounded-full flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        {/* ── Thank you header ── */}
+        <div className="flex items-start gap-3 mb-6">
+          <div className="w-9 h-9 bg-filgreen rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <div>
-            <h1 className="font-oswald font-bold text-2xl s:text-3xl text-dark">
+            <h1 className="font-bold text-xl sm:text-2xl text-dark leading-tight">
               Thank you, {orderDetails.firstName}!
             </h1>
-            <p className="text-sm text-[#767676]">
-              Your order is confirmed. A receipt has been sent to {orderDetails.email}
+            <p className="text-sm text-[#767676] mt-1">
+              Your order is confirmed. A receipt has been sent to{" "}
+              {orderDetails.email}
             </p>
           </div>
         </div>
@@ -407,46 +495,52 @@ export default function VerifyPaymentPage() {
         <div className="lg:flex gap-6 items-start">
           {/* ── LEFT COLUMN ── */}
           <div className="flex-1 min-w-0">
-            {/* Order info grid */}
-            <div className="border border-[#e3e3e3] rounded-lg p-4 mb-6 grid grid-cols-2 gap-x-6 gap-y-4">
-              <div>
-                <p className="text-xs text-[#999] mb-1">Order number</p>
-                <p className="text-sm font-medium text-dark break-all">
-                  #{orderDetails.paymentReference}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[#999] mb-1">Order date</p>
-                <p className="text-sm font-medium text-dark">
-                  {new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[#999] mb-1">Payment method</p>
-                <p className="text-sm font-medium text-dark capitalize">
-                  {paymentProvider || "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[#999] mb-1">Estimated delivery</p>
-                <p className="text-sm font-medium text-dark">2–4 working days</p>
+            {/* Order info card */}
+            <div className="border border-[#e3e3e3] rounded-lg p-5 mb-8">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                <div>
+                  <p className="text-xs text-[#999] mb-1">Order number</p>
+                  <p className="text-sm font-medium text-dark break-all">
+                    #{orderDetails.paymentReference}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#999] mb-1">Order date</p>
+                  <p className="text-sm font-medium text-dark">
+                    {new Date().toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#999] mb-1">Payment method</p>
+                  <p className="text-sm font-medium text-dark capitalize">
+                    {paymentMethodLabel}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#999] mb-1">Estimated delivery</p>
+                  <p className="text-sm font-medium text-dark">
+                    2 – 4 working days
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Shipping address */}
-            <div className="mb-6">
-              <h2 className="font-oswald font-medium text-lg mb-3">Shipping Address</h2>
+            <div className="mb-8">
+              <h2 className="font-bold text-base mb-3 text-dark">
+                Shipping Address
+              </h2>
               <div className="text-sm text-[#575757] space-y-1">
-                <p className="font-medium text-dark">
+                <p>
                   {orderDetails.firstName} {orderDetails.lastName}
                 </p>
                 <p>{orderDetails.address}</p>
                 <p>
-                  {orderDetails.city}, {orderDetails.region?.name || orderDetails.region}
+                  {orderDetails.city}, {regionName}
                 </p>
                 <p>Nigeria</p>
                 <p>{orderDetails.phone}</p>
@@ -455,22 +549,24 @@ export default function VerifyPaymentPage() {
             </div>
 
             {/* Billing address */}
-            <div className="mb-6">
-              <h2 className="font-oswald font-medium text-lg mb-3">Billing Address</h2>
+            <div className="mb-8">
+              <h2 className="font-bold text-base mb-3 text-dark">
+                Billing Address
+              </h2>
               <p className="text-sm text-[#767676]">Same as shipping address</p>
             </div>
 
             {/* CTA buttons */}
-            <div className="flex gap-3 mb-10">
+            <div className="flex gap-3 mb-6">
               <Link
                 href="/products"
-                className="bg-filgreen px-6 py-3 rounded-md font-roboto font-medium text-dark text-sm"
+                className="bg-filgreen hover:bg-green-700 px-8 py-3 rounded-md font-medium text-white text-sm transition-colors"
               >
                 Track Order
               </Link>
               <Link
                 href="/products"
-                className="px-6 py-3 border border-[#d9d9d9] rounded-md font-roboto font-medium text-dark text-sm"
+                className="px-8 py-3 border border-[#d9d9d9] hover:bg-gray-50 rounded-md font-medium text-dark text-sm transition-colors"
               >
                 Continue Shopping
               </Link>
@@ -479,39 +575,43 @@ export default function VerifyPaymentPage() {
             {/* PDF download link */}
             <button
               onClick={generateReceipt}
-              className="text-filgreen text-sm underline mb-10 cursor-pointer hover:text-green-700 transition-colors"
+              className="text-filgreen text-sm underline cursor-pointer hover:text-green-700 transition-colors"
             >
               Download receipt (PDF)
             </button>
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
-          <div className="lg:w-[380px] flex-shrink-0">
-            <div className="border border-[#e3e3e3] rounded-lg p-4">
-              {/* Items */}
-              <div className="divide-y divide-[#e5e5e5] mb-4">
+          <div className="lg:w-[380px] flex-shrink-0 max-lg:mt-8">
+            <div className="bg-[#f6f6f6] rounded-lg p-5">
+              {/* Items list */}
+              <div className="space-y-5 mb-6">
                 {lineItems.map((item, index) => (
-                  <div key={item._id || index} className="flex items-center gap-3 py-3">
-                    <div className="relative flex-shrink-0">
-                      <div className="w-[60px] h-[60px] bg-[#f6f6f6] rounded-md flex items-center justify-center">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-[52px] h-[52px] object-contain"
-                        />
-                      </div>
-                      {/* Quantity badge */}
-                      <span className="absolute -top-2 -right-2 bg-[#767676] text-white text-[10px] font-medium rounded-full w-5 h-5 flex items-center justify-center">
-                        {item.quantity}
-                      </span>
+                  <div
+                    key={item._id || index}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="flex-shrink-0 w-[70px] h-[70px] bg-white rounded-md flex items-center justify-center">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-[56px] h-[56px] object-contain"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-oswald text-sm line-clamp-2">{item.name}</p>
+                      <p className="font-semibold text-sm text-dark leading-snug line-clamp-2">
+                        {item.name}
+                      </p>
                       {item.color && (
-                        <p className="text-xs text-[#767676]">{item.color}</p>
+                        <p className="text-xs text-[#767676] mt-1">
+                          {item.color}
+                        </p>
                       )}
+                      <p className="text-xs text-[#767676] mt-0.5">
+                        Quantity: {item.quantity}
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-dark flex-shrink-0">
+                    <p className="text-sm text-dark flex-shrink-0 whitespace-nowrap">
                       {formatAmount(item.price * item.quantity)}
                     </p>
                   </div>
@@ -519,28 +619,33 @@ export default function VerifyPaymentPage() {
               </div>
 
               {/* Totals */}
-              <div className="border-t border-[#e5e5e5] pt-3 space-y-2">
+              <div className="border-t border-[#e0e0e0] pt-4 space-y-2.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-[#767676]">
-                    Subtotal · {lineItems.length} {lineItems.length === 1 ? "item" : "items"}
+                    Subtotal · {lineItems.length}{" "}
+                    {lineItems.length === 1 ? "item" : "items"}
                   </span>
-                  <span className="font-medium">{formatAmount(orderDetails.subTotal || 0)}</span>
+                  <span className="text-dark">
+                    {formatAmount(orderDetails.subTotal || 0)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#767676]">Shipping</span>
-                  <span className="font-medium">{formatAmount(orderDetails.deliveryFee || 0)}</span>
+                  <span className="text-dark">
+                    {formatAmount(orderDetails.deliveryFee || 0)}
+                  </span>
                 </div>
                 {orderDetails.discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-[#767676]">Discount</span>
-                    <span className="font-medium text-filgreen">
+                    <span className="text-filgreen">
                       - {formatAmount(orderDetails.discount)}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between pt-3 border-t border-[#e5e5e5]">
-                  <span className="font-medium text-dark">Total</span>
-                  <span className="font-medium text-dark">
+                <div className="flex justify-between items-center pt-3">
+                  <span className="font-bold text-dark text-lg">Total</span>
+                  <span className="font-bold text-dark text-lg">
                     {formatAmount(orderDetails.total || 0)}
                   </span>
                 </div>
