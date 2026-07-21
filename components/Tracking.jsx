@@ -14,9 +14,17 @@ export default function Tracking() {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted before using searchParams
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-populate and auto-submit if order param exists in URL
   useEffect(() => {
+    if (!mounted) return;
+
     const orderParam = searchParams.get("order");
     if (orderParam) {
       setOrderId(orderParam);
@@ -42,7 +50,7 @@ export default function Tracking() {
       };
       autoFetch();
     }
-  }, [searchParams]);
+  }, [searchParams, mounted]);
 
   const fetchOrder = async () => {
     if (!orderId.trim()) {
