@@ -23,6 +23,7 @@
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.2",
+    "express-mongo-sanitize": "^2.2.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.12",
     "jose": "^6.2.3",

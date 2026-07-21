@@ -1,3 +1,4 @@
+// app/api/verify-payment/route.js
 import axios from "axios";
 import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
@@ -17,6 +18,7 @@ export async function POST(req) {
       );
     }
 
+    // ── AUTH (optional) ──────────────────────────────────────────────────────
     const cookie = req.cookies.get("token")?.value;
     let user = null;
     if (cookie) {
@@ -42,6 +44,7 @@ export async function POST(req) {
       );
 
       const paystackData = res.data.data;
+      const meta = paystackData.metadata || {};
 
       verificationData = {
         verified: paystackData.status === "success",
@@ -51,30 +54,39 @@ export async function POST(req) {
       };
 
       // Handle both old flat structure and new nested deliveryInfo structure
-      const deliveryInfo = paystackData.metadata.deliveryInfo || paystackData.metadata;
-      
+      const deliveryInfo = meta.deliveryInfo || meta;
+
+      // Coerce all cart item numeric fields to numbers
+      const cartItems = (meta.cartItems || []).map((item) => ({
+        ...item,
+        price: Number(item.price) || 0,
+        quantity: Number(item.quantity) || 1,
+      }));
+
       orderData = {
-        firstName: deliveryInfo.firstName || paystackData.metadata.firstName,
-        lastName: deliveryInfo.lastName || paystackData.metadata.lastName || "",
-        email: deliveryInfo.email || paystackData.metadata.email,
-        phone: deliveryInfo.phone || paystackData.metadata.phone,
-        addPhone: deliveryInfo.addPhone || paystackData.metadata.addPhone,
-        region: deliveryInfo.region || paystackData.metadata.region,
-        city: deliveryInfo.city || paystackData.metadata.city,
-        deliveryType: deliveryInfo.deliveryType || paystackData.metadata.deliveryType,
-        address: deliveryInfo.address || paystackData.metadata.address,
-        cartItems: paystackData.metadata.cartItems,
-        subTotal: paystackData.metadata.subTotal,
-        discount: paystackData.metadata.discount,
-        deliveryFee: paystackData.metadata.deliveryFee,
-        total: paystackData.metadata.total,
-        promoCode: paystackData.metadata.promoCode || null,
+        firstName: deliveryInfo.firstName || meta.firstName || "",
+        lastName: deliveryInfo.lastName || meta.lastName || "",
+        email: deliveryInfo.email || meta.email || "",
+        phone: deliveryInfo.phone || meta.phone || "",
+        addPhone: deliveryInfo.addPhone || meta.addPhone || "",
+        region: deliveryInfo.region || meta.region || { name: "", fee: 0 },
+        city: deliveryInfo.city || meta.city || "",
+        deliveryType:
+          deliveryInfo.deliveryType || meta.deliveryType || "Regular",
+        address: deliveryInfo.address || meta.address || "",
+        orderNote: deliveryInfo.orderNote || meta.orderNote || "",
+        cartItems,
+        subTotal: Number(meta.subTotal) || 0,
+        discount: Number(meta.discount) || 0,
+        deliveryFee: Number(meta.deliveryFee) || 0,
+        total: Number(meta.total) || 0,
+        promoCode: meta.promoCode || null,
         paymentMethod: "paystack",
         paymentReference: reference,
         paymentStatus: "paid",
       };
 
-    // ── FLUTTERWAVE ───────────────────────────────────────────────────────────
+      // ── FLUTTERWAVE ────────────────────────────────────────────────────────
     } else if (provider === "flutterwave") {
       const res = await axios.get(
         `https://api.flutterwave.com/v3/transactions/${reference}/verify`,
@@ -130,10 +142,15 @@ export async function POST(req) {
 
       try {
         if (flutterwaveData.meta.cartItems) {
-          parsedCartItems =
+          const raw =
             typeof flutterwaveData.meta.cartItems === "string"
               ? JSON.parse(flutterwaveData.meta.cartItems)
               : flutterwaveData.meta.cartItems;
+          parsedCartItems = raw.map((item) => ({
+            ...item,
+            price: Number(item.price) || 0,
+            quantity: Number(item.quantity) || 1,
+          }));
         }
         if (flutterwaveData.meta.region) {
           parsedRegion =
@@ -165,6 +182,7 @@ export async function POST(req) {
         city: flutterwaveData.meta.city || "",
         deliveryType: flutterwaveData.meta.deliveryType || "Regular",
         address: flutterwaveData.meta.address || "",
+        orderNote: flutterwaveData.meta.orderNote || "",
         cartItems: parsedCartItems,
         subTotal: Number(flutterwaveData.meta.subTotal) || 0,
         discount: Number(flutterwaveData.meta.discount) || 0,
@@ -175,7 +193,6 @@ export async function POST(req) {
         paymentReference: flutterwaveData.tx_ref || reference,
         paymentStatus: "paid",
       };
-
     } else {
       return Response.json(
         { message: "Invalid payment provider" },
@@ -183,7 +200,7 @@ export async function POST(req) {
       );
     }
 
-    // ── SAVE ORDER ────────────────────────────────────────────────────────────
+    // ── GUARD: payment must be verified ──────────────────────────────────────
     if (!verificationData.verified) {
       return Response.json(
         {
@@ -195,6 +212,7 @@ export async function POST(req) {
       );
     }
 
+    // ── SAVE ORDER ───────────────────────────────────────────────────────────
     let order;
     let isExistingOrder;
 
@@ -208,13 +226,15 @@ export async function POST(req) {
             address: orderData.address,
             region: {
               name: orderData.region?.name || orderData.region,
-              fee: orderData.deliveryFee,
+              fee: orderData.region?.fee || orderData.deliveryFee,
             },
             city: orderData.city,
             deliveryType: orderData.deliveryType,
             phone: orderData.phone,
-            addPhone: orderData.addPhone,
+            addPhone: orderData.addPhone || "",
             firstName: orderData.firstName,
+            lastName: orderData.lastName || "",
+            orderNote: orderData.orderNote || "",
             items: orderData.cartItems,
             subTotal: orderData.subTotal,
             discount: orderData.discount,
@@ -246,12 +266,10 @@ export async function POST(req) {
       }
 
       if (!order) {
-        return Response.json(
-          { message: "Order save failed" },
-          { status: 500 }
-        );
+        return Response.json({ message: "Order save failed" }, { status: 500 });
       }
 
+      // Duplicate call — return early, don't resend emails
       if (isExistingOrder) {
         return Response.json({
           verified: true,
@@ -263,21 +281,22 @@ export async function POST(req) {
       }
     } catch (e) {
       console.error("Error saving order:", e);
-      return Response.json(
-        { message: "Order save failed" },
-        { status: 500 }
-      );
+      return Response.json({ message: "Order save failed" }, { status: 500 });
     }
 
-    // ── SHARED HELPERS ────────────────────────────────────────────────────────
-    const hasColor   = orderData.cartItems.some((item) => item.color);
+    // ── SHARED EMAIL HELPERS ─────────────────────────────────────────────────
+    const hasColor = orderData.cartItems.some((item) => item.color);
     const regionName = orderData.region?.name || orderData.region || "";
-    const orderedAt  = new Date().toLocaleString("en-US", {
-      weekday: "long", year: "numeric", month: "long",
-      day: "numeric", hour: "2-digit", minute: "2-digit",
+    const orderedAt = new Date().toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
-    // ── SHARED: item rows for both emails ─────────────────────────────────────
+    // Shared item rows
     const itemRowsHtml = orderData.cartItems
       .map(
         (item) => `
@@ -291,7 +310,7 @@ export async function POST(req) {
       )
       .join("");
 
-    // shared items table header
+    // Shared table header
     const itemsTableHeader = `
       <tr style="background-color:#0fa968;">
         <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:left; border:none;">Item</th>
@@ -301,7 +320,7 @@ export async function POST(req) {
         <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:right; border:none; white-space:nowrap;">Total</th>
       </tr>`;
 
-    // shared summary rows
+    // Shared summary rows
     const summaryRowsHtml = `
       <tr>
         <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
@@ -319,7 +338,9 @@ export async function POST(req) {
           </tr></table>
         </td>
       </tr>
-      ${orderData.discount > 0 ? `
+      ${
+        orderData.discount > 0
+          ? `
       <tr>
         <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -327,8 +348,12 @@ export async function POST(req) {
             <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#0a7a4a; font-weight:600; text-align:right;">-&#x20A6;${Number(orderData.discount).toLocaleString()}</td>
           </tr></table>
         </td>
-      </tr>` : ""}
-      ${orderData.promoCode ? `
+      </tr>`
+          : ""
+      }
+      ${
+        orderData.promoCode
+          ? `
       <tr>
         <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -340,7 +365,9 @@ export async function POST(req) {
             </td>
           </tr></table>
         </td>
-      </tr>` : ""}
+      </tr>`
+          : ""
+      }
       <tr>
         <td style="padding:16px 0 4px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -350,7 +377,7 @@ export async function POST(req) {
         </td>
       </tr>`;
 
-    // shared email head block
+    // Shared email head
     const emailHead = (title) => `
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -383,11 +410,9 @@ export async function POST(req) {
 </head>
 <body style="margin:0; padding:0; background-color:#f0f2f5;">`;
 
-    // shared email wrapper open/close
-    const wrapOpen  = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;"><tr><td align="center" style="padding:28px 10px;"><table class="email-card" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">`;
+    const wrapOpen = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;"><tr><td align="center" style="padding:28px 10px;"><table class="email-card" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">`;
     const wrapClose = `</table><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:20px 0;">&nbsp;</td></tr></table></td></tr></table></body></html>`;
 
-    // shared footer
     const sharedFooter = `
       <tr>
         <td style="background-color:#f2f3f5; padding:26px 40px; border-top:1px solid #e2e2ea;">
@@ -408,18 +433,14 @@ export async function POST(req) {
       </tr>`;
 
     // ════════════════════════════════════════════════════════════════════════
-    // 1. CUSTOMER EMAIL
+    // CUSTOMER EMAIL
     // ════════════════════════════════════════════════════════════════════════
     const customerEmailHtml = `
 ${emailHead(`Order Confirmed - FIL Store`)}
-
-  <!-- Preheader -->
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
     Your FIL Store order is confirmed! Order #${order._id} &mdash; we&rsquo;re preparing it now. &#127881;
   </div>
-
   ${wrapOpen}
-
     <!-- HEADER -->
     <tr>
       <td class="header-pad" style="background-color:#0fa968; padding:44px 40px; text-align:center;">
@@ -427,212 +448,85 @@ ${emailHead(`Order Confirmed - FIL Store`)}
         <h1 class="header-h1" style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:28px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Order Confirmed!</h1>
         <p style="margin:10px 0 16px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; color:#cdf4e3;">Thank you for choosing FIL Store</p>
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
-          <tr>
-            <td style="background-color:#ffffff; color:#0a7a4a; padding:7px 22px; border-radius:20px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700;">
-              &#10003; Payment Successful
-            </td>
-          </tr>
+          <tr><td style="background-color:#ffffff; color:#0a7a4a; padding:7px 22px; border-radius:20px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700;">&#10003; Payment Successful</td></tr>
         </table>
       </td>
     </tr>
-
     <!-- GREETING -->
     <tr>
       <td class="mobile-pad" style="padding:34px 40px 0 40px; background-color:#ffffff;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">
-              Hi ${orderData.firstName}! &#128075;
-            </td>
-          </tr>
-          <tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">
-              Thank you for choosing <strong style="color:#1a1a2e;">Fedan Investment Limited (FIL)</strong> &mdash; we&rsquo;re so glad to have you as part of our family! &#128153;
-            </td>
-          </tr>
-          <tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">
-              Your order is confirmed &#9989; and our team is already preparing it with care. You&rsquo;ll receive a shipping update as soon as it&rsquo;s on the way.
-            </td>
-          </tr>
-          <tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:26px;">
-              At FIL, every product is an opportunity to empower you and make your daily life smoother, easier, and more connected &mdash; because to us, you&rsquo;re not just a customer, you&rsquo;re family.
-            </td>
-          </tr>
-          <!-- CTA -->
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">Hi ${orderData.firstName}! &#128075;</td></tr>
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Thank you for choosing <strong style="color:#1a1a2e;">Fedan Investment Limited (FIL)</strong> &mdash; we&rsquo;re so glad to have you as part of our family! &#128153;</td></tr>
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Your order is confirmed &#9989; and our team is already preparing it with care. You&rsquo;ll receive a shipping update as soon as it&rsquo;s on the way.</td></tr>
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:26px;">At FIL, every product is an opportunity to empower you and make your daily life smoother, easier, and more connected &mdash; because to us, you&rsquo;re not just a customer, you&rsquo;re family.</td></tr>
           <tr>
             <td style="text-align:center; padding-bottom:30px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
-                <tr>
-                  <td style="border-radius:30px; background-color:#0fa968;">
-                    <a href="https://filstore.com.ng/products" target="_blank" class="cta-td"
-                      style="display:inline-block; padding:15px 38px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:30px; letter-spacing:0.3px;">
-                      Explore More Products &#8594;
-                    </a>
-                  </td>
-                </tr>
+                <tr><td style="border-radius:30px; background-color:#0fa968;">
+                  <a href="https://filstore.com.ng/products" target="_blank" class="cta-td" style="display:inline-block; padding:15px 38px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:30px; letter-spacing:0.3px;">Explore More Products &#8594;</a>
+                </td></tr>
               </table>
             </td>
           </tr>
         </table>
       </td>
     </tr>
-
     <!-- ORDER DETAILS -->
     <tr>
       <td class="mobile-pad" style="padding:0 40px 10px 40px; background-color:#ffffff;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="background-color:#f4faf7; border-radius:12px; border-left:4px solid #0fa968;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4faf7; border-radius:12px; border-left:4px solid #0fa968;">
           <tr>
             <td class="section-pad" style="padding:22px 20px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:16px; font-weight:700; color:#1a1a2e; padding-bottom:14px; border-bottom:2px solid #d4ece1;">&#128230; Order Details</td></tr>
-
-                <!-- Order ID -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Order ID</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${order._id}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Status -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Status</td>
-                    <td style="text-align:right;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right"><tr>
-                        <td style="background-color:#e8f5e9; color:#1a7a4a; padding:4px 14px; border-radius:12px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; font-weight:700;">&#10003; Confirmed</td>
-                      </tr></table>
-                    </td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Name -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Name</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Email -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Email</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Phone -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Phone</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td>
-                  </tr></table>
-                </td></tr>
-
-                ${orderData.addPhone ? `
-                <!-- Alt Phone -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Alt. Phone</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td>
-                  </tr></table>
-                </td></tr>` : ""}
-
-                <!-- Address -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%; vertical-align:top;">Address</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- City -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">City</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Region -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Region</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Delivery Type -->
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Delivery Type</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Payment -->
-                <tr><td style="padding:11px 0;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Payment</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; text-transform:capitalize;">${orderData.paymentMethod}</td>
-                  </tr></table>
-                </td></tr>
-
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Order ID</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${order._id}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Status</td><td style="text-align:right;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right"><tr><td style="background-color:#e8f5e9; color:#1a7a4a; padding:4px 14px; border-radius:12px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; font-weight:700;">&#10003; Confirmed</td></tr></table></td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Email</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>
+                ${orderData.addPhone ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Alt. Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td></tr></table></td></tr>` : ""}
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>
+                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Delivery Type</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td></tr></table></td></tr>
+                ${orderData.orderNote ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%; vertical-align:top;">Note</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; font-style:italic;">${orderData.orderNote}</td></tr></table></td></tr>` : ""}
+                <tr><td style="padding:11px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Payment</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; text-transform:capitalize;">${orderData.paymentMethod}</td></tr></table></td></tr>
               </table>
             </td>
           </tr>
         </table>
       </td>
     </tr>
-
     <!-- ITEMS -->
     <tr>
       <td class="mobile-pad" style="padding:24px 40px 10px 40px; background-color:#ffffff;">
         <p style="margin:0 0 12px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:16px; font-weight:700; color:#1a1a2e;">&#128717; Your Items</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="border-radius:10px; overflow:hidden; border:1px solid #e0ece6;">
-          ${itemsTableHeader}
-          ${itemRowsHtml}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:10px; overflow:hidden; border:1px solid #e0ece6;">
+          ${itemsTableHeader}${itemRowsHtml}
         </table>
       </td>
     </tr>
-
     <!-- SUMMARY -->
     <tr>
       <td class="mobile-pad" style="padding:18px 40px 30px 40px; background-color:#ffffff;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="border:2px solid #0fa968; border-radius:12px; overflow:hidden;">
-          <tr><td style="padding:20px 18px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              ${summaryRowsHtml}
-            </table>
-          </td></tr>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #0fa968; border-radius:12px; overflow:hidden;">
+          <tr><td style="padding:20px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${summaryRowsHtml}</table></td></tr>
         </table>
       </td>
     </tr>
-
     ${sharedFooter}
-
   ${wrapClose}`;
 
     // ════════════════════════════════════════════════════════════════════════
-    // 2. ADMIN EMAIL  — richer internal view, red accent, extra meta
+    // ADMIN EMAIL
     // ════════════════════════════════════════════════════════════════════════
     const adminEmailHtml = `
 ${emailHead(`New Order - FIL Admin`)}
-
-  <!-- Preheader -->
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
     New order from ${orderData.firstName} ${orderData.lastName || ""} &mdash; Order #${order._id} &mdash; &#x20A6;${Number(orderData.total).toLocaleString()}
   </div>
-
   ${wrapOpen}
-
     <!-- HEADER -->
     <tr>
       <td class="header-pad" style="background-color:#c0392b; padding:36px 40px; text-align:center;">
@@ -640,31 +534,23 @@ ${emailHead(`New Order - FIL Admin`)}
         <h1 class="header-h1" style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:26px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">New Order Received</h1>
         <p style="margin:8px 0 14px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#f5c6c2;">A customer just placed an order &mdash; action may be required</p>
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
-          <tr>
-            <td style="background-color:#ffffff; color:#c0392b; padding:6px 20px; border-radius:20px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700;">
-              &#9888;&#65039; Review &amp; Fulfil
-            </td>
-          </tr>
+          <tr><td style="background-color:#ffffff; color:#c0392b; padding:6px 20px; border-radius:20px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700;">&#9888;&#65039; Review &amp; Fulfil</td></tr>
         </table>
       </td>
     </tr>
-
     <!-- QUICK STATS BAR -->
     <tr>
       <td style="background-color:#fdf2f2; padding:18px 40px; border-bottom:1px solid #f5c6c2;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <!-- Order ID -->
             <td style="width:33%; text-align:center; border-right:1px solid #f5c6c2; padding:0 10px;">
               <p style="margin:0 0 4px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:11px; font-weight:600; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Order ID</p>
               <p style="margin:0; font-family:'Courier New',Courier,monospace; font-size:12px; font-weight:700; color:#1a1a2e;">#${String(order._id).slice(-8).toUpperCase()}</p>
             </td>
-            <!-- Total -->
             <td style="width:33%; text-align:center; border-right:1px solid #f5c6c2; padding:0 10px;">
               <p style="margin:0 0 4px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:11px; font-weight:600; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Total</p>
               <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:16px; font-weight:800; color:#c0392b;">&#x20A6;${Number(orderData.total).toLocaleString()}</p>
             </td>
-            <!-- Provider -->
             <td style="width:33%; text-align:center; padding:0 10px;">
               <p style="margin:0 0 4px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:11px; font-weight:600; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Provider</p>
               <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-transform:capitalize;">${orderData.paymentMethod}</p>
@@ -673,164 +559,70 @@ ${emailHead(`New Order - FIL Admin`)}
         </table>
       </td>
     </tr>
-
     <!-- CUSTOMER INFO -->
     <tr>
       <td class="mobile-pad" style="padding:24px 40px 10px 40px; background-color:#ffffff;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="background-color:#f8f9fa; border-radius:12px; border-left:4px solid #c0392b;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa; border-radius:12px; border-left:4px solid #c0392b;">
           <tr>
             <td class="section-pad" style="padding:20px 18px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#1a1a2e; padding-bottom:14px; border-bottom:2px solid #e9ecef;">&#128100; Customer Information</td></tr>
-
-                <!-- Full Name -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Full Name</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Email -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Email</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Phone -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Phone</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td>
-                  </tr></table>
-                </td></tr>
-
-                ${orderData.addPhone ? `
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Alt. Phone</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td>
-                  </tr></table>
-                </td></tr>` : ""}
-
-                <!-- Address -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%; vertical-align:top;">Address</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- City -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">City</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Region -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Region</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Delivery Type -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Delivery Type</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Payment ref -->
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Payment Ref</td>
-                    <td style="font-family:'Courier New',Courier,monospace; font-size:12px; color:#333333; text-align:right;">${orderData.paymentReference}</td>
-                  </tr></table>
-                </td></tr>
-
-                <!-- Order time -->
-                <tr><td style="padding:10px 0;">
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Ordered At</td>
-                    <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; color:#333333; text-align:right;">${orderedAt}</td>
-                  </tr></table>
-                </td></tr>
-
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Full Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Email</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>
+                ${orderData.addPhone ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Alt. Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td></tr></table></td></tr>` : ""}
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Delivery Type</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td></tr></table></td></tr>
+                ${orderData.orderNote ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%; vertical-align:top;">Order Note</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; font-style:italic;">${orderData.orderNote}</td></tr></table></td></tr>` : ""}
+                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Payment Ref</td><td style="font-family:'Courier New',Courier,monospace; font-size:12px; color:#333333; text-align:right;">${orderData.paymentReference}</td></tr></table></td></tr>
+                <tr><td style="padding:10px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Ordered At</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; color:#333333; text-align:right;">${orderedAt}</td></tr></table></td></tr>
               </table>
             </td>
           </tr>
         </table>
       </td>
     </tr>
-
     <!-- ITEMS -->
     <tr>
       <td class="mobile-pad" style="padding:20px 40px 10px 40px; background-color:#ffffff;">
         <p style="margin:0 0 12px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#1a1a2e;">&#128230; Items Ordered</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="border-radius:10px; overflow:hidden; border:1px solid #e0e0e0;">
-          ${itemsTableHeader}
-          ${itemRowsHtml}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:10px; overflow:hidden; border:1px solid #e0e0e0;">
+          ${itemsTableHeader}${itemRowsHtml}
         </table>
       </td>
     </tr>
-
     <!-- SUMMARY -->
     <tr>
       <td class="mobile-pad" style="padding:16px 40px 20px 40px; background-color:#ffffff;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="border:2px solid #c0392b; border-radius:12px; overflow:hidden;">
-          <tr><td style="padding:18px 16px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              ${summaryRowsHtml}
-            </table>
-          </td></tr>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #c0392b; border-radius:12px; overflow:hidden;">
+          <tr><td style="padding:18px 16px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${summaryRowsHtml}</table></td></tr>
         </table>
       </td>
     </tr>
-
     <!-- NEXT STEPS -->
     <tr>
       <td class="mobile-pad" style="padding:0 40px 28px 40px; background-color:#ffffff;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          style="background-color:#fff8e1; border-radius:10px; border:1px solid #ffe082;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8e1; border-radius:10px; border:1px solid #ffe082;">
           <tr>
             <td style="padding:18px 20px;">
               <p style="margin:0 0 10px 0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; font-weight:700; color:#856404;">&#9200; Next Steps</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">
-                  1. Verify payment reference in your ${orderData.paymentMethod} dashboard
-                </td></tr>
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">
-                  2. Prepare and package the items listed above
-                </td></tr>
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">
-                  3. Arrange delivery to ${orderData.city}, ${regionName}
-                </td></tr>
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px;">
-                  4. Update order status in the <a href="https://filstore.com.ng/admin" target="_blank" style="color:#0a7a4a; font-weight:700; text-decoration:underline;">Admin Dashboard</a>
-                </td></tr>
+                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">1. Verify payment reference in your ${orderData.paymentMethod} dashboard</td></tr>
+                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">2. Prepare and package the items listed above</td></tr>
+                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">3. Arrange delivery to ${orderData.city}, ${regionName}</td></tr>
+                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px;">4. Update order status in the <a href="https://filstore.com.ng/admin" target="_blank" style="color:#0a7a4a; font-weight:700; text-decoration:underline;">Admin Dashboard</a></td></tr>
               </table>
             </td>
           </tr>
         </table>
       </td>
     </tr>
-
     ${sharedFooter}
-
   ${wrapClose}`;
 
-    // ── Plain text (customer) ─────────────────────────────────────────────────
+    // ── PLAIN TEXT EMAILS ─────────────────────────────────────────────────────
     const itemList = orderData.cartItems
       .map(
         (item) =>
@@ -854,7 +646,7 @@ Phone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orde
 Address      : ${orderData.address}
 City         : ${orderData.city}
 Region       : ${regionName}
-Delivery     : ${orderData.deliveryType}
+Delivery     : ${orderData.deliveryType}${orderData.orderNote ? `\nOrder Note   : ${orderData.orderNote}` : ""}
 Payment      : ${orderData.paymentMethod}
 
 ITEMS ORDERED
@@ -889,7 +681,7 @@ Name         : ${orderData.firstName} ${orderData.lastName || ""}
 Email        : ${orderData.email}
 Phone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}
 Address      : ${orderData.address}, ${orderData.city}, ${regionName}
-Delivery     : ${orderData.deliveryType}
+Delivery     : ${orderData.deliveryType}${orderData.orderNote ? `\nOrder Note   : ${orderData.orderNote}` : ""}
 
 ITEMS
 ==========================================
@@ -911,7 +703,7 @@ NEXT STEPS
 FIL Store Admin — Think Quality, Think FIL.
     `.trim();
 
-    // ── Send emails ───────────────────────────────────────────────────────────
+    // ── SEND EMAILS ──────────────────────────────────────────────────────────
     try {
       await Promise.all([
         sendEmail(
@@ -939,7 +731,6 @@ FIL Store Admin — Think Quality, Think FIL.
       orderData,
       order,
     });
-
   } catch (error) {
     console.error("Verification Error:", {
       message: error.message,
