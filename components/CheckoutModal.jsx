@@ -657,7 +657,7 @@ export default function CheckoutModal({ onClose }) {
                     name="saveForLater"
                     checked={formData.saveForLater}
                     onChange={handleChange}
-                    className="w-4 h-4 accent-filgreen"
+                    className="w-4 h-4 accent-filgreen" 
                   />
                   <span className="text-sm text-[#767676]">Save this info for later</span>
                 </label>
