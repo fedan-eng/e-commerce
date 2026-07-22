@@ -292,7 +292,7 @@ const CartPage = () => {
       {!isAuthenticated && (
         <p className="mt-4 text-sm text-center">
           Already have an account?{" "}
-          <Link href="/login" className="text-filgreen underline">
+          <Link href="/login?callbackUrl=/cart" className="text-filgreen underline">
             Login to checkout faster
           </Link>
         </p>
