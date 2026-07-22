@@ -58,6 +58,7 @@ export default function CheckoutModal({ onClose }) {
 
   useEffect(() => {
     if (user) {
+      localStorage.removeItem("savedCheckoutInfo");
       setFormData((prev) => ({
         ...prev,
         firstName: user.firstName || "",
@@ -69,6 +70,26 @@ export default function CheckoutModal({ onClose }) {
         city: user.city || "",
         address: user.address || "",
       }));
+    } else {
+      const savedInfo = localStorage.getItem("savedCheckoutInfo");
+      if (savedInfo) {
+        try {
+          const parsed = JSON.parse(savedInfo);
+          setFormData((prev) => ({
+            ...prev,
+            firstName: parsed.firstName || "",
+            lastName: parsed.lastName || "",
+            email: parsed.email || "",
+            phone: parsed.phone || "",
+            addPhone: parsed.addPhone || "",
+            region: parsed.region || { name: "", fee: 0 },
+            city: parsed.city || "",
+            address: parsed.address || "",
+          }));
+        } catch (e) {
+          console.error("Failed to parse saved checkout info", e);
+        }
+      }
     }
   }, [user]);
 
@@ -253,6 +274,22 @@ export default function CheckoutModal({ onClose }) {
           updateUser({
             firstName: cleanFormData.firstName,
             lastName: cleanFormData.lastName,
+            phone: cleanFormData.phone,
+            addPhone: cleanFormData.addPhone,
+            region: cleanFormData.region,
+            city: cleanFormData.city,
+            address: cleanFormData.address,
+          })
+        );
+      }
+
+      if (cleanFormData.saveForLater && !user) {
+        localStorage.setItem(
+          "savedCheckoutInfo",
+          JSON.stringify({
+            firstName: cleanFormData.firstName,
+            lastName: cleanFormData.lastName,
+            email: cleanFormData.email,
             phone: cleanFormData.phone,
             addPhone: cleanFormData.addPhone,
             region: cleanFormData.region,
@@ -535,7 +572,7 @@ export default function CheckoutModal({ onClose }) {
                       }
                     }}
                     placeholder="080 000 0000"
-                    maxLength={20}
+                    maxLength={15}
                     className={`w-full bg-[#f6f6f6] px-3 sm:px-4 py-3 rounded-md text-sm outline-0 border ${
                       errors.phone ? "border-red-400" : "border-transparent"
                     }`}
@@ -561,7 +598,7 @@ export default function CheckoutModal({ onClose }) {
                       if (/^[a-zA-Z]$/.test(e.key)) e.preventDefault();
                     }}
                     placeholder="In case we can't reach you"
-                    maxLength={20}
+                    maxLength={15}
                     className={`w-full bg-[#f6f6f6] px-3 sm:px-4 py-3 rounded-md text-sm outline-0 border ${
                       errors.addPhone
                         ? "border-red-400"
@@ -840,8 +877,8 @@ export default function CheckoutModal({ onClose }) {
                 )}
               </div>
 
-              {/* Save for later — logged-in only */}
-              {user && (
+              {/* Save for later — non-logged-in only */}
+              {!user && (
                 <label className="flex items-center gap-2 mb-4 cursor-pointer">
                   <input
                     type="checkbox"
@@ -850,7 +887,7 @@ export default function CheckoutModal({ onClose }) {
                     onChange={handleChange}
                     className="w-4 h-4 accent-filgreen"
                   />
-                  <span className="text-sm text-[#767676]">
+                  <span className="text-sm text-filgreen">
                     Save this info for later
                   </span>
                 </label>
