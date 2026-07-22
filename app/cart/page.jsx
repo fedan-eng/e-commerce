@@ -13,6 +13,7 @@ import CheckoutModal from "@/components/CheckoutModal";
 const CartPage = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -287,6 +288,15 @@ const CartPage = () => {
           </p>
         </div>
       </div>
+
+      {!isAuthenticated && (
+        <p className="mt-4 text-sm text-center">
+          Already have an account?{" "}
+          <Link href="/login" className="text-filgreen underline">
+            Login to checkout faster
+          </Link>
+        </p>
+      )}
 
       <button
         onClick={() => setShowModal(true)}
