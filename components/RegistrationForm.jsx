@@ -67,7 +67,7 @@ const RegistrationForm = () => {
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
-      <div className="max-lg:hidden flex justify-center bg-white dark:bg-gray-900">
+      <div className="max-lg:hidden flex justify-center bg-white">
         <ImageSlider />
       </div>
 
@@ -76,18 +76,18 @@ const RegistrationForm = () => {
           {" "}
           Think Quality
         </h2>
-        <div className="bg-[#fafafa] dark:bg-gray-900 lg:ml-3 px-4 md:px-10 py-4 sm:py-10 max-lg:rounded-md">
+        <div className="bg-[#fafafa] lg:ml-3 px-4 md:px-10 py-4 sm:py-10 max-lg:rounded-md">
           <div
             onClick={() => router.back()}
             className="flex items-center gap-1 mb-6 cursor-pointer"
           >
             <FaArrowLeft />
-            <p className="font-medium text-sm dark:text-gray-300">Cancel</p>{" "}
+            <p className="font-medium text-sm">Cancel</p>{" "}
           </div>
           <div className="flex gap-6 mb-3">
             <Link
               href="/login"
-              className="py-2 font-oswald font-medium text-[#b7b7b7] dark:text-gray-400 text-xl sm:text-3xl"
+              className="py-2 font-oswald font-medium text-[#b7b7b7] text-xl sm:text-3xl"
             >
               {" "}
               Sign In
@@ -101,7 +101,7 @@ const RegistrationForm = () => {
               Join Us
             </Link>
           </div>
-          <p className="mb-6 text-[#3e3e3e] dark:text-gray-300 text-sm">
+          <p className="mb-6 text-[#3e3e3e] text-sm">
             Kindly enter your details and become a member
           </p>
           <form onSubmit={formik.handleSubmit}>
@@ -118,11 +118,11 @@ const RegistrationForm = () => {
                     value={formik.values.firstName}
                     required
                     placeholder="First Name"
-                    className="bg-[#f7f7f7] dark:bg-gray-800 p-3 border-black dark:border-gray-600 border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e] dark:placeholder-gray-500 dark:text-white"
+                    className="bg-[#f7f7f7] p-3 border-black border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e]"
                   />
                 </div>
                 {formik.touched.firstName && formik.errors.firstName && (
-                  <p className="text-red-500 dark:text-red-400 text-sm">
+                  <p className="text-red-500 text-sm">
                     {formik.errors.firstName}
                   </p>
                 )}
@@ -139,11 +139,11 @@ const RegistrationForm = () => {
                     value={formik.values.lastName}
                     required
                     placeholder="Last Name"
-                    className="bg-[#f7f7f7] dark:bg-gray-800 p-3 border-black dark:border-gray-600 border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e] dark:placeholder-gray-500 dark:text-white"
+                    className="bg-[#f7f7f7] p-3 border-black border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e]"
                   />
                 </div>
                 {formik.touched.lastName && formik.errors.lastName && (
-                  <p className="text-red-500 dark:text-red-400 text-sm">
+                  <p className="text-red-500 text-sm">
                     {formik.errors.lastName}
                   </p>
                 )}
@@ -162,17 +162,17 @@ const RegistrationForm = () => {
                   value={formik.values.email}
                   required
                   placeholder="Email Address"
-                  className="block bg-[#f7f7f7] dark:bg-gray-800 p-3 border-black dark:border-gray-600 border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e] dark:placeholder-gray-500 dark:text-white"
+                  className="block bg-[#f7f7f7] p-3 border-black border-b outline-0 w-full placeholder-text-sm text-sm placeholder-[#3e3e3e]"
                 />
               </div>
               {formik.touched.email && formik.errors.email && (
-                <p className="text-red-500 dark:text-red-400 text-sm">{formik.errors.email}</p>
+                <p className="text-red-500 text-sm">{formik.errors.email}</p>
               )}
             </div>
 
             {/* password */}
             <div className="mb-[10px]">
-              <div className="flex justify-between bg-[#f7f7f7] dark:bg-gray-800 border-black dark:border-gray-600 border-b">
+              <div className="flex justify-between bg-[#f7f7f7] border-black border-b">
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -182,24 +182,24 @@ const RegistrationForm = () => {
                   value={formik.values.password}
                   required
                   placeholder="Password"
-                  className="block p-3 outline-0 w-full text-sm placeholder-[#3e3e3e] dark:placeholder-gray-500 dark:text-white"
+                  className="block p-3 outline-0 w-full text-sm placeholder-[#3e3e3e]"
                 />
                 <button
                   type="button"
-                  className="right-2 relative focus:outline-none text-sm cursor-pointer dark:text-gray-300"
+                  className="right-2 relative focus:outline-none text-sm cursor-pointer"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
               {formik.touched.password && formik.errors.password && (
-                <p className="text-red-500 dark:text-red-400 text-sm">{formik.errors.password}</p>
+                <p className="text-red-500 text-sm">{formik.errors.password}</p>
               )}
             </div>
 
             {/* confirm password */}
             <div>
-              <div className="flex justify-between bg-[#f7f7f7] dark:bg-gray-800 border-black dark:border-gray-600 border-b">
+              <div className="flex justify-between bg-[#f7f7f7] border-black border-b">
                 <input
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
@@ -209,19 +209,19 @@ const RegistrationForm = () => {
                   value={formik.values.confirmPassword}
                   required
                   placeholder="Confirm your password"
-                  className="block p-3 outline-0 w-full text-sm placeholder-[#3e3e3e] dark:placeholder-gray-500 dark:text-white"
+                  className="block p-3 outline-0 w-full text-sm placeholder-[#3e3e3e]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="right-2 relative focus:outline-none text-sm cursor-pointer dark:text-gray-300"
+                  className="right-2 relative focus:outline-none text-sm cursor-pointer"
                 >
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
               {formik.touched.confirmPassword &&
                 formik.errors.confirmPassword && (
-                  <p className="text-red-500 dark:text-red-400 text-sm">
+                  <p className="text-red-500 text-sm">
                     {formik.errors.confirmPassword}
                   </p>
                 )}
@@ -230,22 +230,22 @@ const RegistrationForm = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex text-sm justify-center text-white dark:text-black text-center mt-6 w-full bg-black dark:bg-white rounded-md py-3 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="flex text-sm justify-center text-white text-center mt-6 w-full bg-black rounded-md py-3 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? <Loading /> : "Register"}
             </button>
-            {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
           </form>
 
           <div className="mt-4 flex items-center gap-4">
-            <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600"></div>
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-xs text-gray-500">or</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
           <Link
             href="/api/auth/google"
-            className="flex items-center justify-center gap-2 mt-4 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center gap-2 mt-4 w-full bg-white border border-gray-300 rounded-md py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -268,10 +268,10 @@ const RegistrationForm = () => {
             Sign up with Google
           </Link>
           <div className="mt-4">
-            <p className="text-[#b7b7b7] dark:text-gray-400 text-xs">
+            <p className="text-[#b7b7b7] text-xs">
               By clicking Sign In you are agreeing to our{" "}
               <Link
-                className="font-medium text-black dark:text-white underline"
+                className="font-medium text-black underline"
                 href="/policies"
               >
                 Privacy Policy and Terms and Conditions.
