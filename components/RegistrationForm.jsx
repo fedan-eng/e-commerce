@@ -48,9 +48,9 @@ const RegistrationForm = () => {
         .oneOf([Yup.ref("password")], "Passwords must match"),
     }),
     onSubmit: async (values) => {
-      const { email, firstName, password } = values;
+      const { email, firstName, lastName, password } = values;
       const res = await dispatch(
-        registerUserAsync({ email, firstName, password })
+        registerUserAsync({ email, firstName, lastName, password })
       );
       if (!res.error) {
         dispatch(setEmail(email));

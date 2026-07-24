@@ -34,6 +34,7 @@ export async function POST(req) {
     verificationCode: code,
     verificationCodeExpiry: expiry,
     firstName,
+    lastName,
   });
 
   const emailHtml = `
