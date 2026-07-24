@@ -26,7 +26,7 @@ const CartPage = () => {
   };
 
   const handleQuantityChange = (id, color, value) => {
-    const qty = parseInt(value);
+    const qty = parseInt(value);  
     if (qty >= 1) {
       dispatch(updateQuantity({_id: id, color, quantity: qty}));
     }
