@@ -18,8 +18,8 @@ const CartPage = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []); 
+    setHasMounted(true); 
+  }, []);  
 
   const handleRemove = (id, color) => {
     dispatch(removeFromCart({_id: id, color}));
