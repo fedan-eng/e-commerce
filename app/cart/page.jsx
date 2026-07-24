@@ -19,7 +19,7 @@ const CartPage = () => {
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+  }, []); 
 
   const handleRemove = (id, color) => {
     dispatch(removeFromCart({_id: id, color}));
