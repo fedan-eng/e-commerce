@@ -34,6 +34,49 @@ const items = [
       </ul>
     ),
   },
+
+  // ✅ ADD THIS NEW SECTION HERE
+  {
+    title: "OUR STORES",
+    content: (
+      <ul className="space-y-6">
+        {/* Alaba Branch */}
+        <li>
+          <p className="mb-1 font-medium text-filgreen uppercase text-[10px]">
+            Alaba Branch
+          </p>
+          <p className="leading-[180%]">
+            20 Fedan St, Ojo, <br />
+            Lagos 102113, Lagos
+          </p>
+          <a
+            href="tel:07018900705"
+            className="hover:text-filgreen transition-colors duration-200"
+          >
+            0701 890 0705
+          </a>
+        </li>
+
+        {/* Ikeja Branch */}
+        <li>
+          <p className="mb-1 font-medium text-filgreen uppercase text-[10px]">
+            Ikeja Branch
+          </p>
+          <p className="leading-[180%]">
+            3, Otigba Street, Ikeja, <br />
+            Computer Village
+          </p>
+          <a
+            href="tel:07025004757"
+            className="hover:text-filgreen transition-colors duration-200"
+          >
+            0702 500 4757
+          </a>
+        </li>
+      </ul>
+    ),
+  },
+
   {
     title: "CONTACT US",
     content: (
@@ -64,7 +107,6 @@ const items = [
     ),
   },
 ];
-
 const Footer = () => {
   const pathname = usePathname();
 
