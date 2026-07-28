@@ -22,6 +22,7 @@ export default function VerifyPaymentPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentProvider, setPaymentProvider] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -132,251 +133,304 @@ export default function VerifyPaymentPage() {
     verify();
   }, [paystackRef, flutterwaveRef, flutterwaveStatus, dispatch]);
 
-  // ── PDF receipt (unchanged) ───────────────────────────────────────────────
-  const generateReceipt = () => {
+  // ── ✅ FIXED PDF receipt ──────────────────────────────────────────────────
+  // Helper: load image as base64 so jsPDF can embed it reliably
+  const loadImageAsBase64 = (url) =>
+    new Promise((resolve) => {
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+
+  const generateReceipt = async () => {
     if (!orderDetails) return;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-
-    doc.setGState(new doc.GState({ opacity: 0.1 }));
-    doc.setFontSize(60);
-    doc.setTextColor(28, 201, 120);
-    doc.text("FIL", pageWidth / 2, pageHeight / 2, {
-      align: "center",
-      angle: 45,
-    });
-    doc.setGState(new doc.GState({ opacity: 1 }));
-
+    setDownloadingPdf(true);
     try {
-      const logo = new Image();
-      logo.src = "/fillogo.png";
-      doc.addImage(logo, "PNG", pageWidth / 2 - 20, 10, 40, 40);
-    } catch {}
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
 
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(28, 201, 120);
-    doc.text("Fedan Investment Limited", pageWidth / 2, 58, {
-      align: "center",
-    });
+      // ✅ Safe fallbacks for all fields
+      const lineItems = orderDetails.cartItems || orderDetails.items || [];
+      const regionName =
+        orderDetails.region?.name || orderDetails.region || "N/A";
+      const paymentRef = orderDetails.paymentReference || "N/A";
+      const subTotal = Number(orderDetails.subTotal || 0);
+      const deliveryFee = Number(orderDetails.deliveryFee || 0);
+      const discount = Number(orderDetails.discount || 0);
+      const total = Number(orderDetails.total || 0);
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "italic");
-    doc.setTextColor(100, 100, 100);
-    doc.text("Think Quality, Think FIL", pageWidth / 2, 65, { align: "center" });
+      // Watermark
+      doc.setGState(new doc.GState({ opacity: 0.1 }));
+      doc.setFontSize(60);
+      doc.setTextColor(28, 201, 120);
+      doc.text("FIL", pageWidth / 2, pageHeight / 2, {
+        align: "center",
+        angle: 45,
+      });
+      doc.setGState(new doc.GState({ opacity: 1 }));
 
-    doc.setDrawColor(28, 201, 120);
-    doc.setLineWidth(0.5);
-    doc.line(14, 70, pageWidth - 14, 70);
+      // ✅ Load logo asynchronously (properly) — skip silently if fails
+      const logoData = await loadImageAsBase64("/fillogo.png");
+      if (logoData) {
+        try {
+          doc.addImage(logoData, "PNG", pageWidth / 2 - 20, 10, 40, 40);
+        } catch (e) {
+          console.warn("Logo embed failed:", e);
+        }
+      }
 
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(51, 51, 51);
-    doc.text("ORDER RECEIPT", pageWidth / 2, 80, { align: "center" });
-
-    doc.setFillColor(248, 249, 250);
-    doc.roundedRect(14, 88, pageWidth - 28, 16, 3, 3, "F");
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(28, 201, 120);
-    doc.text("Order Reference:", 18, 96);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(51, 51, 51);
-    doc.text(orderDetails.paymentReference, 58, 96);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(28, 201, 120);
-    doc.text("Date:", 18, 101);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(51, 51, 51);
-    doc.text(
-      new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      32,
-      101
-    );
-
-    let yPos = 114;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(51, 51, 51);
-    doc.text("CUSTOMER INFORMATION", 14, yPos);
-    yPos += 2;
-    doc.setDrawColor(28, 201, 120);
-    doc.setLineWidth(0.3);
-    doc.line(14, yPos, 70, yPos);
-    yPos += 8;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-
-    const customerInfo = [
-      {
-        label: "Name:",
-        value: `${orderDetails.firstName} ${orderDetails.lastName || ""}`,
-      },
-      { label: "Email:", value: orderDetails.email },
-      { label: "Phone:", value: orderDetails.phone },
-      {
-        label: "Address:",
-        value: `${orderDetails.address}, ${orderDetails.city}`,
-      },
-      {
-        label: "Region:",
-        value: orderDetails.region?.name || orderDetails.region,
-      },
-      { label: "Delivery:", value: orderDetails.deliveryType },
-    ];
-
-    customerInfo.forEach((info) => {
+      doc.setFontSize(20);
       doc.setFont("helvetica", "bold");
-      doc.text(info.label, 14, yPos);
+      doc.setTextColor(28, 201, 120);
+      doc.text("Fedan Investment Limited", pageWidth / 2, 58, {
+        align: "center",
+      });
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Think Quality, Think FIL", pageWidth / 2, 65, {
+        align: "center",
+      });
+
+      doc.setDrawColor(28, 201, 120);
+      doc.setLineWidth(0.5);
+      doc.line(14, 70, pageWidth - 14, 70);
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(51, 51, 51);
+      doc.text("ORDER RECEIPT", pageWidth / 2, 80, { align: "center" });
+
+      doc.setFillColor(248, 249, 250);
+      doc.roundedRect(14, 88, pageWidth - 28, 16, 3, 3, "F");
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(28, 201, 120);
+      doc.text("Order Reference:", 18, 96);
       doc.setFont("helvetica", "normal");
-      doc.text(String(info.value || ""), 40, yPos);
+      doc.setTextColor(51, 51, 51);
+      doc.text(String(paymentRef), 58, 96);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(28, 201, 120);
+      doc.text("Date:", 18, 101);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(51, 51, 51);
+      doc.text(
+        new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        32,
+        101
+      );
+
+      let yPos = 114;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(51, 51, 51);
+      doc.text("CUSTOMER INFORMATION", 14, yPos);
+      yPos += 2;
+      doc.setDrawColor(28, 201, 120);
+      doc.setLineWidth(0.3);
+      doc.line(14, yPos, 70, yPos);
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+
+      const customerInfo = [
+        {
+          label: "Name:",
+          value: `${orderDetails.firstName || ""} ${
+            orderDetails.lastName || ""
+          }`.trim(),
+        },
+        { label: "Email:", value: orderDetails.email || "N/A" },
+        { label: "Phone:", value: orderDetails.phone || "N/A" },
+        {
+          label: "Address:",
+          value: `${orderDetails.address || ""}, ${orderDetails.city || ""}`,
+        },
+        { label: "Region:", value: regionName },
+        { label: "Delivery:", value: orderDetails.deliveryType || "N/A" },
+      ];
+
+      customerInfo.forEach((info) => {
+        doc.setFont("helvetica", "bold");
+        doc.text(info.label, 14, yPos);
+        doc.setFont("helvetica", "normal");
+        doc.text(String(info.value || ""), 40, yPos);
+        yPos += 6;
+      });
+
+      yPos += 4;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(51, 51, 51);
+      doc.text("PAYMENT DETAILS", 14, yPos);
+      yPos += 2;
+      doc.setDrawColor(28, 201, 120);
+      doc.line(14, yPos, 70, yPos);
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(80, 80, 80);
+      doc.text("Payment Method:", 14, yPos);
+      doc.setFont("helvetica", "normal");
+      const paymentMethod = paymentProvider
+        ? paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1)
+        : "N/A";
+      doc.text(paymentMethod, 50, yPos);
       yPos += 6;
-    });
+      doc.setFont("helvetica", "bold");
+      doc.text("Status:", 14, yPos);
+      doc.setTextColor(28, 201, 120);
+      doc.text("PAID", 50, yPos); // ✅ removed unicode checkmark (jsPDF can't render it without custom font)
 
-    yPos += 4;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(51, 51, 51);
-    doc.text("PAYMENT DETAILS", 14, yPos);
-    yPos += 2;
-    doc.setDrawColor(28, 201, 120);
-    doc.line(14, yPos, 70, yPos);
-    yPos += 8;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(80, 80, 80);
-    doc.text("Payment Method:", 14, yPos);
-    doc.setFont("helvetica", "normal");
-    const paymentMethod = paymentProvider
-      ? paymentProvider.charAt(0).toUpperCase() + paymentProvider.slice(1)
-      : "N/A";
-    doc.text(paymentMethod, 50, yPos);
-    yPos += 6;
-    doc.setFont("helvetica", "bold");
-    doc.text("Status:", 14, yPos);
-    doc.setTextColor(28, 201, 120);
-    doc.text("✓ PAID", 50, yPos);
+      yPos += 12;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(51, 51, 51);
+      doc.text("ORDER ITEMS", 14, yPos);
+      yPos += 2;
+      doc.setDrawColor(28, 201, 120);
+      doc.line(14, yPos, 70, yPos);
 
-    yPos += 12;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(51, 51, 51);
-    doc.text("ORDER ITEMS", 14, yPos);
-    yPos += 2;
-    doc.setDrawColor(28, 201, 120);
-    doc.line(14, yPos, 70, yPos);
+      // ✅ Use safe lineItems array
+      const tableData = lineItems.map((item, i) => [
+        String(i + 1),
+        item.name || "Unknown Product",
+        String(item.quantity || 1),
+        `NGN ${Number(item.price || 0).toLocaleString()}`,
+        `NGN ${(
+          Number(item.price || 0) * Number(item.quantity || 1)
+        ).toLocaleString()}`,
+      ]);
 
-    const tableData = orderDetails.cartItems.map((item, i) => [
-      String(i + 1),
-      item.name,
-      String(item.quantity),
-      `₦${Number(item.price).toLocaleString()}`,
-      `₦${(Number(item.price) * Number(item.quantity)).toLocaleString()}`,
-    ]);
+      autoTable(doc, {
+        startY: yPos + 5,
+        head: [["#", "Product", "Qty", "Unit Price", "Total"]],
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [28, 201, 120],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 10,
+          halign: "center",
+        },
+        bodyStyles: { textColor: [51, 51, 51], fontSize: 9 },
+        alternateRowStyles: { fillColor: [248, 249, 250] },
+        columnStyles: {
+          0: { halign: "center", cellWidth: 10 },
+          1: { cellWidth: 70 },
+          2: { halign: "center", cellWidth: 20 },
+          3: { halign: "right", cellWidth: 35 },
+          4: { halign: "right", cellWidth: 35 },
+        },
+        margin: { left: 14, right: 14 },
+      });
 
-    autoTable(doc, {
-      startY: yPos + 5,
-      head: [["#", "Product", "Qty", "Unit Price", "Total"]],
-      body: tableData,
-      theme: "grid",
-      headStyles: {
-        fillColor: [28, 201, 120],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-        fontSize: 10,
-        halign: "center",
-      },
-      bodyStyles: { textColor: [51, 51, 51], fontSize: 9 },
-      alternateRowStyles: { fillColor: [248, 249, 250] },
-      columnStyles: {
-        0: { halign: "center", cellWidth: 10 },
-        1: { cellWidth: 70 },
-        2: { halign: "center", cellWidth: 20 },
-        3: { halign: "right", cellWidth: 35 },
-        4: { halign: "right", cellWidth: 35 },
-      },
-      margin: { left: 14, right: 14 },
-    });
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFillColor(248, 249, 250);
+      doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, "F");
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      const summaryY = finalY + 8;
+      doc.text("Subtotal:", pageWidth - 85, summaryY);
+      doc.text(
+        `NGN ${subTotal.toLocaleString()}`,
+        pageWidth - 20,
+        summaryY,
+        { align: "right" }
+      );
+      doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
+      doc.text(
+        `NGN ${deliveryFee.toLocaleString()}`,
+        pageWidth - 20,
+        summaryY + 7,
+        { align: "right" }
+      );
+      doc.text("Discount:", pageWidth - 85, summaryY + 14);
+      doc.setTextColor(28, 201, 120);
+      doc.text(
+        `-NGN ${discount.toLocaleString()}`,
+        pageWidth - 20,
+        summaryY + 14,
+        { align: "right" }
+      );
+      doc.setDrawColor(28, 201, 120);
+      doc.setLineWidth(0.5);
+      doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(28, 201, 120);
+      doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
+      doc.setFontSize(14);
+      doc.text(
+        `NGN ${total.toLocaleString()}`,
+        pageWidth - 20,
+        summaryY + 26,
+        { align: "right" }
+      );
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFillColor(248, 249, 250);
-    doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, "F");
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    const summaryY = finalY + 8;
-    doc.text("Subtotal:", pageWidth - 85, summaryY);
-    doc.text(
-      `₦${Number(orderDetails.subTotal).toLocaleString()}`,
-      pageWidth - 20,
-      summaryY,
-      { align: "right" }
-    );
-    doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
-    doc.text(
-      `₦${Number(orderDetails.deliveryFee).toLocaleString()}`,
-      pageWidth - 20,
-      summaryY + 7,
-      { align: "right" }
-    );
-    doc.text("Discount:", pageWidth - 85, summaryY + 14);
-    doc.setTextColor(28, 201, 120);
-    doc.text(
-      `-₦${Number(orderDetails.discount).toLocaleString()}`,
-      pageWidth - 20,
-      summaryY + 14,
-      { align: "right" }
-    );
-    doc.setDrawColor(28, 201, 120);
-    doc.setLineWidth(0.5);
-    doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(28, 201, 120);
-    doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
-    doc.setFontSize(14);
-    doc.text(
-      `₦${Number(orderDetails.total).toLocaleString()}`,
-      pageWidth - 20,
-      summaryY + 26,
-      { align: "right" }
-    );
+      const footerY = pageHeight - 30;
+      doc.setDrawColor(28, 201, 120);
+      doc.setLineWidth(0.3);
+      doc.line(14, footerY, pageWidth - 14, footerY);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        "Thank you for choosing FIL Store!",
+        pageWidth / 2,
+        footerY + 6,
+        { align: "center" }
+      );
+      doc.text(
+        "For support: filfilecommerce@gmail.com | Visit: filstore.com.ng",
+        pageWidth / 2,
+        footerY + 11,
+        { align: "center" }
+      );
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.text(
+        "This is a computer-generated receipt and does not require a signature.",
+        pageWidth / 2,
+        footerY + 18,
+        { align: "center" }
+      );
 
-    const footerY = pageHeight - 30;
-    doc.setDrawColor(28, 201, 120);
-    doc.setLineWidth(0.3);
-    doc.line(14, footerY, pageWidth - 14, footerY);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
-    doc.text("Thank you for choosing FIL Store!", pageWidth / 2, footerY + 6, {
-      align: "center",
-    });
-    doc.text(
-      "For support: filfilecommerce@gmail.com | Visit: filstore.com.ng",
-      pageWidth / 2,
-      footerY + 11,
-      { align: "center" }
-    );
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "italic");
-    doc.text(
-      "This is a computer-generated receipt and does not require a signature.",
-      pageWidth / 2,
-      footerY + 18,
-      { align: "center" }
-    );
-
-    doc.save(`FIL-Receipt-${orderDetails.paymentReference}.pdf`);
+      doc.save(`FIL-Receipt-${paymentRef}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert(
+        "Sorry, we couldn't generate your receipt. Please try again or contact support."
+      );
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   // ── Loading / Error / Empty States (unchanged) ────────────────────────────
@@ -459,9 +513,8 @@ export default function VerifyPaymentPage() {
 
   return (
     <div className="relative">
-      <div className="top-32 xs:right-6 z-50 fixed">
-        <FeedbackForm />
-      </div>
+      {/* ✅ FeedbackForm now handles its own bottom-sheet positioning */}
+      <FeedbackForm />
 
       <div className="mx-auto max-w-[1140px] px-4 py-10">
         {/* ── Thank you header ── */}
@@ -556,28 +609,29 @@ export default function VerifyPaymentPage() {
               <p className="text-sm text-[#767676]">Same as shipping address</p>
             </div>
 
-            {/* CTA buttons */}
-            <div className="flex gap-3 mb-6">
+            {/* ✅ RESPONSIVE CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Link
                 href={`/contact?order=${orderDetails._id}`}
-                className="bg-filgreen hover:bg-green-700 px-8 py-3 rounded-md font-medium text-white text-sm transition-colors"
+                className="bg-filgreen hover:bg-green-700 px-6 sm:px-8 py-3 rounded-md font-medium text-white text-sm transition-colors text-center w-full sm:w-auto"
               >
                 Track Order
               </Link>
               <Link
                 href="/products"
-                className="px-8 py-3 border border-[#d9d9d9] hover:bg-gray-50 rounded-md font-medium text-dark text-sm transition-colors"
+                className="px-6 sm:px-8 py-3 border border-[#d9d9d9] hover:bg-gray-50 rounded-md font-medium text-dark text-sm transition-colors text-center w-full sm:w-auto"
               >
                 Continue Shopping
               </Link>
             </div>
 
-            {/* PDF download link */}
+            {/* ✅ PDF download button with loading state */}
             <button
               onClick={generateReceipt}
-              className="text-filgreen text-sm underline cursor-pointer hover:text-green-700 transition-colors"
+              disabled={downloadingPdf}
+              className="text-filgreen text-sm underline cursor-pointer hover:text-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Download receipt (PDF)
+              {downloadingPdf ? "Generating PDF..." : "Download receipt (PDF)"}
             </button>
           </div>
 
@@ -643,7 +697,7 @@ export default function VerifyPaymentPage() {
                     </span>
                   </div>
                 )}
-                <div className="flex border-t border-[#e0e0e0] pt-4 space-y-2.5 justify-between items-center">
+                <div className="flex border-t border-[#e0e0e0] pt-4 justify-between items-center">
                   <span className="font-bold text-dark text-lg">Total</span>
                   <span className="font-bold text-dark text-lg">
                     {formatAmount(orderDetails.total || 0)}
