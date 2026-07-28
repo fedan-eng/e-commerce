@@ -36,8 +36,6 @@ const items = [
       </ul>
     ),
   },
-
-  // ✅ ADD THIS NEW SECTION HERE
   {
     title: "OUR STORES",
     content: (
@@ -78,7 +76,6 @@ const items = [
       </ul>
     ),
   },
-
   {
     title: "CONTACT US",
     content: (
@@ -109,17 +106,26 @@ const items = [
     ),
   },
 ];
+
 const Footer = () => {
   const pathname = usePathname();
 
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
+  // ✅ Constants declared FIRST so they're available in effects below
+  const CART_SIZE = 56;
+  const CART_MARGIN = 16;
+
+  const ELEM_WIDTH = 120;
+  const ELEM_HEIGHT = 48;
+  const SNAP_PEEK = 35;
+
   // ✅ ALL hooks at the top — before any early returns
-const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
-  if (typeof window === "undefined") return false;
-  return !localStorage.getItem("fil_promo_seen");
-});
+  const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("fil_promo_seen");
+  });
   const [isTagVisible, setIsTagVisible] = useState(true);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -134,6 +140,8 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
   const [cartSide, setCartSide] = useState("right");
   const [cartIsDragging, setCartIsDragging] = useState(false);
   const [cartSnapped, setCartSnapped] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+
   const cartRef = useRef(null);
   const cartDragState = useRef({
     startMouseX: 0,
@@ -143,16 +151,8 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
     dragged: false,
   });
 
-  // Initialize cart position on right side
-  useEffect(() => {
-    const initialX = window.innerWidth - CART_SIZE + CART_SNAP_PEEK;
-    setCartPos({ x: initialX, y: 180 });
-    cartDragState.current.startElemX = initialX;
-  }, []);
-
   const cartItems = useSelector((state) => state.cart.items);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const [hasMounted, setHasMounted] = useState(false);
 
   const slideIntervalRef = useRef(null);
   const autoOpenTimerRef = useRef(null);
@@ -165,24 +165,39 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
     dragged: false,
   });
 
-  const CART_SIZE = 56;
-  const CART_SNAP_PEEK = 20;
+  // ✅ Mark mounted & initialize cart position on right side (fully visible)
+  useEffect(() => {
+    setHasMounted(true);
+    const initialX = window.innerWidth - CART_SIZE - CART_MARGIN;
+    setCartPos({ x: initialX, y: 180 });
+    cartDragState.current.startElemX = initialX;
+  }, []);
 
-  useEffect(() => setHasMounted(true), []);
-
-  const ELEM_WIDTH = 120;
-  const ELEM_HEIGHT = 48;
-  const SNAP_PEEK = 35;
+  // ✅ Keep cart on-screen on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setCartPos((prev) => {
+        const maxX = window.innerWidth - CART_SIZE - CART_MARGIN;
+        const maxY = window.innerHeight - CART_SIZE - 60;
+        return {
+          x: Math.min(Math.max(prev.x, CART_MARGIN), maxX),
+          y: Math.min(Math.max(prev.y, 60), maxY),
+        };
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Auto open overlay after 10s on homepage
- useEffect(() => {
-  if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
-    autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
-  }
-  return () => {
-    if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
-  };
-}, [pathname]);
+  useEffect(() => {
+    if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
+      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
+    }
+    return () => {
+      if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
+    };
+  }, [pathname]);
 
   // Auto change slides every 3s while overlay is open
   useEffect(() => {
@@ -215,7 +230,6 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
 
   // ✅ Early returns AFTER all hooks
   if (noNavigationMenu) return null;
-  if (!isTagVisible && false) return null; // removed the broken early return; isTagVisible is handled in JSX below
 
   const clampY = (y) => {
     const maxY = window.innerHeight - ELEM_HEIGHT - 60;
@@ -302,13 +316,13 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
   };
 
   const closeOverlay = () => {
-  localStorage.setItem("fil_promo_seen", "true");
-  setIsOverlayOpen(false);
-};
+    localStorage.setItem("fil_promo_seen", "true");
+    setIsOverlayOpen(false);
+  };
 
   const rotation = side === "left" ? "-90deg" : "90deg";
 
-  // Cart FAB drag handlers
+  // ✅ Cart FAB drag handlers — fully visible, snaps with 16px margin
   const clampCartY = (y) => {
     const maxY = window.innerHeight - CART_SIZE - 60;
     return Math.min(Math.max(y, 60), maxY);
@@ -320,7 +334,7 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
     setCartSide(nearLeft ? "left" : "right");
     setCartSnapped(true);
     setCartPos({
-      x: nearLeft ? -CART_SNAP_PEEK : window.innerWidth - CART_SIZE + CART_SNAP_PEEK,
+      x: nearLeft ? CART_MARGIN : window.innerWidth - CART_SIZE - CART_MARGIN,
       y: clampCartY(currentY),
     });
   };
@@ -451,7 +465,44 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
         </div>
       )}
 
+      {/* ✅ Draggable Cart FAB — OUTSIDE footer so nothing clips it */}
+      {hasMounted && (
+        <div
+          ref={cartRef}
+          onPointerDown={onCartPointerDown}
+          onPointerMove={onCartPointerMove}
+          onPointerUp={onCartPointerUp}
+          style={{
+            position: "fixed",
+            left: cartPos.x,
+            top: cartPos.y,
+            width: CART_SIZE,
+            height: CART_SIZE,
+            overflow: "visible",
+            transition:
+              cartSnapped && !cartIsDragging
+                ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+                : "none",
+            userSelect: "none",
+            touchAction: "none",
+            zIndex: 60,
+            cursor: cartIsDragging ? "grabbing" : "grab",
+          }}
+          className="flex justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
+          role="button"
+          aria-label="Open cart"
+        >
+          <ShoppingBag size={24} strokeWidth={2} className="text-white" />
+          {totalItems > 0 && (
+            <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
+              {totalItems}
+            </span>
+          )}
+        </div>
+      )}
+
       <footer className="bg-black pt-9">
+
         {/* Draggable discount tag — only on homepage and when visible */}
         {/* {pathname === "/" && isTagVisible && (
           <div
@@ -511,41 +562,6 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
             <Image width={13.33} height={13.33} src="/upward.png" alt="upward" className="opacity-100" />
           </div>
         </div>
-
-        {/* Draggable Cart FAB */}
-        {hasMounted && (
-          <div
-            ref={cartRef}
-            onPointerDown={onCartPointerDown}
-            onPointerMove={onCartPointerMove}
-            onPointerUp={onCartPointerUp}
-            style={{
-              position: "fixed",
-              left: cartPos.x,
-              top: cartPos.y,
-              width: CART_SIZE,
-              height: CART_SIZE,
-              transition:
-                cartSnapped && !cartIsDragging
-                  ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-                  : "none",
-              userSelect: "none",
-              touchAction: "none",
-              zIndex: 60,
-              cursor: cartIsDragging ? "grabbing" : "grab",
-            }}
-            className="flex justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
-            role="button"
-            aria-label="Open cart"
-          >
-            <ShoppingBag size={24} strokeWidth={2} className="text-white" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
-                {totalItems}
-              </span>
-            )}
-          </div>
-        )}
 
         {/* Footer content */}
         <div className="md:flex justify-around">
