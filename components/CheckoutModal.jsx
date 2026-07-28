@@ -235,9 +235,36 @@ export default function CheckoutModal({ onClose }) {
     setStep(target);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
+
+    // Update user in DB when logged in and proceeding to next step
+    if (user) {
+      try {
+        const updateData = {};
+        
+        if (step === 1) {
+          // Update contact info when moving to Step 2
+          updateData.firstName = formData.firstName.trim();
+          updateData.lastName = formData.lastName.trim();
+          updateData.phone = getPhoneDigits(formData.phone);
+          updateData.addPhone = formData.addPhone ? getPhoneDigits(formData.addPhone) : "";
+        } else if (step === 2) {
+          // Update delivery info when moving to Step 3
+          updateData.region = formData.region;
+          updateData.city = formData.city.trim();
+          updateData.address = formData.address.trim();
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await dispatch(updateUser(updateData));
+        }
+      } catch (err) {
+        console.error("Failed to update user:", err);
+      }
+    }
+
     goToStep(step + 1);
   };
 

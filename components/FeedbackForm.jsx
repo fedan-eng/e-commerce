@@ -11,8 +11,14 @@ const faces = [
   { img: "/happy.png", label: "Happy", value: "5" },
 ];
 
-export default function FeedbackForm() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function FeedbackForm({ autoOpen = false }) {
+  const [isOpen, setIsOpen] = useState(() => {
+    if (autoOpen) {
+      // Check if user already submitted or dismissed feedback for this session
+      return !localStorage.getItem("fil_feedback_dismissed");
+    }
+    return false;
+  });
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
@@ -50,6 +56,7 @@ export default function FeedbackForm() {
 
   const closeSheet = () => {
     setIsOpen(false);
+    localStorage.setItem("fil_feedback_dismissed", "true");
     // reset message after closing so it doesn't flash on reopen
     setTimeout(() => setMessage({ text: "", type: "" }), 300);
   };
@@ -70,6 +77,7 @@ export default function FeedbackForm() {
       });
       setRating(0);
       setComment("");
+      localStorage.setItem("fil_feedback_dismissed", "true");
       // Auto-close after showing success message
       setTimeout(() => closeSheet(), 1500);
     } catch (err) {
@@ -85,14 +93,16 @@ export default function FeedbackForm() {
 
   return (
     <>
-      {/* Trigger button — floating on the right edge */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-filgreen text-white px-3 py-4 rounded-l-lg text-xs font-medium shadow-lg hover:bg-green-700 transition-colors [writing-mode:vertical-rl] rotate-180"
-        aria-label="Share your experience"
-      >
-        Share Your Experience
-      </button>
+      {/* Trigger button — floating on the right edge (only show when not auto-opening) */}
+      {!autoOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-filgreen text-white px-3 py-4 rounded-l-lg text-xs font-medium shadow-lg hover:bg-green-700 transition-colors [writing-mode:vertical-rl] rotate-180"
+          aria-label="Share your experience"
+        >
+          Share Your Experience
+        </button>
+      )}
 
       {/* Bottom sheet on mobile · Centered modal on desktop */}
       {isOpen && (

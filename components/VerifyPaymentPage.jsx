@@ -513,8 +513,8 @@ export default function VerifyPaymentPage() {
 
   return (
     <div className="relative">
-      {/* ✅ FeedbackForm now handles its own bottom-sheet positioning */}
-      <FeedbackForm />
+      {/* ✅ FeedbackForm auto-opens after verified order */}
+      <FeedbackForm autoOpen={true} />
 
       <div className="mx-auto max-w-[1140px] px-4 py-10">
         {/* ── Thank you header ── */}
