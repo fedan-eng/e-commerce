@@ -6,6 +6,8 @@ import Link from "next/link";
 import Accordion from "./Accordion";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+import { ShoppingBag } from "lucide-react";
 
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
@@ -127,6 +129,31 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
   const [isDragging, setIsDragging] = useState(false);
   const [snapped, setSnapped] = useState(true);
 
+  // Cart FAB drag state
+  const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
+  const [cartSide, setCartSide] = useState("right");
+  const [cartIsDragging, setCartIsDragging] = useState(false);
+  const [cartSnapped, setCartSnapped] = useState(true);
+  const cartRef = useRef(null);
+  const cartDragState = useRef({
+    startMouseX: 0,
+    startMouseY: 0,
+    startElemX: 0,
+    startElemY: 180,
+    dragged: false,
+  });
+
+  // Initialize cart position on right side
+  useEffect(() => {
+    const initialX = window.innerWidth - CART_SIZE + CART_SNAP_PEEK;
+    setCartPos({ x: initialX, y: 180 });
+    cartDragState.current.startElemX = initialX;
+  }, []);
+
+  const cartItems = useSelector((state) => state.cart.items);
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const [hasMounted, setHasMounted] = useState(false);
+
   const slideIntervalRef = useRef(null);
   const autoOpenTimerRef = useRef(null);
   const elementRef = useRef(null);
@@ -137,6 +164,11 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
     startElemY: 220,
     dragged: false,
   });
+
+  const CART_SIZE = 56;
+  const CART_SNAP_PEEK = 20;
+
+  useEffect(() => setHasMounted(true), []);
 
   const ELEM_WIDTH = 120;
   const ELEM_HEIGHT = 48;
@@ -275,6 +307,58 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
 };
 
   const rotation = side === "left" ? "-90deg" : "90deg";
+
+  // Cart FAB drag handlers
+  const clampCartY = (y) => {
+    const maxY = window.innerHeight - CART_SIZE - 60;
+    return Math.min(Math.max(y, 60), maxY);
+  };
+
+  const doCartSnap = (currentX, currentY) => {
+    const centerX = currentX + CART_SIZE / 2;
+    const nearLeft = centerX < window.innerWidth / 2;
+    setCartSide(nearLeft ? "left" : "right");
+    setCartSnapped(true);
+    setCartPos({
+      x: nearLeft ? -CART_SNAP_PEEK : window.innerWidth - CART_SIZE + CART_SNAP_PEEK,
+      y: clampCartY(currentY),
+    });
+  };
+
+  const onCartPointerDown = (e) => {
+    e.preventDefault();
+    cartDragState.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startElemX: cartPos.x,
+      startElemY: cartPos.y,
+      dragged: false,
+    };
+    setCartIsDragging(true);
+    setCartSnapped(false);
+    cartRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const onCartPointerMove = (e) => {
+    if (!cartIsDragging) return;
+    const dx = e.clientX - cartDragState.current.startMouseX;
+    const dy = e.clientY - cartDragState.current.startMouseY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) cartDragState.current.dragged = true;
+    setCartPos({
+      x: cartDragState.current.startElemX + dx,
+      y: clampCartY(cartDragState.current.startElemY + dy),
+    });
+  };
+
+  const onCartPointerUp = () => {
+    if (!cartIsDragging) return;
+    setCartIsDragging(false);
+    if (!cartDragState.current.dragged) {
+      // Click - navigate to cart
+      window.location.href = "/cart";
+    }
+    doCartSnap(cartPos.x, cartPos.y);
+  };
 
   return (
     <>
@@ -427,6 +511,41 @@ const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
             <Image width={13.33} height={13.33} src="/upward.png" alt="upward" className="opacity-100" />
           </div>
         </div>
+
+        {/* Draggable Cart FAB */}
+        {hasMounted && (
+          <div
+            ref={cartRef}
+            onPointerDown={onCartPointerDown}
+            onPointerMove={onCartPointerMove}
+            onPointerUp={onCartPointerUp}
+            style={{
+              position: "fixed",
+              left: cartPos.x,
+              top: cartPos.y,
+              width: CART_SIZE,
+              height: CART_SIZE,
+              transition:
+                cartSnapped && !cartIsDragging
+                  ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+                  : "none",
+              userSelect: "none",
+              touchAction: "none",
+              zIndex: 60,
+              cursor: cartIsDragging ? "grabbing" : "grab",
+            }}
+            className="flex justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
+            role="button"
+            aria-label="Open cart"
+          >
+            <ShoppingBag size={24} strokeWidth={2} className="text-white" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
+                {totalItems}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Footer content */}
         <div className="md:flex justify-around">
