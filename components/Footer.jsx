@@ -73,6 +73,15 @@ const items = [
             0702 500 4757
           </a>
         </li>
+
+        <li>
+          <p className="mb-1 font-medium text-filgreen uppercase text-[10px]">
+            Awka Branch
+          </p>
+          <p className="leading-[180%]">
+            6359+Q79 Awka
+          </p>
+        </li>
       </ul>
     ),
   },
