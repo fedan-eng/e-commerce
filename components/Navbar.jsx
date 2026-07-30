@@ -118,37 +118,11 @@ export default function Navbar() {
                 <HelpCircle size={20} strokeWidth={1.75} />
               </Link>
             </li>
-            <li>
-              <Link
-                href="/cart"
-                className="relative flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors"
-                aria-label="Cart"
-              >
-                <ShoppingBag size={20} strokeWidth={1.75} />
-                {hasMounted && totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[18px] h-[18px] px-1 text-white text-[10px] font-semibold leading-none">
-                    {totalItems}
-                  </span>
-                )}
-              </Link>
-            </li>
           </ul>
 
           {/* MOBILE: Right icons */}
           <div className="nav:hidden flex items-center gap-5 ml-auto">
             <NavSearchTooltip />
-            <Link
-              href="/cart"
-              className="relative flex items-center text-[#1a1a1a]"
-              aria-label="Cart"
-            >
-              <ShoppingBag size={22} strokeWidth={1.75} />
-              {hasMounted && totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[18px] h-[18px] px-1 text-white text-[10px] font-semibold leading-none">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
             <button
               className="text-[#1a1a1a] hover:text-filgreen transition-colors"
               onClick={() => setMenuOpen(true)}

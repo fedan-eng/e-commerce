@@ -36,6 +36,24 @@ export default function CookieBanner() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  // Check if banner was dismissed and if it's been more than a week
+  useEffect(() => {
+    const dismissedAt = localStorage.getItem('filstore_cookie_banner_dismissed')
+    if (dismissedAt) {
+      const dismissedTime = parseInt(dismissedAt, 10)
+      const weekInMs = 7 * 24 * 60 * 60 * 1000
+      const now = Date.now()
+      
+      if (now - dismissedTime > weekInMs) {
+        // More than a week has passed, clear the storage
+        localStorage.removeItem('filstore_cookie_banner_dismissed')
+      } else {
+        // Less than a week, keep it dismissed
+        setBannerDismissed(true)
+      }
+    }
+  }, [])
   const [hiddenForPath, setHiddenForPath] = useState(false)
   const [localPrefs, setLocalPrefs] = useState({
     analytics: false,
@@ -85,7 +103,10 @@ export default function CookieBanner() {
     showToast('Cookies declined', 'Only essential cookies will be used')
   }
 
-  const handleCancel = () => setBannerDismissed(true)
+  const handleCancel = () => {
+    setBannerDismissed(true)
+    localStorage.setItem('filstore_cookie_banner_dismissed', Date.now().toString())
+  }
 
   const handleSavePrefs = () => {
     savePreferences(localPrefs)

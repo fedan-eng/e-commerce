@@ -1,10 +1,11 @@
+// models/Order.js
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: false, // In case the user checked out as a guest
+    required: false,
   },
   email: {
     type: String,
@@ -26,6 +27,10 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
 
+  lastName: {
+    type: String,
+  },
+
   addPhone: {
     type: String,
   },
@@ -38,6 +43,11 @@ const orderSchema = new mongoose.Schema({
   city: {
     type: String,
     required: true,
+  },
+
+  orderNote: {
+    type: String,
+    default: "",
   },
 
   subTotal: { type: Number, required: true },

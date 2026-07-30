@@ -146,17 +146,36 @@ function emailHead(title) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>${title}</title>
   <!--[if mso]>
   <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
   <style>
-    body { margin:0 !important; padding:0 !important; background-color:#f0f2f5 !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #444455;
+      --text-muted: #666677;
+      --border-color: #e2e2ea;
+      --accent-light: #f0faf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a1a2e;
+        --bg-card: #2d2d3a;
+        --text-primary: #ffffff;
+        --text-secondary: #d1d1e0;
+        --text-muted: #a0a0b0;
+        --border-color: #3d3d4a;
+        --accent-light: #1a2a25;
+      }
+    }
+    body { margin:0 !important; padding:0 !important; background-color:var(--bg-primary) !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
     table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
     img { border:0; height:auto; line-height:100%; outline:none; text-decoration:none; }
-    :root { color-scheme: light only; }
     @media only screen and (max-width: 620px) {
       .email-card  { width:100% !important; }
       .mobile-pad  { padding-left:20px !important; padding-right:20px !important; }
@@ -174,7 +193,7 @@ function emailHead(title) {
     }
   </style>
 </head>
-<body style="margin:0; padding:0; background-color:#f0f2f5;">`;
+<body style="margin:0; padding:0; background-color:var(--bg-primary);">`;
 }
 
 function buildStatusEmail(order, cfg) {
@@ -584,17 +603,36 @@ function buildOrderConfirmationEmail(orderData, isAdmin = false) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>${title}</title>
   <!--[if mso]>
   <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
   <style>
-    body { margin:0 !important; padding:0 !important; background-color:#f0f2f5 !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #444455;
+      --text-muted: #666677;
+      --border-color: #e2e2ea;
+      --accent-light: #f0faf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a1a2e;
+        --bg-card: #2d2d3a;
+        --text-primary: #ffffff;
+        --text-secondary: #d1d1e0;
+        --text-muted: #a0a0b0;
+        --border-color: #3d3d4a;
+        --accent-light: #1a2a25;
+      }
+    }
+    body { margin:0 !important; padding:0 !important; background-color:var(--bg-primary) !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
     table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
     img { border:0; height:auto; line-height:100%; outline:none; text-decoration:none; }
-    :root { color-scheme: light only; }
     @media only screen and (max-width:620px) {
       .email-card { width:100% !important; }
       .mobile-pad { padding-left:20px !important; padding-right:20px !important; }
@@ -606,7 +644,7 @@ function buildOrderConfirmationEmail(orderData, isAdmin = false) {
     }
   </style>
 </head>
-<body style="margin:0; padding:0; background-color:#f0f2f5;">`;
+<body style="margin:0; padding:0; background-color:var(--bg-primary);">`;
 
   const wrapOpen = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;"><tr><td align="center" style="padding:28px 10px;"><table class="email-card" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">`;
   const wrapClose = `</table><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:20px 0;">&nbsp;</td></tr></table></td></tr></table></body></html>`;
@@ -1653,8 +1691,8 @@ async function testAllEmails() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <meta name="color-scheme" content="light">
-  <meta name="supported-color-schemes" content="light">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>Welcome to FIL Store!</title>
   <!--[if mso]>
   <noscript>
@@ -1667,16 +1705,35 @@ async function testAllEmails() {
   </noscript>
   <![endif]-->
   <style>
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #444455;
+      --text-muted: #666677;
+      --border-color: #e2e2ea;
+      --accent-light: #f0faf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a1a2e;
+        --bg-card: #2d2d3a;
+        --text-primary: #ffffff;
+        --text-secondary: #d1d1e0;
+        --text-muted: #a0a0b0;
+        --border-color: #3d3d4a;
+        --accent-light: #1a2a25;
+      }
+    }
     body {
       margin: 0 !important;
       padding: 0 !important;
-      background-color: #f0f2f5 !important;
+      background-color: var(--bg-primary) !important;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
     }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-    :root { color-scheme: light only; }
 
     @media only screen and (max-width: 620px) {
       .email-card  { width: 100% !important; }
@@ -1698,7 +1755,7 @@ async function testAllEmails() {
   </style>
 </head>
 
-<body style="margin:0; padding:0; background-color:#f0f2f5;">
+<body style="margin:0; padding:0; background-color:var(--bg-primary);">
 
   <!-- Hidden preheader -->
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">

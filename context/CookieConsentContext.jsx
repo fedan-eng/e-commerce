@@ -17,7 +17,7 @@ export function CookieConsentProvider({ children }) {
   const [status, setStatus] = useState('pending')
   const [preferences, setPreferences] = useState(defaultPreferences)
   const [mounted, setMounted] = useState(false)
-
+   
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {

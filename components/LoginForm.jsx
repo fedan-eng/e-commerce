@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import ImageSlider from "./ImageSlider";
 import Link from "next/link";
@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,8 @@ export default function LoginForm() {
 
     if (res.ok) {
       await dispatch(fetchUser());
-      router.push("/products");
+      const callbackUrl = searchParams.get("callbackUrl");
+      router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
         setShowGoogleHint(true); // trigger the UI hint below

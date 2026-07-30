@@ -7,6 +7,8 @@ import Tracking from "@/components/Tracking";
 import Loading from "@/components/Loading";
 import Image from "next/image";
 
+export const dynamic = 'force-dynamic';
+
 const ContactPage = () => {
   const [loading, setLoading] = useState(false);
 

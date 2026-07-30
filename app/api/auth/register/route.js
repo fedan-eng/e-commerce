@@ -6,7 +6,7 @@ import PendingVerification from "@/models/PendingVerification";
 
 export async function POST(req) {
   await connectDB();
-  const { email, password, firstName } = await req.json();
+  const { email, password, firstName, lastName } = await req.json();
 
   const existingPending = await PendingVerification.findOne({ email });
 
@@ -34,6 +34,7 @@ export async function POST(req) {
     verificationCode: code,
     verificationCodeExpiry: expiry,
     firstName,
+    lastName,
   });
 
   const emailHtml = `

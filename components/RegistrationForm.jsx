@@ -48,9 +48,9 @@ const RegistrationForm = () => {
         .oneOf([Yup.ref("password")], "Passwords must match"),
     }),
     onSubmit: async (values) => {
-      const { email, firstName, password } = values;
+      const { email, firstName, lastName, password } = values;
       const res = await dispatch(
-        registerUserAsync({ email, firstName, password })
+        registerUserAsync({ email, firstName, lastName, password })
       );
       if (!res.error) {
         dispatch(setEmail(email));
@@ -208,7 +208,7 @@ const RegistrationForm = () => {
                   onBlur={formik.handleBlur}
                   value={formik.values.confirmPassword}
                   required
-                  placeholder="Comfirm your password"
+                  placeholder="Confirm your password"
                   className="block p-3 outline-0 w-full text-sm placeholder-[#3e3e3e]"
                 />
                 <button
