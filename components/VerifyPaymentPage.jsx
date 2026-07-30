@@ -350,79 +350,71 @@ export default function VerifyPaymentPage() {
         margin: { left: 14, right: 14 },
       });
 
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFillColor(248, 249, 250);
-      doc.roundedRect(pageWidth - 90, finalY, 76, 45, 3, 3, "F");
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(80, 80, 80);
-      const summaryY = finalY + 8;
-      doc.text("Subtotal:", pageWidth - 85, summaryY);
-      doc.text(
-        `NGN ${subTotal.toLocaleString()}`,
-        pageWidth - 20,
-        summaryY,
-        { align: "right" }
-      );
-      doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
-      doc.text(
-        `NGN ${deliveryFee.toLocaleString()}`,
-        pageWidth - 20,
-        summaryY + 7,
-        { align: "right" }
-      );
-      doc.text("Discount:", pageWidth - 85, summaryY + 14);
-      doc.setTextColor(28, 201, 120);
-      doc.text(
-        `-NGN ${discount.toLocaleString()}`,
-        pageWidth - 20,
-        summaryY + 14,
-        { align: "right" }
-      );
-      doc.setDrawColor(28, 201, 120);
-      doc.setLineWidth(0.5);
-      doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(28, 201, 120);
-      doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
-      doc.setFontSize(14);
-      doc.text(
-        `NGN ${total.toLocaleString()}`,
-        pageWidth - 20,
-        summaryY + 26,
-        { align: "right" }
-      );
+const finalY = doc.lastAutoTable.finalY + 10;
 
-      const footerY = pageHeight - 30;
-      doc.setDrawColor(28, 201, 120);
-      doc.setLineWidth(0.3);
-      doc.line(14, footerY, pageWidth - 14, footerY);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(
-        "Thank you for choosing FIL Store!",
-        pageWidth / 2,
-        footerY + 6,
-        { align: "center" }
-      );
-      doc.text(
-        "For support: filfilecommerce@gmail.com | Visit: filstore.com.ng",
-        pageWidth / 2,
-        footerY + 11,
-        { align: "center" }
-      );
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "italic");
-      doc.text(
-        "This is a computer-generated receipt and does not require a signature.",
-        pageWidth / 2,
-        footerY + 18,
-        { align: "center" }
-      );
+// Summary box
+const summaryBoxHeight = 45;
+doc.setFillColor(248, 249, 250);
+doc.roundedRect(pageWidth - 90, finalY, 76, summaryBoxHeight, 3, 3, "F");
+doc.setFontSize(10);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(80, 80, 80);
+const summaryY = finalY + 8;
+doc.text("Subtotal:", pageWidth - 85, summaryY);
+doc.text(`NGN ${subTotal.toLocaleString()}`, pageWidth - 20, summaryY, { align: "right" });
+doc.text("Delivery Fee:", pageWidth - 85, summaryY + 7);
+doc.text(`NGN ${deliveryFee.toLocaleString()}`, pageWidth - 20, summaryY + 7, { align: "right" });
+doc.text("Discount:", pageWidth - 85, summaryY + 14);
+doc.setTextColor(28, 201, 120);
+doc.text(`-NGN ${discount.toLocaleString()}`, pageWidth - 20, summaryY + 14, { align: "right" });
+doc.setDrawColor(28, 201, 120);
+doc.setLineWidth(0.5);
+doc.line(pageWidth - 85, summaryY + 18, pageWidth - 15, summaryY + 18);
+doc.setFontSize(12);
+doc.setFont("helvetica", "bold");
+doc.setTextColor(28, 201, 120);
+doc.text("TOTAL:", pageWidth - 85, summaryY + 26);
+doc.setFontSize(14);
+doc.text(`NGN ${total.toLocaleString()}`, pageWidth - 20, summaryY + 26, { align: "right" });
 
-      doc.save(`FIL-Receipt-${paymentRef}.pdf`);
+// ✅ Dynamic footer — add new page if not enough room
+const contentBottomY = finalY + summaryBoxHeight + 10;
+const footerHeight = 30; // space the footer needs
+const spaceLeft = pageHeight - contentBottomY;
+
+let footerY;
+if (spaceLeft < footerHeight + 10) {
+  doc.addPage();
+  footerY = 20; // near top of new page
+} else {
+  footerY = contentBottomY + Math.max(0, spaceLeft - footerHeight - 10);
+  // clamp so it doesn't float too high on short receipts
+  footerY = Math.max(contentBottomY + 10, footerY);
+}
+
+doc.setDrawColor(28, 201, 120);
+doc.setLineWidth(0.3);
+doc.line(14, footerY, pageWidth - 14, footerY);
+doc.setFontSize(9);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(100, 100, 100);
+doc.text("Thank you for choosing FIL Store!", pageWidth / 2, footerY + 6, { align: "center" });
+doc.text(
+  "For support: filfilecommerce@gmail.com | Visit: filstore.com.ng",
+  pageWidth / 2,
+  footerY + 11,
+  { align: "center" }
+);
+doc.setFontSize(8);
+doc.setFont("helvetica", "italic");
+doc.text(
+  "This is a computer-generated receipt and does not require a signature.",
+  pageWidth / 2,
+  footerY + 18,
+  { align: "center" }
+);
+
+doc.save(`FIL-Receipt-${paymentRef}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);
       alert(

@@ -97,7 +97,7 @@ export default function FeedbackForm({ autoOpen = false }) {
       {!autoOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-filgreen text-white px-3 py-4 rounded-l-lg text-xs font-medium shadow-lg hover:bg-green-700 transition-colors [writing-mode:vertical-rl] rotate-180"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-filgreen text-white px-3 py-4 rounded-r-lg text-xs font-medium shadow-lg hover:bg-green-700 transition-colors [writing-mode:vertical-rl] rotate-180"
           aria-label="Share your experience"
         >
           Share Your Experience
