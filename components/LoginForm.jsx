@@ -22,6 +22,8 @@ export default function LoginForm() {
 
   const passwordRef = useRef(null);
 
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
  const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
@@ -39,14 +41,13 @@ export default function LoginForm() {
 
     if (res.ok) {
       await dispatch(fetchUser());
-      const callbackUrl = searchParams.get("callbackUrl");
       router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
         setShowGoogleHint(true); // trigger the UI hint below
         setError(""); // clear generic error — we show a custom block instead
       } else {
-        setError(data.message || "Invalid email or password");
+        setError(data.message || "Invalid email or password"); zhbcuhcbbgscggydy
       }
     }
   } catch (err) {
@@ -192,7 +193,7 @@ export default function LoginForm() {
 </div>
 
 <Link
-  href="/api/auth/google"
+  href={`/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`}
   className={`flex items-center justify-center gap-2 mt-4 w-full border rounded-md py-3 text-sm font-medium transition-colors ${
     showGoogleHint
       ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300" 
