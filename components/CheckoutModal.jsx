@@ -699,9 +699,6 @@ export default function CheckoutModal({ onClose }) {
                       errors.city ? "border-red-400" : "border-transparent"
                     }`}
                   />
-                  <p className="text-xs text-[#999] mt-1">
-                    Updates automatically once a region is picked.
-                  </p>
                   {errors.city && (
                     <p className="text-red-500 text-xs mt-1">{errors.city}</p>
                   )}

@@ -47,7 +47,7 @@ export default function LoginForm() {
         setShowGoogleHint(true); // trigger the UI hint below
         setError(""); // clear generic error — we show a custom block instead
       } else {
-        setError(data.message || "Invalid email or password");
+        setError(data.message || "Invalid email or password"); zhbcuhcbbgscggydy
       }
     }
   } catch (err) {
