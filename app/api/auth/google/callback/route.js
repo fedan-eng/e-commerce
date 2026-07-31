@@ -8,13 +8,22 @@ import { sendEmail } from "@/lib/mailer";
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
+  const rawState = searchParams.get("state");
+
+let callbackUrl = "/";
+try {
+  const decoded = JSON.parse(Buffer.from(rawState, "base64url").toString());
+  callbackUrl = decoded.callbackUrl || "/";
+} catch {
+  callbackUrl = "/";
+}
   const error = searchParams.get("error");
 
   if (error) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=${error}`);
   }
 
-  if (!code) {
+  if (!code) { 
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=no_code`);
   }
 
@@ -101,7 +110,8 @@ export async function GET(req) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    const response = NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/`);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
     response.headers.set("Set-Cookie", cookie);
 
     return response;
