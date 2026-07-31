@@ -3,32 +3,33 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { signToken } from "@/lib/auth";
 import { serialize } from "cookie";
-import { sendEmail } from "@/lib/mailer";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const rawState = searchParams.get("state");
-
-let callbackUrl = "/";
-try {
-  const decoded = JSON.parse(Buffer.from(rawState, "base64url").toString());
-  callbackUrl = decoded.callbackUrl || "/";
-} catch {
-  callbackUrl = "/";
-}
   const error = searchParams.get("error");
 
-  if (error) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=${error}`);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  // Decode callbackUrl from state
+  let callbackUrl = "/";
+  try {
+    const decoded = JSON.parse(Buffer.from(rawState, "base64url").toString());
+    callbackUrl = decoded.callbackUrl || "/";
+  } catch {
+    callbackUrl = "/";
   }
 
-  if (!code) { 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=no_code`);
+  if (error) {
+    return NextResponse.redirect(`${baseUrl}/login?error=${error}`);
+  }
+
+  if (!code) {
+    return NextResponse.redirect(`${baseUrl}/login?error=no_code`);
   }
 
   try {
-    // Exchange code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -36,7 +37,7 @@ try {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/auth/google/callback`,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI || `${baseUrl}/api/auth/google/callback`,
         grant_type: "authorization_code",
       }),
     });
@@ -44,10 +45,9 @@ try {
     const tokenData = await tokenResponse.json();
 
     if (tokenData.error) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=${tokenData.error}`);
+      return NextResponse.redirect(`${baseUrl}/login?error=${tokenData.error}`);
     }
 
-    // Get user info from Google
     const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
@@ -56,37 +56,31 @@ try {
 
     await connectDB();
 
-    // Check if user exists by Google ID
     let user = await User.findOne({ googleId: googleUser.id });
 
     if (!user) {
-      // Check if user exists by email (account linking)
       user = await User.findOne({ email: googleUser.email });
 
       if (user) {
-        // Link existing account with Google
         user.googleId = googleUser.id;
         user.provider = "google";
         await user.save();
       } else {
-        // Create new user
         const nameParts = googleUser.name.split(" ");
         const firstName = nameParts[0] || "";
         user = await User.create({
           email: googleUser.email,
           googleId: googleUser.id,
           provider: "google",
-          firstName: firstName,
+          firstName,
           lastName: nameParts.slice(1).join(" ") || "",
           isActive: true,
         });
 
-        // Send welcome email for new Google OAuth signup
         await sendGoogleWelcomeEmail(googleUser.email, firstName);
       }
     }
 
-    // Issue JWT token (same as existing login flow)
     const token = signToken({
       id: user._id,
       email: user.email,
@@ -101,7 +95,6 @@ try {
       region: typeof user.region === "string" ? { name: user.region, fee: 0 } : user.region,
     });
 
-    // Set cookie (same as existing login flow)
     const cookie = serialize("token", token, {
       httpOnly: true,
       path: "/",
@@ -110,14 +103,14 @@ try {
       secure: process.env.NODE_ENV === "production",
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
+    const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
     response.headers.set("Set-Cookie", cookie);
 
     return response;
+
   } catch (error) {
     console.error("Google OAuth error:", error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login?error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/login?error=server_error`);
   }
 }
 

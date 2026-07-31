@@ -8,13 +8,11 @@ export async function GET(request) {
     return NextResponse.json({ error: "Google Client ID not configured" }, { status: 500 });
   }
 
-  // Grab callbackUrl from the login page query param
   const { searchParams } = new URL(request.url);
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const scope = "openid profile email";
 
-  // Encode callbackUrl into state so it survives the Google round-trip
   const state = Buffer.from(JSON.stringify({
     nonce: Math.random().toString(36).substring(2, 15),
     callbackUrl,
