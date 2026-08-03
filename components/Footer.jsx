@@ -483,7 +483,7 @@ const Footer = () => {
           onPointerUp={onCartPointerUp}
           style={{
             position: "fixed",
-            left: cartPos.x,
+            right: cartPos.x,
             top: cartPos.y,
             width: CART_SIZE,
             height: CART_SIZE,
