@@ -162,6 +162,7 @@ const Footer = () => {
 
   const cartItems = useSelector((state) => state.cart.items);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const slideIntervalRef = useRef(null);
   const autoOpenTimerRef = useRef(null);
@@ -196,6 +197,19 @@ const Footer = () => {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // ✅ Detect mobile menu open state by checking body overflow
+  useEffect(() => {
+    const checkMenuOpen = () => {
+      setIsMobileMenuOpen(document.body.style.overflow === "hidden");
+    };
+    
+    // Check initially and on interval (since Navbar changes body overflow)
+    checkMenuOpen();
+    const interval = setInterval(checkMenuOpen, 100);
+    
+    return () => clearInterval(interval);
   }, []);
 
   // Auto open overlay after 10s on homepage
@@ -475,7 +489,7 @@ const Footer = () => {
       )}
 
       {/* ✅ Draggable Cart FAB — OUTSIDE footer so nothing clips it */}
-      {hasMounted && (
+      {hasMounted && !isMobileMenuOpen && (
         <div
           ref={cartRef}
           onPointerDown={onCartPointerDown}
