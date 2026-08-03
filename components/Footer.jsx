@@ -145,7 +145,7 @@ const Footer = () => {
   const [snapped, setSnapped] = useState(true);
 
   // Cart FAB drag state
-  const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
+  const [cartPos, setCartPos] = useState({ x: 20, y: 180 });
   const [cartSide, setCartSide] = useState("right");
   const [cartIsDragging, setCartIsDragging] = useState(false);
   const [cartSnapped, setCartSnapped] = useState(true);
