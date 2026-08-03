@@ -39,9 +39,10 @@ const initialForm = {
   saveForLater: false,
 };
 
-export default function CheckoutModal({ onClose }) {
+export default function CheckoutModal({ onClose, buyNowItem }) {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
+  const cartItemsFromStore = useSelector((state) => state.cart.items);
+  const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
   const user = useSelector((state) => state.auth.user);
 
   const { trackEvent } = useGAEvent();

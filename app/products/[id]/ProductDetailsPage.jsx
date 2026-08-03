@@ -36,6 +36,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import BuyNow from "@/components/BuyNow";
+import CheckoutModal from "@/components/CheckoutModal";
 
 // ─── Feature Icon Helper ───────────────────────────────────────────────────────
 const getFeatureIcon = (feature) => {
@@ -118,6 +119,7 @@ export default function ProductDetailsPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [fullViewImage, setFullViewImage] = useState(null);
+  const [buyNowItem, setBuyNowItem] = useState(null);
 
   const limit = 5;
 
@@ -497,6 +499,17 @@ export default function ProductDetailsPage() {
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
+  const handleBuyNow = () => {
+    setBuyNowItem({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+      color: selectedColor?.name || null,
+    });
+  };
+
   // ── Guards ─────────────────────────────────────────────────────────────────
   if (loading)
     return (
@@ -868,6 +881,7 @@ export default function ProductDetailsPage() {
             <BuyNow
               className="flex-1 bg-white text-gray-900 font-medium py-3.5 px-6 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
               product={product}
+              onBuyNow={handleBuyNow}
             />
           </div>
 
@@ -1485,12 +1499,19 @@ export default function ProductDetailsPage() {
               src={fullViewImage}
               alt="Full view"
               width={1200}
-              height={800}
-              className="max-w-full max-h-[85vh] object-contain rounded-lg"
-              unoptimized
+              height={1200}
+              className="max-w-full max-h-[90vh] object-contain"
             />
           </div>
         </div>
+      )}
+
+      {/* ── Checkout Modal for Buy Now ── */}
+      {buyNowItem && (
+        <CheckoutModal
+          buyNowItem={buyNowItem}
+          onClose={() => setBuyNowItem(null)}
+        />
       )}
     </div>
   );
