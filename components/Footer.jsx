@@ -124,7 +124,7 @@ const Footer = () => {
 
   // ✅ Constants declared FIRST so they're available in effects below
   const CART_SIZE = 56;
-  const CART_MARGIN = 16;
+  const CART_MARGIN = 24;
 
   const ELEM_WIDTH = 120;
   const ELEM_HEIGHT = 48;
@@ -145,7 +145,7 @@ const Footer = () => {
   const [snapped, setSnapped] = useState(true);
 
   // Cart FAB drag state
-  const [cartPos, setCartPos] = useState({ x: 20, y: 180 });
+  const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
   const [cartSide, setCartSide] = useState("right");
   const [cartIsDragging, setCartIsDragging] = useState(false);
   const [cartSnapped, setCartSnapped] = useState(true);
@@ -483,7 +483,7 @@ const Footer = () => {
           onPointerUp={onCartPointerUp}
           style={{
             position: "fixed",
-            right: cartPos.x,
+            left: cartPos.x,
             top: cartPos.y,
             width: CART_SIZE,
             height: CART_SIZE,
