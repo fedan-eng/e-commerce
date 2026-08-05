@@ -368,7 +368,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const deliveryOptions = [
     {
       id: "Regular",
-      label: "Regular Delivery: 2 - 3 Days (Lagos), 3 - 5 Days (Interstate)",
+      label: "Regular Delivery: 2 - 3 Working Days (Lagos), 3 - 5 Working Days (Interstate)",
     },
     {
       id: "Express",
