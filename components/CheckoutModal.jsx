@@ -39,9 +39,10 @@ const initialForm = {
   saveForLater: false,
 };
 
-export default function CheckoutModal({ onClose }) {
+export default function CheckoutModal({ onClose, buyNowItem }) {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
+  const cartItemsFromStore = useSelector((state) => state.cart.items);
+  const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
   const user = useSelector((state) => state.auth.user);
 
   const { trackEvent } = useGAEvent();
@@ -367,7 +368,7 @@ export default function CheckoutModal({ onClose }) {
   const deliveryOptions = [
     {
       id: "Regular",
-      label: "Regular Delivery: 2 - 3 Days (Lagos), 3 - 5 Days (Interstate)",
+      label: "Regular Delivery: 2 - 3 Working Days (Lagos), 3 - 5 Working Days (Interstate)",
     },
     {
       id: "Express",
