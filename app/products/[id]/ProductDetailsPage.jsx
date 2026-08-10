@@ -783,7 +783,7 @@ export default function ProductDetailsPage() {
         {/* Right — Details */}
         <div className="flex flex-col md:max-w-[50%] gap-5 p-4 sm:p-6 lg:p-8">
           {/* Save Badge */}
-          {product.originalPrice > 0 (
+          {product.originalPrice > 0 && (
             <div className="border-2 border-black text-black text-xs font-medium px-4 py-1.5 rounded-full w-fit">
               Save{" "}
               {Math.round(
