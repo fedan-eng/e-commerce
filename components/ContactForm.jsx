@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 const INQUIRY_TYPES = [
   { value: "general",    label: "💬 General Question",         placeholder: "How can we help you?" },
@@ -133,7 +134,7 @@ export default function ContactForm() {
               className="flex flex-col justify-center items-center bg-white border border-[#b7b7b7] border-dashed rounded-md outline-0 w-full text-sm text-center cursor-pointer mt-2">
               {files.length === 0 ? (
                 <>
-                  <img src="/cloud.svg" alt="Upload" className="pt-6 pb-4" />
+                  <Image src="/cloud.svg" alt="Upload" width={64} height={64} className="pt-6 pb-4" />
                   <p className="pb-[10px] font-medium text-xs">.PDF, .JPG, .JPEG, .PNG</p>
                   <p className="pb-[10px]">Drag and drop files here or <span className="text-[#034da2] underline">click here to select files</span></p>
                   <p className="pb-4 text-[#929292] text-xs">Maximum size (5MB)</p>

@@ -6,29 +6,29 @@ import Link from "next/link";
 import Header from "@/components/Header";
 
 const products = [
-  {
-    name: "Wearables",
-    image: "https://i.ibb.co/yBKYytwk/Gemini-Generated-Image-jt24o6jt24o6jt24-removebg-preview-zyswn9.png",
-    link: "/products?categories=Wearables",
-  },
-  {
+{
     name: "Power Banks",
-    image: "https://i.ibb.co/Mk5R87DB/Gemini-Generated-Image-o0ympto0ympto0ym-1-q2hihr.png",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-o0ympto0ympto0ym-1-q2hihr.webp",
     link: "/products?categories=Power Bank",
   },
   {
+    name: "Wearables",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-jt24o6jt24o6jt24-removebg-preview-zyswn9.webp",
+    link: "/products?categories=Wearables",
+  },
+  {
     name: "Chargers",
-    image: "https://i.ibb.co/qLCzvmMc/FIL-Turbo-Charger-4-USB-Ports-4-1-A-Output-3-pins-n0d9ze-1-removebg-preview-ikkrds.png",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/FIL-Turbo-Charger-4-USB-Ports-4-1-A-Output-3-pins-n0d9ze-1-removebg-preview-ikkrds.webp",
     link: "/products?categories=Chargers",
   },
   {
     name: "Lifestyle",
-    image: "https://i.ibb.co/99sFTQw9/Gemini-Generated-Image-7lr1dq7lr1dq7lr1-removebg-preview-tjiny2.png",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-7lr1dq7lr1dq7lr1-removebg-preview-tjiny2.webp",
     link: "/products?categories=Lifestyle",
   },
   {
     name: "Extensions",
-    image: "https://i.ibb.co/MyswCxNg/FIL-WO35-KT-1-jpg-jvmbxd-removebg-preview-o3rwqx.png",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/FIL-WO35-KT-1-jpg-jvmbxd-removebg-preview-o3rwqx.webp",
     link: "/products?categories=Extensions",
   },
 ];

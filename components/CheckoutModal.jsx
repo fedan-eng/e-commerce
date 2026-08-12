@@ -22,6 +22,8 @@ import {
 import { HiPlus, HiMinus } from "react-icons/hi";
 import { MdOutlineClose, MdEdit } from "react-icons/md";
 import { FaStar } from "react-icons/fa";
+import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
@@ -926,9 +928,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
                     className="flex items-center gap-3 py-3 border-b border-[#e5e5e5] last:border-0"
                   >
                     <div className="flex-shrink-0 w-[52px] h-[52px] sm:w-[60px] sm:h-[60px] bg-[#f6f6f6] rounded-md flex items-center justify-center">
-                      <img
+                      <ProductImage
                         src={item.image}
                         alt={item.name}
+                        width={48}
+                        height={48}
                         className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] object-contain"
                       />
                     </div>

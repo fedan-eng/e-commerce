@@ -2,6 +2,8 @@
 import Link from "next/link";
 import {motion, AnimatePresence} from "framer-motion";
 import {useState, useEffect} from "react";
+import Image from "next/image";
+import {ProductImage} from "@/components/ProductImage";
 
 const categories = [
   {name: "Power Bank", key: "Power Bank"},
@@ -96,7 +98,7 @@ const ArrivalTooltip = () => {
                   >
                     {cat.name}
                     <span>
-                      <img className="p-2" src="/arrow_down.svg" />
+                      <Image className="p-2" src="/arrow_down.svg" alt="Arrow down" width={16} height={16} />
                     </span>
                   </div>
                 ))}
@@ -114,9 +116,11 @@ const ArrivalTooltip = () => {
                       >
                         <div className="max-w-[205px] h-full max-h-[187px] cursor-pointer">
                           <div className="flex justify-center items-center">
-                            <img
+                            <ProductImage
                               src={item.image ?? "/placeholder.png"}
                               alt={item.name}
+                              width={220}
+                              height={150}
                               className="w-full max-w-[150px] sm:max-w-[180px] md:max-w-[200px] lg:max-w-[220px] h-[150px] object-contain"
                             />
                           </div>

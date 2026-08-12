@@ -2,6 +2,7 @@
 "use client";
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const TAG_OPTIONS = ["", "hurry", "fast", "new", "discount"];
 const TAG_COLORS  = {
@@ -95,7 +96,7 @@ const Badge = ({ n }) => (
 
 const Thumb = ({ url }) => (
   <div className="w-[34px] h-[34px] rounded border border-[#1e1e1e] bg-[#0a0a0a] overflow-hidden flex-shrink-0 flex items-center justify-center">
-    {url ? <img src={url} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
+    {url ? <Image src={url} alt="" width={34} height={34} className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
           : <span className="text-[12px] text-[#222]">□</span>}
   </div>
 );
@@ -426,7 +427,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           </Field>
           {form.image && (
             <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#1e1e1e] mt-[22px] flex-shrink-0">
-              <img src={form.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
+              <Image src={form.image} alt="" width={56} height={56} className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
             </div>
           )}
         </div>

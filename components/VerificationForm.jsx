@@ -6,6 +6,7 @@ import { verifyCodeAsync } from "@/store/features/registerSlice";
 import Loading from "@/components/Loading";
 import ImageSlider from "./ImageSlider";
 import { FaArrowLeft } from "react-icons/fa";
+import Image from "next/image";
 
 const VerificationForm = () => {
   const dispatch = useDispatch();
@@ -95,7 +96,7 @@ const VerificationForm = () => {
       </div>
 
       <div className="max-lg:hidden mt-[300px]">
-        <img src="/head.svg" />
+        <Image src="/head.svg" alt="" width={145} height={125} />
       </div>
     </div>
   );

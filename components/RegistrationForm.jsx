@@ -8,6 +8,7 @@ import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Image from "next/image";
 import ImageSlider from "./ImageSlider";
 import { FaArrowLeft } from "react-icons/fa";
 
@@ -286,7 +287,7 @@ const RegistrationForm = () => {
       </div>
 
       <div className="max-lg:hidden mt-[340px]">
-        <img src="/head.svg" />
+        <Image src="/head.svg" alt="" width={145} height={125} />
       </div>
     </div>
   );

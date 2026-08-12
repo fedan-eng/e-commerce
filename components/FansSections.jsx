@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Header from "@/components/Header";
+import { ProductImage } from "@/components/ProductImage";
 
 const reviews = [
   {
@@ -118,9 +119,12 @@ const FansSection = () => {
             >
               <div className="flex items-center gap-3 pr-4 pl-6">
                 <div className="flex justify-center items-center bg-moss rounded-full w-[70px] h-[70px] text-white">
-                  <img
+                  <Image
                     className="rounded-full w-[70px] h-[70px] object-cover"
                     src={review.init}
+                    alt={review.name}
+                    width={70}
+                    height={70}
                   />
                 </div>
 
@@ -128,7 +132,7 @@ const FansSection = () => {
                   <p className="mb-2 font-medium text-sm">{review.name}</p>
 
                   <div className="flex items-center">
-                    <img src="/star.png" />
+                    <Image src="/star.png" alt="Star" width={16} height={16} />
                     <p className="text-[#3e3e3e] text-xs">{review.rating}</p>
                   </div>
                 </div>
@@ -141,7 +145,7 @@ const FansSection = () => {
 
               <div className="flex items-center gap-4 py-4 border-[#e5e5e5] border-t">
                 <div className="">
-                  <Image
+                  <ProductImage
                     width={52}
                     height={52}
                     src={review.productImg}
@@ -172,9 +176,12 @@ const FansSection = () => {
             >
               <div className="flex items-center gap-3 pr-4 pl-6">
                 <div className="flex justify-center items-center bg-moss rounded-full w-[70px] h-[70px] text-white">
-                  <img
+                  <Image
                     className="rounded-full w-[70px] h-[70px] object-cover"
                     src={review.init}
+                    alt={review.name}
+                    width={70}
+                    height={70}
                   />
                 </div>
 
@@ -182,7 +189,7 @@ const FansSection = () => {
                   <p className="mb-2 font-medium text-sm">{review.name}</p>
 
                   <div className="flex items-center">
-                    <img src="/star.png" />
+                    <Image src="/star.png" alt="Star" width={16} height={16} />
                     <p className="text-[#3e3e3e] text-xs">{review.rating}</p>
                   </div>
                 </div>
@@ -195,7 +202,7 @@ const FansSection = () => {
 
               <div className="flex items-center gap-4 py-4 border-[#e5e5e5] border-t">
                 <div className="">
-                  <Image
+                  <ProductImage
                     width={52}
                     height={52}
                     src={review.productImg}

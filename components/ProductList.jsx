@@ -22,6 +22,7 @@ import {MdKeyboardDoubleArrowRight} from "react-icons/md";
 import RecentlyViewed from "./RecentlyViewed";
 import FAQ from "./FAQ";
 import { useGAEvent } from "@/hooks/useGAEvent";
+import { ProductImage } from "@/components/ProductImage";
 
 function ProductListInner() {
   const [loading, setLoading] = useState(false);
@@ -208,7 +209,7 @@ function ProductListInner() {
                         <div className="z-30 relative">
                           {product.tag === "fast" && (
                             <>
-                              <img src="/redtag.png" alt="Selling fast" />
+                              <Image src="/redtag.png" alt="Selling fast" width={60} height={24} />
                               <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-[10px] -translate-y-1/2">
                                 Selling fast
                               </span>
@@ -216,7 +217,7 @@ function ProductListInner() {
                           )}
                           {product.tag === "new" && (
                             <>
-                              <img src="/blacktag.png" alt="New Arrival" />
+                              <Image src="/blacktag.png" alt="New Arrival" width={60} height={24} />
                               <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-[10px] -translate-y-1/2">
                                 New
                               </span>
@@ -224,7 +225,7 @@ function ProductListInner() {
                           )}
                           {product.tag === "discount" && (
                             <>
-                              <img src="/bluetag.png" alt="Discount" />
+                              <Image src="/bluetag.png" alt="Discount" width={60} height={24} />
                               <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-[10px] -translate-y-1/2">
                                 Save{" "}
                                 {Math.round(
@@ -242,15 +243,13 @@ function ProductListInner() {
                       <WishlistButton className="relative" product={product} />
                     </div>
 
-                    <div className="relative mx-auto px-5 w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]">
-                      <Image
-                        src={product.image}
-                        alt={`${product.name} - Best price in Nigeria`}
-                        fill
-                        sizes="(max-width: 768px) 100px, 200px"
-                        className="absolute mx-auto w-full h-full object-contain"
-                      />
-                    </div>
+                    <ProductImage
+                      src={product.image}
+                      alt={`${product.name} - Best price in Nigeria`}
+                      fill
+                      sizes="(max-width: 768px) 100px, 200px"
+                      containerClassName="mx-auto w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]"
+                    />
 
                     <div className="z-20 mt-2 px-[10px] sm:px-4">
                       <div className="flex justify-between">
@@ -258,10 +257,11 @@ function ProductListInner() {
                           {product.category}
                         </p>
                         <div className="flex gap-0.5 items-center">
-                          <img
+                          <Image
                             src="/star.png"
                             alt="Rating"
-                            className="w-3 h-3"
+                            width={12}
+                            height={12}
                           />
                           <p className="text-[#1c1b1f] text-[10px] sm:text-xs">
                             {product.averageRating} ({product.ratingsCount})
@@ -298,9 +298,10 @@ function ProductListInner() {
                 {/* Ads/Banners remain in grid */}
                 {(index === 1 || index === 6) && !isSearching && (
                   <div className="relative overflow-hidden rounded-md w-[45%] box:w-[273px] mid:w-[240px] s:w-[46%] sm:w-[273px] md:h-[351px]">
-                    <img
+                    <Image
                       src={index === 1 ? "https://i.ibb.co/LX7BVMqH/WEB-PB-1-x8db8h.jpg" : "https://i.ibb.co/JjX7v4qV/WEB-PB-2-egetio.jpg"} 
                       alt="Latest Tech Deal"
+                      fill
                       className="w-full h-full object-cover"
                     />
                   </div>

@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -130,9 +131,11 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       <div className="flex items-start gap-2.5 mb-3 w-full min-w-0">
         <div className="w-8 h-8 rounded-md overflow-hidden border border-[#222] shrink-0 bg-[#0a0a0a]">
           {review.product?.image ? (
-            <img
+            <Image
               src={review.product.image}
               alt=""
+              width={32}
+              height={32}
               className="w-full h-full object-cover"
               onError={e => { e.target.style.display = "none"; }}
             />

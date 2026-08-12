@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const Moment = () => {
   // Shared hover state
@@ -61,9 +62,11 @@ const Moment = () => {
             transition={{ type: "spring", stiffness: 300, damping: 7 }}
             className={`absolute ${section.className} border-[0.5vw] border-filgreen lg:border-[5px] rounded-full aspect-square overflow-hidden`}
           >
-            <img
+            <Image
               src={section.src}
               alt={section.title}
+              width={200}
+              height={200}
               className="brightness-50 w-full h-full object-cover"
             />
             <motion.div

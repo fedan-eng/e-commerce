@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 
 const STATUS_COLORS = {
@@ -395,7 +396,7 @@ function AdminOrdersPage() {
                                         <td className="pt-2.5 pr-5">
                                           <div className="flex items-center gap-2.5">
                                             {item.image && (
-                                              <img src={item.image} alt="" className="w-8 h-8 rounded object-cover bg-[#1a1a1a] shrink-0" />
+                                              <Image src={item.image} alt="" width={32} height={32} className="w-8 h-8 rounded object-cover bg-[#1a1a1a] shrink-0" />
                                             )}
                                             <span className="text-[12px] text-[#ccc] truncate max-w-[160px]">{item.name}</span>
                                           </div>

@@ -8,6 +8,7 @@ import { formatAmount } from "lib/utils";
 import AddToCartButton from "@/components/AddToCart";
 import WishlistButton from "@/components/WishlistButton";
 import Header from "@/components/Header";
+import { ProductImage } from "@/components/ProductImage";
 
 export default function RecentlyViewed() {
   const dispatch = useDispatch();
@@ -59,9 +60,11 @@ export default function RecentlyViewed() {
                       {/* fast */}
                       {product.tag === "fast" && (
                         <>
-                          <img
+                          <Image
                             src="/redtag.png"
                             alt="Fast tag"
+                            width={60}
+                            height={24}
                           />
                           <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                             Selling fast
@@ -72,9 +75,11 @@ export default function RecentlyViewed() {
                       {/* new */}
                       {product.tag === "new" && (
                         <>
-                          <img
+                          <Image
                             src="/blacktag.png"
                             alt="New tag"
+                            width={60}
+                            height={24}
                           />
                           <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                             New
@@ -84,9 +89,11 @@ export default function RecentlyViewed() {
                       {/* discount */}
                       {product.tag === "discount" && (
                         <>
-                          <img
+                          <Image
                             src="/bluetag.png"
                             alt="Discount tag"
+                            width={60}
+                            height={24}
                           />
                           <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                             Save{" "}
@@ -103,9 +110,11 @@ export default function RecentlyViewed() {
                       {/* hurry */}
                       {product.tag === "hurry" && (
                         <>
-                          <img
+                          <Image
                             src="/orangetag.png"
                             alt="New tag"
+                            width={60}
+                            height={24}
                           />
                           <span className="top-1/2 left-0 absolute pl-2 font-light text-white text-xs leading-[0%] -translate-y-1/2">
                             Hurry 2 Left
@@ -124,7 +133,7 @@ export default function RecentlyViewed() {
 
                 {/* PRODUCT IMAGE */}
                 <div className="relative mx-auto px-5 sm:px-10 w-[80px] s:w-[100px] sm:w-[150px] max-w-[300px] cat:max-w-[241px] h-[100px] s:h-[150px] sm:h-[200px]">
-                  <Image
+                  <ProductImage
                     src={product.image}
                     alt={product.name}
                     fill
@@ -140,9 +149,11 @@ export default function RecentlyViewed() {
                     </p>
 
                     <div className="flex gap-0.5">
-                      <img
+                      <Image
                         src="/star.png"
                         alt="Star"
+                        width={16}
+                        height={16}
                       />
                       <p className="text-[#1c1b1f] text-[10px] sm:text-xs">
                         {product.averageRating}
