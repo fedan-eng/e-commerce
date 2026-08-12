@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "filstore.com.ng",
       },
-        {
+      {
         protocol: "https",
         hostname: "ufs.sh",
       },
@@ -34,6 +34,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "i.ibb.co",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev",
       },
     ],
   },
@@ -50,7 +54,7 @@ const nextConfig: NextConfig = {
           },
         ],
         destination: "https://filstore.com.ng/:path*",
-        permanent: true, // 301 redirect
+        permanent: true,
       },
     ];
   },
