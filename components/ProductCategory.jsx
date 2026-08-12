@@ -6,15 +6,15 @@ import Link from "next/link";
 import Header from "@/components/Header";
 
 const products = [
+{
+    name: "Power Banks",
+    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-o0ympto0ympto0ym-1-q2hihr.webp",
+    link: "/products?categories=Power Bank",
+  },
   {
     name: "Wearables",
     image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-jt24o6jt24o6jt24-removebg-preview-zyswn9.webp",
     link: "/products?categories=Wearables",
-  },
-  {
-    name: "Power Banks",
-    image: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-o0ympto0ympto0ym-1-q2hihr.webp",
-    link: "/products?categories=Power Bank",
   },
   {
     name: "Chargers",
