@@ -6,7 +6,8 @@ import Image from "next/image";
 const ProductImage = ({
   src,
   alt = "",
-  className = "",
+  containerClassName = "", // for the wrapper div
+  imageClassName = "",     // for the actual image
   width,
   height,
   fill = false,
@@ -19,7 +20,7 @@ const ProductImage = ({
 
   return (
     <div
-      className={`relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden ${containerClassName}`}
       style={fill ? { aspectRatio } : { width, height }}
     >
       {/* Placeholder */}
@@ -38,9 +39,10 @@ const ProductImage = ({
         {...(fill ? { fill: true } : { width, height })}
         sizes={sizes ?? (fill ? "100vw" : undefined)}
         priority={priority}
-        className={`object-cover absolute inset-0 w-full h-full transition-opacity duration-300 ${
+        // Changed object-cover to object-contain so product images don't crop
+        className={`object-contain absolute inset-0 w-full h-full transition-opacity duration-300 ${
           isLoading ? "opacity-0" : "opacity-100"
-        }`}
+        } ${imageClassName}`}
         onLoad={() => setIsLoading(false)}
         {...props}
       />
