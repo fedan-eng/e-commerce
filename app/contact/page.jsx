@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import ContactForm from "@/components/ContactForm";
 import FAQ from "@/components/FAQ";
 import TextSlider from "@/components/TextSlider";
 import Tracking from "@/components/Tracking";
 import Loading from "@/components/Loading";
-import Image from "next/image";
 
 export const dynamic = 'force-dynamic';
 
@@ -81,10 +82,12 @@ const ContactPage = () => {
 
           <div className="max-nav:hidden border-[6px] border-black rounded-md w-full max-w-[561px]">
             <div className="w-full max-w-[561px] h-[268px]">
-              <img
+              <Image
                 className="w-full h-full object-contain"
                 src="/tag.png"
                 alt=""
+                width={561}
+                height={268}
               />
             </div>
           </div>

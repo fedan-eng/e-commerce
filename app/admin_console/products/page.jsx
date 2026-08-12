@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const CATEGORIES = [
   "__all__",
@@ -160,7 +161,7 @@ export default function AdminProductsPage() {
                     <tr key={p._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {p.image && <img src={p.image} alt="" className="w-9 h-9 rounded object-cover bg-[#1a1a1a] shrink-0" />}
+                          {p.image && <Image src={p.image} alt="" width={36} height={36} className="w-9 h-9 rounded object-cover bg-[#1a1a1a] shrink-0" />}
                           <div>
                             <div className="text-[13px] text-[#e8e8e8] whitespace-nowrap">{p.name}</div>
                             <div className="text-[11px] text-[#444] font-mono">{String(p._id).slice(-8)}</div>
@@ -209,7 +210,7 @@ export default function AdminProductsPage() {
           <div className="md:hidden flex flex-col gap-2 w-full">
             {products.map(p => (
               <div key={p._id} className="bg-[#111] border border-[#1a1a1a] rounded-xl p-3.5 flex items-center gap-3 hover:border-[#252525] transition-colors w-full">
-                {p.image && <img src={p.image} alt="" className="w-12 h-12 rounded-lg object-cover bg-[#1a1a1a] shrink-0" />}
+                {p.image && <Image src={p.image} alt="" width={48} height={48} className="w-12 h-12 rounded-lg object-cover bg-[#1a1a1a] shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] text-[#e8e8e8] truncate font-medium">{p.name}</div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -311,7 +312,7 @@ export default function AdminProductsPage() {
                       ${dragOverId === p._id ? "bg-[#1a1a1a] border border-[#e8c46a44]" : "bg-[#0d0d0d] border border-[#1a1a1a]"}`}>
                     <span className="text-[#333] text-sm select-none shrink-0">⠿</span>
                     <span className="text-[10px] text-[#444] w-5 shrink-0">{idx + 1}</span>
-                    {p.image && <img src={p.image} alt="" className="w-7 h-7 object-cover rounded bg-[#1a1a1a] shrink-0" />}
+                    {p.image && <Image src={p.image} alt="" width={28} height={28} className="w-7 h-7 object-cover rounded bg-[#1a1a1a] shrink-0" />}
                     <span className="text-[12px] text-[#e8e8e8] flex-1 min-w-0 truncate">{p.name}</span>
                     <span className="text-[11px] text-[#666] shrink-0 font-mono">₦{p.price?.toLocaleString()}</span>
                   </div>

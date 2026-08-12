@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { homeImages } from "../constants/homeCarousel";
 import Description from "./Description";
 import { motion } from "framer-motion";
+import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
 
 const Slider = () => {
@@ -116,9 +117,11 @@ const Slider = () => {
             }
           `}
             >
-              <img
+              <ProductImage
                 src={item.src}
                 alt={`Thumbnail ${idx}`}
+                width={216}
+                height={112}
                 className="rounded-md w-[216px] h-[112px] object-cover" 
               />
             </div>

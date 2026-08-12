@@ -7,6 +7,7 @@ import { formatAmount } from "@/lib/utils";
 import AddToCartButton from "./AddToCart";
 import WishlistButton from "@/components/WishlistButton";
 import { useGAEvent } from "@/hooks/useGAEvent";
+import { ProductImage } from "@/components/ProductImage";
 
 const ProductCard = ({
   productName,
@@ -137,7 +138,7 @@ const ProductCard = ({
 
       {/* PRODUCT IMAGE */}
       <div className="relative mx-auto px-5 sm:px-10 w-[80px] s:w-[100px] sm:w-[150px] max-w-[300px] cat:max-w-[241px] h-[100px] s:h-[150px] sm:h-[200px]">
-        <Image
+        <ProductImage
           src={product.image}
           alt={product.name}
           fill

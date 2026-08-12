@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Loading from "@/components/Loading";
+import Image from "next/image";
 import ImageSlider from "./ImageSlider";
 import { useRouter } from 'next/navigation';
 import { FaArrowLeft } from "react-icons/fa";
@@ -225,7 +226,7 @@ export default function ResetForm() {
       <div
         className={`max-lg:hidden ${step == 1 ? "mt-[220px]" : "mt-[270px]"} `}
       >
-        <img src="/head.svg" />
+        <Image src="/head.svg" alt="" width={145} height={125} />
       </div>
     </div>
   );

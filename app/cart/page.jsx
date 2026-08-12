@@ -5,6 +5,7 @@ import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import {removeFromCart, updateQuantity} from "@/store/features/cartSlice";
 import Link from "next/link";
+import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
 import {MdOutlineDelete} from "react-icons/md";
 import {HiMinus, HiPlus} from "react-icons/hi";
@@ -135,9 +136,11 @@ const CartPage = () => {
           <a href={`/products/${item._id}`}>
             <div className="flex items-center gap-4 min-w-0">
               <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[70px] h-[70px]">
-                <img
+                <ProductImage
                   src={item.image}
                   alt={item.name}
+                  width={56}
+                  height={56}
                   className="w-[56px] h-[56px] object-contain"
                 />
               </div>
@@ -204,9 +207,11 @@ const CartPage = () => {
           <a href={`/products/${item._id}`}>
             <div className="flex flex-row gap-4">
               <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[65px] h-[65px]">
-                <img
+                <ProductImage
                   src={item.image}
                   alt={item.name}
+                  width={56}
+                  height={56}
                   className="w-[56px] h-[56px] object-contain"
                 />
               </div>

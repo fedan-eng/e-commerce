@@ -10,6 +10,7 @@ import axios from "axios";
 import {formatAmount} from "@/lib/utils";
 import {useGAEvent} from "@/hooks/useGAEvent";
 import {useTikTokEvent} from "@/hooks/useTikTokEvent";
+import {ProductImage} from "@/components/ProductImage";
 
 const categories = [
   {name: "Power Banks", image: "/powerbanks.png", link: "/products?categories=Power Bank"},
@@ -256,11 +257,12 @@ const NavSearchTooltip = () => {
                         >
                           <div className="w-9 h-9 flex-shrink-0 rounded overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
                             {product.image ? (
-                              <img
+                              <ProductImage
                                 src={product.image}
                                 alt=""
+                                width={36}
+                                height={36}
                                 className="w-full h-full object-cover"
-                                onError={(e) => (e.target.style.display = "none")}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">

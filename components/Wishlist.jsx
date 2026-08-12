@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { formatAmount } from "lib/utils";
 import AddToCartButton from "./AddToCart";
+import { ProductImage } from "@/components/ProductImage";
 import { removeFromWishlist } from "@/store/features/wishlistSlice";
 import { RiDeleteBin6Line } from "react-icons/ri";
 
@@ -72,9 +73,11 @@ export default function WishlistPage() {
 
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[50px] s:w-[72px] h-[50px] s:h-[72px]">
-                  <img
+                  <ProductImage
                     src={product.image}
                     alt={product.name}
+                    width={56}
+                    height={56}
                     className="w-[40px] s:w-[56px] h-[40px] s:h-[56px] object-contain"
                   />
                 </div>

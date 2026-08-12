@@ -1,12 +1,15 @@
 import React from "react";
+import Image from "next/image";
 
 const Header = ({ imageClassName, header, className }) => {
   return (
     <div className={`flex gap-2 items-center ${className} `}>
       <div className={imageClassName}>
-        <img
+        <Image
           src="/head.svg"
           alt=""
+          width={145}
+          height={125}
           className="w-[93px] md:w-[145px] h-[80px] md:h-[125px]"
         />
       </div>

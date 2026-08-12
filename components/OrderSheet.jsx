@@ -8,6 +8,8 @@ import AddToCartButton from "./AddToCart";
 import OrderProgressBar from "@/components/OrderTracking";
 import { MdNavigateNext, MdKeyboardDoubleArrowRight } from "react-icons/md";
 import Link from "next/link";
+import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 
 export default function OrderSheet() {
   const [items, setItems]               = useState([]);
@@ -207,7 +209,7 @@ export default function OrderSheet() {
                       <span className="max-s:hidden text-sm text-center">{(page - 1) * limit + index + 1}</span>
                       <div className="flex items-center gap-1 nav:gap-3">
                         <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[50px] tab:w-[72px] h-[50px] tab:h-[72px]">
-                          <img src={item.image} alt={item.name} className="w-[40px] tab:w-[56px] h-[40px] tab:h-[56px] object-contain" />
+                          <ProductImage src={item.image} alt={item.name} width={56} height={56} className="w-[40px] tab:w-[56px] h-[40px] tab:h-[56px] object-contain" />
                         </div>
                         <div>
                           <p className="min-w-0 text-xs break-all line-clamp-1">{item.orderId}</p>
@@ -304,7 +306,7 @@ export default function OrderSheet() {
                         <span className="max-nav:hidden min-w-0 text-sm text-center">{index + 1}</span>
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[50px] xxs:w-[72px] h-[50px] xxs:h-[72px]">
-                            <img src={item.image} alt={item.name} className="w-[40px] xxs:w-[56px] h-[40px] xxs:h-[56px] object-contain" />
+                            <ProductImage src={item.image} alt={item.name} width={56} height={56} className="w-[40px] xxs:w-[56px] h-[40px] xxs:h-[56px] object-contain" />
                           </div>
                           <div>
                             <p className="my-1 min-w-0 font-oswald text-sm line-clamp-1">{item.name}</p>
@@ -346,7 +348,7 @@ export default function OrderSheet() {
                       <p className="mb-4 text-sm">{selectedOrder.phone}</p>
                       <div className="flex items-center gap-2">
                         <div className="w-[20px] h-[20px]">
-                          <img src="/delivery.png" alt="Delivery" className="w-full h-full object-cover" />
+                          <Image src="/delivery.png" alt="Delivery" width={20} height={20} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-sm capitalize">{selectedOrder.deliveryType}</p>
                       </div>
@@ -550,7 +552,7 @@ export default function OrderSheet() {
               <div className="mt-4 rounded">
                 <div className="flex justify-between items-center gap-4 bg-[#fafafa] mb-4 px-3 py-4 rounded-md">
                   <div className="flex items-center gap-2">
-                    <img src={returningProduct.image} alt={returningProduct.name} className="bg-[#f6f6f6] p-1 rounded-md w-[65px] h-[65px] object-contain" />
+                    <ProductImage src={returningProduct.image} alt={returningProduct.name} width={65} height={65} className="bg-[#f6f6f6] p-1 rounded-md w-[65px] h-[65px] object-contain" />
                     <div>
                       <p className="font-oswald text-sm line-clamp-1">{returningProduct.name}</p>
                     </div>

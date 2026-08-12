@@ -638,9 +638,11 @@ doc.save(`FIL-Receipt-${paymentRef}.pdf`);
                     className="flex items-start gap-3"
                   >
                     <div className="flex-shrink-0 w-[70px] h-[70px] bg-white rounded-md flex items-center justify-center">
-                      <img
+                      <ProductImage
                         src={item.image}
                         alt={item.name}
+                        width={56}
+                        height={56}
                         className="w-[56px] h-[56px] object-contain"
                       />
                     </div>

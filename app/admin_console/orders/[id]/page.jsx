@@ -1,8 +1,10 @@
 // app/admin_console/orders/[id]/page.jsx
 "use client";
 import { useEffect, useState } from "react";
+import { Metadata } from "next";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 const STATUS_COLORS = {
   confirmed:  "#e8c46a",
@@ -243,7 +245,7 @@ export default function AdminOrderDetailPage() {
                       <td className="px-5 py-3.5 text-[12px] text-[#444] font-mono">{i + 1}</td>
                       <td className="px-5 py-3.5">
                         {item.image
-                          ? <img src={item.image} alt="" className="w-9 h-9 object-cover rounded-lg bg-[#1a1a1a]" />
+                          ? <Image src={item.image} alt="" width={36} height={36} className="w-9 h-9 object-cover rounded-lg bg-[#1a1a1a]" />
                           : <div className="w-9 h-9 rounded-lg bg-[#1a1a1a] border border-[#222]" />
                         }
                       </td>

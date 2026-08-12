@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
+import Image from "next/image";
 import ImageSlider from "./ImageSlider";
 import Link from "next/link";
 import Loading from "./Loading";
@@ -239,7 +240,7 @@ export default function LoginForm() {
       </div>
 
       <div className="max-lg:hidden mt-[240px]">
-        <img src="/head.svg" />
+        <Image src="/head.svg" alt="" width={145} height={125} />
       </div>
     </div>
   );
