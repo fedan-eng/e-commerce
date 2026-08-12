@@ -10,7 +10,7 @@ export const homeImages = [
   // },
   {
     id: 2,
-    src: "https://i.ibb.co/TMV3FQhF/HERO-SECTION-8.jpg",
+    src: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/HERO-SECTION-8.webp",
     title: "ALWAYS WITH YOU ",
     link: "/products?categories=Power+Bank",
     desc: "Stylish. Portable. Fast charging.",
@@ -19,7 +19,7 @@ export const homeImages = [
   },
   {
     id: 3,
-    src: "https://i.ibb.co/ZpH5v8xz/HERO-SECTION-5.jpg",
+    src: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/HERO-SECTION-5.webp",
     title: "RELIABLE POWER.",
     link: "/products?categories=Power+Bank",
     desc: "Our Powerbank no dey carry belle ",
@@ -28,7 +28,7 @@ export const homeImages = [
   },
   {
     id: 4,
-    src: "https://i.ibb.co/1Y1cytbk/HERO-SECTION-4.jpg",
+    src: "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/HERO-SECTION-4.webp",
     title: "SMALL BUDS. BIG ENERGY",
     link: "/products?categories=Wearables",
     desc: "Active noise cancellation. Sleek Design.",
