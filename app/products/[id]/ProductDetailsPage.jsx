@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import BuyNow from "@/components/BuyNow";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -612,21 +613,21 @@ export default function ProductDetailsPage() {
               style={{cursor: isZoomed ? "zoom-out" : "zoom-in"}}
             >
               {selectedImage ? (
-                <Image
+                <ProductImage
                   src={selectedImage}
                   alt={product.name}
-                  width={480}
-                  height={480}
-                  className="w-full h-full object-contain transition-transform duration-300 ease-out"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 480px"
+                  priority
+                  containerClassName="w-full h-full"
+                  imageClassName={`object-contain transition-transform duration-300 ease-out ${
+                    isZoomed ? "scale-[2]" : "scale-100"
+                  }`}
                   style={{
-                    transform: isZoomed ? "scale(2)" : "scale(1)",
                     transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
                   }}
                   onClick={handleImageClick}
                   draggable={false}
-                  priority
-                  sizes="(max-width: 768px) 100vw, 480px"
-                  quality={90}
                 />
               ) : (
                 <div className="flex justify-center items-center w-full h-full text-gray-400 bg-gray-100">
@@ -711,7 +712,7 @@ export default function ProductDetailsPage() {
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
-                <Image
+                <ProductImage
                   src={img.url}
                   alt={`Thumbnail`}
                   width={65}

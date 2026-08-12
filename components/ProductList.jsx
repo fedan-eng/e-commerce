@@ -243,15 +243,13 @@ function ProductListInner() {
                       <WishlistButton className="relative" product={product} />
                     </div>
 
-                    <div className="relative mx-auto px-5 w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]">
-                      <ProductImage
-                        src={product.image}
-                        alt={`${product.name} - Best price in Nigeria`}
-                        fill
-                        sizes="(max-width: 768px) 100px, 200px"
-                        className="absolute mx-auto w-full h-full object-contain"
-                      />
-                    </div>
+                    <ProductImage
+                      src={product.image}
+                      alt={`${product.name} - Best price in Nigeria`}
+                      fill
+                      sizes="(max-width: 768px) 100px, 200px"
+                      containerClassName="mx-auto w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]"
+                    />
 
                     <div className="z-20 mt-2 px-[10px] sm:px-4">
                       <div className="flex justify-between">
