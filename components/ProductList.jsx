@@ -299,7 +299,7 @@ function ProductListInner() {
                 {(index === 1 || index === 6) && !isSearching && (
                   <div className="relative overflow-hidden rounded-md w-[45%] box:w-[273px] mid:w-[240px] s:w-[46%] sm:w-[273px] md:h-[351px]">
                     <Image
-                      src={index === 1 ? "https://i.ibb.co/LX7BVMqH/WEB-PB-1-x8db8h.jpg" : "https://i.ibb.co/JjX7v4qV/WEB-PB-2-egetio.jpg"} 
+                      src={index === 1 ? "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-1-x8db8h.webp" : "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-2-egetio.webp"} 
                       alt="Latest Tech Deal"
                       fill
                       className="w-full h-full object-cover"
