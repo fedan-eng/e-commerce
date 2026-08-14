@@ -43,7 +43,6 @@ export default function ProductDetailsPage({ product: productProp }) {
   // ── State ──────────────────────────────────────────────────────────────────
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [commentSubmitted, setCommentSubmitted] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [fullViewImage, setFullViewImage] = useState(null);

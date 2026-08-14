@@ -24,7 +24,7 @@ const getFeatureIcon = (feature) => {
   return <CheckCircle className="w-8 h-8" />;
 };
 
-function ProductGallery({ product, selectedColor, setFullViewImage, setShowShareModal }) {
+function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal }) {
   const [selectedImageId, setSelectedImageId] = useState("main");
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
