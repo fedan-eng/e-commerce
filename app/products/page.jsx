@@ -5,7 +5,7 @@ import ProductList from "../../components/ProductList";
 // the static metadata block has been removed because we now build everything inside
 // `generateMetadata`. keeping both exports at once triggers a Next.js build error.
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export async function generateMetadata({ searchParams }) {
     const resolvedSearchParams = await searchParams;

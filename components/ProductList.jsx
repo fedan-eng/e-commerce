@@ -19,8 +19,13 @@ import AddToCartButton from "@/components/AddToCart";
 import WishlistButton from "@/components/WishlistButton";
 import {MdNavigateNext} from "react-icons/md";
 import {MdKeyboardDoubleArrowRight} from "react-icons/md";
-import RecentlyViewed from "./RecentlyViewed";
-import FAQ from "./FAQ";
+import dynamic from "next/dynamic";
+const RecentlyViewed = dynamic(() => import("./RecentlyViewed"), { 
+  loading: () => <div className="h-20" />,
+});
+const FAQ = dynamic(() => import("./FAQ"), { 
+  loading: () => <div className="h-20" />,
+});
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { ProductImage } from "@/components/ProductImage";
 
@@ -248,6 +253,7 @@ function ProductListInner() {
                       alt={`${product.name} - Best price in Nigeria`}
                       fill
                       sizes="(max-width: 768px) 100px, 200px"
+                      priority={index < 6}
                       containerClassName="mx-auto w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]"
                     />
 
@@ -299,9 +305,11 @@ function ProductListInner() {
                 {(index === 1 || index === 6) && !isSearching && (
                   <div className="relative overflow-hidden rounded-md w-[45%] box:w-[273px] mid:w-[240px] s:w-[46%] sm:w-[273px] md:h-[351px]">
                     <Image
-                      src={index === 1 ? "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-1-x8db8h.webp" : "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-2-egetio.webp"} 
+                      src={index === 1 ? "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-1-x8db8h.webp" : "https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/WEB-PB-2-egetio.webp"}
                       alt="Latest Tech Deal"
                       fill
+                      priority
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="w-full h-full object-cover"
                     />
                   </div>
