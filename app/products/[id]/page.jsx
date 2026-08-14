@@ -102,8 +102,6 @@ export default async function Page({ params }) {
   const { id } = await params;
   const product = await fetchProduct(id);
 
-  if (!product) return <ProductDetailsPage />;
-
   const productName = cleanText(product.name || "Product");
   const productUrl = `https://www.filstore.com.ng/products/${id}`;
   const priceValidUntil = getPriceValidUntil();
@@ -219,7 +217,7 @@ export default async function Page({ params }) {
           __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
         }}
       />
-      <ProductDetailsPage />
+      <ProductDetailsPage product={product} />
     </>
   );
 }

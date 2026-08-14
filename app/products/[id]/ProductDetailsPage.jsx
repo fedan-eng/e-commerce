@@ -94,14 +94,20 @@ function ExpandableDescription({description}) {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export default function ProductDetailsPage() {
+export default function ProductDetailsPage({ product: productProp }) {
   const {id} = useParams();
   const dispatch = useDispatch();
-  const {single: product, loading, error} = useSelector((s) => s.products);
+  const {single: productFromStore, loading: storeLoading, error: storeError} = useSelector((s) => s.products);
   const {user} = useSelector((s) => s.auth);
   const {trackEvent} = useGAEvent();
   const {trackViewContent: trackMetaViewContent} = useMetaPixelEvent();
   const {trackViewContent: trackTikTokViewContent} = useTikTokEvent();
+
+  // Use product from props if available, otherwise fall back to store
+  const product = productProp ?? productFromStore;
+  // Derive loading and error: if we have product from props, we don't need to wait for store loading
+  const loading = storeLoading && !productProp;
+  const error = storeError && !productProp;
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -165,10 +171,10 @@ export default function ProductDetailsPage() {
 
   // ── Fetch Product ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (id && (!product || product._id !== id)) {
+    if (id && (!productFromStore || productFromStore._id !== id) && !productProp) {
       dispatch(getProduct(id));
     }
-  }, [dispatch, id, product]);
+  }, [dispatch, id, productFromStore, productProp]);
 
   useEffect(() => {
     if (product?._id) {
