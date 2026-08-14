@@ -1,10 +1,11 @@
 "use client";
 
+import { memo } from "react";
 import { Link } from "next/navigation";
 import Image from "next/image";
 import { formatAmount } from "@/lib/utils";
 
-export default function RelatedProductsSection({ relatedProducts, product }) {
+function RelatedProductsSection({ relatedProducts, product }) {
   if (relatedProducts.length === 0) return null;
 
   return (
@@ -34,7 +35,8 @@ export default function RelatedProductsSection({ relatedProducts, product }) {
                 width={210}
                 height={210}
                 className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
-                unoptimized
+                loading="lazy"
+                sizes="(max-width: 640px) 190px, 210px"
               />
             </div>
             <div className="p-3">
@@ -75,3 +77,5 @@ export default function RelatedProductsSection({ relatedProducts, product }) {
     </section>
   );
 }
+
+export default RelatedProductsSection;
