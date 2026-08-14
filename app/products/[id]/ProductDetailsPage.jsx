@@ -217,30 +217,6 @@ export default function ProductDetailsPage({ product: productProp }) {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="mx-auto w-full max-w-[1140px]">
-      {/* ── Review Submitted Toast ── */}
-      <div
-        className="fixed bottom-6 left-1/2 z-[9999] pointer-events-none transition-all duration-400"
-        style={{
-          transform: commentSubmitted
-            ? "translateX(-50%) translateY(0)"
-            : "translateX(-50%) translateY(16px)",
-          opacity: commentSubmitted ? 1 : 0,
-        }}
-      >
-        <div className="flex items-center gap-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-5 py-3.5 shadow-2xl min-w-[300px]">
-          <div className="w-8 h-8 rounded-full bg-[#6ae8a015] border border-[#6ae8a033] flex items-center justify-center shrink-0 text-sm">
-            ✓
-          </div>
-          <div>
-            <p className="text-[13px] font-semibold text-[#e8e8e8]">
-              Review submitted!
-            </p>
-            <p className="text-[11px] text-[#6ae8a0] mt-0.5">
-              Your review is pending approval and will appear shortly.
-            </p>
-          </div>
-        </div>
-      </div>
       {/* ── Breadcrumb ── */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-500 py-4 px-4 sm:px-6 lg:px-8 overflow-x-auto">
         <Link
