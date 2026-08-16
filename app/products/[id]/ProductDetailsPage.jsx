@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState, lazy, Suspense} from "react";
+import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useParams} from "next/navigation";
 import {addRecentlyViewed} from "@/store/features/recentlyViewedSlice";
@@ -18,12 +18,12 @@ import Link from "next/link";
 import Image from "next/image";
 import CheckoutModal from "@/components/CheckoutModal";
 
-// Lazy load heavy components
-const ProductGallery = lazy(() => import("./components/ProductGallery"));
-const ProductDetailsInfo = lazy(() => import("./components/ProductDetailsInfo"));
-const ProductVideos = lazy(() => import("./components/ProductVideos"));
-const ProductReviews = lazy(() => import("./components/ProductReviews"));
-const RelatedProductsSection = lazy(() => import("./RelatedProductsSection"));
+// Temporarily using static imports for debugging
+import ProductGallery from "./components/ProductGallery";
+import ProductDetailsInfo from "./components/ProductDetailsInfo";
+import ProductVideos from "./components/ProductVideos";
+import ProductReviews from "./components/ProductReviews";
+import RelatedProductsSection from "./RelatedProductsSection";
 
 
 
@@ -251,35 +251,27 @@ export default function ProductDetailsPage({ product: productProp }) {
 
       {/* ── Product Section ── */}
       <div className="md:flex gap-3 border-dashed border-b-3 border-gray-200 md:py-5 nav:gap-6">
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductGallery 
-            product={product} 
-            selectedColor={selectedColor}
-            onFullViewImage={setFullViewImage}
-            onShareModal={setShowShareModal}
-          />
-        </Suspense>
+        <ProductGallery 
+          product={product} 
+          selectedColor={selectedColor}
+          onFullViewImage={setFullViewImage}
+          onShareModal={setShowShareModal}
+        />
 
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductDetailsInfo 
-            product={product}
-            selectedColor={selectedColor}
-            onColorChange={setSelectedColor}
-            onBuyNow={handleBuyNow}
-          />
-        </Suspense>
+        <ProductDetailsInfo 
+          product={product}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          onBuyNow={handleBuyNow}
+        />
       </div>
 
       {/* ── Product Videos ── */}
-      <Suspense fallback={<div className="h-[200px] bg-gray-100 animate-pulse mx-5 mt-8" />}>
-        <ProductVideos videos={product.videos} />
-      </Suspense>
+      <ProductVideos videos={product.videos} />
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (
-        <Suspense fallback={<div className="h-[300px] bg-gray-100 animate-pulse mt-14" />}>
-          <RelatedProductsSection relatedProducts={relatedProducts} product={product} />
-        </Suspense>
+        <RelatedProductsSection relatedProducts={relatedProducts} product={product} />
       )}
 
       {/* ── Overview ── */}
@@ -331,9 +323,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       </section>
 
       {/* ── Product Reviews ── */}
-      <Suspense fallback={<div className="h-[400px] bg-gray-100 animate-pulse my-20" />}>
-        <ProductReviews product={product} user={user} id={id} />
-      </Suspense>
+      <ProductReviews product={product} user={user} id={id} />
 
       {/* ── Share Modal ── */}
       {showShareModal && (
