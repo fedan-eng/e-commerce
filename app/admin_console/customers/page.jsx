@@ -134,7 +134,7 @@ export default function AdminCustomersPage() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
-                          <Link href={`/admin/customers/${user._id}`}
+                          <Link href={`/admin_console/customers/${user._id}`}
                             className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-2.5 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
                             VIEW
                           </Link>

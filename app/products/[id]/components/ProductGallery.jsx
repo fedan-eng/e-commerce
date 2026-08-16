@@ -99,7 +99,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
         <div className="flex flex-col justify-between items-center py-2">
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => setShowShareModal(true)}
+              onClick={() => onShareModal(true)}
               className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Share className="w-4 h-4 text-gray-600" />
@@ -110,7 +110,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
               className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             />
             <button
-              onClick={() => setFullViewImage(selectedImage)}
+              onClick={() => onFullViewImage(selectedImage)}
               className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               title="Full view"
             >

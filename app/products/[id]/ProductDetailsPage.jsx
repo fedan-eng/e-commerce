@@ -255,8 +255,8 @@ export default function ProductDetailsPage({ product: productProp }) {
           <ProductGallery 
             product={product} 
             selectedColor={selectedColor}
-            setFullViewImage={setFullViewImage}
-            setShowShareModal={setShowShareModal}
+            onFullViewImage={setFullViewImage}
+            onShareModal={setShowShareModal}
           />
         </Suspense>
 
@@ -264,7 +264,7 @@ export default function ProductDetailsPage({ product: productProp }) {
           <ProductDetailsInfo 
             product={product}
             selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
+            onColorChange={setSelectedColor}
             onBuyNow={handleBuyNow}
           />
         </Suspense>

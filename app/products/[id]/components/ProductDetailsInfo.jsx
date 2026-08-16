@@ -8,7 +8,7 @@ import AddToCartButton from "@/components/AddToCart";
 import BuyNow from "@/components/BuyNow";
 import ExpandableDescription from "./ExpandableDescription";
 
-function ProductDetailsInfo({ product, selectedColor, setSelectedColor, onBuyNow }) {
+function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow }) {
   const points = [
     {img: "/express.png", text: "Fast And Reliable Delivery"},
     {img: "/calender.png", text: "7 Days Return"},
@@ -102,7 +102,7 @@ function ProductDetailsInfo({ product, selectedColor, setSelectedColor, onBuyNow
                 }`}
                 style={{ backgroundColor: color.name.toLowerCase() }}
                 onClick={() => {
-                  setSelectedColor(color);
+                  onColorChange(color);
                 }}
                 title={color.name}
               />
