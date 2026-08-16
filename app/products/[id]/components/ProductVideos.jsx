@@ -6,7 +6,7 @@ import Image from "next/image";
 function ProductVideos({ videos }) {
   const [activeVideo, setActiveVideo] = useState(null);
 
-  if (!videos?.length > 0) return null;
+  if (!videos || videos.length === 0) return null;
 
   return (
     <div className="self-start mt-[38px] w-full">
