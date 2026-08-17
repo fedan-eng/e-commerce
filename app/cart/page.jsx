@@ -62,7 +62,10 @@ const CartPage = () => {
 
   const handleColorChange = (id, oldColor, newColor) => {
     if (newColor && newColor !== oldColor) {
-      dispatch(updateColor({_id: id, oldColor, newColor}));
+      const product = productDetails[id];
+      const newColorData = product?.colors?.find(c => c.name === newColor);
+      const newImage = newColorData?.images?.[0] || product?.image;
+      dispatch(updateColor({_id: id, oldColor, newColor, newImage}));
     }
   };
 
@@ -181,7 +184,22 @@ const CartPage = () => {
                 <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
                   {item.name}
                 </p>
-                {item.color && (
+                {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                  <div className="mt-2">
+                    <select
+                      value={item.color}
+                      onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                      className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
+                    >
+                      {productDetails[item._id].colors.map((color) => (
+                        <option key={color.name} value={color.name}>
+                          {color.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
                   <p className="text-[#767676] text-xs mt-1">{item.color}</p>
                 )}
               </div>
@@ -252,7 +270,22 @@ const CartPage = () => {
                 <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
                   {item.name}
                 </p>
-                {item.color && (
+                {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                  <div className="mt-2">
+                    <select
+                      value={item.color}
+                      onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                      className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
+                    >
+                      {productDetails[item._id].colors.map((color) => (
+                        <option key={color.name} value={color.name}>
+                          {color.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
                   <p className="text-[#767676] text-xs mt-1">{item.color}</p>
                 )}
                 <span className="text-dark text-sm font-medium block mt-1">

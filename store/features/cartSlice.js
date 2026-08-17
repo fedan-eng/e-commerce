@@ -35,7 +35,7 @@ const cartSlice = createSlice({
       if (item) item.quantity = quantity;
     },
     updateColor: (state, action) => {
-      const { _id, oldColor, newColor } = action.payload;
+      const { _id, oldColor, newColor, newImage } = action.payload;
       const item = state.items.find(
         (item) => item._id === _id && item.color === oldColor
       );
@@ -52,8 +52,11 @@ const cartSlice = createSlice({
             (i) => !(i._id === _id && i.color === oldColor)
           );
         } else {
-          // Just update the color
+          // Just update the color and image
           item.color = newColor;
+          if (newImage) {
+            item.image = newImage;
+          }
         }
       }
     },
