@@ -19,15 +19,18 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    // If no color is selected but product has colors, use the first available color
+    const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
+
     dispatch(
       addToCart({
         _id: product._id,
         name: product.name,
         price: product.price,
         category: product.category,
-        image: selectedColor?.images?.[0] || product.image,
+        image: colorToAdd?.images?.[0] || product.image,
         quantity: 1,
-        ...(selectedColor ? { color: selectedColor.name } : {}), // only include color if selected
+        ...(colorToAdd ? { color: colorToAdd.name } : {}), // include color if available
       })
     );
 

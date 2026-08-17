@@ -39,6 +39,16 @@ export async function POST(req) {
   );
 }
 
+  if (!user.isVerified) {
+    return new Response(
+      JSON.stringify({ 
+        message: "Please verify your email before logging in. Check your inbox for the verification link.",
+        requiresVerification: true 
+      }),
+      { status: 403 }
+    );
+  }
+
   const token = signToken({
     id: user._id,
     email: user.email,

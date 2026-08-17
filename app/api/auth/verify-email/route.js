@@ -1,45 +1,51 @@
 import { connectDB } from "@/lib/db";
-import User from "@/models/User";
+import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
-import PendingVerification from "@/models/PendingVerification";
+import User from "@/models/User";
 
-export async function POST(req) {
+export async function GET(req) {
   await connectDB();
-  const { email, code } = await req.json();
+  
+  const { searchParams } = new URL(req.url);
+  const token = searchParams.get("token");
 
-  const pending = await PendingVerification.findOne({ email });
-  if (!pending) {
-    return new Response(
-      JSON.stringify({ message: "No pending verification for this email" }),
-      { status: 404 }
-    );
+  if (!token) {
+    return Response.redirect(new URL("/login?error=missing_token", req.url));
   }
 
-  if (pending.verificationCode !== code) {
-    return new Response(
-      JSON.stringify({ message: "Invalid verification code" }),
-      { status: 400 }
-    );
+  // Verify JWT token
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return Response.redirect(new URL("/login?error=invalid_token", req.url));
   }
 
-  if (pending.verificationCodeExpiry < new Date()) {
-    await PendingVerification.deleteOne({ email });
-    return new Response(
-      JSON.stringify({ message: "Verification code expired" }),
-      { status: 400 }
-    );
+  // Find user by email from token
+  const user = await User.findOne({ email: decoded.email });
+  if (!user) {
+    return Response.redirect(new URL("/login?error=user_not_found", req.url));
   }
 
-  const { firstName, lastName } = pending;
+  // Check if token matches and hasn't expired
+  if (user.verificationToken !== token) {
+    return Response.redirect(new URL("/login?error=token_mismatch", req.url));
+  }
 
-  // Create user
-  await User.create({
-    email: pending.email,
-    password: pending.hashedPassword,
-    isVerified: true,
-    firstName,
-    lastName,
-  });
+  if (user.verificationTokenExpiry < new Date()) {
+    return Response.redirect(new URL("/login?error=token_expired", req.url));
+  }
+
+  // Check if already verified
+  if (user.isVerified) {
+    return Response.redirect(new URL("/login?error=already_verified", req.url));
+  }
+
+  // Mark user as verified and clear token
+  user.isVerified = true;
+  user.verificationToken = null;
+  user.verificationTokenExpiry = null;
+  await user.save();
+
+  const { firstName, lastName } = user;
 
   const welcomeEmailHtml = `
 <!DOCTYPE html>
@@ -95,7 +101,7 @@ export async function POST(req) {
     }
     .message {
       font-size: 16px;
-      color: #fff;
+      color: #333;
       margin-bottom: 30px;
     }
     .promo-box {
@@ -144,7 +150,7 @@ export async function POST(req) {
       display: flex;
       align-items: start;
       margin: 15px 0;
-      color: #fff;
+      color: #333;
     }
     .feature-icon {
       font-size: 24px;
@@ -283,18 +289,14 @@ Think Quality, Think FIL.
 Need help? Contact us at filfilecommerce@gmail.com
   `.trim();
 
-  // Send success email
+  // Send welcome email
   await sendEmail(
-    email,
+    user.email,
     "Welcome to FIL Store 🎉",
     plainText,
     welcomeEmailHtml
   );
 
-  // Remove pending verification record
-  await PendingVerification.deleteOne({ email });
-
-  return Response.json({
-    message: "Email verified successfully, account created.",
-  });
+  // Redirect to login with success
+  return Response.redirect(new URL("/login?verified=true", req.url));
 }

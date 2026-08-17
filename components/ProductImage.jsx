@@ -37,7 +37,7 @@ const ProductImage = ({
         src={src}
         alt={alt}
         {...(fill ? { fill: true } : { width, height })}
-        sizes={sizes ?? (fill ? "100vw" : undefined)}
+        sizes={sizes ?? (fill ? "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" : undefined)}
         priority={priority}
         // Changed object-cover to object-contain so product images don't crop
         className={`object-contain absolute inset-0 w-full h-full transition-opacity duration-300 ${

@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema(
       trim: true, 
     },
     isActive: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false },
 
     dob: {
       type: String,
@@ -72,6 +73,8 @@ const userSchema = new mongoose.Schema(
 
     resetPasswordCode: { type: String },
     resetPasswordExpiry: { type: Date },
+    verificationToken: { type: String },
+    verificationTokenExpiry: { type: Date },
     cart: {
   items: [
     {

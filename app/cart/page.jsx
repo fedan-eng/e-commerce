@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
-import {removeFromCart, updateQuantity} from "@/store/features/cartSlice";
+import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
 import Link from "next/link";
 import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
@@ -17,10 +17,37 @@ const CartPage = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
-  }, []);  
+  }, []);
+
+  useEffect(() => {
+    // Fetch product details for all cart items to get available colors
+    const fetchProductDetails = async () => {
+      const uniqueProductIds = [...new Set(cartItems.map(item => item._id))];
+      const details = {};
+      
+      for (const productId of uniqueProductIds) {
+        try {
+          const res = await fetch(`/api/products/${productId}`);
+          if (res.ok) {
+            const data = await res.json();
+            details[productId] = data;
+          }
+        } catch (error) {
+          console.error(`Failed to fetch product ${productId}:`, error);
+        }
+      }
+      
+      setProductDetails(details);
+    };
+
+    if (cartItems.length > 0) {
+      fetchProductDetails();
+    }
+  }, [cartItems]);  
 
   const handleRemove = (id, color) => {
     dispatch(removeFromCart({_id: id, color}));
@@ -30,6 +57,15 @@ const CartPage = () => {
     const qty = parseInt(value);  
     if (qty >= 1) {
       dispatch(updateQuantity({_id: id, color, quantity: qty}));
+    }
+  };
+
+  const handleColorChange = (id, oldColor, newColor) => {
+    if (newColor && newColor !== oldColor) {
+      const product = productDetails[id];
+      const newColorData = product?.colors?.find(c => c.name === newColor);
+      const newImage = newColorData?.images?.[0] || product?.image;
+      dispatch(updateColor({_id: id, oldColor, newColor, newImage}));
     }
   };
 
@@ -133,27 +169,44 @@ const CartPage = () => {
       <div key={`${item._id}-${item.color || "default"}`}>
         {/* Desktop row */}
         <div className="hidden sm:grid items-center gap-4 grid-cols-[minmax(200px,1fr)_140px_100px_100px_40px] py-6 border-b border-[#e5e5e5] last:border-b-0">
-          <a href={`/products/${item._id}`}>
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[70px] h-[70px]">
-                <ProductImage
-                  src={item.image}
-                  alt={item.name}
-                  width={56}
-                  height={56}
-                  className="w-[56px] h-[56px] object-contain"
-                />
-              </div>
-              <div className="min-w-0">
-                <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
-                  {item.name}
-                </p>
-                {item.color && (
-                  <p className="text-[#767676] text-xs mt-1">{item.color}</p>
-                )}
-              </div>
+          <div className="flex items-center gap-4 min-w-0">
+            <a href={`/products/${item._id}`} className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[70px] h-[70px]">
+              <ProductImage
+                src={item.image}
+                alt={item.name}
+                width={56}
+                height={56}
+                className="w-[56px] h-[56px] object-contain"
+              />
+            </a>
+            <div className="min-w-0">
+              <a href={`/products/${item._id}`} className="min-w-0 font-medium text-sm text-dark line-clamp-2 hover:text-filgreen transition-colors">
+                {item.name}
+              </a>
+              {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    {productDetails[item._id].colors.map((color) => (
+                      <button
+                        key={color.name}
+                        className={`w-14 h-8 rounded-md transition-all ${
+                          item.color === color.name
+                            ? "ring-2 ring-gray-400 ring-offset-4"
+                            : "ring-0"
+                        }`}
+                        style={{ backgroundColor: color.name.toLowerCase() }}
+                        onClick={() => handleColorChange(item._id, item.color, color.name)}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
+                <p className="text-[#767676] text-xs mt-1">{item.color}</p>
+              )}
             </div>
-          </a>
+          </div>
 
           <div className="flex items-center justify-center gap-1 border border-[#d9d9d9] rounded-md w-fit mx-auto">
             <button
@@ -204,30 +257,47 @@ const CartPage = () => {
 
         {/* Mobile row */}
         <div className="flex flex-col py-5 sm:hidden border-b border-[#e5e5e5] last:border-b-0">
-          <a href={`/products/${item._id}`}>
-            <div className="flex flex-row gap-4">
-              <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[65px] h-[65px]">
-                <ProductImage
-                  src={item.image}
-                  alt={item.name}
-                  width={56}
-                  height={56}
-                  className="w-[56px] h-[56px] object-contain"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
-                  {item.name}
-                </p>
-                {item.color && (
-                  <p className="text-[#767676] text-xs mt-1">{item.color}</p>
-                )}
-                <span className="text-dark text-sm font-medium block mt-1">
-                  {formatAmount(item.price)}
-                </span>
-              </div>
+          <div className="flex flex-row gap-4">
+            <a href={`/products/${item._id}`} className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[65px] h-[65px]">
+              <ProductImage
+                src={item.image}
+                alt={item.name}
+                width={56}
+                height={56}
+                className="w-[56px] h-[56px] object-contain"
+              />
+            </a>
+            <div className="min-w-0 flex-1">
+              <a href={`/products/${item._id}`} className="min-w-0 font-medium text-sm text-dark line-clamp-2 hover:text-filgreen transition-colors">
+                {item.name}
+              </a>
+              {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    {productDetails[item._id].colors.map((color) => (
+                      <button
+                        key={color.name}
+                        className={`w-14 h-8 rounded-md transition-all ${
+                          item.color === color.name
+                            ? "ring-2 ring-gray-400 ring-offset-4"
+                            : "ring-0"
+                        }`}
+                        style={{ backgroundColor: color.name.toLowerCase() }}
+                        onClick={() => handleColorChange(item._id, item.color, color.name)}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
+                <p className="text-[#767676] text-xs mt-1">{item.color}</p>
+              )}
+              <span className="text-dark text-sm font-medium block mt-1">
+                {formatAmount(item.price)}
+              </span>
             </div>
-          </a>
+          </div>
           <div className="flex mt-4 flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-1 border border-[#d9d9d9] rounded-md flex-1">
               <button

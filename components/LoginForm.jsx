@@ -20,6 +20,8 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showGoogleHint, setShowGoogleHint] = useState(false);
+  const [showVerificationHint, setShowVerificationHint] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const passwordRef = useRef(null);
 
@@ -29,6 +31,7 @@ export default function LoginForm() {
   e.preventDefault();
   setError("");
   setShowGoogleHint(false);
+  setShowVerificationHint(false);
   setLoading(true);
 
   try {
@@ -45,16 +48,44 @@ export default function LoginForm() {
       router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
-        setShowGoogleHint(true); // trigger the UI hint below
-        setError(""); // clear generic error — we show a custom block instead
+        setShowGoogleHint(true);
+        setError("");
+      } else if (data.requiresVerification) {
+        setShowVerificationHint(true);
+        setError("");
       } else {
-        setError(data.message || "Invalid email or password"); zhbcuhcbbgscggydy
+        setError(data.message || "Invalid email or password");
       }
     }
   } catch (err) {
     setError("Something went wrong. Please try again.");
   } finally {
     setLoading(false);
+  }
+};
+
+ const handleResendVerification = async () => {
+  setResending(true);
+  try {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: "", firstName: "", lastName: "" }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setError("");
+      setShowVerificationHint(false);
+      alert(data.message || "Verification email resent. Please check your inbox.");
+    } else {
+      setError(data.message || "Failed to resend verification email");
+    }
+  } catch (err) {
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setResending(false);
   }
 };
 
@@ -173,6 +204,20 @@ export default function LoginForm() {
       set a password
     </Link>
     .
+  </div>
+)}
+
+            {showVerificationHint && (
+  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800 text-center">
+    Please verify your email before logging in.{" "}
+    <button
+      type="button"
+      onClick={handleResendVerification}
+      disabled={resending}
+      className="underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {resending ? "Resending..." : "Resend verification email"}
+    </button>
   </div>
 )}
 

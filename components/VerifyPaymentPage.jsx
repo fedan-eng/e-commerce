@@ -13,9 +13,10 @@ import Loading from "@/components/Loading";
 import Link from "next/link";
 import TextSlider from "@/components/TextSlider";
 import FeedbackForm from "@/components/FeedbackForm";
-import jsPDF from "jspdf";
+import jsPDF from "jspdf"; 
 import autoTable from "jspdf-autotable";
 import { formatAmount } from "@/lib/utils";
+import { ProductImage } from "./ProductImage";
 
 export default function VerifyPaymentPage() {
   const [orderDetails, setOrderDetails] = useState(null);
