@@ -212,10 +212,10 @@ const Footer = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto open overlay after 10s on homepage
+  // Auto open overlay after 2 minutes on homepage
   useEffect(() => {
     if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
-      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 10000);
+      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 120000);
     }
     return () => {
       if (autoOpenTimerRef.current) clearTimeout(autoOpenTimerRef.current);
