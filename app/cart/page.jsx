@@ -189,6 +189,7 @@ const CartPage = () => {
                     <select
                       value={item.color}
                       onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
                       className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
                     >
                       {productDetails[item._id].colors.map((color) => (
@@ -275,6 +276,7 @@ const CartPage = () => {
                     <select
                       value={item.color}
                       onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
                       className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
                     >
                       {productDetails[item._id].colors.map((color) => (
