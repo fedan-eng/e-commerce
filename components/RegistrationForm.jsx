@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { registerUserAsync, setEmail } from "@/store/features/registerSlice";
+import { registerUserAsync } from "@/store/features/registerSlice";
 import Loading from "@/components/Loading";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -50,12 +50,9 @@ const RegistrationForm = () => {
     }),
     onSubmit: async (values) => {
       const { email, firstName, lastName, password } = values;
-      const res = await dispatch(
+      await dispatch(
         registerUserAsync({ email, firstName, lastName, password })
       );
-      if (!res.error) {
-        dispatch(setEmail(email));
-      }
     },
   });
 
