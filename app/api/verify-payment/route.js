@@ -210,67 +210,55 @@ export async function POST(req) {
 
     // ── SAVE ORDER ────────────────────────────────────────────────────────────
     let order;
-    let isExistingOrder;
 
     try {
-      const result = await Order.findOneAndUpdate(
-        { paymentReference: orderData.paymentReference },
-        {
-          $setOnInsert: {
-            userId: user?.id || null,
-            email: orderData.email,
-            address: orderData.address,
-            region: {
-              name: orderData.region?.name || orderData.region,
-              fee: orderData.region?.fee || orderData.deliveryFee,
-            },
-            city: orderData.city,
-            deliveryType: orderData.deliveryType,
-            phone: orderData.phone,
-            addPhone: orderData.addPhone || "",
-            firstName: orderData.firstName,
-            lastName: orderData.lastName || "",
-            orderNote: orderData.orderNote || "",
-            items: orderData.cartItems,
-            subTotal: orderData.subTotal,
-            discount: orderData.discount,
-            promoCode: orderData.promoCode || null,
-            deliveryFee: orderData.deliveryFee,
-            total: orderData.total,
-            paymentMethod: orderData.paymentMethod,
-            paymentReference: orderData.paymentReference,
-            paymentStatus: orderData.paymentStatus,
-            status: "Confirmed",
-            statusHistory: [{ status: "Confirmed", date: new Date() }],
-          },
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true,
-          rawResult: true,
-        }
-      );
+      // Before creating, checkif order already exists
+      const existingOrder = await Order.findOne({ 
+        paymentReference: orderData.paymentReference 
+      });
 
-      isExistingOrder = result.lastErrorObject?.updatedExisting === true;
-      order = result.value;
-
-      if (!order) {
-        order = await Order.findOne({ paymentReference: orderData.paymentReference });
-      }
-
-      if (!order) {
-        return Response.json({ message: "Order save failed" }, { status: 500 });
-      }
-
-      if (isExistingOrder) {
+      if (existingOrder) {
+        // Webhook already saved it — return data, skip emails
         return Response.json({
           verified: true,
           message: "Payment already verified and order exists",
           provider: verificationData.provider,
           orderData,
-          order,
+          order: existingOrder,
         });
+      }
+
+      // Doesn't exist yet — create it
+      order = await Order.create({
+        userId: user?.id || null,
+        email: orderData.email,
+        address: orderData.address,
+        region: {
+          name: orderData.region?.name || orderData.region,
+          fee: orderData.region?.fee || orderData.deliveryFee,
+        },
+        city: orderData.city,
+        deliveryType: orderData.deliveryType,
+        phone: orderData.phone,
+        addPhone: orderData.addPhone || "",
+        firstName: orderData.firstName,
+        lastName: orderData.lastName || "",
+        orderNote: orderData.orderNote || "",
+        items: orderData.cartItems,
+        subTotal: orderData.subTotal,
+        discount: orderData.discount,
+        promoCode: orderData.promoCode || null,
+        deliveryFee: orderData.deliveryFee,
+        total: orderData.total,
+        paymentMethod: orderData.paymentMethod,
+        paymentReference: orderData.paymentReference,
+        paymentStatus: orderData.paymentStatus,
+        status: "Confirmed",
+        statusHistory: [{ status: "Confirmed", date: new Date() }],
+      });
+
+      if (!order) {
+        return Response.json({ message: "Order save failed" }, { status: 500 });
       }
     } catch (e) {
       console.error("Error saving order:", e);

@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
-import {removeFromCart, updateQuantity} from "@/store/features/cartSlice";
+import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
 import Link from "next/link";
 import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
@@ -17,10 +17,37 @@ const CartPage = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
-  }, []);  
+  }, []);
+
+  useEffect(() => {
+    // Fetch product details for all cart items to get available colors
+    const fetchProductDetails = async () => {
+      const uniqueProductIds = [...new Set(cartItems.map(item => item._id))];
+      const details = {};
+      
+      for (const productId of uniqueProductIds) {
+        try {
+          const res = await fetch(`/api/products/${productId}`);
+          if (res.ok) {
+            const data = await res.json();
+            details[productId] = data;
+          }
+        } catch (error) {
+          console.error(`Failed to fetch product ${productId}:`, error);
+        }
+      }
+      
+      setProductDetails(details);
+    };
+
+    if (cartItems.length > 0) {
+      fetchProductDetails();
+    }
+  }, [cartItems]);  
 
   const handleRemove = (id, color) => {
     dispatch(removeFromCart({_id: id, color}));
@@ -30,6 +57,12 @@ const CartPage = () => {
     const qty = parseInt(value);  
     if (qty >= 1) {
       dispatch(updateQuantity({_id: id, color, quantity: qty}));
+    }
+  };
+
+  const handleColorChange = (id, oldColor, newColor) => {
+    if (newColor && newColor !== oldColor) {
+      dispatch(updateColor({_id: id, oldColor, newColor}));
     }
   };
 

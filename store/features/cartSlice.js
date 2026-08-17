@@ -34,6 +34,29 @@ const cartSlice = createSlice({
       );
       if (item) item.quantity = quantity;
     },
+    updateColor: (state, action) => {
+      const { _id, oldColor, newColor } = action.payload;
+      const item = state.items.find(
+        (item) => item._id === _id && item.color === oldColor
+      );
+      if (item) {
+        // Check if an item with the same product and new color already exists
+        const existingWithNewColor = state.items.find(
+          (i) => i._id === _id && i.color === newColor
+        );
+        if (existingWithNewColor) {
+          // Merge quantities
+          existingWithNewColor.quantity += item.quantity;
+          // Remove the old item
+          state.items = state.items.filter(
+            (i) => !(i._id === _id && i.color === oldColor)
+          );
+        } else {
+          // Just update the color
+          item.color = newColor;
+        }
+      }
+    },
     clearCart: (state) => {
       state.items = [];
     },
@@ -49,6 +72,7 @@ export const {
   addToCart,
   removeFromCart,
   updateQuantity,
+  updateColor,
   clearCart,
   setCartFromDB, // 👈 export it
 } = cartSlice.actions;
@@ -69,6 +93,7 @@ export const cartSyncMiddleware = (store) => (next) => (action) => {
     "cart/addToCart",
     "cart/removeFromCart",
     "cart/updateQuantity",
+    "cart/updateColor",
     "cart/clearCart",
     // ⚠️ cart/setCartFromDB is intentionally NOT here
     // We don't want to re-sync back to DB when we just loaded FROM the DB
