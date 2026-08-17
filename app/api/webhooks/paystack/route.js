@@ -1,361 +1,202 @@
-// app/api/verify-payment/route.js
-import axios from "axios";
-import { sendEmail } from "@/lib/mailer";
+// app/api/webhook/route.js
+import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
-import { verifyToken } from "@/lib/auth";
+import { sendEmail } from "@/lib/mailer";
 
 export async function POST(req) {
+  const body = await req.text();
+
+  // ── 1. Verify signature ──────────────────────────────────────────────────
+  const hash = crypto
+    .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
+    .update(body)
+    .digest("hex");
+
+  if (hash !== req.headers.get("x-paystack-signature")) {
+    console.error("Webhook: invalid signature");
+    return NextResponse.json({ message: "Invalid signature" }, { status: 401 });
+  }
+
+  const event = JSON.parse(body);
+  console.log("Webhook event received:", event.event);
+
+  // ── 2. Only handle charge.success ────────────────────────────────────────
+  if (event.event !== "charge.success") {
+    return NextResponse.json({ received: true });
+  }
+
+  const data = event.data;
+  const meta = data.metadata;
+  const reference = data.reference;
+
+  if (!reference || !meta) {
+    console.error("Webhook: missing reference or metadata");
+    return NextResponse.json({ received: true });
+  }
+
   await connectDB();
 
+  // ── 3. Idempotency check ─────────────────────────────────────────────────
+  const existing = await Order.findOne({ paymentReference: reference });
+  if (existing) {
+    console.log(`Webhook: order already exists for ${reference}, skipping`);
+    return NextResponse.json({ received: true });
+  }
+
+  // ── 4. Build orderData (mirrors verify-payment logic) ────────────────────
+  const deliveryInfo = meta.deliveryInfo || meta;
+
+  const cartItems = (meta.cartItems || []).map((item) => ({
+    ...item,
+    price: Number(item.price) || 0,
+    quantity: Number(item.quantity) || 1,
+  }));
+
+  const orderData = {
+    firstName: deliveryInfo.firstName || "",
+    lastName: deliveryInfo.lastName || "",
+    email: deliveryInfo.email || "",
+    phone: deliveryInfo.phone || "",
+    addPhone: deliveryInfo.addPhone || "",
+    region: deliveryInfo.region || { name: "", fee: 0 },
+    city: deliveryInfo.city || "",
+    deliveryType: deliveryInfo.deliveryType || "Regular",
+    address: deliveryInfo.address || "",
+    orderNote: deliveryInfo.orderNote || "",
+    cartItems,
+    subTotal: Number(meta.subTotal) || 0,
+    discount: Number(meta.discount) || 0,
+    deliveryFee: Number(meta.deliveryFee) || 0,
+    total: Number(meta.total) || data.amount / 100,
+    promoCode: meta.promoCode || null,
+    paymentMethod: "paystack",
+    paymentReference: reference,
+    paymentStatus: "paid",
+  };
+
+  // ── 5. Save order ────────────────────────────────────────────────────────
+  let order;
   try {
-    const { reference, provider } = await req.json();
-
-    if (!reference || !provider) {
-      return Response.json(
-        { message: "Missing reference or provider" },
-        { status: 400 }
-      );
-    }
-
-    const cookie = req.cookies.get("token")?.value;
-    let user = null;
-    if (cookie) { 
-      try {
-        user = verifyToken(cookie);
-      } catch (err) {
-        console.error("Token verification error:", err);
-      }
-    }
-
-    let verificationData;
-    let orderData;
-
-    // ── PAYSTACK ──────────────────────────────────────────────────────────────
-    if (provider === "paystack") {
-      const res = await axios.get(
-        `https://api.paystack.co/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          },
-        }
-      );
-
-      const paystackData = res.data.data;
-      const meta = paystackData.metadata;
-
-      verificationData = {
-        verified: paystackData.status === "success",
-        provider: "paystack",
-        amount: paystackData.amount / 100,
-        reference: paystackData.reference,
-      };
-
-      // Handle both old flat structure and new nested deliveryInfo structure
-      const deliveryInfo = meta.deliveryInfo || meta;
-
-      // Coerce all cart item numeric fields to numbers
-      const cartItems = (meta.cartItems || []).map((item) => ({
-        ...item,
-        price: Number(item.price) || 0,
-        quantity: Number(item.quantity) || 1,
-      }));
-
-      orderData = {
-        firstName: deliveryInfo.firstName || meta.firstName || "",
-        lastName: deliveryInfo.lastName || meta.lastName || "",
-        email: deliveryInfo.email || meta.email || "",
-        phone: deliveryInfo.phone || meta.phone || "",
-        addPhone: deliveryInfo.addPhone || meta.addPhone || "",
-        region: deliveryInfo.region || meta.region || { name: "", fee: 0 },
-        city: deliveryInfo.city || meta.city || "",
-        deliveryType: deliveryInfo.deliveryType || meta.deliveryType || "Regular",
-        address: deliveryInfo.address || meta.address || "",
-        orderNote: deliveryInfo.orderNote || meta.orderNote || "",
-        cartItems,
-        subTotal: Number(meta.subTotal) || 0,
-        discount: Number(meta.discount) || 0,
-        deliveryFee: Number(meta.deliveryFee) || 0,
-        total: Number(meta.total) || 0,
-        promoCode: meta.promoCode || null,
-        paymentMethod: "paystack",
-        paymentReference: reference,
-        paymentStatus: "paid",
-      };
-
-    // ── FLUTTERWAVE ───────────────────────────────────────────────────────────
-    } else if (provider === "flutterwave") {
-      const res = await axios.get(
-        `https://api.flutterwave.com/v3/transactions/${reference}/verify`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
-          },
-        }
-      );
-
-      if (res.data.status !== "success") {
-        return Response.json(
-          {
-            verified: false,
-            message: res.data.message || "Transaction verification failed",
-            provider: "flutterwave",
-          },
-          { status: 400 }
-        );
-      }
-
-      const flutterwaveData = res.data.data;
-
-      const isVerified =
-        flutterwaveData.status === "successful" &&
-        flutterwaveData.currency === "NGN" &&
-        flutterwaveData.amount >= flutterwaveData.charged_amount;
-
-      verificationData = {
-        verified: isVerified,
-        provider: "flutterwave",
-        amount: flutterwaveData.amount,
-        reference: flutterwaveData.tx_ref,
-        transactionId: flutterwaveData.id,
-      };
-
-      if (!flutterwaveData.meta || Object.keys(flutterwaveData.meta).length === 0) {
-        return Response.json(
-          {
-            verified: false,
-            message: "Order metadata missing. Please contact support.",
-            provider: "flutterwave",
-          },
-          { status: 400 }
-        );
-      }
-
-      let parsedCartItems = [];
-      let parsedRegion = {};
-
-      try {
-        if (flutterwaveData.meta.cartItems) {
-          const raw =
-            typeof flutterwaveData.meta.cartItems === "string"
-              ? JSON.parse(flutterwaveData.meta.cartItems)
-              : flutterwaveData.meta.cartItems;
-          parsedCartItems = raw.map((item) => ({
-            ...item,
-            price: Number(item.price) || 0,
-            quantity: Number(item.quantity) || 1,
-          }));
-        }
-        if (flutterwaveData.meta.region) {
-          parsedRegion =
-            typeof flutterwaveData.meta.region === "string"
-              ? JSON.parse(flutterwaveData.meta.region)
-              : flutterwaveData.meta.region;
-        }
-      } catch (e) {
-        console.error("Error parsing meta data:", e);
-      }
-
-      orderData = {
-        firstName:
-          flutterwaveData.meta.firstName ||
-          flutterwaveData.customer?.name?.split(" ")[0] ||
-          "",
-        lastName:
-          flutterwaveData.meta.lastName ||
-          flutterwaveData.customer?.name?.split(" ").slice(1).join(" ") ||
-          "",
-        email:
-          flutterwaveData.meta.email || flutterwaveData.customer?.email || "",
-        phone:
-          flutterwaveData.meta.phone ||
-          flutterwaveData.customer?.phone_number ||
-          "",
-        addPhone: flutterwaveData.meta.addPhone || "",
-        region: parsedRegion,
-        city: flutterwaveData.meta.city || "",
-        deliveryType: flutterwaveData.meta.deliveryType || "Regular",
-        address: flutterwaveData.meta.address || "",
-        orderNote: flutterwaveData.meta.orderNote || "",
-        cartItems: parsedCartItems,
-        subTotal: Number(flutterwaveData.meta.subTotal) || 0,
-        discount: Number(flutterwaveData.meta.discount) || 0,
-        promoCode: flutterwaveData.meta.promoCode || null,
-        deliveryFee: Number(flutterwaveData.meta.deliveryFee) || 0,
-        total: Number(flutterwaveData.amount) || 0,
-        paymentMethod: "flutterwave",
-        paymentReference: flutterwaveData.tx_ref || reference,
-        paymentStatus: "paid",
-      };
-
-    } else {
-      return Response.json(
-        { message: "Invalid payment provider" },
-        { status: 400 }
-      );
-    }
-
-    // ── GUARD: payment must be verified ──────────────────────────────────────
-    if (!verificationData.verified) {
-      return Response.json(
-        {
-          verified: false,
-          message: "Payment verification failed",
-          provider: verificationData.provider,
-        },
-        { status: 400 }
-      );
-    }
-
-    // ── SAVE ORDER ────────────────────────────────────────────────────────────
-    let order;
-    let isExistingOrder;
-
-    try {
-      const result = await Order.findOneAndUpdate(
-        { paymentReference: orderData.paymentReference },
-        {
-          $setOnInsert: {
-            userId: user?.id || null,
-            email: orderData.email,
-            address: orderData.address,
-            region: {
-              name: orderData.region?.name || orderData.region,
-              fee: orderData.region?.fee || orderData.deliveryFee,
-            },
-            city: orderData.city,
-            deliveryType: orderData.deliveryType,
-            phone: orderData.phone,
-            addPhone: orderData.addPhone || "",
-            firstName: orderData.firstName,
-            lastName: orderData.lastName || "",
-            orderNote: orderData.orderNote || "",
-            items: orderData.cartItems,
-            subTotal: orderData.subTotal,
-            discount: orderData.discount,
-            promoCode: orderData.promoCode || null,
-            deliveryFee: orderData.deliveryFee,
-            total: orderData.total,
-            paymentMethod: orderData.paymentMethod,
-            paymentReference: orderData.paymentReference,
-            paymentStatus: orderData.paymentStatus,
-            status: "Confirmed",
-            statusHistory: [{ status: "Confirmed", date: new Date() }],
-          },
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true,
-          rawResult: true,
-        }
-      );
-
-      isExistingOrder = result.lastErrorObject?.updatedExisting === true;
-      order = result.value;
-
-      if (!order) {
-        order = await Order.findOne({ paymentReference: orderData.paymentReference });
-      }
-
-      if (!order) {
-        return Response.json({ message: "Order save failed" }, { status: 500 });
-      }
-
-      if (isExistingOrder) {
-        return Response.json({
-          verified: true,
-          message: "Payment already verified and order exists",
-          provider: verificationData.provider,
-          orderData,
-          order,
-        });
-      }
-    } catch (e) {
-      console.error("Error saving order:", e);
-      return Response.json({ message: "Order save failed" }, { status: 500 });
-    }
-
-    // ── EMAIL HELPERS ─────────────────────────────────────────────────────────
-    const hasColor   = orderData.cartItems.some((item) => item.color);
-    const regionName = orderData.region?.name || orderData.region || "";
-    const orderedAt  = new Date().toLocaleString("en-US", {
-      weekday: "long", year: "numeric", month: "long",
-      day: "numeric", hour: "2-digit", minute: "2-digit",
+    order = await Order.create({
+      userId: null,
+      email: orderData.email,
+      firstName: orderData.firstName,
+      lastName: orderData.lastName,
+      phone: orderData.phone,
+      addPhone: orderData.addPhone,
+      address: orderData.address,
+      city: orderData.city,
+      region: {
+        name: orderData.region?.name || "",
+        fee: orderData.region?.fee || 0,
+      },
+      deliveryType: orderData.deliveryType,
+      orderNote: orderData.orderNote,
+      items: orderData.cartItems,
+      subTotal: orderData.subTotal,
+      discount: orderData.discount,
+      deliveryFee: orderData.deliveryFee,
+      total: orderData.total,
+      promoCode: orderData.promoCode,
+      paymentMethod: orderData.paymentMethod,
+      paymentReference: orderData.paymentReference,
+      paymentStatus: orderData.paymentStatus,
+      status: "Confirmed",
+      statusHistory: [{ status: "Confirmed", date: new Date() }],
     });
 
-    const itemRowsHtml = orderData.cartItems
-      .map(
-        (item) => `
-        <tr>
-          <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; vertical-align:top;">${item.name}</td>
-          <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:center; vertical-align:top;">${item.quantity}</td>
-          <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; vertical-align:top;">&#x20A6;${Number(item.price).toLocaleString()}</td>
-          ${hasColor ? `<td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:center; vertical-align:top;">${item.color || "-"}</td>` : ""}
-          <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#333333; text-align:right; vertical-align:top;">&#x20A6;${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
-        </tr>`
-      )
-      .join("");
+    console.log(`Webhook: order ${order._id} created for ${reference}`);
+  } catch (err) {
+    console.error("Webhook: order save failed", err);
+    // Return 200 so Paystack doesn't keep retrying
+    return NextResponse.json({ received: true });
+  }
 
-    const itemsTableHeader = `
-      <tr style="background-color:#0fa968;">
-        <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:left; border:none;">Item</th>
-        <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:center; border:none; white-space:nowrap;">Qty</th>
-        <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:right; border:none; white-space:nowrap;">Unit Price</th>
-        ${hasColor ? `<th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:center; border:none;">Color</th>` : ""}
-        <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:right; border:none; white-space:nowrap;">Total</th>
-      </tr>`;
+  // ── 6. Build email content (identical to verify-payment) ─────────────────
+  const hasColor = orderData.cartItems.some((item) => item.color);
+  const regionName = orderData.region?.name || orderData.region || "";
+  const orderedAt = new Date().toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-    const summaryRowsHtml = `
+  const itemRowsHtml = orderData.cartItems
+    .map(
+      (item) => `
       <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#555566;">Subtotal</td>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#333333; text-align:right;">&#x20A6;${Number(orderData.subTotal).toLocaleString()}</td>
-          </tr></table>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#555566;">Delivery Fee</td>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#333333; text-align:right;">&#x20A6;${Number(orderData.deliveryFee).toLocaleString()}</td>
-          </tr></table>
-        </td>
-      </tr>
-      ${orderData.discount > 0 ? `
-      <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#0a7a4a; font-weight:600;">Discount</td>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#0a7a4a; font-weight:600; text-align:right;">-&#x20A6;${Number(orderData.discount).toLocaleString()}</td>
-          </tr></table>
-        </td>
-      </tr>` : ""}
-      ${orderData.promoCode ? `
-      <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#555566;">Promo Code</td>
-            <td style="text-align:right;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right"><tr>
-                <td style="background-color:#f0faf5; color:#0a7a4a; padding:3px 12px; border-radius:10px; font-family:'Courier New',Courier,monospace; font-size:12px; font-weight:700; border:1px dashed #0a7a4a;">${orderData.promoCode}</td>
-              </tr></table>
-            </td>
-          </tr></table>
-        </td>
-      </tr>` : ""}
-      <tr>
-        <td style="padding:16px 0 4px 0;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:17px; font-weight:700; color:#0a7a4a;">Total Amount</td>
-            <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:20px; font-weight:800; color:#0a7a4a; text-align:right;">&#x20A6;${Number(orderData.total).toLocaleString()}</td>
-          </tr></table>
-        </td>
-      </tr>`;
+        <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; vertical-align:top;">${item.name}</td>
+        <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:center; vertical-align:top;">${item.quantity}</td>
+        <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; vertical-align:top;">&#x20A6;${Number(item.price).toLocaleString()}</td>
+        ${hasColor ? `<td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:center; vertical-align:top;">${item.color || "-"}</td>` : ""}
+        <td style="padding:12px 10px; border-bottom:1px solid #e8e8ee; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#333333; text-align:right; vertical-align:top;">&#x20A6;${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
+      </tr>`
+    )
+    .join("");
 
-    const emailHead = (title) => `
+  const itemsTableHeader = `
+    <tr style="background-color:#0fa968;">
+      <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:left; border:none;">Item</th>
+      <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:center; border:none; white-space:nowrap;">Qty</th>
+      <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:right; border:none; white-space:nowrap;">Unit Price</th>
+      ${hasColor ? `<th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:center; border:none;">Color</th>` : ""}
+      <th style="padding:12px 10px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#ffffff; text-align:right; border:none; white-space:nowrap;">Total</th>
+    </tr>`;
+
+  const summaryRowsHtml = `
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#555566;">Subtotal</td>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#333333; text-align:right;">&#x20A6;${Number(orderData.subTotal).toLocaleString()}</td>
+        </tr></table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#555566;">Delivery Fee</td>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#333333; text-align:right;">&#x20A6;${Number(orderData.deliveryFee).toLocaleString()}</td>
+        </tr></table>
+      </td>
+    </tr>
+    ${orderData.discount > 0 ? `
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#0a7a4a; font-weight:600;">Discount</td>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; color:#0a7a4a; font-weight:600; text-align:right;">-&#x20A6;${Number(orderData.discount).toLocaleString()}</td>
+        </tr></table>
+      </td>
+    </tr>` : ""}
+    ${orderData.promoCode ? `
+    <tr>
+      <td style="padding:8px 0; border-bottom:1px solid #e8f5e9;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#555566;">Promo Code</td>
+          <td style="text-align:right;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right"><tr>
+              <td style="background-color:#f0faf5; color:#0a7a4a; padding:3px 12px; border-radius:10px; font-family:'Courier New',Courier,monospace; font-size:12px; font-weight:700; border:1px dashed #0a7a4a;">${orderData.promoCode}</td>
+            </tr></table>
+          </td>
+        </tr></table>
+      </td>
+    </tr>` : ""}
+    <tr>
+      <td style="padding:16px 0 4px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:17px; font-weight:700; color:#0a7a4a;">Total Amount</td>
+          <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:20px; font-weight:800; color:#0a7a4a; text-align:right;">&#x20A6;${Number(orderData.total).toLocaleString()}</td>
+        </tr></table>
+      </td>
+    </tr>`;
+
+  const emailHead = (title) => `
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -387,30 +228,30 @@ export async function POST(req) {
 </head>
 <body style="margin:0; padding:0; background-color:#f0f2f5;">`;
 
-    const wrapOpen  = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;"><tr><td align="center" style="padding:28px 10px;"><table class="email-card" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">`;
-    const wrapClose = `</table><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:20px 0;">&nbsp;</td></tr></table></td></tr></table></body></html>`;
+  const wrapOpen = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;"><tr><td align="center" style="padding:28px 10px;"><table class="email-card" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">`;
+  const wrapClose = `</table><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:20px 0;">&nbsp;</td></tr></table></td></tr></table></body></html>`;
 
-    const sharedFooter = `
-      <tr>
-        <td style="background-color:#f2f3f5; padding:26px 40px; border-top:1px solid #e2e2ea;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="text-align:center; padding-bottom:4px;">
-              <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#1a1a2e;">The FIL Team</p>
-            </td></tr>
-            <tr><td style="text-align:center; padding-bottom:14px;">
-              <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-style:italic; color:#0fa968;">Think Quality, Think FIL.</p>
-            </td></tr>
-            <tr><td style="text-align:center;">
-              <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#666677;">
-                Visit us at <a href="https://filstore.com.ng" target="_blank" style="color:#0fa968; text-decoration:none; font-weight:600;">filstore.com.ng</a>
-              </p>
-            </td></tr>
-          </table>
-        </td>
-      </tr>`;
+  const sharedFooter = `
+    <tr>
+      <td style="background-color:#f2f3f5; padding:26px 40px; border-top:1px solid #e2e2ea;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="text-align:center; padding-bottom:4px;">
+            <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#1a1a2e;">The FIL Team</p>
+          </td></tr>
+          <tr><td style="text-align:center; padding-bottom:14px;">
+            <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-style:italic; color:#0fa968;">Think Quality, Think FIL.</p>
+          </td></tr>
+          <tr><td style="text-align:center;">
+            <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#666677;">
+              Visit us at <a href="https://filstore.com.ng" target="_blank" style="color:#0fa968; text-decoration:none; font-weight:600;">filstore.com.ng</a>
+            </p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>`;
 
-    // ── CUSTOMER EMAIL ────────────────────────────────────────────────────────
-    const customerEmailHtml = `
+  // ── Customer Email HTML ───────────────────────────────────────────────────
+  const customerEmailHtml = `
 ${emailHead(`Order Confirmed - FIL Store`)}
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
     Your FIL Store order is confirmed! Order #${order._id} &mdash; we&rsquo;re preparing it now. &#127881;
@@ -487,8 +328,8 @@ ${emailHead(`Order Confirmed - FIL Store`)}
     ${sharedFooter}
   ${wrapClose}`;
 
-    // ── ADMIN EMAIL ───────────────────────────────────────────────────────────
-    const adminEmailHtml = `
+  // ── Admin Email HTML ──────────────────────────────────────────────────────
+  const adminEmailHtml = `
 ${emailHead(`New Order - FIL Admin`)}
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
     New order from ${orderData.firstName} ${orderData.lastName || ""} &mdash; Order #${order._id} &mdash; &#x20A6;${Number(orderData.total).toLocaleString()}
@@ -582,58 +423,34 @@ ${emailHead(`New Order - FIL Admin`)}
     ${sharedFooter}
   ${wrapClose}`;
 
-    // ── Plain text ────────────────────────────────────────────────────────────
-    const itemList = orderData.cartItems
-      .map((item) => `  - ${item.name} x${item.quantity}  NGN ${Number(item.price).toLocaleString()}  =  NGN ${(Number(item.price) * Number(item.quantity)).toLocaleString()}`)
-      .join("\n");
+  // ── Plain text versions ───────────────────────────────────────────────────
+  const itemList = orderData.cartItems
+    .map(
+      (item) =>
+        `  - ${item.name} x${item.quantity}  NGN ${Number(item.price).toLocaleString()}  =  NGN ${(Number(item.price) * Number(item.quantity)).toLocaleString()}`
+    )
+    .join("\n");
 
-    const customerPlainText = `Hi ${orderData.firstName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}\nCity         : ${orderData.city}\nRegion       : ${regionName}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
+  const customerPlainText = `Hi ${orderData.firstName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}\nCity         : ${orderData.city}\nRegion       : ${regionName}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
 
-    const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}, ${orderData.city}, ${regionName}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items\n3. Arrange delivery to ${orderData.city}, ${regionName}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
+  const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}, ${orderData.city}, ${regionName}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items\n3. Arrange delivery to ${orderData.city}, ${regionName}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
 
-    // ── Send emails ───────────────────────────────────────────────────────────
-    try {
-      await Promise.all([
-        sendEmail(
-          orderData.email,
-          `Order Confirmed - FIL Store (#${order._id})`,
-          customerPlainText,
-          customerEmailHtml
-        ),
-        sendEmail(
-          process.env.ADMIN_EMAIL,
-          `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
-          adminPlainText,
-          adminEmailHtml
-        ),
-      ]);
-      console.log("Emails sent successfully");
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-    }
+  // ── 7. Send emails (fire-and-forget — never block the 200 response) ───────
+  Promise.all([
+    sendEmail(
+      orderData.email,
+      `Order Confirmed - FIL Store (#${order._id})`,
+      customerPlainText,
+      customerEmailHtml
+    ),
+    sendEmail(
+      process.env.ADMIN_EMAIL,
+      `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
+      adminPlainText,
+      adminEmailHtml
+    ),
+  ]).catch((err) => console.error("Webhook: email sending failed", err));
 
-    return Response.json({
-      verified: true,
-      message: "Payment verified and order created successfully",
-      provider: verificationData.provider,
-      orderData,
-      order,
-    });
-
-  } catch (error) {
-    console.error("Verification Error:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
-
-    return Response.json(
-      {
-        message: "Verification failed",
-        error: error.message,
-        details: error.response?.data,
-      },
-      { status: 500 }
-    );
-  }
+  // ── 8. Respond 200 immediately ────────────────────────────────────────────
+  return NextResponse.json({ received: true });
 }
