@@ -185,17 +185,21 @@ const CartPage = () => {
               </a>
               {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
                 <div className="mt-2">
-                  <select
-                    value={item.color}
-                    onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
-                    className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
-                  >
+                  <div className="flex items-center gap-2">
                     {productDetails[item._id].colors.map((color) => (
-                      <option key={color.name} value={color.name}>
-                        {color.name}
-                      </option>
+                      <button
+                        key={color.name}
+                        className={`w-14 h-8 rounded-md transition-all ${
+                          item.color === color.name
+                            ? "ring-2 ring-gray-400 ring-offset-4"
+                            : "ring-0"
+                        }`}
+                        style={{ backgroundColor: color.name.toLowerCase() }}
+                        onClick={() => handleColorChange(item._id, item.color, color.name)}
+                        title={color.name}
+                      />
                     ))}
-                  </select>
+                  </div>
                 </div>
               )}
               {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
@@ -269,17 +273,21 @@ const CartPage = () => {
               </a>
               {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
                 <div className="mt-2">
-                  <select
-                    value={item.color}
-                    onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
-                    className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
-                  >
+                  <div className="flex items-center gap-2">
                     {productDetails[item._id].colors.map((color) => (
-                      <option key={color.name} value={color.name}>
-                        {color.name}
-                      </option>
+                      <button
+                        key={color.name}
+                        className={`w-14 h-8 rounded-md transition-all ${
+                          item.color === color.name
+                            ? "ring-2 ring-gray-400 ring-offset-4"
+                            : "ring-0"
+                        }`}
+                        style={{ backgroundColor: color.name.toLowerCase() }}
+                        onClick={() => handleColorChange(item._id, item.color, color.name)}
+                        title={color.name}
+                      />
                     ))}
-                  </select>
+                  </div>
                 </div>
               )}
               {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
