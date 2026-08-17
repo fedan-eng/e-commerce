@@ -8,7 +8,8 @@ const VerifyEmailPage = () => {
         <VerifyEmailContent />
       </Suspense>
     </div>
-  );
+  ); 
 };
+
 
 export default VerifyEmailPage;
