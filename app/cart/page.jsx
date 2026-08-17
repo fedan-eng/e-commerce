@@ -169,43 +169,40 @@ const CartPage = () => {
       <div key={`${item._id}-${item.color || "default"}`}>
         {/* Desktop row */}
         <div className="hidden sm:grid items-center gap-4 grid-cols-[minmax(200px,1fr)_140px_100px_100px_40px] py-6 border-b border-[#e5e5e5] last:border-b-0">
-          <a href={`/products/${item._id}`}>
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[70px] h-[70px]">
-                <ProductImage
-                  src={item.image}
-                  alt={item.name}
-                  width={56}
-                  height={56}
-                  className="w-[56px] h-[56px] object-contain"
-                />
-              </div>
-              <div className="min-w-0">
-                <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
-                  {item.name}
-                </p>
-                {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
-                  <div className="mt-2">
-                    <select
-                      value={item.color}
-                      onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
-                    >
-                      {productDetails[item._id].colors.map((color) => (
-                        <option key={color.name} value={color.name}>
-                          {color.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
-                  <p className="text-[#767676] text-xs mt-1">{item.color}</p>
-                )}
-              </div>
+          <div className="flex items-center gap-4 min-w-0">
+            <a href={`/products/${item._id}`} className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[70px] h-[70px]">
+              <ProductImage
+                src={item.image}
+                alt={item.name}
+                width={56}
+                height={56}
+                className="w-[56px] h-[56px] object-contain"
+              />
+            </a>
+            <div className="min-w-0">
+              <a href={`/products/${item._id}`} className="min-w-0 font-medium text-sm text-dark line-clamp-2 hover:text-filgreen transition-colors">
+                {item.name}
+              </a>
+              {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                <div className="mt-2">
+                  <select
+                    value={item.color}
+                    onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                    className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
+                  >
+                    {productDetails[item._id].colors.map((color) => (
+                      <option key={color.name} value={color.name}>
+                        {color.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
+                <p className="text-[#767676] text-xs mt-1">{item.color}</p>
+              )}
             </div>
-          </a>
+          </div>
 
           <div className="flex items-center justify-center gap-1 border border-[#d9d9d9] rounded-md w-fit mx-auto">
             <button
@@ -256,46 +253,43 @@ const CartPage = () => {
 
         {/* Mobile row */}
         <div className="flex flex-col py-5 sm:hidden border-b border-[#e5e5e5] last:border-b-0">
-          <a href={`/products/${item._id}`}>
-            <div className="flex flex-row gap-4">
-              <div className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[65px] h-[65px]">
-                <ProductImage
-                  src={item.image}
-                  alt={item.name}
-                  width={56}
-                  height={56}
-                  className="w-[56px] h-[56px] object-contain"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="min-w-0 font-medium text-sm text-dark line-clamp-2">
-                  {item.name}
-                </p>
-                {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
-                  <div className="mt-2">
-                    <select
-                      value={item.color}
-                      onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
-                    >
-                      {productDetails[item._id].colors.map((color) => (
-                        <option key={color.name} value={color.name}>
-                          {color.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
-                  <p className="text-[#767676] text-xs mt-1">{item.color}</p>
-                )}
-                <span className="text-dark text-sm font-medium block mt-1">
-                  {formatAmount(item.price)}
-                </span>
-              </div>
+          <div className="flex flex-row gap-4">
+            <a href={`/products/${item._id}`} className="flex flex-shrink-0 justify-center items-center bg-[#f6f6f6] rounded-md w-[65px] h-[65px]">
+              <ProductImage
+                src={item.image}
+                alt={item.name}
+                width={56}
+                height={56}
+                className="w-[56px] h-[56px] object-contain"
+              />
+            </a>
+            <div className="min-w-0 flex-1">
+              <a href={`/products/${item._id}`} className="min-w-0 font-medium text-sm text-dark line-clamp-2 hover:text-filgreen transition-colors">
+                {item.name}
+              </a>
+              {item.color && productDetails[item._id]?.colors && productDetails[item._id].colors.length > 1 && (
+                <div className="mt-2">
+                  <select
+                    value={item.color}
+                    onChange={(e) => handleColorChange(item._id, item.color, e.target.value)}
+                    className="text-xs bg-[#f6f6f6] border border-[#d9d9d9] rounded-full px-3 py-1.5 outline-0 cursor-pointer hover:border-[#1cc978] transition-colors"
+                  >
+                    {productDetails[item._id].colors.map((color) => (
+                      <option key={color.name} value={color.name}>
+                        {color.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {item.color && (!productDetails[item._id]?.colors || productDetails[item._id].colors.length <= 1) && (
+                <p className="text-[#767676] text-xs mt-1">{item.color}</p>
+              )}
+              <span className="text-dark text-sm font-medium block mt-1">
+                {formatAmount(item.price)}
+              </span>
             </div>
-          </a>
+          </div>
           <div className="flex mt-4 flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-1 border border-[#d9d9d9] rounded-md flex-1">
               <button
