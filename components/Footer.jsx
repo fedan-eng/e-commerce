@@ -330,6 +330,7 @@ const Footer = () => {
       const data = await res.json();
       alert(data.message);
       setEmail("");
+      localStorage.setItem("fil_promo_seen", "true");
       setIsOverlayOpen(false);
     } catch (error) {
       alert("Failed to subscribe. Try again!");
