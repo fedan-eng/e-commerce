@@ -34,7 +34,9 @@ export async function POST(req) {
     verificationTokenExpiry,
   });
 
-  const verificationLink = `https://filstore.com.ng/verify-email?token=${verificationToken}`;
+  const origin = req.headers.get("origin") || req.headers.get("host") || "https://filstore.com.ng";
+  const baseUrl = origin.startsWith("http") ? origin : `https://${origin}`;
+  const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}`;
 
   const emailHtml = `
 <!DOCTYPE html>
