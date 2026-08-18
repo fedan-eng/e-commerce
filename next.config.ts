@@ -40,6 +40,10 @@ const nextConfig: NextConfig = {
         hostname: "pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev",
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
 
   // Redirect www to non-www
@@ -72,6 +76,10 @@ const nextConfig: NextConfig = {
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },

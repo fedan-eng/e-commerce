@@ -254,6 +254,7 @@ function ProductListInner() {
                       fill
                       sizes="(max-width: 768px) 100px, 200px"
                       priority={index < 6}
+                      quality={85}
                       containerClassName="mx-auto w-[80px] s:w-[100px] sm:w-[150px] h-[100px] s:h-[150px] sm:h-[180px]"
                     />
 
@@ -309,6 +310,7 @@ function ProductListInner() {
                       alt="Latest Tech Deal"
                       fill
                       priority
+                      quality={85}
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="w-full h-full object-cover"
                     />

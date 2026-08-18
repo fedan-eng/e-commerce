@@ -78,6 +78,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
               fill
               sizes="(max-width: 768px) 100vw, 480px"
               priority
+              quality={90}
               containerClassName="w-full h-full"
               imageClassName={`object-contain transition-transform duration-300 ease-out ${
                 isZoomed ? "scale-[2]" : "scale-100"
@@ -180,6 +181,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
               loading="lazy"
               sizes="65px"
               quality={75}
+              priority={false}
             />
           </button>
         ))}

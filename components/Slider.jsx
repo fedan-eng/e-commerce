@@ -55,7 +55,8 @@ const Slider = () => {
               animate={idx === activeImage ? { scale: 1 } : {}}
               transition={{ duration: 3 }}
               priority={idx === 0}
-              unoptimized
+              quality={90}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
             />
           </motion.div>
         ))}
