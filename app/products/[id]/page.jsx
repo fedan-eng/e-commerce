@@ -3,7 +3,7 @@ import ProductDetailsPage from "./ProductDetailsPage";
 async function fetchProduct(id) {
   try {
     const res = await fetch(`https://www.filstore.com.ng/api/products/${id}`, {
-      cache: "no-store",
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
     const json = await res.json();
     return json.product || json;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { ChevronLeft, ChevronRight, Share, CheckCircle, Zap, Shield, AlertTriangle, Usb, Truck, Info } from "lucide-react";
 import { ProductImage } from "@/components/ProductImage";
 import WishlistButtonPD from "@/components/WishlistButtonPD";
@@ -28,6 +28,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
   const [selectedImageId, setSelectedImageId] = useState("main");
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [isPending, startTransition] = useTransition();
 
   // Map all images from all colors into the carousel with unique IDs
   const colorImages = product.colors?.flatMap((color, colorIdx) =>
@@ -163,8 +164,10 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
           <button
             key={img.id}
             onClick={() => {
-              setSelectedImageId(img.id);
-              setIsZoomed(false);
+              startTransition(() => {
+                setSelectedImageId(img.id);
+                setIsZoomed(false);
+              });
             }}
             className={`w-[65px] bg-[#fafafa] h-[65px] flex-shrink-0 rounded-lg border-2 overflow-hidden p-1.5 transition-all ${
               selectedImageId === img.id

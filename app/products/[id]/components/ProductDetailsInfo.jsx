@@ -142,6 +142,7 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
                 width={20}
                 height={20}
                 className="w-5 h-5 object-contain"
+                quality={75}
               />
               <p className="text-sm text-gray-700">{point.text}</p>
             </div>
@@ -161,6 +162,7 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
             height={40}
             src="/paystack.png"
             alt="paystack"
+            quality={75}
           />
         </div>
       </div>

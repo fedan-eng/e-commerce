@@ -18,12 +18,14 @@ import Link from "next/link";
 import Image from "next/image";
 import CheckoutModal from "@/components/CheckoutModal";
 
-// Lazy load heavy components
-const ProductGallery = lazy(() => import("./components/ProductGallery"));
-const ProductDetailsInfo = lazy(() => import("./components/ProductDetailsInfo"));
+// Lazy load non-critical components only
 const ProductVideos = lazy(() => import("./components/ProductVideos"));
 const ProductReviews = lazy(() => import("./components/ProductReviews"));
 const RelatedProductsSection = lazy(() => import("./RelatedProductsSection"));
+
+// Critical components for LCP - load immediately
+import ProductGallery from "./components/ProductGallery";
+import ProductDetailsInfo from "./components/ProductDetailsInfo";
 
 
 
@@ -68,7 +70,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("GA tracking failed:", err);
       }
-    }, 2000);
+    }, 3000); // Increased to 3s
     return () => clearTimeout(timer);
   }, [product?._id, product?.name, product?.price]);
 
@@ -82,7 +84,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("Meta Pixel tracking failed:", err);
       }
-    }, 2500);
+    }, 3500); // Increased to 3.5s
     return () => clearTimeout(timer);
   }, [product?._id, product]);
 
@@ -96,7 +98,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("TikTok tracking failed:", err);
       }
-    }, 3000);
+    }, 4000); // Increased to 4s
     return () => clearTimeout(timer);
   }, [product?._id, product]);
 
@@ -114,35 +116,39 @@ export default function ProductDetailsPage({ product: productProp }) {
     }
   }, [product?._id, dispatch]);
 
-  // ── Fetch Related Products ─────────────────────────────────────────────────
+  // ── Fetch Related Products (Deferred) ─────────────────────────────────────
   useEffect(() => {
     if (!product?._id) return;
-    const abortController = new AbortController();
-    const fetchRelated = async () => {
-      try {
-        const res = await axios.get(`/api/products/${product._id}/related`, {
-          signal: abortController.signal
-        });
-        setRelatedProducts(res.data?.related || []);
-      } catch (err) {
-        if (err.name !== 'CanceledError') {
-          try {
-            const res = await axios.get(
-              `/api/products?category=${encodeURIComponent(product.category)}&limit=6`,
-              { signal: abortController.signal }
-            );
-            const items = res.data?.products || res.data || [];
-            setRelatedProducts(
-              items.filter((p) => p._id !== product._id).slice(0, 5),
-            );
-          } catch {
-            setRelatedProducts([]);
+    // Defer related products fetch to reduce blocking time
+    const timer = setTimeout(() => {
+      const abortController = new AbortController();
+      const fetchRelated = async () => {
+        try {
+          const res = await axios.get(`/api/products/${product._id}/related`, {
+            signal: abortController.signal
+          });
+          setRelatedProducts(res.data?.related || []);
+        } catch (err) {
+          if (err.name !== 'CanceledError') {
+            try {
+              const res = await axios.get(
+                `/api/products?category=${encodeURIComponent(product.category)}&limit=6`,
+                { signal: abortController.signal }
+              );
+              const items = res.data?.products || res.data || [];
+              setRelatedProducts(
+                items.filter((p) => p._id !== product._id).slice(0, 5),
+              );
+            } catch {
+              setRelatedProducts([]);
+            }
           }
         }
-      }
-    };
-    fetchRelated();
-    return () => abortController.abort();
+      };
+      fetchRelated();
+      return () => abortController.abort();
+    }, 1500); // Defer by 1.5s
+    return () => clearTimeout(timer);
   }, [product?._id, product.category]);
 
   // ── ESC Key for Full View ──────────────────────────────────────────────────
@@ -251,23 +257,19 @@ export default function ProductDetailsPage({ product: productProp }) {
 
       {/* ── Product Section ── */}
       <div className="md:flex gap-3 border-dashed border-b-3 border-gray-200 md:py-5 nav:gap-6">
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductGallery 
-            product={product} 
-            selectedColor={selectedColor}
-            onFullViewImage={setFullViewImage}
-            onShareModal={setShowShareModal}
-          />
-        </Suspense>
+        <ProductGallery
+          product={product}
+          selectedColor={selectedColor}
+          onFullViewImage={setFullViewImage}
+          onShareModal={setShowShareModal}
+        />
 
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductDetailsInfo 
-            product={product}
-            selectedColor={selectedColor}
-            onColorChange={setSelectedColor}
-            onBuyNow={handleBuyNow}
-          />
-        </Suspense>
+        <ProductDetailsInfo
+          product={product}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          onBuyNow={handleBuyNow}
+        />
       </div>
 
       {/* ── Product Videos ── */}
@@ -306,6 +308,8 @@ export default function ProductDetailsPage({ product: productProp }) {
                   height={400}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   loading="lazy"
+                  quality={80}
+                  sizes="(max-width: 768px) 50vw, 25vw"
                 />
                 <button
                   onClick={() => setFullViewImage(img.url)}
@@ -439,6 +443,8 @@ export default function ProductDetailsPage({ product: productProp }) {
               width={1200}
               height={1200}
               className="max-w-full max-h-[90vh] object-contain"
+              quality={90}
+              priority
             />
           </div>
         </div>
