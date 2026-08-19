@@ -1,0 +1,121 @@
+[
+  {
+    "id": "1",
+    "slug": "how-to-spot-fake-power-bank",
+    "title": "How to Spot a Fake Power Bank Before It Drains Your Wallet",
+    "excerpt": "Not every power bank with '20,000mAh' on the box can actually deliver it. Learn the signs of genuine products, understand the specs that matter, and avoid the costly mistakes many buyers make.",
+    "category": "Buyer's Guide",
+    "categoryTag": "power-banks",
+    "image": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80",
+    "author": {
+      "name": "The Team FIL",
+      "avatar": "https://ui-avatars.com/api/?name=FIL&background=22c55e&color=fff"
+    },
+    "date": "2025-06-03",
+    "readTime": "5 min read",
+    "views": 4100,
+    "featured": true
+  },
+  {
+    "id": "2",
+    "slug": "best-earbuds-under-30000",
+    "title": "Best EarPods Under N30,000",
+    "excerpt": "Privacy, battery life and noise cancellation — these ear pods offer the best value this year.",
+    "category": "Accessories",
+    "categoryTag": "accessories",
+    "image": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80",
+    "author": {
+      "name": "Sumbel",
+      "avatar": "https://ui-avatars.com/api/?name=S&background=6366f1&color=fff"
+    },
+    "date": "2025-08-01",
+    "readTime": "4 min read",
+    "views": 2340,
+    "featured": false
+  },
+  {
+    "id": "3",
+    "slug": "usb-c-not-always-fast-charging",
+    "title": "USB-C Isn't Always Fast Charging — Here's Why",
+    "excerpt": "Every USB-C cable looks the same, but they don't perform the same. Learn the difference between charging cables and data cables.",
+    "category": "Charging 101",
+    "categoryTag": "charging-101",
+    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+    "author": {
+      "name": "Tife",
+      "avatar": "https://ui-avatars.com/api/?name=T&background=f59e0b&color=fff"
+    },
+    "date": "2025-07-28",
+    "readTime": "6 min read",
+    "views": 3100,
+    "featured": false
+  },
+  {
+    "id": "4",
+    "slug": "customer-wanted-10000mah",
+    "title": "A Customer Wanted 10,000mAh N30,000",
+    "excerpt": "Funny stories from the shop that teach real buying lessons.",
+    "category": "Reviews",
+    "categoryTag": "reviews",
+    "image": "https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=800&q=80",
+    "author": {
+      "name": "Chiamaka",
+      "avatar": "https://ui-avatars.com/api/?name=C&background=ec4899&color=fff"
+    },
+    "date": "2025-07-25",
+    "readTime": "3 min read",
+    "views": 1870,
+    "featured": false
+  },
+  {
+    "id": "5",
+    "slug": "truth-about-cheap-chargers",
+    "title": "The Truth About Cheap Chargers",
+    "excerpt": "That N4,000 charger could cost you a N650,000 phone. Here's what happens inside cheap chargers.",
+    "category": "Charging 101",
+    "categoryTag": "charging-101",
+    "image": "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800&q=80",
+    "author": {
+      "name": "Tife",
+      "avatar": "https://ui-avatars.com/api/?name=T&background=f59e0b&color=fff"
+    },
+    "date": "2025-07-20",
+    "readTime": "5 min read",
+    "views": 5200,
+    "featured": false
+  },
+  {
+    "id": "6",
+    "slug": "top-3-power-banks-2026",
+    "title": "Top 3 Power Banks We Actually Recommend in 2026",
+    "excerpt": "We tested capacity, charging speed, build quality and value for money. These are our favourites.",
+    "category": "Power Banks",
+    "categoryTag": "power-banks",
+    "image": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80",
+    "author": {
+      "name": "Damtee",
+      "avatar": "https://ui-avatars.com/api/?name=D&background=14b8a6&color=fff"
+    },
+    "date": "2025-07-14",
+    "readTime": "7 min read",
+    "views": 6800,
+    "featured": false
+  },
+  {
+    "id": "7",
+    "slug": "why-power-bank-charges-slowly",
+    "title": "Why Your Power Bank Charges Slowly (And How to Fix It)",
+    "excerpt": "Think your power bank is faulty? Sometimes it's the cable, charging brick, or even the temperature. Here's how to troubleshoot before buying a new one.",
+    "category": "Save Life",
+    "categoryTag": "save-life",
+    "image": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80",
+    "author": {
+      "name": "Chiamaka",
+      "avatar": "https://ui-avatars.com/api/?name=C&background=ec4899&color=fff"
+    },
+    "date": "2025-07-07",
+    "readTime": "5 min read",
+    "views": 3400,
+    "featured": false
+  }
+]
