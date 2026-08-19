@@ -123,7 +123,7 @@ const Footer = () => {
   const noNavigationMenu = staticPaths.includes(pathname);
 
   // ✅ Constants declared FIRST so they're available in effects below
-  const CART_SIZE = 56;
+  const CART_SIZE = 72;
   const CART_MARGIN = 24;
 
   const ELEM_WIDTH = 120;
@@ -490,40 +490,43 @@ const Footer = () => {
       )}
 
       {/* ✅ Draggable Cart FAB — OUTSIDE footer so nothing clips it */}
-      {hasMounted && !isMobileMenuOpen && (
-        <div
-          ref={cartRef}
-          onPointerDown={onCartPointerDown}
-          onPointerMove={onCartPointerMove}
-          onPointerUp={onCartPointerUp}
-          style={{
-            position: "fixed",
-            left: cartPos.x,
-            top: cartPos.y,
-            width: CART_SIZE,
-            height: CART_SIZE,
-            overflow: "visible",
-            transition:
-              cartSnapped && !cartIsDragging
-                ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-                : "none",
-            userSelect: "none",
-            touchAction: "none",
-            zIndex: 60,
-            cursor: cartIsDragging ? "grabbing" : "grab",
-          }}
-          className="flex justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
-          role="button"
-          aria-label="Open cart"
-        >
-          <ShoppingBag size={24} strokeWidth={2} className="text-white" />
-          {totalItems > 0 && (
-            <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
-              {totalItems}
-            </span>
-          )}
-        </div>
-      )}
+{hasMounted && !isMobileMenuOpen && (
+  <div
+    ref={cartRef}
+    onPointerDown={onCartPointerDown}
+    onPointerMove={onCartPointerMove}
+    onPointerUp={onCartPointerUp}
+    style={{
+      position: "fixed",
+      left: cartPos.x,
+      top: cartPos.y,
+      width: CART_SIZE,
+      height: CART_SIZE,
+      overflow: "visible",
+      transition:
+        cartSnapped && !cartIsDragging
+          ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+          : "none",
+      userSelect: "none",
+      touchAction: "none",
+      zIndex: 60,
+      cursor: cartIsDragging ? "grabbing" : "grab",
+    }}
+    className="flex flex-col justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
+    role="button"
+    aria-label="Open cart"
+  >
+   <ShoppingBag size={18} strokeWidth={2} className="text-white" />
+<span className="text-white text-[8px] font-bold leading-tight text-center mt-0.5 px-1">
+  Check Out Now!
+</span>
+    {totalItems > 0 && (
+      <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
+        {totalItems}
+      </span>
+    )}
+  </div>
+)}
 
       <footer className="bg-black pt-9">
 

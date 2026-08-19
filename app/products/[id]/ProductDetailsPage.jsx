@@ -192,8 +192,21 @@ export default function ProductDetailsPage({ product: productProp }) {
   // ── Guards ─────────────────────────────────────────────────────────────────
   if (loading)
     return (
-      <div className="h-screen">
-        <Loading />
+      <div className="min-h-screen">
+        <div className="max-w-[1140px] mx-auto p-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="md:flex gap-3">
+              <div className="md:flex-1 h-[400px] bg-gray-200 rounded-lg"></div>
+              <div className="md:flex-1 space-y-3">
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   if (error) return <p className="text-red-500">{error}</p>;
@@ -273,13 +286,22 @@ export default function ProductDetailsPage({ product: productProp }) {
       </div>
 
       {/* ── Product Videos ── */}
-      <Suspense fallback={<div className="h-[200px] bg-gray-100 animate-pulse mx-5 mt-8" />}>
+      <Suspense fallback={<div className="h-[200px] bg-gray-100 animate-pulse mx-5 mt-8 rounded-lg" />}>
         <ProductVideos videos={product.videos} />
       </Suspense>
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (
-        <Suspense fallback={<div className="h-[300px] bg-gray-100 animate-pulse mt-14" />}>
+        <Suspense fallback={
+          <div className="mt-14 mx-5">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+            <div className="flex gap-4 overflow-hidden">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="w-[200px] h-[250px] bg-gray-100 rounded-lg animate-pulse flex-shrink-0"></div>
+              ))}
+            </div>
+          </div>
+        }>
           <RelatedProductsSection relatedProducts={relatedProducts} product={product} />
         </Suspense>
       )}
@@ -335,7 +357,16 @@ export default function ProductDetailsPage({ product: productProp }) {
       </section>
 
       {/* ── Product Reviews ── */}
-      <Suspense fallback={<div className="h-[400px] bg-gray-100 animate-pulse my-20" />}>
+      <Suspense fallback={
+        <div className="my-20 mx-5">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6 animate-pulse"></div>
+          <div className="space-y-4">
+            {[1,2,3].map(i => (
+              <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      }>
         <ProductReviews product={product} user={user} id={id} />
       </Suspense>
 
