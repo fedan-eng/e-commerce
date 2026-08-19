@@ -7,7 +7,7 @@ import Accordion from "./Accordion";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
@@ -40,7 +40,6 @@ const items = [
     title: "OUR STORES",
     content: (
       <ul className="space-y-6">
-        {/* Alaba Branch */}
         <li>
           <p className="mb-1 font-medium text-filgreen uppercase text-[10px]">
             Alaba Branch
@@ -57,7 +56,6 @@ const items = [
           </a>
         </li>
 
-        {/* Ikeja Branch */}
         <li>
           <p className="mb-1 font-medium text-filgreen uppercase text-[10px]">
             Ikeja Branch
@@ -122,15 +120,15 @@ const Footer = () => {
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
-  // ✅ Constants declared FIRST so they're available in effects below
-  const CART_SIZE = 72;
+  // ✅ Constants
+  const CART_SIZE = 96; // ⬅️ enlarged to fit "Check Out Now!" label
   const CART_MARGIN = 24;
 
   const ELEM_WIDTH = 120;
   const ELEM_HEIGHT = 48;
   const SNAP_PEEK = 35;
 
-  // ✅ ALL hooks at the top — before any early returns
+  // ✅ All hooks
   const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     return !localStorage.getItem("fil_promo_seen");
@@ -144,7 +142,6 @@ const Footer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [snapped, setSnapped] = useState(true);
 
-  // Cart FAB drag state
   const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
   const [cartSide, setCartSide] = useState("right");
   const [cartIsDragging, setCartIsDragging] = useState(false);
@@ -175,7 +172,6 @@ const Footer = () => {
     dragged: false,
   });
 
-  // ✅ Mark mounted & initialize cart position on right side (fully visible)
   useEffect(() => {
     setHasMounted(true);
     const initialX = window.innerWidth - CART_SIZE - CART_MARGIN;
@@ -183,7 +179,6 @@ const Footer = () => {
     cartDragState.current.startElemX = initialX;
   }, []);
 
-  // ✅ Keep cart on-screen on window resize
   useEffect(() => {
     const handleResize = () => {
       setCartPos((prev) => {
@@ -199,20 +194,15 @@ const Footer = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Detect mobile menu open state by checking body overflow
   useEffect(() => {
     const checkMenuOpen = () => {
       setIsMobileMenuOpen(document.body.style.overflow === "hidden");
     };
-    
-    // Check initially and on interval (since Navbar changes body overflow)
     checkMenuOpen();
     const interval = setInterval(checkMenuOpen, 100);
-    
     return () => clearInterval(interval);
   }, []);
 
-  // Auto open overlay after 2 minutes on homepage
   useEffect(() => {
     if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
       autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 120000);
@@ -222,7 +212,6 @@ const Footer = () => {
     };
   }, [pathname]);
 
-  // Auto change slides every 3s while overlay is open
   useEffect(() => {
     if (!isOverlayOpen) {
       if (slideIntervalRef.current) {
@@ -242,7 +231,6 @@ const Footer = () => {
     };
   }, [isOverlayOpen]);
 
-  // Close overlay on Escape
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setIsOverlayOpen(false);
@@ -251,7 +239,6 @@ const Footer = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [isOverlayOpen]);
 
-  // ✅ Early returns AFTER all hooks
   if (noNavigationMenu) return null;
 
   const clampY = (y) => {
@@ -346,7 +333,6 @@ const Footer = () => {
 
   const rotation = side === "left" ? "-90deg" : "90deg";
 
-  // ✅ Cart FAB drag handlers — fully visible, snaps with 16px margin
   const clampCartY = (y) => {
     const maxY = window.innerHeight - CART_SIZE - 60;
     return Math.min(Math.max(y, 60), maxY);
@@ -392,7 +378,6 @@ const Footer = () => {
     if (!cartIsDragging) return;
     setCartIsDragging(false);
     if (!cartDragState.current.dragged) {
-      // Click - navigate to cart
       window.location.href = "/cart";
     }
     doCartSnap(cartPos.x, cartPos.y);
@@ -416,7 +401,6 @@ const Footer = () => {
               ✕
             </button>
 
-            {/* Left: Image Slider */}
             <div className="max-sm:hidden relative flex flex-col justify-center items-center bg-gray-100 min-w-[290px]">
               <div className="relative p-2 rounded-md w-full h-full overflow-hidden">
                 <Image
@@ -446,7 +430,6 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Right: Discount text */}
             <div className="flex flex-col justify-center p-6 w-full">
               <h2 className="mb-2 font-oswald font-medium text-[32px]">
                 First Order? Grab 10% OFF! 🎁
@@ -489,90 +472,49 @@ const Footer = () => {
         </div>
       )}
 
-      {/* ✅ Draggable Cart FAB — OUTSIDE footer so nothing clips it */}
-{hasMounted && !isMobileMenuOpen && (
-  <div
-    ref={cartRef}
-    onPointerDown={onCartPointerDown}
-    onPointerMove={onCartPointerMove}
-    onPointerUp={onCartPointerUp}
-    style={{
-      position: "fixed",
-      left: cartPos.x,
-      top: cartPos.y,
-      width: CART_SIZE,
-      height: CART_SIZE,
-      overflow: "visible",
-      transition:
-        cartSnapped && !cartIsDragging
-          ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-          : "none",
-      userSelect: "none",
-      touchAction: "none",
-      zIndex: 60,
-      cursor: cartIsDragging ? "grabbing" : "grab",
-    }}
-    className="flex flex-col justify-center items-center bg-[#1cc978] rounded-full shadow-lg hover:bg-[#17a86b] transition-colors"
-    role="button"
-    aria-label="Open cart"
-  >
-   <ShoppingBag size={18} strokeWidth={2} className="text-white" />
-<span className="text-white text-[8px] font-bold leading-tight text-center mt-0.5 px-1">
-  Check Out Now!
-</span>
-    {totalItems > 0 && (
-      <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] rounded-full min-w-[20px] h-[20px] px-1 text-white text-[11px] font-bold leading-none">
-        {totalItems}
-      </span>
-    )}
-  </div>
-)}
+      {/* ✅ Draggable "Check Out Now!" Cart FAB */}
+      {hasMounted && !isMobileMenuOpen && (
+        <div
+          ref={cartRef}
+          onPointerDown={onCartPointerDown}
+          onPointerMove={onCartPointerMove}
+          onPointerUp={onCartPointerUp}
+          style={{
+            position: "fixed",
+            left: cartPos.x,
+            top: cartPos.y,
+            width: CART_SIZE,
+            height: CART_SIZE,
+            overflow: "visible",
+            transition:
+              cartSnapped && !cartIsDragging
+                ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
+                : "none",
+            userSelect: "none",
+            touchAction: "none",
+            zIndex: 60,
+            cursor: cartIsDragging ? "grabbing" : "grab",
+          }}
+          className="flex flex-col border-2 border-white justify-center items-center bg-[#1cc978] hover:bg-[#17a86b] rounded-full shadow-lg shadow-[#1cc978]/30 transition-colors"
+          role="button"
+          aria-label="Check out now"
+        >
+          <ShoppingCart size={26} strokeWidth={2} className="text-white mb-0.5" />
+          <span className="text-white text-[11px] font-semibold leading-tight text-center px-1">
+            Check Out
+            <br />
+            Now!
+          </span>
+
+          {totalItems > 0 && (
+            <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] border-2 border-white rounded-full min-w-[28px] h-[28px] px-2 text-white text-[11px] font-bold leading-none">
+              {totalItems}
+            </span>
+          )}
+        </div>
+      )}
 
       <footer className="bg-black pt-9">
-
-        {/* Draggable discount tag — only on homepage and when visible */}
-        {/* {pathname === "/" && isTagVisible && (
-          <div
-            ref={elementRef}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            style={{
-              position: "fixed",
-              left: pos.x,
-              top: pos.y,
-              width: ELEM_WIDTH,
-              transform: `rotate(${rotation})`,
-              transformOrigin: "center center",
-              transition:
-                snapped && !isDragging
-                  ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-                  : "none",
-              userSelect: "none",
-              touchAction: "none",
-              zIndex: 40,
-              cursor: isDragging ? "grabbing" : "grab",
-            }}
-            className="opacity-50 hover:opacity-100"
-            role="button"
-            aria-label="Open discount popup"
-          >
-            <div className="relative bg-black px-6 py-4 rounded-bl-md rounded-br-md font-medium text-white text-xs whitespace-nowrap">
-              Get 10% OFF
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsTagVisible(false);
-                }}
-                aria-label="Close discount tag"
-                className="-right-3 -bottom-3 absolute flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[29px] h-[29px] text-black rotate-180 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )} */}
-
         {/* WhatsApp & scroll-to-top */}
         <div className="right-4 md:right-[34px] bottom-[105px] z-50 fixed">
           <Link
