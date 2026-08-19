@@ -20,8 +20,8 @@ export default function BlogPageClient({ featured, posts, total }) {
       {/* Page header */}
       <div className="text-center max-w-xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-extrabold text-zinc-900 leading-tight">
-          Tech <span className="text-green-500">Gist</span> That{' '}
-          <span className="text-green-500">Actually Helps.</span>
+          Tech <span className="text-green-500">Gist</span> That Actually{' '}
+          <span className="text-green-500"> Helps.</span>
         </h1>
         <p className="text-zinc-500 mt-3 text-sm leading-relaxed">
           Skip the confusing specs and marketing hype. Discover honest reviews, buying guides,
