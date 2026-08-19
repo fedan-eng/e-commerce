@@ -151,9 +151,10 @@ const ProductCategory = () => {
                   alt={product.name}
                   width={1000}
                   height={1000}
-                  quality={90}
+                  quality={85}
                   className="object-cover h-full w-full transition-transform duration-500 ease-out group-hover:scale-105"
-                  //sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 30vw"
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 30vw"
+                  loading={index < 2 ? "eager" : "lazy"}
                 />
                 {/* Bottom gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />

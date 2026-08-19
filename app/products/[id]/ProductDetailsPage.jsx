@@ -18,12 +18,14 @@ import Link from "next/link";
 import Image from "next/image";
 import CheckoutModal from "@/components/CheckoutModal";
 
-// Lazy load heavy components
-const ProductGallery = lazy(() => import("./components/ProductGallery"));
-const ProductDetailsInfo = lazy(() => import("./components/ProductDetailsInfo"));
+// Lazy load non-critical components only
 const ProductVideos = lazy(() => import("./components/ProductVideos"));
 const ProductReviews = lazy(() => import("./components/ProductReviews"));
 const RelatedProductsSection = lazy(() => import("./RelatedProductsSection"));
+
+// Critical components for LCP - load immediately
+import ProductGallery from "./components/ProductGallery";
+import ProductDetailsInfo from "./components/ProductDetailsInfo";
 
 
 
@@ -68,7 +70,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("GA tracking failed:", err);
       }
-    }, 2000);
+    }, 3000); // Increased to 3s
     return () => clearTimeout(timer);
   }, [product?._id, product?.name, product?.price]);
 
@@ -82,7 +84,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("Meta Pixel tracking failed:", err);
       }
-    }, 2500);
+    }, 3500); // Increased to 3.5s
     return () => clearTimeout(timer);
   }, [product?._id, product]);
 
@@ -96,7 +98,7 @@ export default function ProductDetailsPage({ product: productProp }) {
       } catch (err) {
         console.error("TikTok tracking failed:", err);
       }
-    }, 3000);
+    }, 4000); // Increased to 4s
     return () => clearTimeout(timer);
   }, [product?._id, product]);
 
@@ -114,35 +116,39 @@ export default function ProductDetailsPage({ product: productProp }) {
     }
   }, [product?._id, dispatch]);
 
-  // ── Fetch Related Products ─────────────────────────────────────────────────
+  // ── Fetch Related Products (Deferred) ─────────────────────────────────────
   useEffect(() => {
     if (!product?._id) return;
-    const abortController = new AbortController();
-    const fetchRelated = async () => {
-      try {
-        const res = await axios.get(`/api/products/${product._id}/related`, {
-          signal: abortController.signal
-        });
-        setRelatedProducts(res.data?.related || []);
-      } catch (err) {
-        if (err.name !== 'CanceledError') {
-          try {
-            const res = await axios.get(
-              `/api/products?category=${encodeURIComponent(product.category)}&limit=6`,
-              { signal: abortController.signal }
-            );
-            const items = res.data?.products || res.data || [];
-            setRelatedProducts(
-              items.filter((p) => p._id !== product._id).slice(0, 5),
-            );
-          } catch {
-            setRelatedProducts([]);
+    // Defer related products fetch to reduce blocking time
+    const timer = setTimeout(() => {
+      const abortController = new AbortController();
+      const fetchRelated = async () => {
+        try {
+          const res = await axios.get(`/api/products/${product._id}/related`, {
+            signal: abortController.signal
+          });
+          setRelatedProducts(res.data?.related || []);
+        } catch (err) {
+          if (err.name !== 'CanceledError') {
+            try {
+              const res = await axios.get(
+                `/api/products?category=${encodeURIComponent(product.category)}&limit=6`,
+                { signal: abortController.signal }
+              );
+              const items = res.data?.products || res.data || [];
+              setRelatedProducts(
+                items.filter((p) => p._id !== product._id).slice(0, 5),
+              );
+            } catch {
+              setRelatedProducts([]);
+            }
           }
         }
-      }
-    };
-    fetchRelated();
-    return () => abortController.abort();
+      };
+      fetchRelated();
+      return () => abortController.abort();
+    }, 1500); // Defer by 1.5s
+    return () => clearTimeout(timer);
   }, [product?._id, product.category]);
 
   // ── ESC Key for Full View ──────────────────────────────────────────────────
@@ -186,8 +192,21 @@ export default function ProductDetailsPage({ product: productProp }) {
   // ── Guards ─────────────────────────────────────────────────────────────────
   if (loading)
     return (
-      <div className="h-screen">
-        <Loading />
+      <div className="min-h-screen">
+        <div className="max-w-[1140px] mx-auto p-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="md:flex gap-3">
+              <div className="md:flex-1 h-[400px] bg-gray-200 rounded-lg"></div>
+              <div className="md:flex-1 space-y-3">
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   if (error) return <p className="text-red-500">{error}</p>;
@@ -251,33 +270,38 @@ export default function ProductDetailsPage({ product: productProp }) {
 
       {/* ── Product Section ── */}
       <div className="md:flex gap-3 border-dashed border-b-3 border-gray-200 md:py-5 nav:gap-6">
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductGallery 
-            product={product} 
-            selectedColor={selectedColor}
-            onFullViewImage={setFullViewImage}
-            onShareModal={setShowShareModal}
-          />
-        </Suspense>
+        <ProductGallery
+          product={product}
+          selectedColor={selectedColor}
+          onFullViewImage={setFullViewImage}
+          onShareModal={setShowShareModal}
+        />
 
-        <Suspense fallback={<div className="md:flex-1 h-[600px] bg-gray-100 animate-pulse" />}>
-          <ProductDetailsInfo 
-            product={product}
-            selectedColor={selectedColor}
-            onColorChange={setSelectedColor}
-            onBuyNow={handleBuyNow}
-          />
-        </Suspense>
+        <ProductDetailsInfo
+          product={product}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          onBuyNow={handleBuyNow}
+        />
       </div>
 
       {/* ── Product Videos ── */}
-      <Suspense fallback={<div className="h-[200px] bg-gray-100 animate-pulse mx-5 mt-8" />}>
+      <Suspense fallback={<div className="h-[200px] bg-gray-100 animate-pulse mx-5 mt-8 rounded-lg" />}>
         <ProductVideos videos={product.videos} />
       </Suspense>
 
       {/* ── Related Products ── */}
       {relatedProducts.length > 0 && (
-        <Suspense fallback={<div className="h-[300px] bg-gray-100 animate-pulse mt-14" />}>
+        <Suspense fallback={
+          <div className="mt-14 mx-5">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+            <div className="flex gap-4 overflow-hidden">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="w-[200px] h-[250px] bg-gray-100 rounded-lg animate-pulse flex-shrink-0"></div>
+              ))}
+            </div>
+          </div>
+        }>
           <RelatedProductsSection relatedProducts={relatedProducts} product={product} />
         </Suspense>
       )}
@@ -306,6 +330,8 @@ export default function ProductDetailsPage({ product: productProp }) {
                   height={400}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   loading="lazy"
+                  quality={80}
+                  sizes="(max-width: 768px) 50vw, 25vw"
                 />
                 <button
                   onClick={() => setFullViewImage(img.url)}
@@ -331,7 +357,16 @@ export default function ProductDetailsPage({ product: productProp }) {
       </section>
 
       {/* ── Product Reviews ── */}
-      <Suspense fallback={<div className="h-[400px] bg-gray-100 animate-pulse my-20" />}>
+      <Suspense fallback={
+        <div className="my-20 mx-5">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6 animate-pulse"></div>
+          <div className="space-y-4">
+            {[1,2,3].map(i => (
+              <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      }>
         <ProductReviews product={product} user={user} id={id} />
       </Suspense>
 
@@ -439,6 +474,8 @@ export default function ProductDetailsPage({ product: productProp }) {
               width={1200}
               height={1200}
               className="max-w-full max-h-[90vh] object-contain"
+              quality={90}
+              priority
             />
           </div>
         </div>

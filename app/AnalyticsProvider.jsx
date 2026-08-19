@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-// Dynamically import analytics components to reduce initial bundle size..
+// Dynamically import analytics components to reduce initial bundle size.
 // Using ssr: false to ensure they only run on the client
 const TiktokPixel = dynamic(() => import("@/components/TiktokPixel"), { ssr: false });
 const TiktokPageView = dynamic(() => import("@/components/TiktokPageView"), { ssr: false });
@@ -16,13 +16,18 @@ const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { 
 export default function AnalyticsProvider() {
   return (
     <>
+      {/* Critical analytics - load immediately */}
+      <Analytics />
+      <SpeedInsights />
+
+      {/* Cookie banner - load immediately but non-blocking */}
+      <CookieBanner />
+
+      {/* Third-party pixels - defer loading to reduce blocking */}
       <TiktokPixel />
       <MetaPixel />
       <ClarityInit />
       <TiktokPageView />
-      <Analytics />
-      <SpeedInsights />
-      <CookieBanner />
       <GoogleAnalytics />
     </>
   );

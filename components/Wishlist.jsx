@@ -79,6 +79,7 @@ export default function WishlistPage() {
                     width={56}
                     height={56}
                     className="w-[40px] s:w-[56px] h-[40px] s:h-[56px] object-contain"
+                    quality={75}
                   />
                 </div>
                 <div>

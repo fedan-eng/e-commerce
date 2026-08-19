@@ -138,6 +138,8 @@ export default function RecentlyViewed() {
                     alt={product.name}
                     fill
                     className="absolute mx-auto w-full h-full object-contain"
+                    quality={80}
+                    sizes="(max-width: 640px) 100px, 200px"
                   />
                 </div>
 

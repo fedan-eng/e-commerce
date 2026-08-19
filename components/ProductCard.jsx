@@ -93,6 +93,7 @@ const ProductCard = ({
           alt={product.name}
           fill
           sizes="(max-width: 640px) 120px, 200px"
+          quality={85}
         />
       </div>
 
