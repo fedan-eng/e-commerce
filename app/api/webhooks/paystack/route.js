@@ -435,22 +435,27 @@ ${emailHead(`New Order - FIL Admin`)}
 
   const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}, ${orderData.city}, ${regionName}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items\n3. Arrange delivery to ${orderData.city}, ${regionName}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
 
-  // ── 7. Send emails (fire-and-forget — never block the 200 response) ───────
-  Promise.all([
-    sendEmail(
-      orderData.email,
-      `Order Confirmed - FIL Store (#${order._id})`,
-      customerPlainText,
-      customerEmailHtml
-    ),
-    sendEmail(
-      process.env.ADMIN_EMAIL,
-      `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
-      adminPlainText,
-      adminEmailHtml
-    ),
-  ]).catch((err) => console.error("Webhook: email sending failed", err));
+  // ── 7. Send emails ────────────────────────────────────────────────────────
+  try {
+    await Promise.all([
+      sendEmail(
+        orderData.email,
+        `Order Confirmed - FIL Store (#${order._id})`,
+        customerPlainText,
+        customerEmailHtml
+      ),
+      sendEmail(
+        process.env.ADMIN_EMAIL,
+        `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
+        adminPlainText,
+        adminEmailHtml
+      ),
+    ]);
+    console.log("Webhook: emails sent successfully");
+  } catch (err) {
+    console.error("Webhook: email sending failed", err);
+  }
 
-  // ── 8. Respond 200 immediately ────────────────────────────────────────────
+  // ── 8. Respond 200 ────────────────────────────────────────────────────────
   return NextResponse.json({ received: true });
 }
