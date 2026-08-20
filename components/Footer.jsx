@@ -472,7 +472,7 @@ const Footer = () => {
         </div>
       )}
 
-      {/* ✅ Draggable "Check Out Now!" Cart FAB */}
+      {/* ✅ Draggable "Check Out Now!" Cart FAB - Desktop only */}
       {hasMounted && !isMobileMenuOpen && (
         <div
           ref={cartRef}
@@ -495,7 +495,7 @@ const Footer = () => {
             zIndex: 60,
             cursor: cartIsDragging ? "grabbing" : "grab",
           }}
-          className="flex flex-col border-2 border-white justify-center items-center bg-[#1cc978] hover:bg-[#17a86b] rounded-full shadow-lg shadow-[#1cc978]/30 transition-colors"
+          className="hidden md:flex flex-col border-2 border-white justify-center items-center bg-[#1cc978] hover:bg-[#17a86b] rounded-full shadow-lg shadow-[#1cc978]/30 transition-colors"
           role="button"
           aria-label="Check out now"
         >
