@@ -449,7 +449,7 @@ ${emailHead(`New Order - FIL Admin`)}
       ),
       sendEmail(
         process.env.ADMIN_EMAIL,
-        `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
+        `New Order: ${displayName} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
         adminPlainText,
         adminEmailHtml
       ),
