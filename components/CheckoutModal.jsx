@@ -350,6 +350,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           deliveryInfo: cleanFormData,
           discount,
           promoCode,
+          userId: user?._id || null,
         }),
       });
 

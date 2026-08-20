@@ -47,6 +47,7 @@ export async function POST(req) {
 
   // ── 4. Build orderData (mirrors verify-payment logic) ────────────────────
   const deliveryInfo = meta.deliveryInfo || meta;
+  const isSimpleCheckout = meta.simpleCheckout || false;
 
   const cartItems = (meta.cartItems || []).map((item) => ({
     ...item,
@@ -55,16 +56,17 @@ export async function POST(req) {
   }));
 
   const orderData = {
-    firstName: deliveryInfo.firstName || "",
-    lastName: deliveryInfo.lastName || "",
-    email: deliveryInfo.email || "",
-    phone: deliveryInfo.phone || "",
-    addPhone: deliveryInfo.addPhone || "",
-    region: deliveryInfo.region || { name: "", fee: 0 },
-    city: deliveryInfo.city || "",
-    deliveryType: deliveryInfo.deliveryType || "Regular",
-    address: deliveryInfo.address || "",
-    orderNote: deliveryInfo.orderNote || "",
+    userId: meta.userId || null,
+    firstName: isSimpleCheckout ? "" : (deliveryInfo.firstName || ""),
+    lastName: isSimpleCheckout ? "" : (deliveryInfo.lastName || ""),
+    email: isSimpleCheckout ? (deliveryInfo.email || meta.email || "") : (deliveryInfo.email || ""),
+    phone: isSimpleCheckout ? "" : (deliveryInfo.phone || ""),
+    addPhone: isSimpleCheckout ? "" : (deliveryInfo.addPhone || ""),
+    region: isSimpleCheckout ? { name: "", fee: 0 } : (deliveryInfo.region || { name: "", fee: 0 }),
+    city: isSimpleCheckout ? "" : (deliveryInfo.city || ""),
+    deliveryType: isSimpleCheckout ? "Regular" : (deliveryInfo.deliveryType || "Regular"),
+    address: isSimpleCheckout ? "" : (deliveryInfo.address || ""),
+    orderNote: isSimpleCheckout ? "" : (deliveryInfo.orderNote || ""),
     cartItems,
     subTotal: Number(meta.subTotal) || 0,
     discount: Number(meta.discount) || 0,
@@ -80,7 +82,7 @@ export async function POST(req) {
   let order;
   try {
     order = await Order.create({
-      userId: null,
+      userId: orderData.userId,
       email: orderData.email,
       firstName: orderData.firstName,
       lastName: orderData.lastName,
@@ -125,6 +127,7 @@ export async function POST(req) {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const displayName = orderData.firstName || "Customer";
 
   const itemRowsHtml = orderData.cartItems
     .map(
@@ -270,7 +273,7 @@ ${emailHead(`Order Confirmed - FIL Store`)}
     <tr>
       <td class="mobile-pad" style="padding:34px 40px 0 40px; background-color:#ffffff;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">Hi ${orderData.firstName}! &#128075;</td></tr>
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">Hi ${displayName}! &#128075;</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Thank you for choosing <strong style="color:#1a1a2e;">Fedan Investment Limited (FIL)</strong> &mdash; we&rsquo;re so glad to have you as part of our family! &#128153;</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Your order is confirmed &#9989; and our team is already preparing it with care. You&rsquo;ll receive a shipping update as soon as it&rsquo;s on the way.</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:26px;">At FIL, every product is an opportunity to empower you and make your daily life smoother, easier, and more connected &mdash; because to us, you&rsquo;re not just a customer, you&rsquo;re family.</td></tr>
@@ -431,9 +434,9 @@ ${emailHead(`New Order - FIL Admin`)}
     )
     .join("\n");
 
-  const customerPlainText = `Hi ${orderData.firstName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}\nCity         : ${orderData.city}\nRegion       : ${regionName}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
+  const customerPlainText = `Hi ${displayName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed${orderData.firstName ? `\nName         : ${orderData.firstName} ${orderData.lastName || ""}` : ""}\nEmail        : ${orderData.email}${orderData.phone ? `\nPhone        : ${orderData.phone}` : ""}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}${orderData.address ? `\nAddress      : ${orderData.address}` : ""}${orderData.city ? `\nCity         : ${orderData.city}` : ""}${regionName ? `\nRegion       : ${regionName}` : ""}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
 
-  const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}, ${orderData.city}, ${regionName}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items\n3. Arrange delivery to ${orderData.city}, ${regionName}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
+  const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\n${orderData.firstName ? `Name         : ${orderData.firstName} ${orderData.lastName || ""}\n` : ""}Email        : ${orderData.email}${orderData.phone ? `\nPhone        : ${orderData.phone}` : ""}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}${orderData.address ? `\nAddress      : ${orderData.address}` : ""}${orderData.city ? `\nCity         : ${orderData.city}` : ""}${regionName ? `\nRegion       : ${regionName}` : ""}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items${orderData.city ? `\n3. Arrange delivery to ${orderData.city}${regionName ? `, ${regionName}` : ""}` : ""}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
 
   // ── 7. Send emails ────────────────────────────────────────────────────────
   try {

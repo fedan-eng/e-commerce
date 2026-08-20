@@ -65,6 +65,7 @@ export default function CheckoutButton() {
         items,
         email,
         address,
+        userId: user?._id || null,
       });
 
       if (res.data?.authorization_url) {

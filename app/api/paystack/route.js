@@ -20,9 +20,89 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { cartItems, deliveryInfo, discount = 0, promoCode } = body;
+    // Handle both checkout modal (full) and checkout button (simple) formats
+    const { 
+      cartItems: modalCartItems, 
+      deliveryInfo, 
+      discount = 0, 
+      promoCode, 
+      userId, 
+      items: simpleItems, 
+      email: simpleEmail, 
+      address: simpleAddress 
+    } = body;
+
+    // Determine which format we're using
+    const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
+    
+    const finalCartItems = modalCartItems || simpleItems || [];
+    const finalUserId = userId || null;
 
     // ── Server-side validation ──
+    if (isSimpleCheckout) {
+      // Simple checkout validation
+      const email = String(simpleEmail || "").trim().toLowerCase();
+      if (!isValidEmail(email)) {
+        return NextResponse.json(
+          { message: "Invalid email address" },
+          { status: 400 }
+        );
+      }
+
+      if (!Array.isArray(finalCartItems) || finalCartItems.length === 0) {
+        return NextResponse.json(
+          { message: "Cart is empty" },
+          { status: 400 }
+        );
+      }
+
+      // Calculate total for simple checkout
+      const subTotal = finalCartItems.reduce(
+        (acc, item) => acc + Number(item.price) * Number(item.quantity),
+        0
+      );
+      const total = subTotal; // No delivery fee for simple checkout
+
+      if (total <= 0) {
+        return NextResponse.json(
+          { message: "Invalid order total" },
+          { status: 400 }
+        );
+      }
+
+      // ── Call Paystack for simple checkout ──
+      const paystackRes = await axios.post(
+        "https://api.paystack.co/transaction/initialize",
+        {
+          email: email,
+          amount: Math.round(total * 100),
+          currency: "NGN",
+          metadata: {
+            cartItems: finalCartItems,
+            userId: finalUserId,
+            subTotal,
+            discount: 0,
+            deliveryFee: 0,
+            total,
+            simpleCheckout: true,
+          },
+          callback_url: `${origin}/checkout/success`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return NextResponse.json({
+        authorization_url: paystackRes.data.data.authorization_url,
+        reference: paystackRes.data.data.reference,
+      });
+    }
+
+    // Full checkout modal validation
     if (!deliveryInfo) {
       return NextResponse.json(
         { message: "Delivery information is required" },
@@ -59,7 +139,7 @@ export async function POST(req) {
       );
     }
 
-    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+    if (!Array.isArray(finalCartItems) || finalCartItems.length === 0) {
       return NextResponse.json(
         { message: "Cart is empty" },
         { status: 400 }
@@ -67,7 +147,7 @@ export async function POST(req) {
     }
 
     // Calculate total server-side (don't trust client)
-    const subTotal = cartItems.reduce(
+    const subTotal = finalCartItems.reduce(
       (acc, item) => acc + Number(item.price) * Number(item.quantity),
       0
     );
@@ -96,7 +176,7 @@ export async function POST(req) {
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
         metadata: {
-          cartItems,
+          cartItems: finalCartItems,
           deliveryInfo: {
             ...deliveryInfo,
             email,
@@ -107,6 +187,7 @@ export async function POST(req) {
           discount,
           deliveryFee,
           total,
+          userId: finalUserId,
         },
         callback_url: `${origin}/checkout/success`,
       },
