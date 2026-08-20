@@ -415,7 +415,7 @@ ${emailHead(`New Order - FIL Admin`)}
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">1. Verify payment reference in your ${orderData.paymentMethod} dashboard</td></tr>
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">2. Prepare and package the items listed above</td></tr>
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">3. Arrange delivery to ${orderData.city}, ${regionName}</td></tr>
+                ${orderData.city ? `<tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">3. Arrange delivery to ${orderData.city}${regionName ? `, ${regionName}` : ""}</td></tr>` : ""}
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px;">4. Update order status in the <a href="https://filstore.com.ng/admin" target="_blank" style="color:#0a7a4a; font-weight:700; text-decoration:underline;">Admin Dashboard</a></td></tr>
               </table>
             </td>
