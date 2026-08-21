@@ -81,7 +81,7 @@ export default function AdminCustomersPage() {
 
       {loading ? (
         <div className="py-12 text-[#444] text-[13px] text-center bg-[#111] border border-[#222] rounded-lg">
-          Loading customers...
+          Loading customers....
         </div>
       ) : users.length === 0 ? (
         <div className="py-12 text-[#444] text-[13px] text-center bg-[#111] border border-[#222] rounded-lg">

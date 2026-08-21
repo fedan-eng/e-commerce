@@ -108,6 +108,20 @@ export default function Navbar() {
           {/* RIGHT: Desktop icons */}
           <ul className="hidden nav:flex items-center gap-7 ml-auto">
             <NavSearchTooltip />
+            <li>
+              <Link
+                href="/cart"
+                className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
+                aria-label="Cart"
+              >
+                <ShoppingBag size={20} strokeWidth={1.75} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] border-2 border-white rounded-full min-w-[18px] h-[18px] px-1 text-white text-[10px] font-bold leading-none">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+            </li>
             <ProfileTooltip />
             <li>
               <Link
@@ -123,6 +137,18 @@ export default function Navbar() {
           {/* MOBILE: Right icons */}
           <div className="nav:hidden flex items-center gap-5 ml-auto">
             <NavSearchTooltip />
+            <Link
+              href="/cart"
+              className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
+              aria-label="Cart"
+            >
+              <ShoppingBag size={20} strokeWidth={1.75} />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 flex justify-center items-center bg-[#1a1a1a] border-2 border-white rounded-full min-w-[16px] h-[16px] px-1 text-white text-[9px] font-bold leading-none">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
             <button
               className="text-[#1a1a1a] hover:text-filgreen transition-colors"
               onClick={() => setMenuOpen(true)}
@@ -230,6 +256,20 @@ export default function Navbar() {
                   className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
                 >
                   Bulk Order
+                </Link>
+
+                {/* CART */}
+                <Link
+                  href="/cart"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                >
+                  <span>Cart</span>
+                  {totalItems > 0 && (
+                    <span className="flex justify-center items-center bg-[#1a1a1a] text-white rounded-full min-w-[24px] h-[24px] px-2 text-[12px] font-bold">
+                      {totalItems}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Authenticated extras */}

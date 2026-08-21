@@ -47,6 +47,7 @@ export async function POST(req) {
 
   // ── 4. Build orderData (mirrors verify-payment logic) ────────────────────
   const deliveryInfo = meta.deliveryInfo || meta;
+  const isSimpleCheckout = meta.simpleCheckout || false;
 
   const cartItems = (meta.cartItems || []).map((item) => ({
     ...item,
@@ -55,16 +56,17 @@ export async function POST(req) {
   }));
 
   const orderData = {
-    firstName: deliveryInfo.firstName || "",
-    lastName: deliveryInfo.lastName || "",
-    email: deliveryInfo.email || "",
-    phone: deliveryInfo.phone || "",
-    addPhone: deliveryInfo.addPhone || "",
-    region: deliveryInfo.region || { name: "", fee: 0 },
-    city: deliveryInfo.city || "",
-    deliveryType: deliveryInfo.deliveryType || "Regular",
-    address: deliveryInfo.address || "",
-    orderNote: deliveryInfo.orderNote || "",
+    userId: meta.userId || null,
+    firstName: isSimpleCheckout ? "" : (deliveryInfo.firstName || ""),
+    lastName: isSimpleCheckout ? "" : (deliveryInfo.lastName || ""),
+    email: isSimpleCheckout ? (deliveryInfo.email || meta.email || "") : (deliveryInfo.email || ""),
+    phone: isSimpleCheckout ? "" : (deliveryInfo.phone || ""),
+    addPhone: isSimpleCheckout ? "" : (deliveryInfo.addPhone || ""),
+    region: isSimpleCheckout ? { name: "", fee: 0 } : (deliveryInfo.region || { name: "", fee: 0 }),
+    city: isSimpleCheckout ? "" : (deliveryInfo.city || ""),
+    deliveryType: isSimpleCheckout ? "Regular" : (deliveryInfo.deliveryType || "Regular"),
+    address: isSimpleCheckout ? "" : (deliveryInfo.address || ""),
+    orderNote: isSimpleCheckout ? "" : (deliveryInfo.orderNote || ""),
     cartItems,
     subTotal: Number(meta.subTotal) || 0,
     discount: Number(meta.discount) || 0,
@@ -80,7 +82,7 @@ export async function POST(req) {
   let order;
   try {
     order = await Order.create({
-      userId: null,
+      userId: orderData.userId,
       email: orderData.email,
       firstName: orderData.firstName,
       lastName: orderData.lastName,
@@ -125,6 +127,7 @@ export async function POST(req) {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const displayName = orderData.firstName || "Customer";
 
   const itemRowsHtml = orderData.cartItems
     .map(
@@ -270,7 +273,7 @@ ${emailHead(`Order Confirmed - FIL Store`)}
     <tr>
       <td class="mobile-pad" style="padding:34px 40px 0 40px; background-color:#ffffff;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">Hi ${orderData.firstName}! &#128075;</td></tr>
+          <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:18px; font-weight:700; color:#1a1a2e; padding-bottom:12px;">Hi ${displayName}! &#128075;</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Thank you for choosing <strong style="color:#1a1a2e;">Fedan Investment Limited (FIL)</strong> &mdash; we&rsquo;re so glad to have you as part of our family! &#128153;</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:10px;">Your order is confirmed &#9989; and our team is already preparing it with care. You&rsquo;ll receive a shipping update as soon as it&rsquo;s on the way.</td></tr>
           <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; line-height:24px; color:#444455; padding-bottom:26px;">At FIL, every product is an opportunity to empower you and make your daily life smoother, easier, and more connected &mdash; because to us, you&rsquo;re not just a customer, you&rsquo;re family.</td></tr>
@@ -295,13 +298,13 @@ ${emailHead(`Order Confirmed - FIL Store`)}
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:16px; font-weight:700; color:#1a1a2e; padding-bottom:14px; border-bottom:2px solid #d4ece1;">&#128230; Order Details</td></tr>
                 <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Order ID</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${order._id}</td></tr></table></td></tr>
                 <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Status</td><td style="text-align:right;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right"><tr><td style="background-color:#e8f5e9; color:#1a7a4a; padding:4px 14px; border-radius:12px; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; font-weight:700;">&#10003; Confirmed</td></tr></table></td></tr></table></td></tr>
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>
+                ${orderData.firstName ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>` : ""}
                 <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Email</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td></tr></table></td></tr>
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>
+                ${orderData.phone ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>` : ""}
                 ${orderData.addPhone ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Alt. Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td></tr></table></td></tr>` : ""}
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>
-                <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>
+                ${orderData.address ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>` : ""}
+                ${orderData.city ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>` : ""}
+                ${regionName ? `<tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>` : ""}
                 <tr><td style="padding:11px 0; border-bottom:1px solid #e0ece6;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Delivery Type</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td></tr></table></td></tr>
                 <tr><td style="padding:11px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#555566; width:42%;">Payment</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right; text-transform:capitalize;">${orderData.paymentMethod}</td></tr></table></td></tr>
               </table>
@@ -372,13 +375,13 @@ ${emailHead(`New Order - FIL Admin`)}
             <td class="section-pad" style="padding:20px 18px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:15px; font-weight:700; color:#1a1a2e; padding-bottom:14px; border-bottom:2px solid #e9ecef;">&#128100; Customer Information</td></tr>
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Full Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>
+                ${orderData.firstName ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Full Name</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:700; color:#1a1a2e; text-align:right;">${orderData.firstName} ${orderData.lastName || ""}</td></tr></table></td></tr>` : ""}
                 <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Email</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.email}</td></tr></table></td></tr>
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>
+                ${orderData.phone ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.phone}</td></tr></table></td></tr>` : ""}
                 ${orderData.addPhone ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Alt. Phone</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.addPhone}</td></tr></table></td></tr>` : ""}
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>
-                <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>
+                ${orderData.address ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%; vertical-align:top;">Address</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.address}</td></tr></table></td></tr>` : ""}
+                ${orderData.city ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">City</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.city}</td></tr></table></td></tr>` : ""}
+                ${regionName ? `<tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Region</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${regionName}</td></tr></table></td></tr>` : ""}
                 <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Delivery Type</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#333333; text-align:right;">${orderData.deliveryType}</td></tr></table></td></tr>
                 <tr><td style="padding:10px 0; border-bottom:1px solid #e9ecef;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Payment Ref</td><td style="font-family:'Courier New',Courier,monospace; font-size:12px; color:#333333; text-align:right;">${orderData.paymentReference}</td></tr></table></td></tr>
                 <tr><td style="padding:10px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; font-weight:600; color:#666666; width:40%;">Ordered At</td><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:12px; color:#333333; text-align:right;">${orderedAt}</td></tr></table></td></tr>
@@ -412,7 +415,7 @@ ${emailHead(`New Order - FIL Admin`)}
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">1. Verify payment reference in your ${orderData.paymentMethod} dashboard</td></tr>
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">2. Prepare and package the items listed above</td></tr>
-                <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">3. Arrange delivery to ${orderData.city}, ${regionName}</td></tr>
+                ${orderData.city ? `<tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px; padding-bottom:6px;">3. Arrange delivery to ${orderData.city}${regionName ? `, ${regionName}` : ""}</td></tr>` : ""}
                 <tr><td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#6d5603; line-height:22px;">4. Update order status in the <a href="https://filstore.com.ng/admin" target="_blank" style="color:#0a7a4a; font-weight:700; text-decoration:underline;">Admin Dashboard</a></td></tr>
               </table>
             </td>
@@ -431,26 +434,31 @@ ${emailHead(`New Order - FIL Admin`)}
     )
     .join("\n");
 
-  const customerPlainText = `Hi ${orderData.firstName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}\nCity         : ${orderData.city}\nRegion       : ${regionName}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
+  const customerPlainText = `Hi ${displayName},\n\nThank you for choosing Fedan Investment Limited (FIL)!\nYour order is confirmed and our team is already preparing it.\n\nORDER DETAILS\n==========================================\nOrder ID     : ${order._id}\nStatus       : Confirmed${orderData.firstName ? `\nName         : ${orderData.firstName} ${orderData.lastName || ""}` : ""}\nEmail        : ${orderData.email}${orderData.phone ? `\nPhone        : ${orderData.phone}` : ""}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}${orderData.address ? `\nAddress      : ${orderData.address}` : ""}${orderData.city ? `\nCity         : ${orderData.city}` : ""}${regionName ? `\nRegion       : ${regionName}` : ""}\nDelivery     : ${orderData.deliveryType}\nPayment      : ${orderData.paymentMethod}\n\nITEMS ORDERED\n==========================================\n${itemList}\n\nORDER SUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\n==========================================\nExplore more: https://filstore.com.ng/products\n\nWith gratitude,\nThe FIL Team — Think Quality, Think FIL.\nhttps://filstore.com.ng`.trim();
 
-  const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\nName         : ${orderData.firstName} ${orderData.lastName || ""}\nEmail        : ${orderData.email}\nPhone        : ${orderData.phone}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}\nAddress      : ${orderData.address}, ${orderData.city}, ${regionName}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items\n3. Arrange delivery to ${orderData.city}, ${regionName}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
+  const adminPlainText = `NEW ORDER ALERT\n==========================================\nOrder ID     : ${order._id}\nOrdered At   : ${orderedAt}\nPayment Ref  : ${orderData.paymentReference}\nProvider     : ${orderData.paymentMethod}\n\nCUSTOMER\n==========================================\n${orderData.firstName ? `Name         : ${orderData.firstName} ${orderData.lastName || ""}\n` : ""}Email        : ${orderData.email}${orderData.phone ? `\nPhone        : ${orderData.phone}` : ""}${orderData.addPhone ? `\nAlt. Phone   : ${orderData.addPhone}` : ""}${orderData.address ? `\nAddress      : ${orderData.address}` : ""}${orderData.city ? `\nCity         : ${orderData.city}` : ""}${regionName ? `\nRegion       : ${regionName}` : ""}\nDelivery     : ${orderData.deliveryType}\n\nITEMS\n==========================================\n${itemList}\n\nSUMMARY\n==========================================\nSubtotal     : NGN ${Number(orderData.subTotal).toLocaleString()}\nDelivery Fee : NGN ${Number(orderData.deliveryFee).toLocaleString()}${orderData.discount > 0 ? `\nDiscount     : -NGN ${Number(orderData.discount).toLocaleString()}` : ""}${orderData.promoCode ? `\nPromo Code   : ${orderData.promoCode}` : ""}\nTOTAL        : NGN ${Number(orderData.total).toLocaleString()}\n\nNEXT STEPS\n==========================================\n1. Verify payment in ${orderData.paymentMethod} dashboard\n2. Prepare and package items${orderData.city ? `\n3. Arrange delivery to ${orderData.city}${regionName ? `, ${regionName}` : ""}` : ""}\n4. Update order status: https://filstore.com.ng/admin\n\nFIL Store Admin — Think Quality, Think FIL.`.trim();
 
-  // ── 7. Send emails (fire-and-forget — never block the 200 response) ───────
-  Promise.all([
-    sendEmail(
-      orderData.email,
-      `Order Confirmed - FIL Store (#${order._id})`,
-      customerPlainText,
-      customerEmailHtml
-    ),
-    sendEmail(
-      process.env.ADMIN_EMAIL,
-      `New Order: ${orderData.firstName} ${orderData.lastName || ""} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
-      adminPlainText,
-      adminEmailHtml
-    ),
-  ]).catch((err) => console.error("Webhook: email sending failed", err));
+  // ── 7. Send emails ────────────────────────────────────────────────────────
+  try {
+    await Promise.all([
+      sendEmail(
+        orderData.email,
+        `Order Confirmed - FIL Store (#${order._id})`,
+        customerPlainText,
+        customerEmailHtml
+      ),
+      sendEmail(
+        process.env.ADMIN_EMAIL,
+        `New Order: ${displayName} — NGN ${Number(orderData.total).toLocaleString()} (#${order._id})`,
+        adminPlainText,
+        adminEmailHtml
+      ),
+    ]);
+    console.log("Webhook: emails sent successfully");
+  } catch (err) {
+    console.error("Webhook: email sending failed", err);
+  }
 
-  // ── 8. Respond 200 immediately ────────────────────────────────────────────
+  // ── 8. Respond 200 ────────────────────────────────────────────────────────
   return NextResponse.json({ received: true });
 }
