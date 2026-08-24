@@ -63,23 +63,25 @@ export async function GET(req) {
       user = await User.findOne({ email: googleUser.email });
 
       if (user) {
-        user.googleId = googleUser.id;
-        user.provider = "google";
-        await user.save();
-      } else {
-        const nameParts = googleUser.name.split(" ");
-        const firstName = nameParts[0] || "";
-        user = await User.create({
-          email: googleUser.email,
-          googleId: googleUser.id,
-          provider: "google",
-          firstName,
-          lastName: nameParts.slice(1).join(" ") || "",
-          isActive: true,
-        });
-
-        await sendGoogleWelcomeEmail(googleUser.email, firstName);
+        // Account exists but wasn't created with Google — block and inform
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        return NextResponse.redirect(`${baseUrl}/login?error=email_exists&message=${encodeURIComponent("An account with this email already exists. Please sign in with your password instead.")}`);
       }
+
+      // No account exists — safe to create fresh Google account
+      const nameParts = googleUser.name.split(" ");
+      const firstName = nameParts[0] || "";
+      user = await User.create({
+        email: googleUser.email,
+        googleId: googleUser.id,
+        provider: "google",
+        firstName,
+        lastName: nameParts.slice(1).join(" ") || "",
+        isActive: true,
+        isVerified: true,
+      });
+
+      await sendGoogleWelcomeEmail(googleUser.email, firstName);
     }
 
     const token = signToken({

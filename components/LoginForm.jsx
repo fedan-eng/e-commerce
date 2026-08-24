@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import Image from "next/image";
@@ -23,17 +23,29 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showGoogleHint, setShowGoogleHint] = useState(false);
   const [showVerificationHint, setShowVerificationHint] = useState(false);
+  const [showEmailExistsHint, setShowEmailExistsHint] = useState(false);
   const [resending, setResending] = useState(false);
 
   const passwordRef = useRef(null);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const oauthError = searchParams.get("error");
+  const oauthMessage = searchParams.get("message");
 
- const handleLogin = async (e) => {
+  // Handle OAuth callback errors
+  useEffect(() => {
+    if (oauthError === "email_exists" && oauthMessage) {
+      setError(decodeURIComponent(oauthMessage));
+      setShowEmailExistsHint(true);
+    }
+  }, [oauthError, oauthMessage]);
+
+  const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
   setShowGoogleHint(false);
   setShowVerificationHint(false);
+  setShowEmailExistsHint(false);
   setLoading(true);
 
   try {
@@ -230,6 +242,12 @@ export default function LoginForm() {
     >
       {resending ? "Resending..." : "Resend verification email"}
     </button>
+  </div>
+)}
+
+            {showEmailExistsHint && (
+  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md text-sm text-orange-800 text-center">
+    An account with this email already exists. Please sign in with your password instead.
   </div>
 )}
 

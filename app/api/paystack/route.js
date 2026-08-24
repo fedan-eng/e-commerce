@@ -17,10 +17,10 @@ const isValidPhone = (phone) => {
 export async function POST(req) {
 
   const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/, "") || process.env.NEXT_PUBLIC_BASE_URL;
+
   try {
     const body = await req.json();
 
-    // Handle both checkout modal (full) and checkout button (simple) formats
     const { 
       cartItems: modalCartItems, 
       deliveryInfo, 
@@ -29,19 +29,16 @@ export async function POST(req) {
       userId, 
       items: simpleItems, 
       email: simpleEmail, 
-      address: simpleAddress 
     } = body;
 
-    // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
-    
     const finalCartItems = modalCartItems || simpleItems || [];
     const finalUserId = userId || null;
 
-    // ── Server-side validation ──
+    // ── Simple Checkout ──────────────────────────────────────────────────────
     if (isSimpleCheckout) {
-      // Simple checkout validation
       const email = String(simpleEmail || "").trim().toLowerCase();
+
       if (!isValidEmail(email)) {
         return NextResponse.json(
           { message: "Invalid email address" },
@@ -56,12 +53,11 @@ export async function POST(req) {
         );
       }
 
-      // Calculate total for simple checkout
       const subTotal = finalCartItems.reduce(
         (acc, item) => acc + Number(item.price) * Number(item.quantity),
         0
       );
-      const total = subTotal; // No delivery fee for simple checkout
+      const total = subTotal;
 
       if (total <= 0) {
         return NextResponse.json(
@@ -70,16 +66,16 @@ export async function POST(req) {
         );
       }
 
-      // ── Call Paystack for simple checkout ──
       const paystackRes = await axios.post(
         "https://api.paystack.co/transaction/initialize",
         {
-          email: email,
+          email,
           amount: Math.round(total * 100),
           currency: "NGN",
           metadata: {
             cartItems: finalCartItems,
             userId: finalUserId,
+            email, // ← fix: included so webhook can read it
             subTotal,
             discount: 0,
             deliveryFee: 0,
@@ -102,7 +98,7 @@ export async function POST(req) {
       });
     }
 
-    // Full checkout modal validation
+    // ── Full Checkout ─────────────────────────────────────────────────────────
     if (!deliveryInfo) {
       return NextResponse.json(
         { message: "Delivery information is required" },
@@ -111,6 +107,7 @@ export async function POST(req) {
     }
 
     const email = String(deliveryInfo.email || "").trim().toLowerCase();
+
     if (!isValidEmail(email)) {
       return NextResponse.json(
         { message: "Invalid email address" },
@@ -146,7 +143,6 @@ export async function POST(req) {
       );
     }
 
-    // Calculate total server-side (don't trust client)
     const subTotal = finalCartItems.reduce(
       (acc, item) => acc + Number(item.price) * Number(item.quantity),
       0
@@ -168,12 +164,11 @@ export async function POST(req) {
       );
     }
 
-    // ── Call Paystack ──
     const paystackRes = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        email: email, // sanitized email
-        amount: Math.round(total * 100), // in kobo
+        email,
+        amount: Math.round(total * 100),
         currency: "NGN",
         metadata: {
           cartItems: finalCartItems,
@@ -203,6 +198,7 @@ export async function POST(req) {
       authorization_url: paystackRes.data.data.authorization_url,
       reference: paystackRes.data.data.reference,
     });
+
   } catch (error) {
     console.error("Paystack Error:", error.response?.data || error.message);
     return NextResponse.json(
