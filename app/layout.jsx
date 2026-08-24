@@ -59,12 +59,9 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://filstore.com.ng" />
         <link rel="preconnect" href="https://www.filstore.com.ng" />
         <link rel="preconnect" href="https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev" />
-        <link rel="dns-prefetch" href="https://cdn.bmstores.co.uk" />
-        <link rel="dns-prefetch" href="https://ufs.sh" />
       </head>
       <body suppressHydrationWarning>
         <ErrorBoundary>

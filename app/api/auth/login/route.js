@@ -33,7 +33,7 @@ export async function POST(req) {
   }
 
   if (user.isActive === false) {
-  return new Response(
+  return new Response( 
     JSON.stringify({ message: "Your account has been suspended. Please contact support." }),
     { status: 403 }
   );
@@ -53,17 +53,6 @@ export async function POST(req) {
     id: user._id,
     email: user.email,
     role: user.role,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    country: user.country,
-    phone: user.phone,
-    addPhone: user.addPhone,
-    address: user.address,
-    city: user.city,
-    region:
-      typeof user.region === "string"
-        ? { name: user.region, fee: 0 }
-        : user.region,
   });
 
   // Set cookie

@@ -200,7 +200,7 @@ Think Quality, Think FIL
 `.trim();
 
       await sendEmail(
-        existingUser.email,
+        existingUser.email, 
         "Verify your email - FIL Store",
         plainText,
         emailHtml

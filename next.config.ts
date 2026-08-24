@@ -5,27 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.bmstores.co.uk",
-      },
-      {
-        protocol: "https",
-        hostname: "bigfootdigital.co.uk",
-      },
-      {
-        protocol: "https",
-        hostname: "t3.ftcdn.net",
-      },
-      {
-        protocol: "https",
         hostname: "filstore.com.ng",
-      },
-      {
-        protocol: "https",
-        hostname: "ufs.sh",
       },
       {
         protocol: "https",
@@ -33,11 +13,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "i.ibb.co",
+        hostname: "pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev",
       },
       {
         protocol: "https",
-        hostname: "pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev",
+        hostname: "pub-2808252d92f04792b5072c00044ff5b2.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
       },
       {
         protocol: "https",

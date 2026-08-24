@@ -9,6 +9,8 @@ import Loading from "./Loading";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
 import { fetchUser } from "@/store/features/authSlice";
+import { setCartFromDB } from "@/store/features/cartSlice";
+import { setWishlistFromDB } from "@/store/features/wishlistSlice";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -44,7 +46,17 @@ export default function LoginForm() {
     const data = await res.json();
 
     if (res.ok) {
-      await dispatch(fetchUser());
+      // Hydrate Redux with fresh user data from login response (no extra API call needed)
+      dispatch({ type: 'auth/setUser', payload: data.user });
+      
+      // Load cart and wishlist from DB after login
+      if (data.user?.cart?.items?.length > 0) {
+        dispatch(setCartFromDB(data.user.cart.items));
+      }
+      if (data.user?.wishlist?.items?.length > 0) {
+        dispatch(setWishlistFromDB(data.user.wishlist.items));
+      }
+      
       router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
