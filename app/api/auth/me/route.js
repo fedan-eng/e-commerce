@@ -8,6 +8,8 @@ export async function GET(req) {
     await connectDB(); // Connect to the database
 
     const cookies = req.headers.get("cookie");
+    console.log("[/api/auth/me] Cookies present:", !!cookies);
+    console.log("[/api/auth/me] Cookie string:", cookies);
     if (!cookies) {
       return new Response(JSON.stringify({ message: "No token found" }), {
         status: 401,
@@ -15,7 +17,10 @@ export async function GET(req) {
       });
     }
 
-    const { token } = parse(cookies);
+    const parsed = parse(cookies);
+    console.log("[/api/auth/me] Parsed cookies:", parsed);
+    const { token } = parsed;
+    console.log("[/api/auth/me] Token present:", !!token);
     if (!token) {
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
@@ -24,6 +29,7 @@ export async function GET(req) {
     }
 
     const decodedToken = verifyToken(token);
+    console.log("[/api/auth/me] Token valid:", !!decodedToken, "Has ID:", !!(decodedToken?.id));
     if (!decodedToken || !decodedToken.id) {
       return new Response(JSON.stringify({ message: "Invalid token" }), {
         status: 401,

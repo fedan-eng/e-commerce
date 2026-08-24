@@ -8,9 +8,16 @@ import { setWishlistFromDB, clearWishlist } from "./wishlistSlice";
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, { rejectWithValue, dispatch }) => {
+    console.log("[fetchUser] Starting fetch...");
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
       const data = await res.json();
+      console.log("[fetchUser] Response status:", res.status, "Data:", data);
       if (!res.ok) throw new Error(data.message);
 
       // ── When user logs in, load their cart from DB ──────────────────────
@@ -100,6 +107,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
+        console.log("[fetchUser.fulfilled] Setting user:", !!action.payload, "isAuthenticated:", !!action.payload);
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = !!action.payload;
@@ -124,9 +132,13 @@ const authSlice = createSlice({
         state.error = action.payload;
         state.updateMessage = null;
       })
-      .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.pending, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.isLoading = true;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.isLoading = false;
         state.error = null;
         state.updateMessage = null;
       })
