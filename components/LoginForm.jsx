@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import Image from "next/image";
@@ -26,6 +26,13 @@ export default function LoginForm() {
   const passwordRef = useRef(null);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (urlError === "email_exists") {
+      setError("An account with this email already exists. Please sign in with your password.");
+    }
+  }, [searchParams]);
 
  const handleLogin = async (e) => {
   e.preventDefault();

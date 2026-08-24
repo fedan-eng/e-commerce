@@ -59,26 +59,26 @@ export async function GET(req) {
     let user = await User.findOne({ googleId: googleUser.id });
 
     if (!user) {
-      user = await User.findOne({ email: googleUser.email });
+      const existingUser = await User.findOne({ email: googleUser.email });
 
-      if (user) {
-        user.googleId = googleUser.id;
-        user.provider = "google";
-        await user.save();
-      } else {
-        const nameParts = googleUser.name.split(" ");
-        const firstName = nameParts[0] || "";
-        user = await User.create({
-          email: googleUser.email,
-          googleId: googleUser.id,
-          provider: "google",
-          firstName,
-          lastName: nameParts.slice(1).join(" ") || "",
-          isActive: true,
-        });
-
-        await sendGoogleWelcomeEmail(googleUser.email, firstName);
+      if (existingUser) {
+        return NextResponse.redirect(
+          `${baseUrl}/login?error=email_exists&hint=use_password`
+        );
       }
+
+      const nameParts = googleUser.name.split(" ");
+      const firstName = nameParts[0] || "";
+      user = await User.create({
+        email: googleUser.email,
+        googleId: googleUser.id,
+        provider: "google",
+        firstName,
+        lastName: nameParts.slice(1).join(" ") || "",
+        isActive: true,
+      });
+
+      await sendGoogleWelcomeEmail(googleUser.email, firstName);
     }
 
     const token = signToken({
