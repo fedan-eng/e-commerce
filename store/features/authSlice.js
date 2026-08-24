@@ -1,45 +1,46 @@
 // store/features/authSlice.js
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { setCartFromDB, clearCart } from "./cartSlice"; 
+import { setCartFromDB, clearCart } from "./cartSlice";
 import { setWishlistFromDB, clearWishlist } from "./wishlistSlice";
 
-// Fetch current user info
+// ─── Fetch current user ──────────────────────────────────────────────────────
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, { rejectWithValue, dispatch }) => {
-    console.log("[fetchUser] Starting fetch...");
     try {
       const res = await fetch("/api/auth/me", {
         cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
+        headers: { "Cache-Control": "no-cache" },
       });
-      const data = await res.json();
-      console.log("[fetchUser] Response status:", res.status, "Data:", data);
-      if (!res.ok) throw new Error(data.message);
 
-      // ── When user logs in, load their cart from DB ──────────────────────
-      // This overwrites whatever is in localStorage with the DB cart,
-      // so User B never sees User A's leftover cart items.
-      if (data.user?.cart?.items?.length > 0) {
-        dispatch(setCartFromDB(data.user.cart.items));
+      const data = await res.json();
+
+      // 401/403/404 → reject cleanly, don't treat as fulfilled
+      if (!res.ok) return rejectWithValue(data.message || "Unauthorized");
+
+      const user = data.user;
+
+      // Guard: if server returned 200 but no user object, reject
+      if (!user) return rejectWithValue("No user in response");
+
+      // Load DB cart and wishlist into Redux (overwrites any stale localStorage)
+      if (user.cart?.items?.length > 0) {
+        dispatch(setCartFromDB(user.cart.items));
+      }
+      if (user.wishlist?.items?.length > 0) {
+        dispatch(setWishlistFromDB(user.wishlist.items));
       }
 
-      if (data.user.wishlist?.items?.length > 0) {
-  dispatch(setWishlistFromDB(data.user.wishlist.items));
-}
-      // ────────────────────────────────────────────────────────────────────
-
-      return data.user;
+      return user;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Network-level failure (fetch itself threw)
+      return rejectWithValue(error.message || "Network error");
     }
   }
 );
 
-// Update user details
+// ─── Update user profile ─────────────────────────────────────────────────────
 export const updateUser = createAsyncThunk(
   "auth/updateUser",
   async (formData, { rejectWithValue }) => {
@@ -50,37 +51,35 @@ export const updateUser = createAsyncThunk(
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Update failed");
+      if (!res.ok) return rejectWithValue(data.message || "Update failed");
       return data.user;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.message || "Network error");
     }
   }
 );
 
-// Logout thunk
+// ─── Logout ──────────────────────────────────────────────────────────────────
 export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, { rejectWithValue, dispatch }) => {
     try {
       const res = await fetch("/api/auth/logout", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) return rejectWithValue(data.message || "Logout failed");
 
-      // ── On logout, wipe the cart from localStorage ──────────────────────
-      // So the next user who logs in starts clean.
+      // Wipe cart and wishlist from Redux + localStorage immediately
       dispatch(clearCart());
       dispatch(clearWishlist());
 
-      // ────────────────────────────────────────────────────────────────────
-
       return true;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.message || "Network error");
     }
   }
 );
 
+// ─── Slice ───────────────────────────────────────────────────────────────────
 const initialState = {
   user: null,
   isAuthenticated: false,
@@ -102,21 +101,24 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ── fetchUser ──────────────────────────────────────────────────────
       .addCase(fetchUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
-        console.log("[fetchUser.fulfilled] Setting user:", !!action.payload, "isAuthenticated:", !!action.payload);
         state.isLoading = false;
         state.user = action.payload;
-        state.isAuthenticated = !!action.payload;
+        state.isAuthenticated = true; // only reaches here if user is real
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.user = null;
         state.isAuthenticated = false;
+        state.error = action.payload;
       })
+
+      // ── updateUser ─────────────────────────────────────────────────────
       .addCase(updateUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -132,10 +134,13 @@ const authSlice = createSlice({
         state.error = action.payload;
         state.updateMessage = null;
       })
+
+      // ── logoutUser ─────────────────────────────────────────────────────
       .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+        // Clear user immediately on logout start — don't wait for server
         state.user = null;
         state.isAuthenticated = false;
-        state.isLoading = true;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.isLoading = false;
@@ -143,6 +148,7 @@ const authSlice = createSlice({
         state.updateMessage = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload;
       });
   },

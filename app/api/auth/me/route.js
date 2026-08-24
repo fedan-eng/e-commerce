@@ -1,26 +1,16 @@
+//api/auth/me
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
-import { parse } from "cookie";
+import { cookies } from "next/headers";
 
 export async function GET(req) {
   try {
     await connectDB(); // Connect to the database
 
-    const cookies = req.headers.get("cookie");
-    console.log("[/api/auth/me] Cookies present:", !!cookies);
-    console.log("[/api/auth/me] Cookie string:", cookies);
-    if (!cookies) {
-      return new Response(JSON.stringify({ message: "No token found" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    const parsed = parse(cookies);
-    console.log("[/api/auth/me] Parsed cookies:", parsed);
-    const { token } = parsed;
-    console.log("[/api/auth/me] Token present:", !!token);
     if (!token) {
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
@@ -29,7 +19,6 @@ export async function GET(req) {
     }
 
     const decodedToken = verifyToken(token);
-    console.log("[/api/auth/me] Token valid:", !!decodedToken, "Has ID:", !!(decodedToken?.id));
     if (!decodedToken || !decodedToken.id) {
       return new Response(JSON.stringify({ message: "Invalid token" }), {
         status: 401,

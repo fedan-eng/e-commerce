@@ -7,7 +7,6 @@ import Accordion from "./Accordion";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
-import { ShoppingCart } from "lucide-react";
 
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
@@ -120,8 +119,8 @@ const Footer = () => {
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
-  // ✅ Constants
-  const CART_SIZE = 96; // ⬅️ enlarged to fit "Check Out Now!" label
+  // ✅ Size Constants
+  const CART_SIZE = 110; 
   const CART_MARGIN = 24;
 
   const ELEM_WIDTH = 120;
@@ -146,6 +145,7 @@ const Footer = () => {
   const [cartSide, setCartSide] = useState("right");
   const [cartIsDragging, setCartIsDragging] = useState(false);
   const [cartSnapped, setCartSnapped] = useState(true);
+  const [cartPressed, setCartPressed] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
   const cartRef = useRef(null);
@@ -359,6 +359,7 @@ const Footer = () => {
       dragged: false,
     };
     setCartIsDragging(true);
+    setCartPressed(true);
     setCartSnapped(false);
     cartRef.current?.setPointerCapture(e.pointerId);
   };
@@ -377,6 +378,7 @@ const Footer = () => {
   const onCartPointerUp = () => {
     if (!cartIsDragging) return;
     setCartIsDragging(false);
+    setCartPressed(false);
     if (!cartDragState.current.dragged) {
       window.location.href = "/cart";
     }
@@ -385,6 +387,124 @@ const Footer = () => {
 
   return (
     <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Arial+Rounded+MT+Bold&display=swap');
+
+        .checkout-fab {
+          position: relative;
+          width: 110px;
+          height: 110px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 38% 35%, #a8e04a 0%, #7dc520 40%, #5a9a10 100%);
+          box-shadow:
+            0 6px 18px rgba(80, 140, 10, 0.55),
+            inset 0 2px 6px rgba(255,255,255,0.35),
+            inset 0 -4px 8px rgba(0,0,0,0.18);
+          border: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          padding: 0;
+          overflow: hidden;
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
+          -webkit-tap-highlight-color: transparent;
+          outline: none;
+        }
+
+        .checkout-fab:active,
+        .checkout-fab.pressed {
+          transform: scale(0.93);
+          box-shadow:
+            0 3px 10px rgba(80, 140, 10, 0.45),
+            inset 0 2px 6px rgba(255,255,255,0.25),
+            inset 0 -2px 5px rgba(0,0,0,0.22);
+        }
+
+        /* Glossy top highlight */
+        .checkout-fab::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: 20px;
+          width: 68px;
+          height: 32px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.0) 80%);
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        /* Diagonal flash sweep */
+        .flash {
+          position: absolute;
+          top: -60%;
+          left: -60%;
+          width: 60px;
+          height: 220%;
+          background: linear-gradient(
+            to right,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.55) 50%,
+            rgba(255,255,255,0) 100%
+          );
+          transform: rotate(30deg) translateX(-100%);
+          pointer-events: none;
+          z-index: 3;
+          animation: diagonal-flash 10s ease-in-out infinite;
+        }
+
+        @keyframes diagonal-flash {
+          0%   { transform: rotate(30deg) translateX(-100%); opacity: 0; }
+          2%   { opacity: 1; }
+          6%   { transform: rotate(30deg) translateX(320%); opacity: 0; }
+          100% { transform: rotate(30deg) translateX(320%); opacity: 0; }
+        }
+
+        /* Badge - placed cleanly inside circular path to prevent overflow clip */
+        .checkout-badge {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #1a1a1a;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 700;
+          font-family: Arial, sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          border: 2px solid #fff;
+          line-height: 1;
+        }
+
+        /* Cart icon wrapper */
+        .cart-icon-container {
+          position: relative;
+          z-index: 4;
+        }
+
+        /* Label styling */
+        .checkout-label {
+          font-family: Arial, Helvetica, sans-serif;
+          font-weight: 800;
+          font-size: 11.5px;
+          color: #fff;
+          text-align: center;
+          line-height: 1.25;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+          letter-spacing: 0.01em;
+          position: relative;
+          z-index: 4;
+          margin-top: 1px;
+        }
+      `}</style>
+
       {/* Discount popup overlay */}
       {isOverlayOpen && (
         <div className="z-[1000] fixed inset-0 flex justify-center items-center">
@@ -472,20 +592,21 @@ const Footer = () => {
         </div>
       )}
 
-      {/* ✅ Draggable "Check Out Now!" Cart FAB - Desktop only */}
+      {/* ✅ Premium Glossy Draggable "Check Out Now!" Cart FAB with hidden overflow containment */}
       {hasMounted && !isMobileMenuOpen && (
         <div
           ref={cartRef}
           onPointerDown={onCartPointerDown}
           onPointerMove={onCartPointerMove}
           onPointerUp={onCartPointerUp}
+          onPointerLeave={() => setCartPressed(false)}
           style={{
             position: "fixed",
             left: cartPos.x,
             top: cartPos.y,
             width: CART_SIZE,
             height: CART_SIZE,
-            overflow: "visible",
+            overflow: "hidden", // Contained elements beautifully within the circular boundary
             transition:
               cartSnapped && !cartIsDragging
                 ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
@@ -493,24 +614,55 @@ const Footer = () => {
             userSelect: "none",
             touchAction: "none",
             zIndex: 60,
-            cursor: cartIsDragging ? "grabbing" : "grab",
           }}
-          className="hidden md:flex flex-col border-2 border-white justify-center items-center bg-[#1cc978] hover:bg-[#17a86b] rounded-full shadow-lg shadow-[#1cc978]/30 transition-colors"
+          className={`hidden md:flex checkout-fab ${cartPressed ? "pressed" : ""}`}
           role="button"
-          aria-label="Check out now"
+          aria-label={`Check out now, ${totalItems} items in cart`}
         >
-          <ShoppingCart size={26} strokeWidth={2} className="text-white mb-0.5" />
-          <span className="text-white text-[11px] font-semibold leading-tight text-center px-1">
+          {/* Diagonal continuous sweep effect */}
+          <div className="flash" />
+
+          {/* Dynamic Redux Store Cart Count Badge */}
+          {totalItems > 0 && (
+            <div className="checkout-badge">
+              {totalItems}
+            </div>
+          )}
+
+          {/* Upgraded precise SVG Cart Icon */}
+          <div className="cart-icon-container">
+            <svg
+              width="34"
+              height="30"
+              viewBox="0 0 34 30"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 2H2"
+                stroke="white"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 2l2.5 13h17l2.5-10H8"
+                stroke="white"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <circle cx="10" cy="27" r="2.2" fill="white" />
+              <circle cx="21" cy="27" r="2.2" fill="white" />
+            </svg>
+          </div>
+
+          {/* Premium Label Typography */}
+          <div className="checkout-label">
             Check Out
             <br />
             Now!
-          </span>
-
-          {totalItems > 0 && (
-            <span className="absolute -top-1 -right-1 flex justify-center items-center bg-[#1a1a1a] border-2 border-white rounded-full min-w-[28px] h-[28px] px-2 text-white text-[11px] font-bold leading-none">
-              {totalItems}
-            </span>
-          )}
+          </div>
         </div>
       )}
 

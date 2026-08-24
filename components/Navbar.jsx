@@ -60,15 +60,20 @@ export default function Navbar() {
     };
   }, [menuOpen]);
 
-  const handleLogout = async () => {
-    const result = await dispatch(logoutUser());
-    if (logoutUser.fulfilled.match(result)) {
-      setMenuOpen(false);
-      window.location.href = "/login";
-    } else {
-      console.error("Logout failed:", result.payload);
-    }
-  };
+   const handleLogout = async () => {
+      const result = await dispatch(logoutUser());
+  
+      if (logoutUser.fulfilled.match(result)) {
+        // ✅ Soft navigation — no full page reload, no remount race condition.
+        // window.location.href was causing AuthInitializer to remount and
+        // dispatch fetchUser before the browser committed the cleared cookie,
+        // resulting in a ghost fulfilled auth state after logout.
+        router.push("/login");
+      } else {
+        console.error("Logout failed:", result.payload);
+      }
+    };
+  
 
   if (noNavigationMenu) return null;
 
