@@ -85,14 +85,6 @@ export async function GET(req) {
       id: user._id,
       email: user.email,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      country: user.country,
-      phone: user.phone,
-      addPhone: user.addPhone,
-      address: user.address,
-      city: user.city,
-      region: typeof user.region === "string" ? { name: user.region, fee: 0 } : user.region,
     });
 
     const cookie = serialize("token", token, {
