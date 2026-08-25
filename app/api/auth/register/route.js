@@ -6,7 +6,7 @@ import User from "@/models/User";
 
 export async function POST(req) {
   await connectDB();
-  const { email, password, firstName, lastName } = await req.json();
+  const { email, password, firstName, lastName, callback } = await req.json();
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -28,7 +28,9 @@ export async function POST(req) {
 
       const origin = req.headers.get("origin") || req.headers.get("host") || "https://filstore.com.ng";
       const baseUrl = origin.startsWith("http") ? origin : `https://${origin}`;
-      const verificationLink = `${baseUrl}/verify-email?token=${existingUser.verificationToken}`;
+      const verificationLink = callback 
+        ? `${baseUrl}/verify-email?token=${existingUser.verificationToken}&callback=${encodeURIComponent(callback)}`
+        : `${baseUrl}/verify-email?token=${existingUser.verificationToken}`;
 
       const emailHtml = `
 <!DOCTYPE html>
@@ -235,7 +237,9 @@ Think Quality, Think FIL
 
   const origin = req.headers.get("origin") || req.headers.get("host") || "https://filstore.com.ng";
   const baseUrl = origin.startsWith("http") ? origin : `https://${origin}`;
-  const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}`;
+  const verificationLink = callback 
+    ? `${baseUrl}/verify-email?token=${verificationToken}&callback=${encodeURIComponent(callback)}`
+    : `${baseUrl}/verify-email?token=${verificationToken}`;
 
   const emailHtml = `
 <!DOCTYPE html>

@@ -25,7 +25,7 @@ export default function LoginForm() {
 
   const passwordRef = useRef(null);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/products";
+  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("callback") || "/products";
 
   // ── Client-side auth guard ───────────────────────────────────────────────
   // Handles the case where middleware edge cache wrongly serves /login to
@@ -145,7 +145,7 @@ export default function LoginForm() {
             </Link>
 
             <Link
-              href="/register"
+              href={callbackUrl && callbackUrl !== "/products" ? `/register?callback=${encodeURIComponent(callbackUrl)}` : "/register"}
               className="py-2 font-oswald font-medium text-[#b7b7b7] text-xl sm:text-3xl"
             >
               {" "}

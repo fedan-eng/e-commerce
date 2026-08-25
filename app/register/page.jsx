@@ -1,10 +1,13 @@
-import React from "react";
+import React, { Suspense } from "react";
 import RegistrationForm from "@/components/RegistrationForm";
+import Loading from "@/components/Loading";
 
 const RegisterPage = () => {
   return (
     <div className="">
-      <RegistrationForm />
+      <Suspense fallback={<Loading />}>
+        <RegistrationForm />
+      </Suspense>
     </div>
   );
 };
