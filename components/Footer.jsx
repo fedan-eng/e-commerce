@@ -464,24 +464,25 @@ const Footer = () => {
 
         /* Badge - placed cleanly inside circular path to prevent overflow clip */
         .checkout-badge {
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #1a1a1a;
-          color: #fff;
-          font-size: 12px;
-          font-weight: 700;
-          font-family: Arial, sans-serif;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10;
-          border: 2px solid #fff;
-          line-height: 1;
-        }
+  position: absolute;
+  top: 2px;        /* relative to the wrapper div now */
+  right: 2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;     /* above the button */
+  border: 2px solid #fff;
+  line-height: 1;
+  pointer-events: none;
+}
 
         /* Cart icon wrapper */
         .cart-icon-container {
@@ -593,45 +594,40 @@ const Footer = () => {
       )}
 
       {/* ✅ Premium Glossy Draggable "Check Out Now!" Cart FAB with hidden overflow containment */}
-      {hasMounted && !isMobileMenuOpen && (
-        <div
-          ref={cartRef}
-          onPointerDown={onCartPointerDown}
-          onPointerMove={onCartPointerMove}
-          onPointerUp={onCartPointerUp}
-          onPointerLeave={() => setCartPressed(false)}
-          style={{
-            position: "fixed",
-            left: cartPos.x,
-            top: cartPos.y,
-            width: CART_SIZE,
-            height: CART_SIZE,
-            overflow: "hidden", // Contained elements beautifully within the circular boundary
-            transition:
-              cartSnapped && !cartIsDragging
-                ? "left 0.35s cubic-bezier(0.34,1.56,0.64,1), top 0.2s ease"
-                : "none",
-            userSelect: "none",
-            touchAction: "none",
-            zIndex: 60,
-          }}
-          className={`hidden md:flex checkout-fab ${cartPressed ? "pressed" : ""}`}
-          role="button"
-          aria-label={`Check out now, ${totalItems} items in cart`}
-        >
-          {/* Diagonal continuous sweep effect */}
-          <div className="flash" />
+      
+          {hasMounted && !isMobileMenuOpen && (
+  <div
+    ref={cartRef}
+    onPointerDown={onCartPointerDown}
+    onPointerMove={onCartPointerMove}
+    onPointerUp={onCartPointerUp}
+    onPointerLeave={() => setCartPressed(false)}
+    style={{
+      position: "fixed",
+      left: cartPos.x,
+      top: cartPos.y,
+      zIndex: 999,
+      touchAction: "none",
+      userSelect: "none",
+      width: CART_SIZE,
+      height: CART_SIZE,
+    }}
+  >
+    {/* Badge OUTSIDE the button so overflow:hidden doesn't clip it */}
+    {totalItems > 0 && (
+      <span className="checkout-badge">
+        {totalItems > 99 ? "99+" : totalItems}
+      </span>
+    )}
 
-          {/* Dynamic Redux Store Cart Count Badge */}
-          {totalItems > 0 && (
-            <div className="checkout-badge">
-              {totalItems}
-            </div>
-          )}
-
-          {/* Upgraded precise SVG Cart Icon */}
-          <div className="cart-icon-container">
-            <svg
+    <button
+      className={`checkout-fab${cartPressed ? " pressed" : ""}`}
+      style={{ width: "100%", height: "100%" }}
+      aria-label={`Cart, ${totalItems} items`}
+    >
+      <div className="flash" />
+      <div className="cart-icon-container">
+      <svg
               width="34"
               height="30"
               viewBox="0 0 34 30"
@@ -655,16 +651,13 @@ const Footer = () => {
               <circle cx="10" cy="27" r="2.2" fill="white" />
               <circle cx="21" cy="27" r="2.2" fill="white" />
             </svg>
-          </div>
-
-          {/* Premium Label Typography */}
-          <div className="checkout-label">
-            Check Out
-            <br />
-            Now!
-          </div>
-        </div>
-      )}
+      </div>
+      <span className="checkout-label">
+        Check Out<br />Now!
+      </span>
+    </button>
+  </div>
+)}
 
       <footer className="bg-black pt-9">
         {/* WhatsApp & scroll-to-top */}
