@@ -6,37 +6,56 @@ import User from "@/models/User";
 export async function GET(req) {
   await connectDB();
   
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = new URL(req.url); 
   const token = searchParams.get("token");
+  const callback = searchParams.get("callback");
 
   if (!token) {
-    return Response.redirect(new URL("/login?error=missing_token", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=missing_token&callback=${encodeURIComponent(callback)}`
+      : "/login?error=missing_token";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   // Verify JWT token
   const decoded = verifyToken(token);
   if (!decoded) {
-    return Response.redirect(new URL("/login?error=invalid_token", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=invalid_token&callback=${encodeURIComponent(callback)}`
+      : "/login?error=invalid_token";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   // Find user by email from token
   const user = await User.findOne({ email: decoded.email });
   if (!user) {
-    return Response.redirect(new URL("/login?error=user_not_found", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=user_not_found&callback=${encodeURIComponent(callback)}`
+      : "/login?error=user_not_found";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   // Check if token matches and hasn't expired
   if (user.verificationToken !== token) {
-    return Response.redirect(new URL("/login?error=token_mismatch", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=token_mismatch&callback=${encodeURIComponent(callback)}`
+      : "/login?error=token_mismatch";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   if (user.verificationTokenExpiry < new Date()) {
-    return Response.redirect(new URL("/login?error=token_expired", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=token_expired&callback=${encodeURIComponent(callback)}`
+      : "/login?error=token_expired";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   // Check if already verified
   if (user.isVerified) {
-    return Response.redirect(new URL("/login?error=already_verified", req.url));
+    const redirectUrl = callback 
+      ? `/login?error=already_verified&callback=${encodeURIComponent(callback)}`
+      : "/login?error=already_verified";
+    return Response.redirect(new URL(redirectUrl, req.url));
   }
 
   // Mark user as verified and clear token
@@ -298,5 +317,8 @@ Need help? Contact us at filfilecommerce@gmail.com
   );
 
   // Redirect to login with success
-  return Response.redirect(new URL("/login?verified=true", req.url));
+  const redirectUrl = callback 
+    ? `/login?verified=true&callback=${encodeURIComponent(callback)}`
+    : "/login?verified=true";
+  return Response.redirect(new URL(redirectUrl, req.url));
 }

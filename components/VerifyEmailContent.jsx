@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/components/Loading";
-import ImageSlider from "@/components/ImageSlider";
+import ImageSlider from "@/components/ImageSlider"; 
 import { FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 
@@ -26,8 +26,10 @@ const VerifyEmailContent = () => {
         const response = await fetch(`/api/auth/verify-email?token=${token}`);
         
         if (response.redirected) {
-          // The API handles redirects, so we follow it
-          window.location.href = response.url;
+          // The API handles redirects, so we follow it using router.push
+          const redirectUrl = new URL(response.url);
+          const pathname = redirectUrl.pathname + redirectUrl.search;
+          router.push(pathname);
           return;
         }
 
