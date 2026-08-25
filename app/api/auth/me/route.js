@@ -1,4 +1,5 @@
 //api/auth/me
+export const dynamic = "force-dynamic";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";

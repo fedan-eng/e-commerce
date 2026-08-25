@@ -4,6 +4,8 @@ import User from "@/models/User";
 import { signToken } from "@/lib/auth";
 import { serialize } from "cookie";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");

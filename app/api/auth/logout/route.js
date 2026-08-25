@@ -1,4 +1,5 @@
 import { serialize } from "cookie";
+export const dynamic = "force-dynamic";
 
 export async function POST() {
   return new Response(JSON.stringify({ message: "Logged out" }), {
