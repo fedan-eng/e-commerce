@@ -11,6 +11,8 @@ export async function GET(req) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
+    console.log("[/api/auth/me] Token present:", !!token);
+
     if (!token) {
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
