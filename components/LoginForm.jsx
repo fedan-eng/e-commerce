@@ -7,7 +7,7 @@ import ImageSlider from "./ImageSlider";
 import Link from "next/link";
 import Loading from "./Loading";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { FaArrowBack } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { fetchUser } from "@/store/features/authSlice";
 
 export default function LoginForm() {
