@@ -2,10 +2,12 @@
 import ImageSlider from "./ImageSlider";
 import { FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const VerificationForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callback = searchParams.get("callback");
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
@@ -36,7 +38,7 @@ const VerificationForm = () => {
         </div>
 
         <p className="text-sm text-[#666]">
-          Didn't receive the email? <a href="/register" className="text-filgreen underline">Register again</a>
+          Didn't receive the email? <a href={callback ? `/register?callback=${encodeURIComponent(callback)}` : "/register"} className="text-filgreen underline">Register again</a>
         </p>
       </div>
 

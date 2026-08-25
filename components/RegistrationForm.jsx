@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { registerUserAsync } from "@/store/features/registerSlice";
 import Loading from "@/components/Loading";
 import Link from "next/link";
@@ -17,9 +17,12 @@ const RegistrationForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isRegistered, isLoading, error } = useSelector(
     (state) => state.register
   );
+
+  const callback = searchParams.get("callback");
 
   const formik = useFormik({ 
     initialValues: {
@@ -51,7 +54,7 @@ const RegistrationForm = () => {
     onSubmit: async (values) => {
       const { email, firstName, lastName, password } = values;
       await dispatch(
-        registerUserAsync({ email, firstName, lastName, password })
+        registerUserAsync({ email, firstName, lastName, password, callback })
       );
     },
   });
@@ -59,9 +62,9 @@ const RegistrationForm = () => {
   // Navigate after registration
   useEffect(() => {
     if (isRegistered) {
-      router.push("/verify");
+      router.push(callback ? `/verify?callback=${encodeURIComponent(callback)}` : "/verify");
     }
-  }, [isRegistered, router]);
+  }, [isRegistered, router, callback]);
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">

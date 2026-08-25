@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "@/components/Loading";
-import ImageSlider from "@/components/ImageSlider";
+import ImageSlider from "@/components/ImageSlider"; 
 import { FaArrowLeft } from "react-icons/fa";
 import Image from "next/image";
 
@@ -15,6 +15,7 @@ const VerifyEmailContent = () => {
   useEffect(() => {
     const verifyEmail = async () => {
       const token = searchParams.get("token");
+      const callback = searchParams.get("callback");
 
       if (!token) {
         setStatus("error");
@@ -23,11 +24,17 @@ const VerifyEmailContent = () => {
       }
 
       try {
-        const response = await fetch(`/api/auth/verify-email?token=${token}`);
+        const apiUrl = callback 
+          ? `/api/auth/verify-email?token=${token}&callback=${encodeURIComponent(callback)}`
+          : `/api/auth/verify-email?token=${token}`;
+        
+        const response = await fetch(apiUrl);
         
         if (response.redirected) {
-          // The API handles redirects, so we follow it
-          window.location.href = response.url;
+          // The API handles redirects, so we follow it using router.push
+          const redirectUrl = new URL(response.url);
+          const pathname = redirectUrl.pathname + redirectUrl.search;
+          router.push(pathname);
           return;
         }
 
@@ -40,7 +47,7 @@ const VerifyEmailContent = () => {
     };
 
     verifyEmail();
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
