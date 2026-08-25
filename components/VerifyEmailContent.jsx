@@ -15,6 +15,7 @@ const VerifyEmailContent = () => {
   useEffect(() => {
     const verifyEmail = async () => {
       const token = searchParams.get("token");
+      const callback = searchParams.get("callback");
 
       if (!token) {
         setStatus("error");
@@ -23,7 +24,11 @@ const VerifyEmailContent = () => {
       }
 
       try {
-        const response = await fetch(`/api/auth/verify-email?token=${token}`);
+        const apiUrl = callback 
+          ? `/api/auth/verify-email?token=${token}&callback=${encodeURIComponent(callback)}`
+          : `/api/auth/verify-email?token=${token}`;
+        
+        const response = await fetch(apiUrl);
         
         if (response.redirected) {
           // The API handles redirects, so we follow it using router.push
@@ -42,7 +47,7 @@ const VerifyEmailContent = () => {
     };
 
     verifyEmail();
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
