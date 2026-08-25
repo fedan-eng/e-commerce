@@ -63,5 +63,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/admin_console/:path*", "/login", "/register", "/logout"],
+  matcher: ["/admin_console/:path*", "/logout"],
 };

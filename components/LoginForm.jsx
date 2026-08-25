@@ -9,7 +9,12 @@ import Loading from "./Loading";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FaArrowLeft } from "react-icons/fa";
 import { fetchUser } from "@/store/features/authSlice";
-
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUser } from "@/store/features/authSlice";
+ 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,87 +27,101 @@ export default function LoginForm() {
   const [showGoogleHint, setShowGoogleHint] = useState(false);
   const [showVerificationHint, setShowVerificationHint] = useState(false);
   const [resending, setResending] = useState(false);
-
+ 
   const passwordRef = useRef(null);
-
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
-
+ 
+  const callbackUrl = searchParams.get("callbackUrl") || "/products";
+ 
+  // ── Client-side auth guard ───────────────────────────────────────────────
+  // Handles the case where middleware edge cache wrongly serves /login to
+  // an already-authenticated user. Redux state is always fresh, never cached.
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+ 
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const destination = user.role === "admin" ? "/admin_console" : "/products";
+      router.replace(destination);
+    }
+  }, [isAuthenticated, user, router]);
+  // ─────────────────────────────────────────────────────────────────────────
+ 
   useEffect(() => {
     const urlError = searchParams.get("error");
     if (urlError === "email_exists") {
       setError("An account with this email already exists. Please sign in with your password.");
     }
   }, [searchParams]);
-
- const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
-  setShowGoogleHint(false);
-  setShowVerificationHint(false);
-  setLoading(true);
-
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      await dispatch(fetchUser());
-      router.push(callbackUrl || "/products");
-    } else {
-      if (data.provider === "google") {
-        setShowGoogleHint(true);
-        setError("");
-      } else if (data.requiresVerification) {
-        setShowVerificationHint(true);
-        setError("");
+ 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setShowGoogleHint(false);
+    setShowVerificationHint(false);
+    setLoading(true);
+ 
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+ 
+      const data = await res.json();
+ 
+      if (res.ok) {
+        await dispatch(fetchUser());
+        router.push(callbackUrl || "/products");
       } else {
-        setError(data.message || "Invalid email or password");
+        if (data.provider === "google") {
+          setShowGoogleHint(true);
+          setError("");
+        } else if (data.requiresVerification) {
+          setShowVerificationHint(true);
+          setError("");
+        } else {
+          setError(data.message || "Invalid email or password");
+        }
       }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
- const handleResendVerification = async () => {
-  setResending(true);
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: "", firstName: "", lastName: "" }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      setError("");
-      setShowVerificationHint(false);
-      alert(data.message || "Verification email resent. Please check your inbox.");
-    } else {
-      setError(data.message || "Failed to resend verification email");
+  };
+ 
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "", firstName: "", lastName: "" }),
+      });
+ 
+      const data = await res.json();
+ 
+      if (res.ok) {
+        setError("");
+        setShowVerificationHint(false);
+        alert(data.message || "Verification email resent. Please check your inbox.");
+      } else {
+        setError(data.message || "Failed to resend verification email");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setResending(false);
     }
-  } catch (err) {
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setResending(false);
-  }
-};
-
+  };
+ 
   const handleEmailKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      passwordRef.current?.focus(); // Move focus to password input
+      passwordRef.current?.focus();
     }
   };
 
+  
   return (
     <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden">
       <div className="max-lg:hidden flex justify-center bg-white">
