@@ -46,6 +46,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const cartItemsFromStore = useSelector((state) => state.cart.items);
   const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
   const user = useSelector((state) => state.auth.user);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   const { trackEvent } = useGAEvent();
   const { trackInitiateCheckout } = useMetaPixelEvent();
@@ -60,7 +61,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && isAuthenticated) {
       localStorage.removeItem("savedCheckoutInfo");
       setFormData((prev) => ({
         ...prev,
@@ -94,7 +95,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
         }
       }
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   useEffect(() => {
     const handleKey = (e) => {
