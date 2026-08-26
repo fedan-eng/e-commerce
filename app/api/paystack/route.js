@@ -34,7 +34,7 @@ export async function POST(req) {
 
     // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
-    
+
     const finalCartItems = modalCartItems || simpleItems || [];
     const finalUserId = userId || null;
 
@@ -77,6 +77,7 @@ export async function POST(req) {
           email: email,
           amount: Math.round(total * 100),
           currency: "NGN",
+          channels: ["bank_transfer", "card", "bank", "ussd"],
           metadata: {
             cartItems: finalCartItems,
             userId: finalUserId,
@@ -175,6 +176,7 @@ export async function POST(req) {
         email: email, // sanitized email
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
+        channels: ["bank_transfer", "card"],
         metadata: {
           cartItems: finalCartItems,
           deliveryInfo: {
