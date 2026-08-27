@@ -116,12 +116,25 @@ function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        // Update local order state immediately (optimistic)
-        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-        // Re-fetch to sync stats + total counts
-        await fetchOrders();
+        // Just update local state, no re-fetch
+        setOrders(prev =>
+          prev.map(o =>
+            o._id === orderId ? { ...o, status: newStatus } : o
+          )
+        );
+        // Only update stats separately without touching orders
+        const params = new URLSearchParams({ page, limit: 15 });
+        if (search) params.append("search", search);
+        if (days)   params.append("days", days);
+        // No statusFilter here — stats should always be global
+        const res2 = await fetch(`/api/admin/orders?${params}`);
+        const data = await res2.json();
+        if (data.stats) setStats(data.stats);
+        setTotal(data.total || 0);
       }
-    } finally { setUpdating(null); }
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const getTotal = (order) => {
