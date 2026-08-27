@@ -1,6 +1,6 @@
 // app/admin_console/orders/page.jsx
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -65,28 +65,25 @@ function AdminOrdersPage() {
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
 
-  const syncUrl = useCallback((o = {}) => {
+  // Sync URL params from state - single source of truth
+  useEffect(() => {
     const params = new URLSearchParams();
-    const sf = o.statusFilter ?? statusFilter;
-    const se = o.search       ?? search;
-    const d  = o.days         ?? days;
-    const pg = o.page         ?? page;
-    if (sf !== "all") params.set("status", sf);
-    if (se)           params.set("search", se);
-    if (d)            params.set("days",   d);
-    if (pg > 1)       params.set("page",   pg);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (search) params.set("search", search);
+    if (days) params.set("days", days);
+    if (page > 1) params.set("page", page);
     const qs = params.toString();
     router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
   }, [statusFilter, search, days, page, router]);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = async () => {
     setLoading(true);
     const params = new URLSearchParams({ page, limit: 15 });
     if (statusFilter !== "all") params.append("status", statusFilter);
-    if (search)                 params.append("search", search);
-    if (days)                   params.append("days",   days);
-    const res  = await fetch(`/api/admin/orders?${params}`, {
-      cache: 'no-store', // Disable caching
+    if (search) params.append("search", search);
+    if (days) params.append("days", days);
+    const res = await fetch(`/api/admin/orders?${params}`, {
+      cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache',
       }
@@ -99,20 +96,31 @@ function AdminOrdersPage() {
     setTotal(data.total || 0);
     if (data.stats) setStats(data.stats);
     setLoading(false);
-  }, [page, statusFilter, search, days]);
+  };
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
 
   const submitSearch = () => {
     const v = searchInput.trim();
-    setSearch(v); setPage(1); syncUrl({ search: v, page: 1 });
+    setSearch(v);
+    setPage(1);
   };
   const clearSearch = () => {
-    setSearchInput(""); setSearch(""); setPage(1); syncUrl({ search: "", page: 1 });
+    setSearchInput("");
+    setSearch("");
+    setPage(1);
   };
-  const handleStatus = (s) => { setStatusFilter(s); setPage(1); syncUrl({ statusFilter: s, page: 1 }); };
-  const handleDays   = (d) => { setDays(d); setPage(1); syncUrl({ days: d, page: 1 }); };
-  const changePage   = (p) => { setPage(p); syncUrl({ page: p }); };
+  const handleStatus = (s) => {
+    setStatusFilter(s);
+    setPage(1);
+  };
+  const handleDays = (d) => {
+    setDays(d);
+    setPage(1);
+  };
+  const changePage = (p) => {
+    setPage(p);
+  };
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const updateStatus = async (orderId, newStatus) => {
@@ -130,15 +138,12 @@ function AdminOrdersPage() {
             o._id === orderId ? { ...o, status: newStatus } : o
           )
         );
-        // Only update stats separately without touching orders
-        const params = new URLSearchParams({ page, limit: 15 });
-        if (search) params.append("search", search);
-        if (days)   params.append("days", days);
-        // No statusFilter here — stats should always be global
-        const res2 = await fetch(`/api/admin/orders?${params}`);
+        // Only update stats separately without touching orders or total
+        // Stats should always be global (no status filter)
+        const res2 = await fetch(`/api/admin/orders?page=1&limit=1`);
         const data = await res2.json();
         if (data.stats) setStats(data.stats);
-        setTotal(data.total || 0);
+        // Don't set total here - it belongs to the current filtered view
       }
     } finally {
       setUpdating(null);
@@ -313,8 +318,11 @@ function AdminOrdersPage() {
           {(search || days || statusFilter !== "all") && (
             <button
               onClick={() => {
-                setSearch(""); setSearchInput(""); setDays(""); setStatusFilter("all"); setPage(1);
-                router.replace("/admin_console/orders", { scroll: false });
+                setSearch("");
+                setSearchInput("");
+                setDays("");
+                setStatusFilter("all");
+                setPage(1);
               }}
               className="text-[11px] text-[#fff] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
             >

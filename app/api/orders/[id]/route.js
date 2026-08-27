@@ -29,7 +29,7 @@ export async function PATCH(req, context) {
 
   try {
     const token = req.cookies.get("token")?.value;
-    if (!token) {
+    if (!token) { 
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
       });
