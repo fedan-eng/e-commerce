@@ -66,6 +66,8 @@ console.log("[orders total]", total);
 const statsQuery = { ...query };
 delete statsQuery.status; // Remove status so stats show ALL orders
 
+console.log("[stats query]", JSON.stringify(statsQuery, null, 2));
+
 const [statsResults] = await Order.aggregate([
   { $match: statsQuery }, // respects days/search but NOT status
   { 
@@ -79,6 +81,8 @@ const [statsResults] = await Order.aggregate([
     },
   },
 ]);
+
+console.log("[stats results]", JSON.stringify(statsResults, null, 2));
 
 const stats = statsResults ?? { total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
     const orders = await Order.find(query)
