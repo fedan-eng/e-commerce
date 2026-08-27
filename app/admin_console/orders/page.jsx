@@ -133,12 +133,8 @@ function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        // Re-fetch the current view to ensure consistency
+        // Re-fetch the current view - this already sets orders, stats, total — everything
         await fetchOrders();
-        // Update stats separately (global stats)
-        const res2 = await fetch(`/api/admin/orders?page=1&limit=1`);
-        const data = await res2.json();
-        if (data.stats) setStats(data.stats);
       }
     } finally {
       setUpdating(null);
