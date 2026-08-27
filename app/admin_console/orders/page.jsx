@@ -64,7 +64,6 @@ function AdminOrdersPage() {
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
-  const isInitialMount = useRef(true);
 
   // Sync URL params from state - single source of truth
   useEffect(() => {
