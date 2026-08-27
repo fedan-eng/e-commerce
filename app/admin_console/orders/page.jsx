@@ -29,6 +29,7 @@ const DAYS_OPTIONS       = [
 const STAT_CARDS = [
   { label: "Total orders",    key: "total",     color: "#e8e8e8" },
   { label: "Confirmed",       key: "confirmed", color: "#e8c46a" },
+  { label: "Processing",     key: "processing", color: "#6ab4e8" },
   { label: "Shipped",         key: "shipped",   color: "#a06ae8" },
   { label: "Delivered",       key: "delivered", color: "#6ae8a0" },
   { label: "Cancelled",       key: "cancelled", color: "#e86a6a" },
@@ -57,7 +58,7 @@ function AdminOrdersPage() {
   const [updating,     setUpdating]     = useState(null);
   const [orders,       setOrders]       = useState([]);
   const [expanded,     setExpanded]     = useState({});
-  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 });
+  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 });
   const [page,         setPage]         = useState(Number(searchParams.get("page")) || 1);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");

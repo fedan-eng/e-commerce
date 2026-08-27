@@ -73,18 +73,19 @@ const [statsResults] = await Order.aggregate([
   { 
     $group: {
       _id: null,
-      total:     { $sum: 1 },
-      confirmed: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "confirmed"] }, 1, 0] } },
-      shipped:   { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "shipped"]   }, 1, 0] } },
-      delivered: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "delivered"] }, 1, 0] } },
-      cancelled: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "cancelled"] }, 1, 0] } },
+      total:      { $sum: 1 },
+      confirmed:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "confirmed"] }, 1, 0] } },
+      processing: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "processing"] }, 1, 0] } },
+      shipped:    { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "shipped"]   }, 1, 0] } },
+      delivered:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "delivered"] }, 1, 0] } },
+      cancelled:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "cancelled"] }, 1, 0] } },
     },
   },
 ]);
 
 console.log("[stats results]", JSON.stringify(statsResults, null, 2));
 
-const stats = statsResults ?? { total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
+const stats = statsResults ?? { total: 0, confirmed: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
