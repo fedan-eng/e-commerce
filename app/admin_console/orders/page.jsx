@@ -78,7 +78,7 @@ function AdminOrdersPage() {
     router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
   }, [statusFilter, search, days, page, router]);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = async () => {
     setLoading(true);
     const params = new URLSearchParams({ page, limit: 15 });
     if (statusFilter !== "all") params.append("status", statusFilter);
@@ -86,14 +86,16 @@ function AdminOrdersPage() {
     if (days)                   params.append("days",   days);
     const res  = await fetch(`/api/admin/orders?${params}`);
     const data = await res.json();
+    console.log("DEBUG - API Response:", data);
+    console.log("DEBUG - Stats from API:", data.stats);
     setOrders(data.orders || []);
     setTotalPages(data.totalPages || 1);
     setTotal(data.total || 0);
     if (data.stats) setStats(data.stats);
     setLoading(false);
-  }, [page, statusFilter, search, days]);
+  };
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
 
   const submitSearch = () => {
     const v = searchInput.trim();
