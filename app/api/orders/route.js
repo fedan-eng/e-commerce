@@ -1,3 +1,4 @@
+//api/orders/route.js
 import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
@@ -9,7 +10,7 @@ export async function GET(req) {
     const token = req.cookies.get("token")?.value;
     if (!token) {
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
-        status: 401,
+        status: 401, 
       });
     }
 

@@ -1,6 +1,6 @@
 // app/admin_console/orders/page.jsx
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -29,6 +29,7 @@ const DAYS_OPTIONS       = [
 const STAT_CARDS = [
   { label: "Total orders",    key: "total",     color: "#e8e8e8" },
   { label: "Confirmed",       key: "confirmed", color: "#e8c46a" },
+  { label: "Processing",     key: "processing", color: "#6ab4e8" },
   { label: "Shipped",         key: "shipped",   color: "#a06ae8" },
   { label: "Delivered",       key: "delivered", color: "#6ae8a0" },
   { label: "Cancelled",       key: "cancelled", color: "#e86a6a" },
@@ -57,54 +58,70 @@ function AdminOrdersPage() {
   const [updating,     setUpdating]     = useState(null);
   const [orders,       setOrders]       = useState([]);
   const [expanded,     setExpanded]     = useState({});
-  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 });
+  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 });
   const [page,         setPage]         = useState(Number(searchParams.get("page")) || 1);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
 
-  const syncUrl = useCallback((o = {}) => {
+  // Sync URL params from state - single source of truth
+  useEffect(() => {
     const params = new URLSearchParams();
-    const sf = o.statusFilter ?? statusFilter;
-    const se = o.search       ?? search;
-    const d  = o.days         ?? days;
-    const pg = o.page         ?? page;
-    if (sf !== "all") params.set("status", sf);
-    if (se)           params.set("search", se);
-    if (d)            params.set("days",   d);
-    if (pg > 1)       params.set("page",   pg);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (search) params.set("search", search);
+    if (days) params.set("days", days);
+    if (page > 1) params.set("page", page);
     const qs = params.toString();
-    router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
+    const newUrl = qs ? `/admin_console/orders?${qs}` : "/admin_console/orders";
+    
+    // Only navigate if URL actually changed
+    const currentUrl = window.location.pathname + (window.location.search || "");
+    if (currentUrl !== newUrl) {
+      router.replace(newUrl, { scroll: false });
+    }
   }, [statusFilter, search, days, page, router]);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page, limit: 15 });
+    const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
     if (statusFilter !== "all") params.append("status", statusFilter);
-    if (search)                 params.append("search", search);
-    if (days)                   params.append("days",   days);
-    const res  = await fetch(`/api/admin/orders?${params}`);
+    if (search) params.append("search", search);
+    if (days) params.append("days", days);
+    const res = await fetch(`/api/admin/orders?${params}`);
     const data = await res.json();
+    console.log("Frontend - API Response:", data);
+    console.log("Frontend - Stats from API:", data.stats);
     setOrders(data.orders || []);
     setTotalPages(data.totalPages || 1);
     setTotal(data.total || 0);
     if (data.stats) setStats(data.stats);
     setLoading(false);
-  }, [page, statusFilter, search, days]);
+  };
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
 
   const submitSearch = () => {
     const v = searchInput.trim();
-    setSearch(v); setPage(1); syncUrl({ search: v, page: 1 });
+    setSearch(v);
+    setPage(1);
   };
   const clearSearch = () => {
-    setSearchInput(""); setSearch(""); setPage(1); syncUrl({ search: "", page: 1 });
+    setSearchInput("");
+    setSearch("");
+    setPage(1);
   };
-  const handleStatus = (s) => { setStatusFilter(s); setPage(1); syncUrl({ statusFilter: s, page: 1 }); };
-  const handleDays   = (d) => { setDays(d); setPage(1); syncUrl({ days: d, page: 1 }); };
-  const changePage   = (p) => { setPage(p); syncUrl({ page: p }); };
+  const handleStatus = (s) => {
+    setStatusFilter(s);
+    setPage(1);
+  };
+  const handleDays = (d) => {
+    setDays(d);
+    setPage(1);
+  };
+  const changePage = (p) => {
+    setPage(p);
+  };
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const updateStatus = async (orderId, newStatus) => {
@@ -115,8 +132,13 @@ function AdminOrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok) setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-    } finally { setUpdating(null); }
+      if (res.ok) {
+        // Re-fetch the current view - this already sets orders, stats, total — everything
+        await fetchOrders();
+      }
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const getTotal = (order) => {
@@ -287,8 +309,11 @@ function AdminOrdersPage() {
           {(search || days || statusFilter !== "all") && (
             <button
               onClick={() => {
-                setSearch(""); setSearchInput(""); setDays(""); setStatusFilter("all"); setPage(1);
-                router.replace("/admin_console/orders", { scroll: false });
+                setSearch("");
+                setSearchInput("");
+                setDays("");
+                setStatusFilter("all");
+                setPage(1);
               }}
               className="text-[11px] text-[#fff] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
             >
@@ -353,7 +378,11 @@ function AdminOrdersPage() {
                           <td className="px-4 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">₦{getTotal(order)}</td>
                           <td className="px-4 py-3.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                             <select
-                              value={ALL_ORDER_STATUSES.find(s => s.toLowerCase() === sKey) || order.status}
+                              value={
+                                ALL_ORDER_STATUSES.find(
+                                  s => s.toLowerCase() === order.status?.toLowerCase()
+                                ) || order.status
+                              }
                               onChange={e => updateStatus(order._id, e.target.value)}
                               style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
                               className={`border rounded-lg px-2.5 py-1.5 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
@@ -461,7 +490,11 @@ function AdminOrdersPage() {
 
                     <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a]">
                       <select
-                        value={ALL_ORDER_STATUSES.find(s => s.toLowerCase() === sKey) || order.status}
+                        value={
+                          ALL_ORDER_STATUSES.find(
+                            s => s.toLowerCase() === order.status?.toLowerCase()
+                          ) || order.status
+                        }
                         onChange={e => updateStatus(order._id, e.target.value)}
                         style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
                         className={`flex-1 min-w-0 border rounded-lg px-2.5 py-2 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}

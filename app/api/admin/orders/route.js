@@ -5,6 +5,9 @@ import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
 import mongoose from "mongoose";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req) {
   await connectDB();
 
@@ -41,7 +44,7 @@ export async function GET(req) {
     }
 
     // Search filter
-    if (search) {
+    if (search) { 
       const conditions = [];
 
       if (mongoose.isValidObjectId(search)) {
@@ -53,25 +56,39 @@ export async function GET(req) {
       // Partial text fallback for email / name
       conditions.push({ email:      { $regex: search, $options: "i" } });
       conditions.push({ firstName:  { $regex: search, $options: "i" } });
-
+ 
       query.$or = conditions;
     }
 
     const total  = await Order.countDocuments(query);
+
+    console.log("[orders query]", JSON.stringify(query, null, 2));
+console.log("[orders total]", total);
+
+// Stats should ignore status filter but respect days and search filters
+const statsQuery = { ...query };
+delete statsQuery.status; // Remove status so stats show ALL orders
+
+console.log("[stats query]", JSON.stringify(statsQuery, null, 2));
+
 const [statsResults] = await Order.aggregate([
-  {
+  { $match: statsQuery }, // respects days/search but NOT status
+  { 
     $group: {
       _id: null,
-      total:     { $sum: 1 },
-      confirmed: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "confirmed"] }, 1, 0] } },
-      shipped:   { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "shipped"]   }, 1, 0] } },
-      delivered: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "delivered"] }, 1, 0] } },
-      cancelled: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "cancelled"] }, 1, 0] } },
+      total:      { $sum: 1 },
+      confirmed:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "confirmed"] }, 1, 0] } },
+      processing: { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "processing"] }, 1, 0] } },
+      shipped:    { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "shipped"]   }, 1, 0] } },
+      delivered:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "delivered"] }, 1, 0] } },
+      cancelled:  { $sum: { $cond: [{ $eq: [{ $toLower: "$status" }, "cancelled"] }, 1, 0] } },
     },
   },
 ]);
 
-const stats = statsResults ?? { total: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
+console.log("[stats results]", JSON.stringify(statsResults, null, 2));
+
+const stats = statsResults ?? { total: 0, confirmed: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
