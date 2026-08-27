@@ -84,8 +84,15 @@ function AdminOrdersPage() {
     if (statusFilter !== "all") params.append("status", statusFilter);
     if (search)                 params.append("search", search);
     if (days)                   params.append("days",   days);
-    const res  = await fetch(`/api/admin/orders?${params}`);
+    const res  = await fetch(`/api/admin/orders?${params}`, {
+      cache: 'no-store', // Disable caching
+      headers: {
+        'Cache-Control': 'no-cache',
+      }
+    });
     const data = await res.json();
+    console.log("Frontend - API Response:", data);
+    console.log("Frontend - Stats from API:", data.stats);
     setOrders(data.orders || []);
     setTotalPages(data.totalPages || 1);
     setTotal(data.total || 0);
