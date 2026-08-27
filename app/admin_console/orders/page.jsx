@@ -84,16 +84,11 @@ function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page, limit: 15 });
+    const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
     if (statusFilter !== "all") params.append("status", statusFilter);
     if (search) params.append("search", search);
     if (days) params.append("days", days);
-    const res = await fetch(`/api/admin/orders?${params}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-      }
-    });
+    const res = await fetch(`/api/admin/orders?${params}`);
     const data = await res.json();
     console.log("Frontend - API Response:", data);
     console.log("Frontend - Stats from API:", data.stats);

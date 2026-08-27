@@ -5,6 +5,9 @@ import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req, context) {
   await connectDB();
   const { id } = await context.params;
