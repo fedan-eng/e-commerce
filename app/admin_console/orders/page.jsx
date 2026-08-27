@@ -115,7 +115,12 @@ function AdminOrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok) setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+      if (res.ok) {
+        // Update local order state immediately (optimistic)
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+        // Re-fetch to sync stats + total counts
+        await fetchOrders();
+      }
     } finally { setUpdating(null); }
   };
 
@@ -353,7 +358,11 @@ function AdminOrdersPage() {
                           <td className="px-4 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">₦{getTotal(order)}</td>
                           <td className="px-4 py-3.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                             <select
-                              value={ALL_ORDER_STATUSES.find(s => s.toLowerCase() === sKey) || order.status}
+                              value={
+                                ALL_ORDER_STATUSES.find(
+                                  s => s.toLowerCase() === order.status?.toLowerCase()
+                                ) || order.status
+                              }
                               onChange={e => updateStatus(order._id, e.target.value)}
                               style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
                               className={`border rounded-lg px-2.5 py-1.5 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
@@ -461,7 +470,11 @@ function AdminOrdersPage() {
 
                     <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a]">
                       <select
-                        value={ALL_ORDER_STATUSES.find(s => s.toLowerCase() === sKey) || order.status}
+                        value={
+                          ALL_ORDER_STATUSES.find(
+                            s => s.toLowerCase() === order.status?.toLowerCase()
+                          ) || order.status
+                        }
                         onChange={e => updateStatus(order._id, e.target.value)}
                         style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
                         className={`flex-1 min-w-0 border rounded-lg px-2.5 py-2 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
