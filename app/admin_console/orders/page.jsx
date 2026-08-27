@@ -64,22 +64,24 @@ function AdminOrdersPage() {
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
-  const [isInitialMount, setIsInitialMount] = useState(true);
+  const isInitialMount = useRef(true);
 
-  // Sync URL params from state - single source of truth (skip initial mount)
+  // Sync URL params from state - single source of truth
   useEffect(() => {
-    if (isInitialMount) {
-      setIsInitialMount(false);
-      return;
-    }
     const params = new URLSearchParams();
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (search) params.set("search", search);
     if (days) params.set("days", days);
     if (page > 1) params.set("page", page);
     const qs = params.toString();
-    router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
-  }, [statusFilter, search, days, page, router, isInitialMount]);
+    const newUrl = qs ? `/admin_console/orders?${qs}` : "/admin_console/orders";
+    
+    // Only navigate if URL actually changed
+    const currentUrl = window.location.pathname + (window.location.search || "");
+    if (currentUrl !== newUrl) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [statusFilter, search, days, page, router]);
 
   const fetchOrders = async () => {
     setLoading(true);
