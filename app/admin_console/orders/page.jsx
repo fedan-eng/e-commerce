@@ -138,18 +138,12 @@ function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        // Just update local state, no re-fetch
-        setOrders(prev =>
-          prev.map(o =>
-            o._id === orderId ? { ...o, status: newStatus } : o
-          )
-        );
-        // Only update stats separately without touching orders or total
-        // Stats should always be global (no status filter)
+        // Re-fetch the current view to ensure consistency
+        await fetchOrders();
+        // Update stats separately (global stats)
         const res2 = await fetch(`/api/admin/orders?page=1&limit=1`);
         const data = await res2.json();
         if (data.stats) setStats(data.stats);
-        // Don't set total here - it belongs to the current filtered view
       }
     } finally {
       setUpdating(null);
