@@ -119,6 +119,10 @@ const Footer = () => {
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
+  // Pages where cart FAB should not be visible
+  const noCartFabPaths = ["/cart", "/checkout", "/admin_console"];
+  const shouldHideCartFab = noCartFabPaths.some(path => pathname.startsWith(path));
+
   // ✅ Size Constants
   const CART_SIZE = 110; 
   const CART_MARGIN = 24;
@@ -594,70 +598,69 @@ const Footer = () => {
       )}
 
       {/* ✅ Premium Glossy Draggable "Check Out Now!" Cart FAB with hidden overflow containment */}
-      
-          {hasMounted && !isMobileMenuOpen && (
-  <div
-    ref={cartRef}
-    onPointerDown={onCartPointerDown}
-    onPointerMove={onCartPointerMove}
-    onPointerUp={onCartPointerUp}
-    onPointerLeave={() => setCartPressed(false)}
-    style={{
-      position: "fixed",
-      left: cartPos.x,
-      top: cartPos.y,
-      zIndex: 999,
-      touchAction: "none",
-      userSelect: "none",
-      width: CART_SIZE,
-      height: CART_SIZE,
-    }}
-  >
-    {/* Badge OUTSIDE the button so overflow:hidden doesn't clip it */}
-    {totalItems > 0 && (
-      <span className="checkout-badge">
-        {totalItems > 99 ? "99+" : totalItems}
-      </span>
-    )}
+      {hasMounted && !isMobileMenuOpen && !shouldHideCartFab && (
+        <div
+          ref={cartRef}
+          onPointerDown={onCartPointerDown}
+          onPointerMove={onCartPointerMove}
+          onPointerUp={onCartPointerUp}
+          onPointerLeave={() => setCartPressed(false)}
+          style={{
+            position: "fixed",
+            left: cartPos.x,
+            top: cartPos.y,
+            zIndex: 999,
+            touchAction: "none",
+            userSelect: "none",
+            width: CART_SIZE,
+            height: CART_SIZE,
+          }}
+        >
+          {/* Badge OUTSIDE the button so overflow:hidden doesn't clip it */}
+          {totalItems > 0 && (
+            <span className="checkout-badge">
+              {totalItems > 99 ? "99+" : totalItems}
+            </span>
+          )}
 
-    <button
-      className={`checkout-fab${cartPressed ? " pressed" : ""}`}
-      style={{ width: "100%", height: "100%" }}
-      aria-label={`Cart, ${totalItems} items`}
-    >
-      <div className="flash" />
-      <div className="cart-icon-container">
-      <svg
-              width="34"
-              height="30"
-              viewBox="0 0 34 30"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4 2H2"
-                stroke="white"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M4 2l2.5 13h17l2.5-10H8"
-                stroke="white"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          <button
+            className={`checkout-fab${cartPressed ? " pressed" : ""}`}
+            style={{ width: "100%", height: "100%" }}
+            aria-label={`Cart, ${totalItems} items`}
+          >
+            <div className="flash" />
+            <div className="cart-icon-container">
+              <svg
+                width="34"
+                height="30"
+                viewBox="0 0 34 30"
                 fill="none"
-              />
-              <circle cx="10" cy="27" r="2.2" fill="white" />
-              <circle cx="21" cy="27" r="2.2" fill="white" />
-            </svg>
-      </div>
-      <span className="checkout-label">
-        Check Out<br />Now!
-      </span>
-    </button>
-  </div>
-)}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2H2"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M4 2l2.5 13h17l2.5-10H8"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <circle cx="10" cy="27" r="2.2" fill="white" />
+                <circle cx="21" cy="27" r="2.2" fill="white" />
+              </svg>
+            </div>
+            <span className="checkout-label">
+              Check Out<br />Now!
+            </span>
+          </button>
+        </div>
+      )}
 
       <footer className="bg-black pt-9">
         {/* WhatsApp & scroll-to-top */}
