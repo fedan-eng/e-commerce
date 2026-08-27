@@ -212,6 +212,21 @@ export default function AdminOrderDetailPage() {
             }
           </div>
         </div>
+        {order.userId && (
+          <div className="mt-4 pt-4 border-t border-[#1a1a1a]">
+            <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-1">Customer account</div>
+            <Link
+              href={`/admin_console/customers/${order.userId}`}
+              className="text-[13px] text-[#e8c46a] no-underline hover:underline font-mono inline-flex items-center gap-1.5"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              View customer profile →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Main content grid */}
