@@ -41,7 +41,7 @@ export async function GET(req) {
     }
 
     // Search filter
-    if (search) {
+    if (search) { 
       const conditions = [];
 
       if (mongoose.isValidObjectId(search)) {
@@ -53,13 +53,22 @@ export async function GET(req) {
       // Partial text fallback for email / name
       conditions.push({ email:      { $regex: search, $options: "i" } });
       conditions.push({ firstName:  { $regex: search, $options: "i" } });
-
+ 
       query.$or = conditions;
     }
 
     const total  = await Order.countDocuments(query);
+
+    console.log("[orders query]", JSON.stringify(query, null, 2));
+console.log("[orders total]", total);
+
+// Stats should ignore status filter but respect days and search filters
+const statsQuery = { ...query };
+delete statsQuery.status; // Remove status so stats show ALL orders
+
 const [statsResults] = await Order.aggregate([
-  {
+  { $match: statsQuery }, // respects days/search but NOT status
+  { 
     $group: {
       _id: null,
       total:     { $sum: 1 },
