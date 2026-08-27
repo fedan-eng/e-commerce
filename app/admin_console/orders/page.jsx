@@ -64,9 +64,14 @@ function AdminOrdersPage() {
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
+  const [isInitialMount, setIsInitialMount] = useState(true);
 
-  // Sync URL params from state - single source of truth
+  // Sync URL params from state - single source of truth (skip initial mount)
   useEffect(() => {
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
     const params = new URLSearchParams();
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (search) params.set("search", search);
@@ -74,7 +79,7 @@ function AdminOrdersPage() {
     if (page > 1) params.set("page", page);
     const qs = params.toString();
     router.replace(qs ? `/admin_console/orders?${qs}` : "/admin_console/orders", { scroll: false });
-  }, [statusFilter, search, days, page, router]);
+  }, [statusFilter, search, days, page, router, isInitialMount]);
 
   const fetchOrders = async () => {
     setLoading(true);
