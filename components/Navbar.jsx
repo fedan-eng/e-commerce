@@ -108,6 +108,14 @@ export default function Navbar() {
                 Bulk Order
               </Link>
             </li>
+            <li>
+              <Link
+                href="/blog"
+                className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200"
+              >
+                Blog
+              </Link>
+            </li>
           </ul>
 
           {/* RIGHT: Desktop icons */}
@@ -261,6 +269,15 @@ export default function Navbar() {
                   className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
                 >
                   Bulk Order
+                </Link>
+
+                {/* BLOG */}
+                <Link
+                  href="/blog"
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
+                >
+                  Blog
                 </Link>
 
                 {/* CART */}
