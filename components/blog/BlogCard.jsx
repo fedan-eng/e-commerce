@@ -9,12 +9,12 @@ export default function BlogCard({ post }) {
   const isExternal = !!post.substackUrl
 
   return (
-    <div className="group flex flex-col">
+    <div className="group flex flex-col bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* Thumbnail with badge */}
       <Link
         href={href}
         target={isExternal ? '_blank' : '_self'}
-        className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-zinc-100"
+        className="relative block aspect-[16/10] overflow-hidden bg-zinc-100"
       >
         <Image
           src={post.image}
@@ -28,29 +28,29 @@ export default function BlogCard({ post }) {
       </Link>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 pt-5">
+      <div className="flex flex-col flex-1 p-5">
         <Link href={href} target={isExternal ? '_blank' : '_self'}>
-          <h3 className="text-zinc-900 font-bold text-lg md:text-xl leading-snug mb-3 line-clamp-2 group-hover:text-green-600 transition-colors">
+          <h3 className="text-zinc-900 font-bold text-lg md:text-xl leading-snug mb-2 line-clamp-2 group-hover:text-green-600 transition-colors">
             {post.title}
           </h3>
         </Link>
 
-        {/* Excerpt + views row */}
-        <div className="relative mb-5">
-          <p className="text-zinc-500 text-sm leading-relaxed line-clamp-3 pr-20">
-            {post.excerpt}
-          </p>
-          <span className="absolute bottom-0 right-0 flex items-center gap-1 text-zinc-500 text-xs">
-            <Eye size={12} /> {formatViews(post.views)} Views
-          </span>
-        </div>
+        <p className="text-zinc-500 text-sm leading-relaxed line-clamp-3 mb-5">
+          {post.excerpt}
+        </p>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto">
-          <p className="text-zinc-700 text-sm">
-            <span className="font-medium">{post.author.name}</span>
-            <span className="text-zinc-400"> · {formatDate(post.date)}</span>
-          </p>
+        {/* Footer: author · date  ·  views  ·  CTA */}
+        <div className="flex items-center justify-between gap-3 mt-auto">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <p className="text-zinc-700 text-sm truncate">
+              <span className="font-medium">{post.author.name}</span>
+              <span className="text-zinc-400"> · {formatDate(post.date)}</span>
+            </p>
+            <span className="flex items-center gap-1 text-zinc-400 text-xs shrink-0">
+              <Eye size={12} />
+              {formatViews(post.views)} Views
+            </span>
+          </div>
 
           <Link
             href={href}

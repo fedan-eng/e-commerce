@@ -12,10 +12,19 @@ export default function BlogNewsletter() {
     setStatus('loading')
 
     try {
-      // Wire to your actual newsletter endpoint / Substack subscribe URL
-      await new Promise((r) => setTimeout(r, 1000)) // demo delay
-      setStatus('success')
-      setEmail('')
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      
+      if (res.ok) {
+        setStatus('success')
+        setEmail('')
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }
