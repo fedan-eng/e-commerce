@@ -47,6 +47,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "ui-avatars.com",
       },
+      {
+        protocol: "https",
+        hostname: "substack-post-media.s3.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: "substackcdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "filstore.substack.com",
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
