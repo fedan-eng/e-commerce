@@ -12,7 +12,7 @@ export default function BlogNewsletter() {
     setStatus('loading')
 
     try {
-      const res = await fetch('/api/subscribe', {
+      const res = await fetch('/api/subscribe/substack', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
