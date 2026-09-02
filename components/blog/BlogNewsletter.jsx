@@ -5,20 +5,16 @@ import { useState } from 'react'
 
 export default function BlogNewsletter() {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('idle') // idle | loading | success | error
+  const [status, setStatus] = useState('idle') // idle | success | error
 
   async function handleSubmit() {
     if (!email || !email.includes('@')) return
-    setStatus('loading')
-
-    try {
-      // Wire to your actual newsletter endpoint / Substack subscribe URL
-      await new Promise((r) => setTimeout(r, 1000)) // demo delay
-      setStatus('success')
-      setEmail('')
-    } catch {
-      setStatus('error')
-    }
+    
+    // Open Substack subscribe page with email pre-filled
+    const url = `https://filstore.substack.com/subscribe?email=${encodeURIComponent(email)}` 
+    window.open(url, '_blank')
+    setStatus('success')
+    setEmail('')
   }
 
   return (
@@ -68,16 +64,13 @@ export default function BlogNewsletter() {
               />
               <button
                 onClick={handleSubmit}
-                disabled={status === 'loading'}
-                className="bg-green-500 hover:bg-green-400 disabled:opacity-60 text-black text-sm font-semibold px-6 py-2.5 rounded-full transition-all shrink-0"
+                className="bg-green-500 hover:bg-green-400 text-black text-sm font-semibold px-6 py-2.5 rounded-full transition-all shrink-0"
               >
-                {status === 'loading' ? '...' : 'Plug In'}
+                Plug In
               </button>
             </div>
           )}
-          {status === 'error' && (
-            <p className="text-red-400 text-xs mt-2 text-center">Something went wrong. Try again.</p>
-          )}
+
           <p className="text-zinc-500 text-xs mt-3 text-center">
             Unsubscribe anytime · we no dey disturb
           </p>
