@@ -42,6 +42,20 @@ export default function VerifyPaymentPage() {
   useEffect(() => {
     if (!orderDetails) return;
 
+    // Skip GA if already fired server-side (webhook or verify-payment)
+    if (orderDetails.gaFired) {
+      console.log('[GA DEBUG] Client-side: GA already fired server-side, skipping client-side tracking');
+      // Still track Meta and TikTok as they don't have server-side implementation yet
+      const lineItems = orderDetails.cartItems || orderDetails.items || [];
+      const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
+      const txId = orderDetails.paymentReference || String(orderDetails._id) || "";
+      if (txId) {
+        trackMetaPurchase(orderDetails, lineItems);
+        trackTikTokPurchase(lineItems, orderValue, txId);
+      }
+      return;
+    }
+
     const lineItems = orderDetails.cartItems || orderDetails.items || [];
     const orderValue = Number(orderDetails.total ?? orderDetails.subTotal ?? 0);
     const txId =
@@ -49,6 +63,7 @@ export default function VerifyPaymentPage() {
 
     if (!txId) return;
 
+    console.log('[GA DEBUG] Client-side: Firing GA purchase event (server-side may have failed)');
     trackEvent("purchase", {
       transaction_id: txId,
       currency: "NGN",

@@ -21,16 +21,19 @@ export async function POST(req) {
     const body = await req.json();
 
     // Handle both checkout modal (full) and checkout button (simple) formats
-    const { 
-      cartItems: modalCartItems, 
-      deliveryInfo, 
-      discount = 0, 
-      promoCode, 
-      userId, 
-      items: simpleItems, 
-      email: simpleEmail, 
-      address: simpleAddress 
+    const {
+      cartItems: modalCartItems,
+      deliveryInfo,
+      discount = 0,
+      promoCode,
+      userId,
+      items: simpleItems,
+      email: simpleEmail,
+      address: simpleAddress,
+      gaClientId,
     } = body;
+
+    console.log('[GA DEBUG] Paystack API received gaClientId:', gaClientId);
 
     // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
@@ -85,6 +88,7 @@ export async function POST(req) {
             deliveryFee: 0,
             total,
             simpleCheckout: true,
+            gaClientId,
           },
           callback_url: `${origin}/checkout/success`,
         },
@@ -189,6 +193,7 @@ export async function POST(req) {
           deliveryFee,
           total,
           userId: finalUserId,
+          gaClientId,
         },
         callback_url: `${origin}/checkout/success`,
       },

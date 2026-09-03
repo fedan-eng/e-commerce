@@ -30,6 +30,9 @@ export async function POST(req) {
   const data = event.data;
   const meta = data.metadata;
   const reference = data.reference;
+  const gaClientId = meta.gaClientId || null;
+
+  console.log('[GA DEBUG] Webhook received - gaClientId:', gaClientId, 'for reference:', reference);
 
   if (!reference || !meta) {
     console.error("Webhook: missing reference or metadata");
@@ -76,6 +79,7 @@ export async function POST(req) {
     paymentMethod: "paystack",
     paymentReference: reference,
     paymentStatus: "paid",
+    gaClientId,
   };
 
   // ── 5. Save order ────────────────────────────────────────────────────────
@@ -107,9 +111,10 @@ export async function POST(req) {
       paymentStatus: orderData.paymentStatus,
       status: "Confirmed",
       statusHistory: [{ status: "Confirmed", date: new Date() }],
+      gaClientId: orderData.gaClientId,
     });
 
-    console.log(`Webhook: order ${order._id} created for ${reference}`);
+    console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId: ${orderData.gaClientId}`);
   } catch (err) {
     console.error("Webhook: order save failed", err);
     // Return 200 so Paystack doesn't keep retrying
@@ -459,6 +464,71 @@ ${emailHead(`New Order - FIL Admin`)}
     console.error("Webhook: email sending failed", err);
   }
 
-  // ── 8. Respond 200 ────────────────────────────────────────────────────────
+  // ── 8. Fire GA event via Measurement Protocol ────────────────────────────
+  if (orderData.gaClientId && !order.gaFired) {
+    try {
+      console.log('[GA DEBUG] Attempting to fire GA event via Measurement Protocol');
+      console.log('[GA DEBUG] GA Measurement ID:', process.env.NEXT_PUBLIC_GA_ID);
+      console.log('[GA DEBUG] GA Client ID:', orderData.gaClientId);
+      console.log('[GA DEBUG] Order Value:', orderData.total);
+      console.log('[GA DEBUG] Transaction ID:', orderData.paymentReference);
+
+      const gaPayload = {
+        measurement_id: process.env.NEXT_PUBLIC_GA_ID,
+        client_id: orderData.gaClientId,
+        events: [
+          {
+            name: "purchase",
+            params: {
+              transaction_id: orderData.paymentReference,
+              currency: "NGN",
+              value: orderData.total,
+              coupon: orderData.promoCode || undefined,
+              shipping: orderData.deliveryFee,
+              tax: 0,
+              items: orderData.cartItems.map((item, index) => ({
+                item_id: String(item._id || item.productId || index),
+                item_name: item.name || "Unknown",
+                quantity: Number(item.quantity || 1),
+                price: Number(item.price || 0),
+              })),
+            },
+          },
+        ],
+      };
+
+      console.log('[GA DEBUG] GA Payload:', JSON.stringify(gaPayload, null, 2));
+
+      const gaResponse = await fetch(
+        `https://www.google-analytics.com/mp/collect?measurement_id=${process.env.NEXT_PUBLIC_GA_ID}&api_secret=${process.env.GA_MEASUREMENT_PROTOCOL_SECRET}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(gaPayload),
+        }
+      );
+
+      if (gaResponse.ok) {
+        console.log('[GA DEBUG] GA event fired successfully via Measurement Protocol');
+        // Update order to mark GA as fired
+        await Order.findByIdAndUpdate(order._id, { gaFired: true });
+        console.log('[GA DEBUG] Updated order gaFired flag to true for order:', order._id);
+      } else {
+        const errorText = await gaResponse.text();
+        console.error('[GA DEBUG] GA event failed:', gaResponse.status, errorText);
+      }
+    } catch (err) {
+      console.error('[GA DEBUG] Error firing GA event via Measurement Protocol:', err);
+    }
+  } else {
+    if (!orderData.gaClientId) {
+      console.log('[GA DEBUG] No gaClientId available, skipping GA event');
+    }
+    if (order.gaFired) {
+      console.log('[GA DEBUG] GA already fired for this order, skipping to prevent double-firing');
+    }
+  }
+
+  // ── 9. Respond 200 ────────────────────────────────────────────────────────
   return NextResponse.json({ received: true });
 }

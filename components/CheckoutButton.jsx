@@ -61,11 +61,29 @@ export default function CheckoutButton() {
       // Track TikTok InitiateCheckout event
       trackInitiateCheckout(items, totalValue);
 
+      // Capture GA client_id for server-side tracking
+      let gaClientId = null;
+      try {
+        if (typeof window !== 'undefined' && window.gtag) {
+          gaClientId = await new Promise((resolve) => {
+            window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
+              console.log('[GA DEBUG] Captured GA client_id on simple checkout:', clientId);
+              resolve(clientId);
+            });
+          });
+        }
+      } catch (err) {
+        console.warn('[GA DEBUG] Failed to capture GA client_id:', err);
+      }
+
+      console.log('[GA DEBUG] Sending to Paystack API with gaClientId:', gaClientId);
+
       const res = await axios.post("/api/paystack", {
         items,
         email,
         address,
         userId: user?._id || null,
+        gaClientId,
       });
 
       if (res.data?.authorization_url) {
