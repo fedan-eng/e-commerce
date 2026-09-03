@@ -346,19 +346,43 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       // Capture GA client_id for server-side tracking
       let gaClientId = null;
       try {
+        console.log('[GA DEBUG] Attempting to capture GA client_id...');
+        console.log('[GA DEBUG] Window gtag available:', typeof window !== 'undefined' && !!window.gtag);
+        console.log('[GA DEBUG] GA ID:', process.env.NEXT_PUBLIC_GA_ID);
+
         if (typeof window !== 'undefined' && window.gtag) {
           gaClientId = await new Promise((resolve) => {
+            // Set a timeout in case gtag('get') doesn't respond
+            const timeout = setTimeout(() => {
+              console.warn('[GA DEBUG] GA client_id capture timed out, using fallback');
+              resolve(null);
+            }, 2000);
+
             window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
+              clearTimeout(timeout);
               console.log('[GA DEBUG] Captured GA client_id on checkout:', clientId);
               resolve(clientId);
             });
           });
         }
+
+        // Fallback: Try to read from GA cookie
+        if (!gaClientId && typeof window !== 'undefined') {
+          const cookies = document.cookie.split(';');
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === '_ga') {
+              gaClientId = value;
+              console.log('[GA DEBUG] Fallback: Got GA client_id from _ga cookie:', gaClientId);
+              break;
+            }
+          }
+        }
       } catch (err) {
         console.warn('[GA DEBUG] Failed to capture GA client_id:', err);
       }
 
-      console.log('[GA DEBUG] Sending to Paystack API with gaClientId:', gaClientId);
+      console.log('[GA DEBUG] Final gaClientId being sent:', gaClientId);
 
       const res = await fetch("/api/paystack", {
         method: "POST",
