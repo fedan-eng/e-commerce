@@ -372,6 +372,8 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
             cookie_flags: 'SameSite=None;Secure'
           });
           console.log('[GA DEBUG] GA loaded dynamically for checkout');
+          // Wait a bit for GA to initialize
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         if (typeof window !== 'undefined' && window.gtag) {
@@ -380,7 +382,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
             const timeout = setTimeout(() => {
               console.warn('[GA DEBUG] GA client_id capture timed out, using fallback');
               resolve(null);
-            }, 2000);
+            }, 5000);
 
             window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
               clearTimeout(timeout);

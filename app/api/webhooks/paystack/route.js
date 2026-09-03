@@ -469,9 +469,17 @@ ${emailHead(`New Order - FIL Admin`)}
     try {
       console.log('[GA DEBUG] Attempting to fire GA event via Measurement Protocol');
       console.log('[GA DEBUG] GA Measurement ID:', process.env.NEXT_PUBLIC_GA_ID);
+      console.log('[GA DEBUG] GA Secret available:', !!process.env.GA_MEASUREMENT_PROTOCOL_SECRET);
+      console.log('[GA DEBUG] GA Secret (first 4 chars):', process.env.GA_MEASUREMENT_PROTOCOL_SECRET?.substring(0, 4));
       console.log('[GA DEBUG] GA Client ID:', orderData.gaClientId);
       console.log('[GA DEBUG] Order Value:', orderData.total);
       console.log('[GA DEBUG] Transaction ID:', orderData.paymentReference);
+
+      if (!process.env.GA_MEASUREMENT_PROTOCOL_SECRET) {
+        console.error('[GA DEBUG] ERROR: GA_MEASUREMENT_PROTOCOL_SECRET not set in environment variables');
+        console.error('[GA DEBUG] Please add GA_MEASUREMENT_PROTOCOL_SECRET to your .env file');
+        return;
+      }
 
       const gaPayload = {
         measurement_id: process.env.NEXT_PUBLIC_GA_ID,
@@ -499,26 +507,38 @@ ${emailHead(`New Order - FIL Admin`)}
 
       console.log('[GA DEBUG] GA Payload:', JSON.stringify(gaPayload, null, 2));
 
-      const gaResponse = await fetch(
-        `https://www.google-analytics.com/mp/collect?measurement_id=${process.env.NEXT_PUBLIC_GA_ID}&api_secret=${process.env.GA_MEASUREMENT_PROTOCOL_SECRET}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(gaPayload),
-        }
-      );
+      const gaUrl = `https://www.google-analytics.com/mp/collect?measurement_id=${process.env.NEXT_PUBLIC_GA_ID}&api_secret=${process.env.GA_MEASUREMENT_PROTOCOL_SECRET}`;
+      console.log('[GA DEBUG] GA API URL (secret masked):', gaUrl.replace(process.env.GA_MEASUREMENT_PROTOCOL_SECRET, '***SECRET***'));
+
+      const gaResponse = await fetch(gaUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(gaPayload),
+      });
+
+      console.log('[GA DEBUG] GA Response status:', gaResponse.status);
+      console.log('[GA DEBUG] GA Response ok:', gaResponse.ok);
 
       if (gaResponse.ok) {
+        const responseText = await gaResponse.text();
         console.log('[GA DEBUG] GA event fired successfully via Measurement Protocol');
+        console.log('[GA DEBUG] GA Response body:', responseText);
         // Update order to mark GA as fired
         await Order.findByIdAndUpdate(order._id, { gaFired: true });
         console.log('[GA DEBUG] Updated order gaFired flag to true for order:', order._id);
       } else {
         const errorText = await gaResponse.text();
         console.error('[GA DEBUG] GA event failed:', gaResponse.status, errorText);
+        console.error('[GA DEBUG] Full error details:', {
+          status: gaResponse.status,
+          statusText: gaResponse.statusText,
+          headers: Object.fromEntries(gaResponse.headers.entries()),
+          body: errorText
+        });
       }
     } catch (err) {
       console.error('[GA DEBUG] Error firing GA event via Measurement Protocol:', err);
+      console.error('[GA DEBUG] Error stack:', err.stack);
     }
   } else {
     if (!orderData.gaClientId) {
