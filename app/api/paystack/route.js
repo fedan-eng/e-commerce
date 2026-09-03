@@ -182,7 +182,7 @@ export async function POST(req) {
         currency: "NGN",
         channels: ["bank_transfer", "card"],
         metadata: {
-          cartItems: finalCartItems,
+          cartItems: finalCartItems, 
           deliveryInfo: {
             ...deliveryInfo,
             email,

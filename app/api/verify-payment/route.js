@@ -314,7 +314,7 @@ export async function POST(req) {
         addPhone: orderData.addPhone || "",
         firstName: orderData.firstName,
         lastName: orderData.lastName || "",
-        orderNote: orderData.orderNote || "",
+        orderNote: orderData.orderNote || "", 
         items: orderData.cartItems,
         subTotal: orderData.subTotal,
         discount: orderData.discount,

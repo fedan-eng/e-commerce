@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "@/store/features/authSlice";
 import { formatAmount } from "@/lib/utils";
-import { useGAEvent } from "@/hooks/useGAEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
+import { useCookieConsent } from "@/context/CookieConsentContext";
 import RegionSelect from "@/components/RegionSelect";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import {
@@ -27,26 +27,59 @@ import { ProductImage } from "@/components/ProductImage";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
+// Helper function to get GA client_id from _ga cookie (fallback)
+function getGAClientIdFromCookie() {
+  if (typeof window === 'undefined') return null;
+  const match = document.cookie.match(/_ga=GA\d+\.\d+\.(\d+\.\d+)/);
+  const clientId = match ? match[1] : null;
+  console.log('[GA Cookie] Client ID from _ga cookie:', clientId);
+  return clientId;
+}
+
 // Helper function to get GA client_id with timeout and fallback
-async function getGAClientId() {
+async function getGAClientId(preferences, status) {
   try {
+    // Check if analytics consent is given
+    const canTrack = status === 'accepted' ||
+                     (status === 'customized' && preferences.analytics);
+
+    if (!canTrack) {
+      console.log('[GA] Analytics consent not given, attempting cookie fallback');
+      const cookieClientId = getGAClientIdFromCookie();
+      return cookieClientId; // Try cookie fallback even without consent
+    }
+
+    console.log('[GA] Analytics consent given, attempting gtag method');
+    console.log('[GA] GA ID:', process.env.NEXT_PUBLIC_GA_ID);
+    console.log('[GA] window.gtag available:', typeof window.gtag);
+
     const clientId = await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('GA timeout')), 3000);
+      const timeout = setTimeout(() => {
+        console.log('[GA] gtag timeout, trying cookie fallback');
+        reject(new Error('GA timeout'));
+      }, 3000);
+
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
           clearTimeout(timeout);
+          console.log('[GA] Raw client_id received from gtag:', clientId);
           resolve(clientId);
         });
       } else {
         clearTimeout(timeout);
+        console.log('[GA] gtag not available, trying cookie fallback');
         reject(new Error('GA not available'));
       }
     });
-    console.log('[GA] Successfully captured client_id:', clientId);
-    return clientId;
+
+    console.log('[GA] Successfully captured client_id via gtag:', clientId);
+    return clientId || null;
   } catch (error) {
-    console.warn('[GA] Failed to capture client_id:', error.message);
-    return null; // fallback — payment still works, just without session attribution
+    console.warn('[GA] gtag method failed:', error.message, 'trying cookie fallback');
+    // Fallback to cookie method
+    const cookieClientId = getGAClientIdFromCookie();
+    console.log('[GA] Cookie fallback result:', cookieClientId);
+    return cookieClientId;
   }
 }
 
@@ -69,9 +102,9 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const cartItemsFromStore = useSelector((state) => state.cart.items);
   const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
   const user = useSelector((state) => state.auth.user);
+  const { preferences, status } = useCookieConsent();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
-  const { trackEvent } = useGAEvent();
   const { trackInitiateCheckout } = useMetaPixelEvent();
 
   const [step, setStep] = useState(1);
@@ -353,22 +386,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
         );
       }
 
-      trackEvent("begin_checkout", {
-        currency: "NGN",
-        value: total,
-        items: cartItems.map((item) => ({
-          item_id: item._id,
-          item_name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-      });
-
       trackInitiateCheckout(cartItems, total);
 
       // Capture GA client_id before redirecting to Paystack
-      const gaClientId = await getGAClientId();
-      console.log('[Checkout] GA client_id captured:', gaClientId);
+      const gaClientId = await getGAClientId(preferences, status);
+      console.log('[Checkout] Consent status:', status, '| GA client_id captured:', gaClientId);
 
       const res = await fetch("/api/paystack", {
         method: "POST",

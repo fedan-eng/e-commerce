@@ -4,7 +4,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { useGAEvent } from "@/hooks/useGAEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { clearCart } from "@/store/features/cartSlice";
@@ -29,7 +28,6 @@ export default function VerifyPaymentPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { trackEvent } = useGAEvent();
   const { trackPurchase: trackMetaPurchase } = useMetaPixelEvent();
   const { trackPurchase: trackTikTokPurchase } = useTikTokEvent();
   const hasVerified = useRef(false);
@@ -49,24 +47,14 @@ export default function VerifyPaymentPage() {
 
     if (!txId) return;
 
-    trackEvent("purchase", {
-      transaction_id: txId,
-      currency: "NGN",
-      value: orderValue,
-      coupon: orderDetails.couponCode || undefined,
-      shipping: Number(orderDetails.deliveryFee || 0),
-      tax: 0,
-      items: lineItems.map((item, index) => ({
-        item_id: String(item._id || item.productId || index),
-        item_name: item.name || "Unknown",
-        quantity: Number(item.quantity || 1),
-        price: Number(item.price || 0),
-      })),
-    });
+    // GA tracking is now handled server-side via webhook to prevent double-firing
+    // and ensure reliable tracking regardless of client-side behavior
+    console.log('[VerifyPaymentPage] GA tracking handled server-side, skipping client-side');
 
+    // Keep Meta Pixel and TikTok tracking client-side
     trackMetaPurchase(orderDetails, lineItems);
     trackTikTokPurchase(lineItems, orderValue, txId);
-  }, [orderDetails, trackEvent, trackMetaPurchase, trackTikTokPurchase]);
+  }, [orderDetails, trackMetaPurchase, trackTikTokPurchase]);
 
   // ── Verification ──────────────────────────────────────────────────────────
   useEffect(() => {
