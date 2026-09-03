@@ -33,13 +33,14 @@ export async function POST(req) {
       gaClientId,
     } = body;
 
-    console.log('[GA DEBUG] Paystack API received gaClientId:', gaClientId);
-
     // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
 
     const finalCartItems = modalCartItems || simpleItems || [];
     const finalUserId = userId || null;
+
+    // Log GA client_id for debugging (Vercel logs)
+    console.log('[Paystack API] Received gaClientId:', gaClientId);
 
     // ── Server-side validation ──
     if (isSimpleCheckout) {
@@ -88,7 +89,7 @@ export async function POST(req) {
             deliveryFee: 0,
             total,
             simpleCheckout: true,
-            gaClientId,
+            gaClientId, // Pass GA client_id to webhook
           },
           callback_url: `${origin}/checkout/success`,
         },
@@ -193,7 +194,7 @@ export async function POST(req) {
           deliveryFee,
           total,
           userId: finalUserId,
-          gaClientId,
+          gaClientId, // Pass GA client_id to webhook
         },
         callback_url: `${origin}/checkout/success`,
       },

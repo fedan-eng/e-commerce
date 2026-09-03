@@ -27,6 +27,29 @@ import { ProductImage } from "@/components/ProductImage";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
+// Helper function to get GA client_id with timeout and fallback
+async function getGAClientId() {
+  try {
+    const clientId = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('GA timeout')), 3000);
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
+          clearTimeout(timeout);
+          resolve(clientId);
+        });
+      } else {
+        clearTimeout(timeout);
+        reject(new Error('GA not available'));
+      }
+    });
+    console.log('[GA] Successfully captured client_id:', clientId);
+    return clientId;
+  } catch (error) {
+    console.warn('[GA] Failed to capture client_id:', error.message);
+    return null; // fallback — payment still works, just without session attribution
+  }
+}
+
 const initialForm = {
   firstName: "",
   lastName: "",
@@ -343,83 +366,9 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
 
       trackInitiateCheckout(cartItems, total);
 
-      // Capture GA client_id for server-side tracking
-      let gaClientId = null;
-      try {
-        console.log('[GA DEBUG] Attempting to capture GA client_id...');
-        console.log('[GA DEBUG] Window gtag available:', typeof window !== 'undefined' && !!window.gtag);
-        console.log('[GA DEBUG] GA ID:', process.env.NEXT_PUBLIC_GA_ID);
-
-        // Try to load GA if not available (for conversion tracking)
-        if (typeof window !== 'undefined' && !window.gtag) {
-          console.log('[GA DEBUG] GA not loaded, attempting to load for conversion tracking...');
-          // Load GA dynamically for checkout purposes
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = `https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`;
-            script.async = true;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-
-          // Initialize gtag
-          window.dataLayer = window.dataLayer || [];
-          window.gtag = function() { window.dataLayer.push(arguments); };
-          window.gtag('js', new Date());
-          window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
-            anonymize_ip: true,
-            cookie_flags: 'SameSite=None;Secure'
-          });
-          console.log('[GA DEBUG] GA loaded dynamically for checkout');
-          // Wait a bit for GA to initialize
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        if (typeof window !== 'undefined' && window.gtag) {
-          gaClientId = await new Promise((resolve) => {
-            // Set a timeout in case gtag('get') doesn't respond
-            const timeout = setTimeout(() => {
-              console.warn('[GA DEBUG] GA client_id capture timed out, using fallback');
-              resolve(null);
-            }, 5000);
-
-            window.gtag('get', process.env.NEXT_PUBLIC_GA_ID, 'client_id', (clientId) => {
-              clearTimeout(timeout);
-              console.log('[GA DEBUG] Captured GA client_id on checkout:', clientId);
-              resolve(clientId);
-            });
-          });
-        }
-
-        // Fallback: Try to read from GA cookie
-        if (!gaClientId && typeof window !== 'undefined') {
-          const cookies = document.cookie.split(';');
-          for (const cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === '_ga') {
-              gaClientId = value;
-              console.log('[GA DEBUG] Fallback: Got GA client_id from _ga cookie:', gaClientId);
-              break;
-            }
-          }
-        }
-
-        // Final fallback: Generate a UUID if no GA client ID available
-        if (!gaClientId) {
-          gaClientId = crypto.randomUUID();
-          console.log('[GA DEBUG] Final fallback: Generated UUID as client_id:', gaClientId);
-        }
-      } catch (err) {
-        console.warn('[GA DEBUG] Failed to capture GA client_id:', err);
-        // Generate UUID as last resort
-        if (typeof window !== 'undefined' && window.crypto) {
-          gaClientId = window.crypto.randomUUID();
-          console.log('[GA DEBUG] Error fallback: Generated UUID as client_id:', gaClientId);
-        }
-      }
-
-      console.log('[GA DEBUG] Final gaClientId being sent:', gaClientId);
+      // Capture GA client_id before redirecting to Paystack
+      const gaClientId = await getGAClientId();
+      console.log('[Checkout] GA client_id captured:', gaClientId);
 
       const res = await fetch("/api/paystack", {
         method: "POST",
@@ -430,7 +379,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           discount,
           promoCode,
           userId: user?._id || null,
-          gaClientId,
+          gaClientId, // Send GA client_id to server
         }),
       });
 
