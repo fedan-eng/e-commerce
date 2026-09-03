@@ -68,6 +68,30 @@ export default function CheckoutButton() {
         console.log('[GA DEBUG] Window gtag available:', typeof window !== 'undefined' && !!window.gtag);
         console.log('[GA DEBUG] GA ID:', process.env.NEXT_PUBLIC_GA_ID);
 
+        // Try to load GA if not available (for conversion tracking)
+        if (typeof window !== 'undefined' && !window.gtag) {
+          console.log('[GA DEBUG] Simple checkout: GA not loaded, attempting to load for conversion tracking...');
+          // Load GA dynamically for checkout purposes
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = `https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+
+          // Initialize gtag
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function() { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+            anonymize_ip: true,
+            cookie_flags: 'SameSite=None;Secure'
+          });
+          console.log('[GA DEBUG] Simple checkout: GA loaded dynamically for checkout');
+        }
+
         if (typeof window !== 'undefined' && window.gtag) {
           gaClientId = await new Promise((resolve) => {
             // Set a timeout in case gtag('get') doesn't respond
@@ -96,8 +120,19 @@ export default function CheckoutButton() {
             }
           }
         }
+
+        // Final fallback: Generate a UUID if no GA client ID available
+        if (!gaClientId) {
+          gaClientId = crypto.randomUUID();
+          console.log('[GA DEBUG] Simple checkout: Final fallback: Generated UUID as client_id:', gaClientId);
+        }
       } catch (err) {
         console.warn('[GA DEBUG] Simple checkout: Failed to capture GA client_id:', err);
+        // Generate UUID as last resort
+        if (typeof window !== 'undefined' && window.crypto) {
+          gaClientId = window.crypto.randomUUID();
+          console.log('[GA DEBUG] Simple checkout: Error fallback: Generated UUID as client_id:', gaClientId);
+        }
       }
 
       console.log('[GA DEBUG] Simple checkout: Final gaClientId being sent:', gaClientId);
