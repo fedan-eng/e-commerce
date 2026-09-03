@@ -11,7 +11,7 @@ export async function POST(req) {
   try {
     const { reference, provider } = await req.json();
 
-    if (!reference || !provider) {
+    if (!reference || !provider) { 
       return Response.json(
         { message: "Missing reference or provider" },
         { status: 400 }
