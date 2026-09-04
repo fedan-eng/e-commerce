@@ -73,6 +73,8 @@ const userSchema = new mongoose.Schema(
 
     resetPasswordCode: { type: String },
     resetPasswordExpiry: { type: Date },
+    resetPasswordToken: { type: String },
+    resetPasswordTokenExpiry: { type: Date },
     verificationToken: { type: String },
     verificationTokenExpiry: { type: Date },
     cart: {
