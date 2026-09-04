@@ -13,6 +13,7 @@ export async function POST(req) {
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -175,6 +176,7 @@ Think Quality, Think FIL.
 
   return new Response(JSON.stringify({ message: "Reset code sent" }), {
     status: 200,
+    headers: { "Content-Type": "application/json" },
   });
 }
 
@@ -186,6 +188,7 @@ export async function GET(req) {
   if (!token) {
     return new Response(JSON.stringify({ message: "Missing token" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -193,6 +196,7 @@ export async function GET(req) {
   if (!decoded) {
     return new Response(JSON.stringify({ message: "Invalid or expired token" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -200,17 +204,20 @@ export async function GET(req) {
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   if (user.resetPasswordToken !== token || new Date() > user.resetPasswordTokenExpiry) {
     return new Response(JSON.stringify({ message: "Invalid or expired token" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   return new Response(JSON.stringify({ valid: true, email: user.email }), {
     status: 200,
+    headers: { "Content-Type": "application/json" },
   });
 }
 
@@ -221,6 +228,7 @@ export async function PATCH(req) {
   if (!token || !newPassword) {
     return new Response(JSON.stringify({ message: "Missing fields" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -228,6 +236,7 @@ export async function PATCH(req) {
   if (!decoded) {
     return new Response(JSON.stringify({ message: "Invalid or expired token" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -235,13 +244,14 @@ export async function PATCH(req) {
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   if (user.resetPasswordToken !== token || new Date() > user.resetPasswordTokenExpiry) {
     return new Response(
       JSON.stringify({ message: "Invalid or expired reset token" }),
-      { status: 400 }
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -359,7 +369,7 @@ Think Quality, Think FIL.
 
   return new Response(
     JSON.stringify({ message: "Password reset successfully" }),
-    { status: 200 }
+    { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
 
@@ -370,6 +380,7 @@ export async function PUT(req) {
   if (!email || !resetCode || !newPassword) {
     return new Response(JSON.stringify({ message: "Missing fields" }), {
       status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -377,6 +388,7 @@ export async function PUT(req) {
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -387,7 +399,7 @@ export async function PUT(req) {
   if (!isCodeValid && !isTokenValid) {
     return new Response(
       JSON.stringify({ message: "Invalid or expired reset code/token" }),
-      { status: 400 }
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -505,6 +517,6 @@ Think Quality, Think FIL.
 
   return new Response(
     JSON.stringify({ message: "Password reset successfully" }),
-    { status: 200 }
+    { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }

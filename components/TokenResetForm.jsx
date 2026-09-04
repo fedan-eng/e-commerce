@@ -43,15 +43,24 @@ export default function TokenResetForm() {
 
       try {
         const res = await fetch(`/api/auth/reset-password?token=${token}`);
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: "Invalid or expired reset link" }));
+          setError(errorData.message || "Invalid or expired reset link. Please request a new password reset.");
+          setValidating(false);
+          return;
+        }
+        
         const data = await res.json();
         
-        if (res.ok && data.valid) {
+        if (data.valid) {
           setTokenValid(true);
           setEmail(data.email);
         } else {
           setError(data.message || "Invalid or expired reset link. Please request a new password reset.");
         }
       } catch (err) {
+        console.error("Token validation error:", err);
         setError("Failed to validate reset link. Please try again.");
       } finally {
         setValidating(false);
