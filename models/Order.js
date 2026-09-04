@@ -111,6 +111,14 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  gaClientId: {
+    type: String,
+    default: null,
+  },
+  gaFired: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

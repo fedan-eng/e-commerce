@@ -21,15 +21,16 @@ export async function POST(req) {
     const body = await req.json();
 
     // Handle both checkout modal (full) and checkout button (simple) formats
-    const { 
-      cartItems: modalCartItems, 
-      deliveryInfo, 
-      discount = 0, 
-      promoCode, 
-      userId, 
-      items: simpleItems, 
-      email: simpleEmail, 
-      address: simpleAddress 
+    const {
+      cartItems: modalCartItems,
+      deliveryInfo,
+      discount = 0,
+      promoCode,
+      userId,
+      items: simpleItems,
+      email: simpleEmail,
+      address: simpleAddress,
+      gaClientId,
     } = body;
 
     // Determine which format we're using
@@ -37,6 +38,9 @@ export async function POST(req) {
 
     const finalCartItems = modalCartItems || simpleItems || [];
     const finalUserId = userId || null;
+
+    // Log GA client_id for debugging (Vercel logs)
+    console.log('[Paystack API] Received gaClientId:', gaClientId);
 
     // ── Server-side validation ──
     if (isSimpleCheckout) {
@@ -85,6 +89,7 @@ export async function POST(req) {
             deliveryFee: 0,
             total,
             simpleCheckout: true,
+            gaClientId, // Pass GA client_id to webhook
           },
           callback_url: `${origin}/checkout/success`,
         },
@@ -177,7 +182,7 @@ export async function POST(req) {
         currency: "NGN",
         channels: ["bank_transfer", "card"],
         metadata: {
-          cartItems: finalCartItems,
+          cartItems: finalCartItems, 
           deliveryInfo: {
             ...deliveryInfo,
             email,
@@ -189,6 +194,7 @@ export async function POST(req) {
           deliveryFee,
           total,
           userId: finalUserId,
+          gaClientId, // Pass GA client_id to webhook
         },
         callback_url: `${origin}/checkout/success`,
       },

@@ -4,6 +4,72 @@ import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
+import crypto from "crypto";
+
+// Helper function to send GA event via Measurement Protocol
+async function sendGAEventViaMeasurementProtocol(order, gaClientId) {
+  try {
+    const measurementId = process.env.NEXT_PUBLIC_GA_ID;
+    const apiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET;
+
+    if (!measurementId || !apiSecret) {
+      console.warn('[GA Verify] Missing GA_MEASUREMENT_ID or GA_MEASUREMENT_PROTOCOL_SECRET, skipping GA event');
+      return false;
+    }
+
+    const lineItems = (order.items || []).map((item, index) => ({
+      item_id: String(item._id || item.productId || index),
+      item_name: item.name || "Unknown",
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+    }));
+
+    const payload = {
+      client_id: gaClientId || crypto.randomUUID(), // Fallback to random UUID if no client_id
+      events: [
+        {
+          name: "purchase",
+          params: {
+            transaction_id: order.paymentReference || String(order._id),
+            currency: "NGN",
+            value: Number(order.total || 0),
+            coupon: order.promoCode || undefined,
+            shipping: Number(order.deliveryFee || 0),
+            tax: 0,
+            items: lineItems,
+          },
+        },
+      ],
+    };
+
+    const url = `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`;
+
+    console.log('[GA Verify] Sending event via Measurement Protocol:', {
+      url: url.replace(apiSecret, '***'), // Log URL with secret masked
+      client_id: payload.client_id,
+      transaction_id: payload.events[0].params.transaction_id,
+      value: payload.events[0].params.value,
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[GA Verify] Measurement Protocol request failed:', response.status, errorText);
+      return false;
+    }
+
+    console.log('[GA Verify] Measurement Protocol event sent successfully');
+    return true;
+  } catch (error) {
+    console.error('[GA Verify] Error sending GA event via Measurement Protocol:', error);
+    return false;
+  }
+}
 
 export async function POST(req) {
   await connectDB();
@@ -52,6 +118,10 @@ export async function POST(req) {
         reference: paystackData.reference,
       };
 
+      // Extract GA client_id from metadata
+      const gaClientId = meta.gaClientId || null;
+      console.log('[Verify Payment] Received gaClientId from Paystack metadata:', gaClientId);
+
       // Handle both old flat structure and new nested deliveryInfo structure
       const deliveryInfo = meta.deliveryInfo || meta;
 
@@ -71,6 +141,7 @@ export async function POST(req) {
         region: deliveryInfo.region || meta.region || { name: "", fee: 0 },
         city: deliveryInfo.city || meta.city || "",
         deliveryType: deliveryInfo.deliveryType || meta.deliveryType || "Regular",
+        gaClientId, // Include GA client_id
         address: deliveryInfo.address || meta.address || "",
         orderNote: deliveryInfo.orderNote || meta.orderNote || "",
         cartItems,
@@ -243,7 +314,7 @@ export async function POST(req) {
         addPhone: orderData.addPhone || "",
         firstName: orderData.firstName,
         lastName: orderData.lastName || "",
-        orderNote: orderData.orderNote || "",
+        orderNote: orderData.orderNote || "", 
         items: orderData.cartItems,
         subTotal: orderData.subTotal,
         discount: orderData.discount,
@@ -255,7 +326,31 @@ export async function POST(req) {
         paymentStatus: orderData.paymentStatus,
         status: "Confirmed",
         statusHistory: [{ status: "Confirmed", date: new Date() }],
+        gaClientId: orderData.gaClientId, // Store GA client_id
       });
+
+      console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
+
+      // ── Fire GA event via Measurement Protocol (backup case) ──
+      if (orderData.gaClientId && !order.gaFired) {
+        console.log('[Verify Payment] Attempting to fire GA event for order:', order._id);
+        const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId);
+
+        if (gaSuccess) {
+          try {
+            await Order.findByIdAndUpdate(order._id, { gaFired: true });
+            console.log('[Verify Payment] GA event fired successfully and order updated');
+          } catch (updateErr) {
+            console.error('[Verify Payment] Failed to update gaFired flag:', updateErr);
+          }
+        } else {
+          console.warn('[Verify Payment] GA event failed to send');
+        }
+      } else if (order.gaFired) {
+        console.log('[Verify Payment] GA event already fired for this order, skipping');
+      } else {
+        console.log('[Verify Payment] No gaClientId available, skipping GA event');
+      }
 
       if (!order) {
         return Response.json({ message: "Order save failed" }, { status: 500 });

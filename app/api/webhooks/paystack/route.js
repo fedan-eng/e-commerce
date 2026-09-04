@@ -5,6 +5,71 @@ import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { sendEmail } from "@/lib/mailer";
 
+// Helper function to send GA event via Measurement Protocol
+async function sendGAEventViaMeasurementProtocol(order, gaClientId) {
+  try {
+    const measurementId = process.env.NEXT_PUBLIC_GA_ID;
+    const apiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET;
+
+    if (!measurementId || !apiSecret) {
+      console.warn('[GA] Missing GA_MEASUREMENT_ID or GA_MEASUREMENT_PROTOCOL_SECRET, skipping GA event');
+      return false;
+    }
+
+    const lineItems = (order.items || []).map((item, index) => ({
+      item_id: String(item._id || item.productId || index),
+      item_name: item.name || "Unknown",
+      quantity: Number(item.quantity || 1),
+      price: Number(item.price || 0),
+    }));
+
+    const payload = {
+      client_id: gaClientId || crypto.randomUUID(), // Fallback to random UUID if no client_id
+      events: [
+        {
+          name: "purchase",
+          params: {
+            transaction_id: order.paymentReference || String(order._id),
+            currency: "NGN",
+            value: Number(order.total || 0),
+            coupon: order.promoCode || undefined,
+            shipping: Number(order.deliveryFee || 0),
+            tax: 0,
+            items: lineItems,
+          },
+        },
+      ],
+    };
+
+    const url = `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`;
+
+    console.log('[GA] Sending event via Measurement Protocol:', {
+      url: url.replace(apiSecret, '***'), // Log URL with secret masked
+      client_id: payload.client_id,
+      transaction_id: payload.events[0].params.transaction_id,
+      value: payload.events[0].params.value,
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[GA] Measurement Protocol request failed:', response.status, errorText);
+      return false;
+    }
+
+    console.log('[GA] Measurement Protocol event sent successfully');
+    return true;
+  } catch (error) {
+    console.error('[GA] Error sending GA event via Measurement Protocol:', error);
+    return false;
+  }
+}
+
 export async function POST(req) {
   const body = await req.text();
 
@@ -26,7 +91,7 @@ export async function POST(req) {
   if (event.event !== "charge.success") {
     return NextResponse.json({ received: true });
   }
-
+ 
   const data = event.data;
   const meta = data.metadata;
   const reference = data.reference;
@@ -41,13 +106,35 @@ export async function POST(req) {
   // ── 3. Idempotency check ─────────────────────────────────────────────────
   const existing = await Order.findOne({ paymentReference: reference });
   if (existing) {
-    console.log(`Webhook: order already exists for ${reference}, skipping`);
+    console.log(`Webhook: order already exists for ${reference}, checking GA status`);
+
+    // If order exists but GA hasn't been fired yet, try firing it now
+    if (!existing.gaFired && existing.gaClientId) {
+      console.log('[Webhook] Order exists but GA not fired, attempting now');
+      const gaSuccess = await sendGAEventViaMeasurementProtocol(existing, existing.gaClientId);
+
+      if (gaSuccess) {
+        try {
+          await Order.findByIdAndUpdate(existing._id, { gaFired: true });
+          console.log('[Webhook] GA event fired successfully for existing order');
+        } catch (updateErr) {
+          console.error('[Webhook] Failed to update gaFired flag on existing order:', updateErr);
+        }
+      }
+    } else if (existing.gaFired) {
+      console.log('[Webhook] GA already fired for existing order, skipping');
+    }
+
     return NextResponse.json({ received: true });
   }
 
   // ── 4. Build orderData (mirrors verify-payment logic) ────────────────────
   const deliveryInfo = meta.deliveryInfo || meta;
   const isSimpleCheckout = meta.simpleCheckout || false;
+  const gaClientId = meta.gaClientId || null;
+
+  // Log GA client_id for debugging (Vercel logs)
+  console.log(`[Webhook] Received gaClientId from metadata:`, gaClientId);
 
   const cartItems = (meta.cartItems || []).map((item) => ({
     ...item,
@@ -76,6 +163,7 @@ export async function POST(req) {
     paymentMethod: "paystack",
     paymentReference: reference,
     paymentStatus: "paid",
+    gaClientId, // Store GA client_id for server-side tracking
   };
 
   // ── 5. Save order ────────────────────────────────────────────────────────
@@ -107,13 +195,37 @@ export async function POST(req) {
       paymentStatus: orderData.paymentStatus,
       status: "Confirmed",
       statusHistory: [{ status: "Confirmed", date: new Date() }],
+      gaClientId: orderData.gaClientId, // Store GA client_id
     });
 
-    console.log(`Webhook: order ${order._id} created for ${reference}`);
+    console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId:`, orderData.gaClientId);
   } catch (err) {
     console.error("Webhook: order save failed", err);
     // Return 200 so Paystack doesn't keep retrying
     return NextResponse.json({ received: true });
+  }
+
+  // ── 5.5 Fire GA event via Measurement Protocol (with idempotency check) ──
+  if (!order.gaFired && orderData.gaClientId) {
+    console.log('[Webhook] Attempting to fire GA event for order:', order._id);
+    const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId);
+
+    if (gaSuccess) {
+      // Update order to mark GA as fired
+      try {
+        await Order.findByIdAndUpdate(order._id, { gaFired: true });
+        console.log('[Webhook] GA event fired successfully and order updated');
+      } catch (updateErr) {
+        console.error('[Webhook] Failed to update gaFired flag:', updateErr);
+        // Don't fail the webhook if the update fails
+      }
+    } else {
+      console.warn('[Webhook] GA event failed to send, will retry on next webhook delivery');
+    }
+  } else if (order.gaFired) {
+    console.log('[Webhook] GA event already fired for this order, skipping');
+  } else {
+    console.log('[Webhook] No gaClientId available, skipping GA event');
   }
 
   // ── 6. Build email content (identical to verify-payment) ─────────────────
