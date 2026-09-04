@@ -1,11 +1,13 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ResetForm from "@/components/ResetForm";
+import Loading from "@/components/Loading";
 
 const ResetPasswordPage = () => {
   return (
     <div className = " ">
-      
-      <ResetForm/>
+      <Suspense fallback={<Loading />}>
+        <ResetForm/>
+      </Suspense>
     </div>
   );
 };

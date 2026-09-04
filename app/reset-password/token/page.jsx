@@ -1,10 +1,13 @@
-import React from "react";
+import React, { Suspense } from "react";
 import TokenResetForm from "@/components/TokenResetForm";
+import Loading from "@/components/Loading";
 
 const TokenResetPasswordPage = () => {
   return (
     <div className="">
-      <TokenResetForm />
+      <Suspense fallback={<Loading />}>
+        <TokenResetForm />
+      </Suspense>
     </div>
   );
 };
