@@ -361,7 +361,7 @@ Think Quality, Think FIL.
   `.trim();
 
   await sendEmail(
-    email,
+    user.email,
     "Password Reset Successful - FIL Store",
     successPlainText,
     successEmailHtml
@@ -509,7 +509,7 @@ Think Quality, Think FIL.
   `.trim();
 
   await sendEmail(
-    email,
+    user.email,
     "Password Reset Successful - FIL Store",
     successPlainText,
     successEmailHtml
