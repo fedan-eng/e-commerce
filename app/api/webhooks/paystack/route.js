@@ -6,7 +6,7 @@ import Order from "@/models/Order";
 import { sendEmail } from "@/lib/mailer";
 
 // Helper function to send GA event via Measurement Protocol
-async function sendGAEventViaMeasurementProtocol(order, gaClientId) {
+async function sendGAEventViaMeasurementProtocol(order, gaClientId, clientIdSource) {
   try {
     const measurementId = process.env.NEXT_PUBLIC_GA_ID;
     const apiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET;
@@ -23,8 +23,11 @@ async function sendGAEventViaMeasurementProtocol(order, gaClientId) {
       price: Number(item.price || 0),
     }));
 
+    // Use custom session ID or generate random UUID as fallback
+    const clientId = gaClientId || crypto.randomUUID();
+
     const payload = {
-      client_id: gaClientId || crypto.randomUUID(), // Fallback to random UUID if no client_id
+      client_id: clientId,
       events: [
         {
           name: "purchase",
@@ -45,7 +48,9 @@ async function sendGAEventViaMeasurementProtocol(order, gaClientId) {
 
     console.log('[GA] Sending event via Measurement Protocol:', {
       url: url.replace(apiSecret, '***'), // Log URL with secret masked
-      client_id: payload.client_id,
+      client_id: clientId,
+      client_id_source: clientIdSource,
+      is_custom_session: clientId?.startsWith('sess_'),
       transaction_id: payload.events[0].params.transaction_id,
       value: payload.events[0].params.value,
     });
@@ -115,7 +120,7 @@ export async function POST(req) {
     // If order exists but GA hasn't been fired yet, try firing it now
     if (!existing.gaFired && existing.gaClientId) {
       console.log('[Webhook] Order exists but GA not fired, attempting now');
-      const gaSuccess = await sendGAEventViaMeasurementProtocol(existing, existing.gaClientId);
+      const gaSuccess = await sendGAEventViaMeasurementProtocol(existing, existing.gaClientId, 'existing_order');
 
       if (gaSuccess) {
         try {
@@ -136,9 +141,12 @@ export async function POST(req) {
   const deliveryInfo = meta.deliveryInfo || meta;
   const isSimpleCheckout = meta.simpleCheckout || false;
   const gaClientId = meta.gaClientId || null;
+  const clientIdSource = meta.clientIdSource || 'unknown';
 
   // Log GA client_id for debugging (Vercel logs)
   console.log(`[Webhook] Received gaClientId from metadata:`, gaClientId);
+  console.log(`[Webhook] Client ID source:`, clientIdSource);
+  console.log(`[Webhook] Is custom session ID:`, gaClientId?.startsWith('sess_'));
 
   const cartItems = (meta.cartItems || []).map((item) => ({
     ...item,
@@ -212,7 +220,7 @@ export async function POST(req) {
   // ── 5.5 Fire GA event via Measurement Protocol (with idempotency check) ──
   if (!order.gaFired && orderData.gaClientId) {
     console.log('[Webhook] Attempting to fire GA event for order:', order._id);
-    const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId);
+    const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId, clientIdSource);
 
     if (gaSuccess) {
       // Update order to mark GA as fired

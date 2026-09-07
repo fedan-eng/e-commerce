@@ -42,6 +42,7 @@ export async function POST(req) {
 
     // Log GA client_id for debugging (Vercel logs)
     console.log('[Paystack API] Received gaClientId:', gaClientId);
+    console.log('[Paystack API] Client ID source:', debugInfo?.clientIdSource);
     console.log('[Paystack API] Full request body keys:', Object.keys(body));
     console.log('[Paystack API] Is simple checkout:', isSimpleCheckout);
     console.log('[Paystack API] Has deliveryInfo:', !!deliveryInfo);
@@ -95,6 +96,7 @@ export async function POST(req) {
             total,
             simpleCheckout: true,
             gaClientId, // Pass GA client_id to webhook
+            clientIdSource: debugInfo?.clientIdSource || 'unknown',
           },
           callback_url: `${origin}/checkout/success`,
         },
@@ -200,6 +202,7 @@ export async function POST(req) {
           total,
           userId: finalUserId,
           gaClientId, // Pass GA client_id to webhook
+          clientIdSource: debugInfo?.clientIdSource || 'unknown',
         },
         callback_url: `${origin}/checkout/success`,
       },
