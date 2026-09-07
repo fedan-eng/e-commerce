@@ -117,11 +117,8 @@ export async function POST(req) {
   if (existing) {
     console.log(`Webhook: order already exists for ${reference}, checking GA status`);
 
-    // Extract consent from metadata for existing orders
-    const existingConsent = meta.analyticsConsent !== undefined ? meta.analyticsConsent : true;
-
-    // If order exists but GA hasn't been fired yet and consent is given, try firing it now
-    if (!existing.gaFired && existing.gaClientId && existingConsent) {
+    // If order exists but GA hasn't been fired yet, try firing it now
+    if (!existing.gaFired && existing.gaClientId) {
       console.log('[Webhook] Order exists but GA not fired, attempting now');
       const gaSuccess = await sendGAEventViaMeasurementProtocol(existing, existing.gaClientId, 'existing_order');
 
@@ -133,8 +130,6 @@ export async function POST(req) {
           console.error('[Webhook] Failed to update gaFired flag on existing order:', updateErr);
         }
       }
-    } else if (!existingConsent) {
-      console.log('[Webhook] Analytics consent NOT given for existing order, skipping GA for privacy compliance');
     } else if (existing.gaFired) {
       console.log('[Webhook] GA already fired for existing order, skipping');
     }
@@ -147,13 +142,11 @@ export async function POST(req) {
   const isSimpleCheckout = meta.simpleCheckout || false;
   const gaClientId = meta.gaClientId || null;
   const clientIdSource = meta.clientIdSource || 'unknown';
-  const analyticsConsent = meta.analyticsConsent !== undefined ? meta.analyticsConsent : true; // Default to true for backward compatibility
 
   // Log GA client_id for debugging (Vercel logs)
   console.log(`[Webhook] Received gaClientId from metadata:`, gaClientId);
   console.log(`[Webhook] Client ID source:`, clientIdSource);
   console.log(`[Webhook] Is custom session ID:`, gaClientId?.startsWith('sess_'));
-  console.log(`[Webhook] Analytics consent:`, analyticsConsent);
 
   const cartItems = (meta.cartItems || []).map((item) => ({
     ...item,
@@ -215,10 +208,9 @@ export async function POST(req) {
       status: "Confirmed",
       statusHistory: [{ status: "Confirmed", date: new Date() }],
       gaClientId: orderData.gaClientId, // Store GA client_id
-      analyticsConsent: analyticsConsent, // Store consent status
     });
 
-    console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId:`, orderData.gaClientId, 'and consent:', analyticsConsent);
+    console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId:`, orderData.gaClientId);
   } catch (err) {
     console.error("Webhook: order save failed", err);
     // Return 200 so Paystack doesn't keep retrying
@@ -226,8 +218,8 @@ export async function POST(req) {
   }
 
   // ── 5.5 Fire GA event via Measurement Protocol (with idempotency check) ──
-  if (!order.gaFired && orderData.gaClientId && analyticsConsent) {
-    console.log('[Webhook] Analytics consent given, attempting to fire GA event for order:', order._id);
+  if (!order.gaFired && orderData.gaClientId) {
+    console.log('[Webhook] Attempting to fire GA event for order:', order._id);
     const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId, clientIdSource);
 
     if (gaSuccess) {
@@ -242,8 +234,6 @@ export async function POST(req) {
     } else {
       console.warn('[Webhook] GA event failed to send, will retry on next webhook delivery');
     }
-  } else if (!analyticsConsent) {
-    console.log('[Webhook] Analytics consent NOT given, skipping GA event for privacy compliance');
   } else if (order.gaFired) {
     console.log('[Webhook] GA event already fired for this order, skipping');
   } else {
