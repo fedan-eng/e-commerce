@@ -8,7 +8,11 @@ import { useCookieConsent } from "@/context/CookieConsentContext";
 
 // Helper function to get GA client_id from _ga cookie (fallback)
 function getGAClientIdFromCookie() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    console.log('[GA Cookie] Running on server, skipping cookie read');
+    return null;
+  }
+  console.log('[GA Cookie] All cookies:', document.cookie);
   const match = document.cookie.match(/_ga=GA\d+\.\d+\.(\d+\.\d+)/);
   const clientId = match ? match[1] : null;
   console.log('[GA Cookie] Client ID from _ga cookie:', clientId);
@@ -105,8 +109,14 @@ export default function CheckoutButton() {
       trackInitiateCheckout(items, totalValue);
 
       // Capture GA client_id before redirecting to Paystack
+      console.log('[CheckoutButton] Starting GA client_id capture process...');
+      console.log('[CheckoutButton] Cookie consent status:', status);
+      console.log('[CheckoutButton] Cookie preferences:', preferences);
+      console.log('[CheckoutButton] GA ID from env:', process.env.NEXT_PUBLIC_GA_ID);
+
       const gaClientId = await getGAClientId(preferences, status);
-      console.log('[CheckoutButton] Consent status:', status, '| GA client_id captured:', gaClientId);
+      console.log('[CheckoutButton] Final GA client_id captured:', gaClientId);
+      console.log('[CheckoutButton] Sending to server with metadata...');
 
       const res = await axios.post("/api/paystack", {
         items,

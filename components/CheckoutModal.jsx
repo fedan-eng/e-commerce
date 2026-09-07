@@ -29,7 +29,11 @@ const STEPS = ["Contact", "Delivery", "Review"];
 
 // Helper function to get GA client_id from _ga cookie (fallback)
 function getGAClientIdFromCookie() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    console.log('[GA Cookie] Running on server, skipping cookie read');
+    return null;
+  }
+  console.log('[GA Cookie] All cookies:', document.cookie);
   const match = document.cookie.match(/_ga=GA\d+\.\d+\.(\d+\.\d+)/);
   const clientId = match ? match[1] : null;
   console.log('[GA Cookie] Client ID from _ga cookie:', clientId);
@@ -389,8 +393,14 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       trackInitiateCheckout(cartItems, total);
 
       // Capture GA client_id before redirecting to Paystack
+      console.log('[Checkout] Starting GA client_id capture process...');
+      console.log('[Checkout] Cookie consent status:', status);
+      console.log('[Checkout] Cookie preferences:', preferences);
+      console.log('[Checkout] GA ID from env:', process.env.NEXT_PUBLIC_GA_ID);
+
       const gaClientId = await getGAClientId(preferences, status);
-      console.log('[Checkout] Consent status:', status, '| GA client_id captured:', gaClientId);
+      console.log('[Checkout] Final GA client_id captured:', gaClientId);
+      console.log('[Checkout] Sending to server with metadata...');
 
       const res = await fetch("/api/paystack", {
         method: "POST",
@@ -402,6 +412,12 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           promoCode,
           userId: user?._id || null,
           gaClientId, // Send GA client_id to server
+          debugInfo: {
+            consentStatus: status,
+            hasGaCookie: typeof document !== 'undefined' && document.cookie.includes('_ga'),
+            windowGtagAvailable: typeof window !== 'undefined' && typeof window.gtag === 'function',
+            envGaId: process.env.NEXT_PUBLIC_GA_ID,
+          }, // Send debug info to server
         }),
       });
 

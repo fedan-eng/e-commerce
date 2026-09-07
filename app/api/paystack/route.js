@@ -31,6 +31,7 @@ export async function POST(req) {
       email: simpleEmail,
       address: simpleAddress,
       gaClientId,
+      debugInfo,
     } = body;
 
     // Determine which format we're using
@@ -41,6 +42,10 @@ export async function POST(req) {
 
     // Log GA client_id for debugging (Vercel logs)
     console.log('[Paystack API] Received gaClientId:', gaClientId);
+    console.log('[Paystack API] Full request body keys:', Object.keys(body));
+    console.log('[Paystack API] Is simple checkout:', isSimpleCheckout);
+    console.log('[Paystack API] Has deliveryInfo:', !!deliveryInfo);
+    console.log('[Paystack API] Debug info from client:', debugInfo);
 
     // ── Server-side validation ──
     if (isSimpleCheckout) {

@@ -96,6 +96,10 @@ export async function POST(req) {
   const meta = data.metadata;
   const reference = data.reference;
 
+  console.log('[Webhook] Full metadata received:', JSON.stringify(meta, null, 2));
+  console.log('[Webhook] Metadata keys:', Object.keys(meta || {}));
+  console.log('[Webhook] Has gaClientId in metadata:', !!meta?.gaClientId);
+
   if (!reference || !meta) {
     console.error("Webhook: missing reference or metadata");
     return NextResponse.json({ received: true });
