@@ -74,9 +74,8 @@ async function getGAClientId(preferences, status) {
                      (status === 'customized' && preferences.analytics);
 
     if (!canTrack) {
-      console.log('[GA] Analytics consent not given, using custom session ID');
-      const sessionId = getOrCreateSessionId();
-      return sessionId; // Use custom session ID as fallback
+      console.log('[GA] Analytics consent NOT given, returning null for privacy compliance');
+      return null; // Return null if no consent - don't track at all
     }
 
     console.log('[GA] Analytics consent given, attempting gtag method');
@@ -448,6 +447,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           promoCode,
           userId: user?._id || null,
           gaClientId, // Send GA client_id to server
+          analyticsConsent: status === 'accepted' || (status === 'customized' && preferences.analytics), // Track consent status
           debugInfo: {
             consentStatus: status,
             hasGaCookie: typeof document !== 'undefined' && document.cookie.includes('_ga'),

@@ -119,6 +119,10 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  analyticsConsent: {
+    type: Boolean,
+    default: true, // Default to true for backward compatibility
+  },
 });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

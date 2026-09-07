@@ -126,9 +126,12 @@ export async function POST(req) {
       // Extract GA client_id from metadata
       const gaClientId = meta.gaClientId || null;
       const clientIdSource = meta.clientIdSource || 'unknown';
+      const analyticsConsent = meta.analyticsConsent !== undefined ? meta.analyticsConsent : true; // Default to true for backward compatibility
+
       console.log('[Verify Payment] Received gaClientId from Paystack metadata:', gaClientId);
       console.log('[Verify Payment] Client ID source:', clientIdSource);
       console.log('[Verify Payment] Is custom session ID:', gaClientId?.startsWith('sess_'));
+      console.log('[Verify Payment] Analytics consent:', analyticsConsent);
 
       // Handle both old flat structure and new nested deliveryInfo structure
       const deliveryInfo = meta.deliveryInfo || meta;
@@ -335,13 +338,14 @@ export async function POST(req) {
         status: "Confirmed",
         statusHistory: [{ status: "Confirmed", date: new Date() }],
         gaClientId: orderData.gaClientId, // Store GA client_id
+        analyticsConsent: analyticsConsent, // Store consent status
       });
 
-      console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
+      console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId, 'and consent:', analyticsConsent);
 
       // ── Fire GA event via Measurement Protocol (backup case) ──
-      if (orderData.gaClientId && !order.gaFired) {
-        console.log('[Verify Payment] Attempting to fire GA event for order:', order._id);
+      if (orderData.gaClientId && !order.gaFired && analyticsConsent) {
+        console.log('[Verify Payment] Analytics consent given, attempting to fire GA event for order:', order._id);
         const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId, clientIdSource);
 
         if (gaSuccess) {
@@ -354,6 +358,8 @@ export async function POST(req) {
         } else {
           console.warn('[Verify Payment] GA event failed to send');
         }
+      } else if (!analyticsConsent) {
+        console.log('[Verify Payment] Analytics consent NOT given, skipping GA event for privacy compliance');
       } else if (order.gaFired) {
         console.log('[Verify Payment] GA event already fired for this order, skipping');
       } else {
