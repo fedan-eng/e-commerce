@@ -5,6 +5,7 @@ import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
 import {MdOutlineDelete} from "react-icons/md";
@@ -13,15 +14,29 @@ import CheckoutModal from "@/components/CheckoutModal";
 
 const CartPage = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const cartItems = useSelector((state) => state.cart.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
   const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
-  }, []);
+    
+    // Check for newGoogleUser parameter
+    const newGoogleUserParam = searchParams.get('newGoogleUser');
+    if (newGoogleUserParam === 'true') {
+      setIsNewGoogleUser(true);
+      setShowModal(true);
+      
+      // Clear the URL parameter without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Fetch product details for all cart items to get available colors
@@ -69,6 +84,11 @@ const CartPage = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setShowModal(false);
+    setIsNewGoogleUser(false);
+  };
+
   const subTotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
@@ -78,7 +98,7 @@ const CartPage = () => {
 
   return (
     <>
-      {showModal && <CheckoutModal onClose={() => setShowModal(false)} />}
+      {showModal && <CheckoutModal onClose={handleModalClose} isNewGoogleUser={isNewGoogleUser} />}
 
       <div className="mx-auto mt-6 w-full max-w-[1240px]">
         {cartItems.length > 0 && (

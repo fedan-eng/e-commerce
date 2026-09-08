@@ -81,6 +81,10 @@ export async function GET(req) {
       });
 
       await sendGoogleWelcomeEmail(googleUser.email, firstName);
+
+      // Add newGoogleUser flag to callback URL for new users
+      const separator = callbackUrl.includes('?') ? '&' : '?';
+      callbackUrl = `${callbackUrl}${separator}newGoogleUser=true`;
     }
 
     const token = signToken({
