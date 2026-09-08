@@ -41,6 +41,14 @@ export default async function sitemap() {
     priority: 0.8, // High priority to encourage Sitelinks
   }));
 
+  // Blog as an additional sitelink (category-level priority)
+  const blogSitelink = {
+    url: `${baseUrl}/blog`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.8, // Same priority as category pages for sitelink inclusion
+  };
+
   // 3. Special Pages (Best Seller, What's New, Today's Deal)
   const specials = [
     { name: 'Best Seller', param: 'isBestseller' },
@@ -73,5 +81,5 @@ export default async function sitemap() {
     console.error('could not load products for sitemap', e);
   }
 
-  return [...mainPages, ...categoryPages, ...specialPages, ...productPages];
+  return [...mainPages, ...categoryPages, ...specialPages, ...productPages, blogSitelink];
 }

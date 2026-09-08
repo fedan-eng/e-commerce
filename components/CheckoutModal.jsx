@@ -27,9 +27,39 @@ import { ProductImage } from "@/components/ProductImage";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
+// Helper function to get or create custom session ID
+function getOrCreateSessionId() {
+  if (typeof window === 'undefined') {
+    console.log('[Session ID] Running on server, skipping');
+    return null;
+  }
+
+  const SESSION_COOKIE_NAME = 'fil_session_id';
+  const match = document.cookie.match(new RegExp(`(^| )${SESSION_COOKIE_NAME}=([^;]+)`));
+
+  if (match) {
+    const sessionId = match[2];
+    console.log('[Session ID] Found existing session ID:', sessionId);
+    return sessionId;
+  }
+
+  // Generate new session ID
+  const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  console.log('[Session ID] Generated new session ID:', sessionId);
+
+  // Set cookie for 30 days
+  document.cookie = `${SESSION_COOKIE_NAME}=${sessionId}; path=/; max-age=2592000; SameSite=Lax`;
+
+  return sessionId;
+}
+
 // Helper function to get GA client_id from _ga cookie (fallback)
 function getGAClientIdFromCookie() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    console.log('[GA Cookie] Running on server, skipping cookie read');
+    return null;
+  }
+  console.log('[GA Cookie] All cookies:', document.cookie);
   const match = document.cookie.match(/_ga=GA\d+\.\d+\.(\d+\.\d+)/);
   const clientId = match ? match[1] : null;
   console.log('[GA Cookie] Client ID from _ga cookie:', clientId);
@@ -44,9 +74,9 @@ async function getGAClientId(preferences, status) {
                      (status === 'customized' && preferences.analytics);
 
     if (!canTrack) {
-      console.log('[GA] Analytics consent not given, attempting cookie fallback');
-      const cookieClientId = getGAClientIdFromCookie();
-      return cookieClientId; // Try cookie fallback even without consent
+      console.log('[GA] Analytics consent not given, using custom session ID');
+      const sessionId = getOrCreateSessionId();
+      return sessionId; // Use custom session ID as fallback
     }
 
     console.log('[GA] Analytics consent given, attempting gtag method');
@@ -72,14 +102,24 @@ async function getGAClientId(preferences, status) {
       }
     });
 
-    console.log('[GA] Successfully captured client_id via gtag:', clientId);
-    return clientId || null;
+    if (clientId) {
+      console.log('[GA] Successfully captured client_id via gtag:', clientId);
+      return clientId;
+    } else {
+      console.log('[GA] gtag returned null, using GA cookie fallback');
+      const cookieClientId = getGAClientIdFromCookie();
+      return cookieClientId || getOrCreateSessionId();
+    }
   } catch (error) {
-    console.warn('[GA] gtag method failed:', error.message, 'trying cookie fallback');
-    // Fallback to cookie method
+    console.warn('[GA] gtag method failed:', error.message, 'trying fallback chain');
+    // Fallback chain: GA cookie -> custom session ID
     const cookieClientId = getGAClientIdFromCookie();
-    console.log('[GA] Cookie fallback result:', cookieClientId);
-    return cookieClientId;
+    if (cookieClientId) {
+      console.log('[GA] Cookie fallback successful:', cookieClientId);
+      return cookieClientId;
+    }
+    console.log('[GA] Cookie fallback failed, using custom session ID');
+    return getOrCreateSessionId();
   }
 }
 
@@ -389,8 +429,14 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       trackInitiateCheckout(cartItems, total);
 
       // Capture GA client_id before redirecting to Paystack
+      console.log('[Checkout] Starting GA client_id capture process...');
+      console.log('[Checkout] Cookie consent status:', status);
+      console.log('[Checkout] Cookie preferences:', preferences);
+      console.log('[Checkout] GA ID from env:', process.env.NEXT_PUBLIC_GA_ID);
+
       const gaClientId = await getGAClientId(preferences, status);
-      console.log('[Checkout] Consent status:', status, '| GA client_id captured:', gaClientId);
+      console.log('[Checkout] Final GA client_id captured:', gaClientId);
+      console.log('[Checkout] Sending to server with metadata...');
 
       const res = await fetch("/api/paystack", {
         method: "POST",
@@ -402,6 +448,14 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           promoCode,
           userId: user?._id || null,
           gaClientId, // Send GA client_id to server
+          debugInfo: {
+            consentStatus: status,
+            hasGaCookie: typeof document !== 'undefined' && document.cookie.includes('_ga'),
+            hasSessionCookie: typeof document !== 'undefined' && document.cookie.includes('fil_session_id'),
+            windowGtagAvailable: typeof window !== 'undefined' && typeof window.gtag === 'function',
+            envGaId: process.env.NEXT_PUBLIC_GA_ID,
+            clientIdSource: gaClientId?.startsWith('sess_') ? 'custom_session' : 'ga',
+          }, // Send debug info to server
         }),
       });
 
