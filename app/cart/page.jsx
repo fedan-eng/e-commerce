@@ -1,20 +1,19 @@
 // app/cart/page.jsx
 "use client";
-import {useState, useEffect} from "react";
+import {useState, useEffect, Suspense} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
 import {MdOutlineDelete} from "react-icons/md";
 import {HiMinus, HiPlus} from "react-icons/hi";
 import CheckoutModal from "@/components/CheckoutModal";
 
-const CartPage = () => {
+function CartPageContent() {
   const dispatch = useDispatch();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const cartItems = useSelector((state) => state.cart.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -408,4 +407,10 @@ const CartPage = () => {
   );
 };
 
-export default CartPage;
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CartPageContent />
+    </Suspense>
+  );
+}
