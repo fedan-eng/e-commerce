@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { signToken } from "@/lib/auth";
+import { sendEmail } from "@/lib/mailer";
 import { serialize } from "cookie";
 
 export const dynamic = "force-dynamic";
@@ -125,7 +126,7 @@ export async function GET(req) {
   }
 }
 
-async function sendGoogleWelcomeEmail(email, firstName) {
+async async function sendGoogleWelcomeEmail(email, firstName) {
 
   const welcomeEmailHtml = `
 <!DOCTYPE html>
