@@ -5,7 +5,6 @@ import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { ProductImage } from "@/components/ProductImage";
 import Image from "next/image";
 import {MdOutlineDelete} from "react-icons/md";
@@ -14,7 +13,6 @@ import CheckoutModal from "@/components/CheckoutModal";
 
 function CartPageContent() {
   const dispatch = useDispatch();
-  const searchParams = useSearchParams();
   const cartItems = useSelector((state) => state.cart.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
@@ -25,17 +23,19 @@ function CartPageContent() {
   useEffect(() => {
     setHasMounted(true); 
     
-    // Check for newGoogleUser parameter
-    const newGoogleUserParam = searchParams.get('newGoogleUser');
-    if (newGoogleUserParam === 'true') {
+    // Check for newGoogleUser cookie
+    const newGoogleUserCookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('newGoogleUser='));
+    
+    if (newGoogleUserCookie?.split('=')[1] === 'true') {
       setIsNewGoogleUser(true);
       setShowModal(true);
       
-      // Clear the URL parameter without page reload
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      // Clear the cookie
+      document.cookie = 'newGoogleUser=; path=/; max-age=0; SameSite=strict';
     }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     // Fetch product details for all cart items to get available colors
@@ -408,9 +408,5 @@ function CartPageContent() {
 };
 
 export default function CartPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CartPageContent />
-    </Suspense>
-  );
+  return <CartPageContent />;
 }

@@ -59,6 +59,7 @@ export async function GET(req) {
     await connectDB();
 
     let user = await User.findOne({ googleId: googleUser.id });
+    let isNewUser = false;
 
     if (!user) {
       const existingUser = await User.findOne({ email: googleUser.email });
@@ -80,13 +81,8 @@ export async function GET(req) {
         isActive: true,
       });
 
+      isNewUser = true;
       await sendGoogleWelcomeEmail(googleUser.email, firstName);
-
-      // Add newGoogleUser flag only if redirecting to cart page
-      // (where the welcome modal logic exists)
-      if (callbackUrl === '/cart' || callbackUrl.includes('/cart')) {
-        callbackUrl = "/cart?newGoogleUser=true";
-      }
     }
 
     const token = signToken({
@@ -105,6 +101,18 @@ export async function GET(req) {
 
     const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
     response.headers.set("Set-Cookie", cookie);
+
+    // Set flag for new Google users (readable by client)
+    if (isNewUser) {
+      const newGoogleUserCookie = serialize("newGoogleUser", "true", {
+        httpOnly: false, // Allow client-side access
+        path: "/",
+        maxAge: 60 * 60, // 1 hour
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+      });
+      response.headers.append("Set-Cookie", newGoogleUserCookie);
+    }
 
     return response;
 
