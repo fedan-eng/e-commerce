@@ -126,7 +126,7 @@ export async function GET(req) {
   }
 }
 
-async async function sendGoogleWelcomeEmail(email, firstName) {
+async function sendGoogleWelcomeEmail(email, firstName) {
 
   const welcomeEmailHtml = `
 <!DOCTYPE html>
