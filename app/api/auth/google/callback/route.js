@@ -82,7 +82,10 @@ export async function GET(req) {
       });
 
       isNewUser = true;
-      await sendGoogleWelcomeEmail(googleUser.email, firstName);
+      // Send welcome email in background, don't block the auth flow
+      sendGoogleWelcomeEmail(googleUser.email, firstName).catch(err => {
+        console.error("Failed to send welcome email:", err);
+      });
     }
 
     const token = signToken({
