@@ -82,9 +82,11 @@ export async function GET(req) {
 
       await sendGoogleWelcomeEmail(googleUser.email, firstName);
 
-      // Add newGoogleUser flag to callback URL for new users
-      const separator = callbackUrl.includes('?') ? '&' : '?';
-      callbackUrl = `${callbackUrl}${separator}newGoogleUser=true`;
+      // Add newGoogleUser flag only if redirecting to cart page
+      // (where the welcome modal logic exists)
+      if (callbackUrl === '/cart' || callbackUrl.includes('/cart')) {
+        callbackUrl = "/cart?newGoogleUser=true";
+      }
     }
 
     const token = signToken({
