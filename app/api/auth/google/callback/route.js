@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { signToken } from "@/lib/auth";
+import { sendEmail } from "@/lib/mailer";
 import { serialize } from "cookie";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +60,7 @@ export async function GET(req) {
     await connectDB();
 
     let user = await User.findOne({ googleId: googleUser.id });
+    let isNewUser = false;
 
     if (!user) {
       const existingUser = await User.findOne({ email: googleUser.email });
@@ -80,7 +82,11 @@ export async function GET(req) {
         isActive: true,
       });
 
-      await sendGoogleWelcomeEmail(googleUser.email, firstName);
+      isNewUser = true;
+      // Send welcome email in background, don't block the auth flow
+      sendGoogleWelcomeEmail(googleUser.email, firstName).catch(err => {
+        console.error("Failed to send welcome email:", err);
+      });
     }
 
     const token = signToken({
@@ -99,6 +105,18 @@ export async function GET(req) {
 
     const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
     response.headers.set("Set-Cookie", cookie);
+
+    // Set flag for new Google users (readable by client)
+    if (isNewUser) {
+      const newGoogleUserCookie = serialize("newGoogleUser", "true", {
+        httpOnly: false, // Allow client-side access
+        path: "/",
+        maxAge: 60 * 60, // 1 hour
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+      });
+      response.headers.append("Set-Cookie", newGoogleUserCookie);
+    }
 
     return response;
 

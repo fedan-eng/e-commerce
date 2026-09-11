@@ -1,6 +1,6 @@
 // app/cart/page.jsx
 "use client";
-import {useState, useEffect} from "react";
+import {useState, useEffect, Suspense} from "react";
 import {formatAmount} from "lib/utils";
 import {useSelector, useDispatch} from "react-redux";
 import {removeFromCart, updateQuantity, updateColor} from "@/store/features/cartSlice";
@@ -11,16 +11,30 @@ import {MdOutlineDelete} from "react-icons/md";
 import {HiMinus, HiPlus} from "react-icons/hi";
 import CheckoutModal from "@/components/CheckoutModal";
 
-const CartPage = () => {
+function CartPageContent() {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
   const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
+    
+    // Check for newGoogleUser cookie
+    const newGoogleUserCookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('newGoogleUser='));
+    
+    if (newGoogleUserCookie?.split('=')[1] === 'true') {
+      setIsNewGoogleUser(true);
+      setShowModal(true);
+      
+      // Clear the cookie
+      document.cookie = 'newGoogleUser=; path=/; max-age=0; SameSite=strict';
+    }
   }, []);
 
   useEffect(() => {
@@ -69,6 +83,11 @@ const CartPage = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setShowModal(false);
+    setIsNewGoogleUser(false);
+  };
+
   const subTotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
@@ -78,7 +97,7 @@ const CartPage = () => {
 
   return (
     <>
-      {showModal && <CheckoutModal onClose={() => setShowModal(false)} />}
+      {showModal && <CheckoutModal onClose={handleModalClose} isNewGoogleUser={isNewGoogleUser} />}
 
       <div className="mx-auto mt-6 w-full max-w-[1240px]">
         {cartItems.length > 0 && (
@@ -388,4 +407,6 @@ const CartPage = () => {
   );
 };
 
-export default CartPage;
+export default function CartPage() {
+  return <CartPageContent />;
+}

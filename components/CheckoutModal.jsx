@@ -137,7 +137,7 @@ const initialForm = {
   saveForLater: false,
 };
 
-export default function CheckoutModal({ onClose, buyNowItem }) {
+export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((state) => state.cart.items);
   const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
@@ -370,6 +370,53 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
 
   const handleBack = () => goToStep(step - 1);
 
+  const handleGoogleUserDetailsSubmit = async () => {
+    // Validate required fields for new Google user
+    const errs = {};
+    
+    if (!formData.lastName.trim()) {
+      errs.lastName = "Last name is required";
+    } else if (formData.lastName.trim().length < 2) {
+      errs.lastName = "Last name is too short";
+    }
+    
+    if (!formData.phone.toString().trim()) {
+      errs.phone = "Phone is required";
+    } else if (!isValidPhone(formData.phone)) {
+      errs.phone = "Please enter a valid phone number (10-14 digits)";
+    }
+    
+    if (!formData.region?.name) errs.region = "Region is required";
+    if (!formData.city.trim()) errs.city = "City is required";
+    if (!formData.address.trim()) {
+      errs.address = "Address is required";
+    } else if (formData.address.trim().length < 5) {
+      errs.address = "Please enter a complete address";
+    }
+    
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    
+    setIsSubmitting(true);
+    try {
+      const updateData = {
+        lastName: formData.lastName.trim(),
+        phone: getPhoneDigits(formData.phone),
+        region: formData.region,
+        city: formData.city.trim(),
+        address: formData.address.trim(),
+      };
+      
+      await dispatch(updateUser(updateData));
+      onClose();
+    } catch (err) {
+      console.error("Failed to update user details:", err);
+      alert("Failed to save your details. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handlePlaceOrder = async () => {
     if (!isValidEmail(formData.email)) {
       alert("Invalid email address. Please go back and fix it.");
@@ -510,9 +557,10 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
             </button>
           </div>
 
-          {/* Step indicator */}
-          <div className="flex items-center px-4 sm:px-8 pb-4">
-            {STEPS.map((label, i) => {
+          {/* Step indicator - hide for new Google users */}
+          {!isNewGoogleUser && (
+            <div className="flex items-center px-4 sm:px-8 pb-4">
+              {STEPS.map((label, i) => {
               const num = i + 1;
               const isComplete = step > num;
               const isActive = step === num;
@@ -569,15 +617,140 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
               );
             })}
           </div>
-        </div>
+          )}
 
         {/* ── STEP CONTENT ── */}
         <div className="px-4 sm:px-8 py-6">
 
           {/* ════════════════════════════
+               NEW GOOGLE USER — SIMPLIFIED DETAILS FORM
+          ════════════════════════════ */}
+          {isNewGoogleUser && (
+            <div>
+              <p className="text-xs text-filgreen font-medium mb-1.5">
+                Complete Your Profile
+              </p>
+              <h2 className="font-bold text-xl sm:text-2xl mb-2 text-dark">
+                Welcome {user?.firstName || ''}!
+              </h2>
+              <p className="text-sm text-[#767676] mb-6">
+                We need some additional information to complete your account setup.
+              </p>
+
+              <div className="space-y-4">
+                {/* Last Name */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Enter your last name"
+                    className={`w-full px-4 py-3 border rounded-md outline-none transition-colors ${
+                      errors.lastName ? "border-red-500" : "border-[#d9d9d9] focus:border-filgreen"
+                    }`}
+                  />
+                  {errors.lastName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Enter your phone number"
+                    className={`w-full px-4 py-3 border rounded-md outline-none transition-colors ${
+                      errors.phone ? "border-red-500" : "border-[#d9d9d9] focus:border-filgreen"
+                    }`}
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                  )}
+                </div>
+
+                {/* Region */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-1">
+                    Region
+                  </label>
+                  <RegionSelect
+                    value={formData.region}
+                    onChange={(selectedRegion) =>
+                      setFormData((prev) => ({ ...prev, region: selectedRegion }))
+                    }
+                    error={errors.region}
+                  />
+                  {errors.region && (
+                    <p className="text-red-500 text-xs mt-1">{errors.region}</p>
+                  )}
+                </div>
+
+                {/* City */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    placeholder="Enter your city"
+                    className={`w-full px-4 py-3 border rounded-md outline-none transition-colors ${
+                      errors.city ? "border-red-500" : "border-[#d9d9d9] focus:border-filgreen"
+                    }`}
+                  />
+                  {errors.city && (
+                    <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                  )}
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-1">
+                    Delivery Address
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Enter your full delivery address"
+                    rows={3}
+                    className={`w-full px-4 py-3 border rounded-md outline-none transition-colors resize-none ${
+                      errors.address ? "border-red-500" : "border-[#d9d9d9] focus:border-filgreen"
+                    }`}
+                  />
+                  {errors.address && (
+                    <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleGoogleUserDetailsSubmit}
+                  disabled={isSubmitting}
+                  className="w-full bg-black hover:bg-gray-900 py-4 rounded-md font-roboto font-medium text-white text-sm uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Saving..." : "Complete Setup"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════════════
                STEP 1 — CONTACT
           ════════════════════════════ */}
-          {step === 1 && (
+          {!isNewGoogleUser && step === 1 && (
             <div>
               <p className="text-xs text-filgreen font-medium mb-1.5">
                 Step 1 of 3
@@ -761,7 +934,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           {/* ════════════════════════════
                STEP 2 — DELIVERY
           ════════════════════════════ */}
-          {step === 2 && (
+          {!isNewGoogleUser && step === 2 && (
             <div>
               <p className="text-xs text-filgreen font-medium mb-1.5">
                 Step 2 of 3
@@ -945,7 +1118,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           {/* ════════════════════════════
                STEP 3 — REVIEW
           ════════════════════════════ */}
-          {step === 3 && (
+          {!isNewGoogleUser && step === 3 && (
             <div>
               <p className="text-xs text-filgreen font-medium mb-1.5">
                 Step 3 of 3
@@ -1129,6 +1302,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
