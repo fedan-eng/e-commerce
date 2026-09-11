@@ -631,7 +631,7 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
                 Complete Your Profile
               </p>
               <h2 className="font-bold text-xl sm:text-2xl mb-2 text-dark">
-                Welcome! Just a few more details
+                Welcome {user?.firstName || ''}!
               </h2>
               <p className="text-sm text-[#767676] mb-6">
                 We need some additional information to complete your account setup.
