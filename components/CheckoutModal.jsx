@@ -137,7 +137,7 @@ const initialForm = {
   saveForLater: false,
 };
 
-export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false }) {
+export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false, onProfileComplete }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((state) => state.cart.items);
   const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
@@ -409,6 +409,9 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
       
       await dispatch(updateUser(updateData));
       onClose();
+      if (onProfileComplete) {
+        onProfileComplete();
+      }
     } catch (err) {
       console.error("Failed to update user details:", err);
       alert("Failed to save your details. Please try again.");

@@ -3,6 +3,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setCartFromDB, clearCart } from "./cartSlice";
 import { setWishlistFromDB, clearWishlist } from "./wishlistSlice";
+import { hasCompleteProfile } from "@/lib/utils";
 
 // ─── Fetch current user ──────────────────────────────────────────────────────
 export const fetchUser = createAsyncThunk(
@@ -86,6 +87,7 @@ const initialState = {
   isLoading: false,
   error: null,
   updateMessage: null,
+  needsProfileCompletion: false,
 };
 
 const authSlice = createSlice({
@@ -97,6 +99,10 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.updateMessage = null;
+      state.needsProfileCompletion = false;
+    },
+    setNeedsProfileCompletion: (state, action) => {
+      state.needsProfileCompletion = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -110,6 +116,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true; // only reaches here if user is real
+        state.needsProfileCompletion = !hasCompleteProfile(action.payload);
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -128,6 +135,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = { ...state.user, ...action.payload };
         state.updateMessage = "Profile updated successfully!";
+        state.needsProfileCompletion = !hasCompleteProfile({ ...state.user, ...action.payload });
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -154,5 +162,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearUser } = authSlice.actions;
+export const { clearUser, setNeedsProfileCompletion } = authSlice.actions;
 export default authSlice.reducer;

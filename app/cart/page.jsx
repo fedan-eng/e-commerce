@@ -17,24 +17,10 @@ function CartPageContent() {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
   const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
-    
-    // Check for newGoogleUser cookie
-    const newGoogleUserCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('newGoogleUser='));
-    
-    if (newGoogleUserCookie?.split('=')[1] === 'true') {
-      setIsNewGoogleUser(true);
-      setShowModal(true);
-      
-      // Clear the cookie
-      document.cookie = 'newGoogleUser=; path=/; max-age=0; SameSite=strict';
-    }
   }, []);
 
   useEffect(() => {
@@ -85,7 +71,6 @@ function CartPageContent() {
 
   const handleModalClose = () => {
     setShowModal(false);
-    setIsNewGoogleUser(false);
   };
 
   const subTotal = cartItems.reduce(
@@ -97,7 +82,7 @@ function CartPageContent() {
 
   return (
     <>
-      {showModal && <CheckoutModal onClose={handleModalClose} isNewGoogleUser={isNewGoogleUser} />}
+      {showModal && <CheckoutModal onClose={handleModalClose} />}
 
       <div className="mx-auto mt-6 w-full max-w-[1240px]">
         {cartItems.length > 0 && (
