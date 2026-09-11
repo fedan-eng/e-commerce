@@ -10,10 +10,11 @@ export default function ProfileCompletionChecker() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Check localStorage to see if we've already prompted this user
-    const profilePromptShown = localStorage.getItem('profilePromptShown');
+    // Check sessionStorage for temporary dismissal and localStorage for permanent completion
+    const profilePromptDismissed = sessionStorage.getItem('profilePromptDismissed');
+    const profilePromptCompleted = localStorage.getItem('profilePromptCompleted');
     
-    if (isAuthenticated && needsProfileCompletion && !profilePromptShown) {
+    if (isAuthenticated && needsProfileCompletion && !profilePromptDismissed && !profilePromptCompleted) {
       // Small delay to ensure smooth UX
       const timer = setTimeout(() => {
         setShowModal(true);
@@ -25,14 +26,15 @@ export default function ProfileCompletionChecker() {
 
   const handleModalClose = () => {
     setShowModal(false);
-    // Mark that we've shown the prompt to avoid annoying the user
-    localStorage.setItem('profilePromptShown', 'true');
+    // Use sessionStorage for temporary dismissal (clears when session ends)
+    sessionStorage.setItem('profilePromptDismissed', 'true');
   };
 
   const handleProfileComplete = () => {
     setShowModal(false);
-    // Clear the flag since they've completed it
-    localStorage.removeItem('profilePromptShown');
+    // Clear temporary dismissal and set permanent completion flag
+    sessionStorage.removeItem('profilePromptDismissed');
+    localStorage.setItem('profilePromptCompleted', 'true');
   };
 
   if (!showModal) return null;
