@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import { Providers } from "./providers";
 import ConditionalShell from "@/components/ConditionalShell";
 import AuthInitializer from "./AuthInitializer";
+import ProfileCompletionChecker from "@/components/ProfileCompletionChecker";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Oswald, Poppins, Roboto } from "next/font/google";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
@@ -68,6 +69,7 @@ export default function RootLayout({ children }) {
           <CookieConsentProvider>
             <Providers>
               <AuthInitializer />
+              <ProfileCompletionChecker />
               <ConditionalShell>{children}</ConditionalShell>
               {/* Load analytics after main content */}
               <AnalyticsProvider />

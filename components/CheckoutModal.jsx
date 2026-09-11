@@ -137,7 +137,7 @@ const initialForm = {
   saveForLater: false,
 };
 
-export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false }) {
+export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false, onProfileComplete }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((state) => state.cart.items);
   const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
@@ -409,6 +409,9 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
       
       await dispatch(updateUser(updateData));
       onClose();
+      if (onProfileComplete) {
+        onProfileComplete();
+      }
     } catch (err) {
       console.error("Failed to update user details:", err);
       alert("Failed to save your details. Please try again.");
@@ -538,14 +541,14 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 py-0 sm:py-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 py-0 sm:py-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       {/* Modal shell */}
       <div className="relative bg-white w-full sm:rounded-xl sm:max-w-[700px] max-h-[95vh] sm:max-h-[92vh] overflow-y-auto shadow-2xl rounded-t-2xl">
 
         {/* ── HEADER (sticky so close button never clashes) ── */}
-        <div className="sticky top-0 z-20 bg-white border-b border-[#f0f0f0]">
+        <div className="sticky top-0 z-30 bg-white border-b border-[#f0f0f0]">
           {/* Close button row */}
           <div className="flex justify-end px-4 sm:px-6 pt-4 pb-2">
             <button

@@ -14,27 +14,13 @@ import CheckoutModal from "@/components/CheckoutModal";
 function CartPageContent() {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, needsProfileCompletion } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
   const [productDetails, setProductDetails] = useState({});
 
   useEffect(() => {
     setHasMounted(true); 
-    
-    // Check for newGoogleUser cookie
-    const newGoogleUserCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('newGoogleUser='));
-    
-    if (newGoogleUserCookie?.split('=')[1] === 'true') {
-      setIsNewGoogleUser(true);
-      setShowModal(true);
-      
-      // Clear the cookie
-      document.cookie = 'newGoogleUser=; path=/; max-age=0; SameSite=strict';
-    }
   }, []);
 
   useEffect(() => {
@@ -85,7 +71,10 @@ function CartPageContent() {
 
   const handleModalClose = () => {
     setShowModal(false);
-    setIsNewGoogleUser(false);
+  };
+
+  const handleCheckoutClick = () => {
+    setShowModal(true);
   };
 
   const subTotal = cartItems.reduce(
@@ -97,7 +86,17 @@ function CartPageContent() {
 
   return (
     <>
-      {showModal && <CheckoutModal onClose={handleModalClose} isNewGoogleUser={isNewGoogleUser} />}
+      {showModal && (
+        <CheckoutModal 
+          onClose={handleModalClose} 
+          isNewGoogleUser={isAuthenticated && needsProfileCompletion}
+          onProfileComplete={() => {
+            setShowModal(false);
+            localStorage.setItem('profilePromptCompleted', 'true');
+            sessionStorage.removeItem('profilePromptDismissed');
+          }}
+        />
+      )}
 
       <div className="mx-auto mt-6 w-full max-w-[1240px]">
         {cartItems.length > 0 && (
@@ -393,7 +392,7 @@ function CartPageContent() {
       )}
 
       <button
-        onClick={() => setShowModal(true)}
+        onClick={handleCheckoutClick}
         className="mt-4 w-full bg-black hover:bg-gray-900 py-4 rounded-md font-roboto font-medium text-white text-sm uppercase tracking-wider transition-colors"
       >
         Check Out
