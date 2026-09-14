@@ -74,6 +74,19 @@ function CartPageContent() {
   };
 
   const handleCheckoutClick = () => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'begin_checkout', {
+        currency: 'NGN',
+        value: subTotal,
+        items: cartItems.map((item, index) => ({
+          item_id: item._id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          index: index
+        }))
+      });
+    }
     setShowModal(true);
   };
 
