@@ -105,7 +105,7 @@ export default function Navbar() {
                 href="/contact"
                 className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200"
               >
-                Bulk Order
+                Contact us
               </Link>
             </li>
             <li>
@@ -268,7 +268,7 @@ export default function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors"
                 >
-                  Bulk Order
+                  Contact us
                 </Link>
 
                 {/* BLOG */}
