@@ -45,14 +45,14 @@ const tileSizes = {
   edge: { h: 311, w: 222 },
 };
 
-function safePlay(videoEl: HTMLVideoElement) {
+function safePlay(videoEl) {
   const p = videoEl.play();
-  (videoEl as any)._pendingPlay = p;
+  videoEl._pendingPlay = p;
   if (p !== undefined) p.catch(() => {});
 }
 
-function safePause(videoEl: HTMLVideoElement, resetTime = false) {
-  const pending = (videoEl as any)._pendingPlay;
+function safePause(videoEl, resetTime = false) {
+  const pending = videoEl._pendingPlay;
   if (pending !== undefined) {
     pending
       .then(() => {
@@ -60,14 +60,14 @@ function safePause(videoEl: HTMLVideoElement, resetTime = false) {
         if (resetTime) videoEl.currentTime = 0;
       })
       .catch(() => {});
-    (videoEl as any)._pendingPlay = undefined;
+    videoEl._pendingPlay = undefined;
   } else {
     videoEl.pause();
     if (resetTime) videoEl.currentTime = 0;
   }
 }
 
-function applyIOSInlineAttributes(el: HTMLVideoElement) {
+function applyIOSInlineAttributes(el) {
   if (!el) return;
   el.setAttribute("playsinline", "");
   el.setAttribute("webkit-playsinline", "");
@@ -82,21 +82,21 @@ export default function InfiniteCarousel() {
   const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [direction, setDirection] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mode, setMode] = useState<"preview" | "watching">("preview");
+  const [mode, setMode] = useState("preview");
   // Track which video IDs have been "activated" (center or adjacent) so their
   // src is never unloaded after first mount — avoids re-download on nav back.
-  const [loadedIds, setLoadedIds] = useState<Set<number>>(() => {
-    const initial = new Set<number>();
+  const [loadedIds, setLoadedIds] = useState(() => {
+    const initial = new Set();
     // Prime with first item + its neighbours
     [0, 1, items.length - 1].forEach((i) => initial.add(items[i].id));
     return initial;
   });
 
-  const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef({});
+  const carouselRef = useRef(null);
   const isInViewRef = useRef(true);
-  const autoSlideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fullscreenVideoRef = useRef<HTMLVideoElement>(null);
+  const autoSlideTimer = useRef(null);
+  const fullscreenVideoRef = useRef(null);
 
   // ── When active changes, mark centre ± 1 as loaded (never unloads) ──────
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function InfiniteCarousel() {
   }, [active]);
 
   // ── Slide helpers ────────────────────────────────────────────────────────
-  const goTo = useCallback((index: number, dir: number) => {
+  const goTo = useCallback((index, dir) => {
     setDirection(dir);
     setActive(index);
   }, []);
@@ -187,7 +187,7 @@ export default function InfiniteCarousel() {
   }, [active, mode]);
 
   const handleManualNav = useCallback(
-    (index: number, dir: number) => {
+    (index, dir) => {
       setMode("preview");
       goTo(index, dir);
     },
@@ -196,7 +196,7 @@ export default function InfiniteCarousel() {
 
   // ── Fullscreen ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e) => {
       if (e.key === "Escape" && isFullscreen) setIsFullscreen(false);
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -217,7 +217,7 @@ export default function InfiniteCarousel() {
   const activeItem = items[active];
 
   const handleVideoClick = useCallback(
-    (e: React.MouseEvent<HTMLVideoElement>, itemId: number, itemOffset: number) => {
+    (e, itemId, itemOffset) => {
       const video = e.currentTarget;
       const centerId = items[active].id;
 
