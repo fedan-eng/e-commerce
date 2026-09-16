@@ -87,7 +87,6 @@ export async function POST(req) {
           email: email,
           amount: Math.round(total * 100),
           currency: "NGN",
-          channels: ["bank_transfer", "card", "bank", "ussd"],
           metadata: {
             cartItems: finalCartItems,
             userId: finalUserId,
@@ -188,7 +187,6 @@ export async function POST(req) {
         email: email, // sanitized email
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
-        channels: ["bank_transfer", "card", "bank", "ussd"],
         metadata: {
           cartItems: finalCartItems, 
           deliveryInfo: {
