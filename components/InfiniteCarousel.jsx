@@ -22,7 +22,7 @@ const items = [
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-1.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-1-thumb.png",
     previewStart: 0,
-  }, 
+  },
   {
     id: 4,
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/papeetyah.mp4",
@@ -37,7 +37,6 @@ const items = [
   },
 ];
 
-// ─── Adjustable preview duration (ms) ────────────────────────────────────────
 const PREVIEW_DURATION = 7000;
 
 const tileSizes = {
@@ -55,10 +54,12 @@ function safePlay(videoEl) {
 function safePause(videoEl, resetTime = false) {
   const pending = videoEl._pendingPlay;
   if (pending !== undefined) {
-    pending.then(() => {
-      videoEl.pause();
-      if (resetTime) videoEl.currentTime = 0;
-    }).catch(() => {});
+    pending
+      .then(() => {
+        videoEl.pause();
+        if (resetTime) videoEl.currentTime = 0;
+      })
+      .catch(() => {});
     videoEl._pendingPlay = undefined;
   } else {
     videoEl.pause();
@@ -81,15 +82,33 @@ export default function InfiniteCarousel() {
   const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [direction, setDirection] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // "preview" = auto-sliding mode | "watching" = user clicked, stay on this video
   const [mode, setMode] = useState("preview");
+  // Track which video IDs have been "activated" (center or adjacent) so their
+  // src is never unloaded after first mount — avoids re-download on nav back.
+  const [loadedIds, setLoadedIds] = useState(() => {
+    const initial = new Set();
+    // Prime with first item + its neighbours
+    [0, 1, items.length - 1].forEach((i) => initial.add(items[i].id));
+    return initial;
+  });
 
   const videoRefs = useRef({});
   const carouselRef = useRef(null);
   const isInViewRef = useRef(true);
   const autoSlideTimer = useRef(null);
-  const progressRef = useRef(null); // for the progress bar animation
   const fullscreenVideoRef = useRef(null);
+
+  // ── When active changes, mark centre ± 1 as loaded (never unloads) ──────
+  useEffect(() => {
+    setLoadedIds((prev) => {
+      const next = new Set(prev);
+      [-1, 0, 1].forEach((offset) => {
+        const idx = (active + offset + items.length) % items.length;
+        next.add(items[idx].id);
+      });
+      return next;
+    });
+  }, [active]);
 
   // ── Slide helpers ────────────────────────────────────────────────────────
   const goTo = useCallback((index, dir) => {
@@ -97,27 +116,22 @@ export default function InfiniteCarousel() {
     setActive(index);
   }, []);
 
-  const goNext = useCallback(() => {
-    goTo((active + 1) % items.length, 1);
-  }, [active, goTo]);
-
-  const goPrev = useCallback(() => {
-    goTo((active - 1 + items.length) % items.length, -1);
-  }, [active, goTo]);
-
   // ── Auto-slide timer ─────────────────────────────────────────────────────
-  const startAutoSlide = useCallback(() => {
-    clearTimeout(autoSlideTimer.current);
-    autoSlideTimer.current = setTimeout(() => {
-      goTo((active + 1) % items.length, 1);
-    }, PREVIEW_DURATION);
-  }, [active, goTo]);
-
   const stopAutoSlide = useCallback(() => {
-    clearTimeout(autoSlideTimer.current);
+    if (autoSlideTimer.current) clearTimeout(autoSlideTimer.current);
   }, []);
 
-  // Start/stop auto-slide based on mode
+  const startAutoSlide = useCallback(() => {
+    stopAutoSlide();
+    autoSlideTimer.current = setTimeout(() => {
+      setActive((prev) => {
+        const next = (prev + 1) % items.length;
+        setDirection(1);
+        return next;
+      });
+    }, PREVIEW_DURATION);
+  }, [stopAutoSlide]);
+
   useEffect(() => {
     if (mode === "preview") {
       startAutoSlide();
@@ -127,19 +141,16 @@ export default function InfiniteCarousel() {
     return () => stopAutoSlide();
   }, [mode, active, startAutoSlide, stopAutoSlide]);
 
-  // ── Play/pause center video on active or mode change ────────────────────
+  // ── Play/pause centre video on active or mode change ─────────────────────
   useEffect(() => {
     const centerId = items[active].id;
     const centerItem = items[active];
 
     Object.entries(videoRefs.current).forEach(([id, videoEl]) => {
       if (!videoEl) return;
-      const numId = Number(id);
-      if (numId === centerId) {
+      if (Number(id) === centerId) {
         if (isInViewRef.current) {
-          if (mode === "preview") {
-            videoEl.currentTime = centerItem.previewStart ?? 0;
-          }
+          if (mode === "preview") videoEl.currentTime = centerItem.previewStart ?? 0;
           safePlay(videoEl);
         }
       } else {
@@ -148,7 +159,7 @@ export default function InfiniteCarousel() {
     });
   }, [active, mode]);
 
-  // ── IntersectionObserver — pause when scrolled out of view ──────────────
+  // ── IntersectionObserver ─────────────────────────────────────────────────
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel) return;
@@ -156,8 +167,7 @@ export default function InfiniteCarousel() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         isInViewRef.current = entry.isIntersecting;
-        const centerId = items[active].id;
-        const centerVideo = videoRefs.current[centerId];
+        const centerVideo = videoRefs.current[items[active].id];
         if (!centerVideo) return;
 
         if (entry.isIntersecting) {
@@ -176,18 +186,15 @@ export default function InfiniteCarousel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, mode]);
 
-  // When user manually changes slide, reset to preview mode
-  const handleManualNav = useCallback((indexOrFn, dir) => {
-    setMode("preview");
-    if (typeof indexOrFn === "function") {
-      setDirection(dir);
-      setActive(indexOrFn);
-    } else {
-      goTo(indexOrFn, dir);
-    }
-  }, [goTo]);
+  const handleManualNav = useCallback(
+    (index, dir) => {
+      setMode("preview");
+      goTo(index, dir);
+    },
+    [goTo]
+  );
 
-  // ── Fullscreen Modal ─────────────────────────────────────────────────────
+  // ── Fullscreen ───────────────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && isFullscreen) setIsFullscreen(false);
@@ -196,11 +203,8 @@ export default function InfiniteCarousel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullscreen]);
 
-  // Pause carousel and stop auto-slide when fullscreen opens, resume when closes
   useEffect(() => {
-    const centerId = items[active].id;
-    const centerVideo = videoRefs.current[centerId];
-
+    const centerVideo = videoRefs.current[items[active].id];
     if (isFullscreen) {
       stopAutoSlide();
       if (centerVideo) safePause(centerVideo);
@@ -212,36 +216,37 @@ export default function InfiniteCarousel() {
 
   const activeItem = items[active];
 
-  // ── Click handler on center video ───────────────────────────────────────
-  const handleVideoClick = useCallback((e, itemId, itemOffset) => {
-    const video = e.currentTarget;
-    const centerId = items[active].id;
+  const handleVideoClick = useCallback(
+    (e, itemId, itemOffset) => {
+      const video = e.currentTarget;
+      const centerId = items[active].id;
 
-    // Clicking a non-center card — navigate to it and resume preview
-    if (itemId !== centerId) {
-      const newIndex = (active + itemOffset + items.length) % items.length;
-      handleManualNav(newIndex, itemOffset > 0 ? 1 : -1);
-      return;
-    }
-
-    // Clicking the center card
-    if (mode === "preview") {
-      setMode("watching");
-    } else {
-      if (video.paused) {
-        safePlay(video);
-      } else {
-        safePause(video);
+      if (itemId !== centerId) {
+        const newIndex = (active + itemOffset + items.length) % items.length;
+        handleManualNav(newIndex, itemOffset > 0 ? 1 : -1);
+        return;
       }
-    }
-  }, [active, mode, handleManualNav]);
+
+      if (mode === "preview") {
+        setMode("watching");
+      } else {
+        if (video.paused) safePlay(video);
+        else safePause(video);
+      }
+    },
+    [active, mode, handleManualNav]
+  );
 
   // ── Framer variants ──────────────────────────────────────────────────────
   const slideVariants = {
     enter: () => ({ opacity: 0, scale: 0.8 }),
     center: {
-      opacity: 1, scale: 1,
-      transition: { scale: { type: "spring", stiffness: 200, damping: 20 }, opacity: { duration: 0.2 } },
+      opacity: 1,
+      scale: 1,
+      transition: {
+        scale: { type: "spring", stiffness: 200, damping: 20 },
+        opacity: { duration: 0.2 },
+      },
     },
     exit: () => ({ opacity: 0, scale: 0.8 }),
   };
@@ -295,10 +300,13 @@ export default function InfiniteCarousel() {
       >
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
           {getVisibleItems().map((item) => {
-            const pos = item.offset === 0 ? "center" : Math.abs(item.offset) === 1 ? "side" : "edge";
+            const pos =
+              item.offset === 0 ? "center" : Math.abs(item.offset) === 1 ? "side" : "edge";
             const { h, w } = tileSizes[pos];
             const isCenter = item.offset === 0;
-            const isWatching = isCenter && mode === "watching";
+            // Only inject <source> if this video has been "activated" (centre or
+            // adjacent at least once). Once loaded, stays loaded — no re-download.
+            const shouldLoad = loadedIds.has(item.id);
 
             return (
               <motion.div
@@ -323,6 +331,7 @@ export default function InfiniteCarousel() {
                     if (el) {
                       videoRefs.current[item.id] = el;
                       applyIOSInlineAttributes(el);
+
                       el.onended = () => {
                         if (isCenter && mode === "watching") {
                           setMode("preview");
@@ -348,14 +357,30 @@ export default function InfiniteCarousel() {
                   }}
                   onClick={(e) => handleVideoClick(e, item.id, item.offset)}
                   poster={item.poster}
+                  // Only buffer metadata for centre; skip preload entirely for edges
+                  preload={isCenter ? "metadata" : "none"}
                   muted={isMuted}
                   playsInline
                   className="relative rounded-md w-full h-full object-cover cursor-pointer"
                 >
-                  <source src={item.img} type="video/mp4" />
+                  {/* Conditionally inject src — prevents browser fetching all videos */}
+                  {shouldLoad && <source src={item.img} type="video/mp4" />}
                 </video>
 
-                {/* Progress bar — only in preview mode on center video */}
+                {/* Poster fallback image shown on non-loaded videos */}
+                {!shouldLoad && (
+                  <Image
+                    src={item.poster}
+                    alt="video thumbnail"
+                    fill
+                    sizes={`${w}px`}
+                    className="rounded-md object-cover pointer-events-none"
+                    // Edge tiles are always below the fold visually — lazy is safe
+                    loading="lazy"
+                  />
+                )}
+
+                {/* Progress bar */}
                 {isCenter && mode === "preview" && (
                   <div className="absolute bottom-0 left-0 w-full h-[3px] bg-white/30 rounded-b-md overflow-hidden">
                     <motion.div
@@ -368,18 +393,28 @@ export default function InfiniteCarousel() {
                   </div>
                 )}
 
-                {/* Mute/unmute — center video only */}
+                {/* Mute toggle */}
                 {isCenter && (
                   <div className="absolute right-3 bottom-6 z-10">
                     {!isMuted ? (
-                      <Volume2 size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(true)} />
+                      <Volume2
+                        size={20}
+                        color="#fff"
+                        className="cursor-pointer drop-shadow"
+                        onClick={() => setIsMuted(true)}
+                      />
                     ) : (
-                      <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsMuted(false)} />
+                      <VolumeX
+                        size={20}
+                        color="#fff"
+                        className="cursor-pointer drop-shadow"
+                        onClick={() => setIsMuted(false)}
+                      />
                     )}
                   </div>
                 )}
 
-                {/* Fullscreen icon — center video only */}
+                {/* Fullscreen icon */}
                 {isCenter && (
                   <div className="absolute left-3 bottom-6 z-10">
                     <Maximize2
@@ -391,7 +426,7 @@ export default function InfiniteCarousel() {
                   </div>
                 )}
 
-                {/* "Tap to watch" hint — preview mode center only */}
+                {/* "Tap to watch" hint */}
                 {isCenter && mode === "preview" && (
                   <motion.div
                     className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
@@ -405,7 +440,7 @@ export default function InfiniteCarousel() {
                   </motion.div>
                 )}
 
-                {/* Play overlay — non-center videos */}
+                {/* Play overlay — non-centre */}
                 <motion.div
                   className="bottom-4 left-1/2 z-50 absolute flex justify-center items-center -translate-x-1/2 pointer-events-none"
                   initial="hidden"
@@ -442,7 +477,9 @@ export default function InfiniteCarousel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={(e) => { if (e.target === e.currentTarget) setIsFullscreen(false); }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsFullscreen(false);
+            }}
           >
             <motion.div
               className="relative w-full max-w-sm md:max-w-md lg:max-w-lg rounded-xl overflow-hidden shadow-2xl"
@@ -472,7 +509,6 @@ export default function InfiniteCarousel() {
                 }}
               />
 
-              {/* Close button */}
               <button
                 onClick={() => setIsFullscreen(false)}
                 className="absolute top-3 right-3 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 transition-colors"
@@ -480,12 +516,21 @@ export default function InfiniteCarousel() {
                 <X size={20} color="white" />
               </button>
 
-              {/* Mute toggle inside modal */}
               <div className="absolute bottom-4 right-4 z-10">
                 {!isFullscreenMuted ? (
-                  <Volume2 size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsFullscreenMuted(true)} />
+                  <Volume2
+                    size={20}
+                    color="#fff"
+                    className="cursor-pointer drop-shadow"
+                    onClick={() => setIsFullscreenMuted(true)}
+                  />
                 ) : (
-                  <VolumeX size={20} color="#fff" className="cursor-pointer drop-shadow" onClick={() => setIsFullscreenMuted(false)} />
+                  <VolumeX
+                    size={20}
+                    color="#fff"
+                    className="cursor-pointer drop-shadow"
+                    onClick={() => setIsFullscreenMuted(false)}
+                  />
                 )}
               </div>
             </motion.div>

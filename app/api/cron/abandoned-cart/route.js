@@ -161,7 +161,7 @@ function buildAbandonedCartEmail(user) {
 
   <!-- Hidden preheader -->
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
-    Hi ${firstName}, your cart is still waiting! ${totalItems} item${totalItems > 1 ? "s" : ""} ready to check out &mdash; don&rsquo;t miss out. &#128cart;
+    Hi ${firstName}, your cart is still waiting! ${totalItems} item${totalItems > 1 ? "s" : ""} ready to check out &mdash; don&rsquo;t miss out.
   </div>
 
   <!-- Full-width background -->
@@ -180,7 +180,11 @@ function buildAbandonedCartEmail(user) {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="text-align:center;">
-                    <p style="margin:0 0 12px 0; font-size:48px; line-height:1.2;">&#128cart;</p>
+                    <p style="margin:0 0 12px 0; font-size:48px; line-height:1.2;">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 20C9 21.1 8.1 22 7 22C5.9 22 5 21.1 5 20C5 18.9 5.9 18 7 18C8.1 18 9 18.9 9 20ZM20 20C20 21.1 19.1 22 18 22C16.9 22 16 21.1 16 20C16 18.9 16.9 18 18 18C19.1 18 20 18.9 20 20ZM1 1H4L6.68 14.39C6.77144 14.8504 7.02191 15.264 7.38755 15.5583C7.75318 15.8526 8.2107 16.009 8.68 16H19.78C20.2473 16.009 20.7031 15.8534 21.068 15.5605C21.4328 15.2676 21.6834 14.8561 21.775 14.397L23.78 5H6L5.5 3H1V1Z" fill="white"/>
+                      </svg>
+                    </p>
                     <h1 class="header-h1"
                       style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:26px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">
                       Did you forget something?
