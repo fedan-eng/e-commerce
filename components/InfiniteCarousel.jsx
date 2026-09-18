@@ -178,7 +178,7 @@ export default function InfiniteCarousel() {
           stopAutoSlide();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 } 
     );
 
     observer.observe(carousel);
@@ -356,7 +356,7 @@ export default function InfiniteCarousel() {
                     }
                   }}
                   onClick={(e) => handleVideoClick(e, item.id, item.offset)}
-                  poster={item.poster}
+                  // Remove poster attribute - use next/image for AVIF/WebP optimization
                   // Only buffer metadata for centre; skip preload entirely for edges
                   preload={isCenter ? "metadata" : "none"}
                   muted={isMuted}
@@ -367,16 +367,21 @@ export default function InfiniteCarousel() {
                   {shouldLoad && <source src={item.img} type="video/mp4" />}
                 </video>
 
-                {/* Poster fallback image shown on non-loaded videos */}
+                {/* Optimized poster using next/image for AVIF/WebP conversion */}
                 {!shouldLoad && (
                   <Image
                     src={item.poster}
                     alt="video thumbnail"
                     fill
                     sizes={`${w}px`}
+                    quality={80}
                     className="rounded-md object-cover pointer-events-none"
-                    // Edge tiles are always below the fold visually — lazy is safe
-                    loading="lazy"
+                    // Center tile gets priority loading for LCP
+                    loading={isCenter ? "eager" : "lazy"}
+                    fetchPriority={isCenter ? "high" : "auto"}
+                    priority={isCenter}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
                   />
                 )}
 
@@ -447,7 +452,13 @@ export default function InfiniteCarousel() {
                   animate={isCenter ? "hidden" : "visible"}
                   variants={contentVariants}
                 >
-                  <Image src="/play.svg" width={24} height={24} alt="play" />
+                  <Image 
+                    src="/play.svg" 
+                    width={24} 
+                    height={24} 
+                    alt="play"
+                    loading="lazy"
+                  />
                   <p className="px-1 py-2 text-white">Play</p>
                 </motion.div>
               </motion.div>
