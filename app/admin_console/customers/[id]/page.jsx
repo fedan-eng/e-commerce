@@ -76,6 +76,7 @@ export default function AdminCustomerDetailPage() {
 
   const profileFields = [
     { label: "Email",            value: user.email },
+    { label: "Provider",         value: user.provider === "google" ? "Google" : "Email/Password" },
     { label: "Phone",            value: user.phone || "—" },
     { label: "Additional Phone", value: user.addPhone || "—" },
     { label: "Date of Birth",    value: user.dob || "—" },
@@ -140,6 +141,106 @@ export default function AdminCustomerDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Current Cart */}
+          <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden mb-5">
+            <div className="px-5 py-4 border-b border-[#1a1a1a]">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase">
+                  Current Cart ({user.cart?.items?.length || 0})
+                </div>
+                {user.cart?.updatedAt && (
+                  <div className="text-[10px] text-[#444]">
+                    Last updated: {new Date(user.cart.updatedAt).toLocaleDateString()} {new Date(user.cart.updatedAt).toLocaleTimeString()}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {(!user.cart?.items || user.cart.items.length === 0) ? (
+              <div className="py-8 text-[#444] text-[13px] text-center">No items in cart.</div>
+            ) : (
+              <>
+                {/* Desktop cart table */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="border-b border-[#1a1a1a]">
+                        {["Product","Price","Qty","Color","Total"].map(h => (
+                          <th key={h} className="px-5 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {user.cart.items.map((item, idx) => {
+                        const itemTotal = (item.price || 0) * (item.quantity || 1);
+                        return (
+                          <tr key={idx} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-3">
+                                {item.image && (
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name}
+                                    className="w-10 h-10 object-cover rounded border border-[#222]"
+                                  />
+                                )}
+                                <div className="text-[13px] text-[#e8e8e8]">{item.name || "—"}</div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-[13px] text-[#888] whitespace-nowrap">₦{(item.price || 0).toLocaleString()}</td>
+                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] whitespace-nowrap">{item.quantity || 1}</td>
+                            <td className="px-5 py-3 text-[12px] text-[#666] whitespace-nowrap">{item.color || "—"}</td>
+                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] font-semibold whitespace-nowrap">₦{itemTotal.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile cart cards */}
+                <div className="sm:hidden flex flex-col divide-y divide-[#161616]">
+                  {user.cart.items.map((item, idx) => {
+                    const itemTotal = (item.price || 0) * (item.quantity || 1);
+                    return (
+                      <div key={idx} className="px-4 py-3 hover:bg-[#141414] transition-colors">
+                        <div className="flex items-start gap-3 mb-2">
+                          {item.image && (
+                            <img 
+                              src={item.image} 
+                              alt={item.name}
+                              className="w-12 h-12 object-cover rounded border border-[#222] flex-shrink-0"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] text-[#e8e8e8] font-medium truncate">{item.name || "—"}</div>
+                            <div className="text-[11px] text-[#666] mt-0.5">{item.color || "—"}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-[11px] text-[#444]">
+                            Qty: {item.quantity || 1} × ₦{(item.price || 0).toLocaleString()}
+                          </div>
+                          <div className="text-[13px] text-[#e8e8e8] font-semibold">₦{itemTotal.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Cart total */}
+                <div className="px-5 py-3 border-t border-[#1a1a1a] bg-[#0a0a0a]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px] text-[#444] uppercase tracking-[0.1em]">Cart Total</span>
+                    <span className="text-[16px] font-bold text-[#e8e8e8]">
+                      ₦{user.cart.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Order History */}
