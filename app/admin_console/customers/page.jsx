@@ -295,7 +295,7 @@ export default function AdminCustomersPage() {
                       <span className="mr-3 text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
                       <span>{new Date(user.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <Link href={`/admin/customers/${user._id}`}
+                    <Link href={`/admin_console/customers/${user._id}`}
                       className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-3 py-1.5 border border-[#222] rounded hover:text-[#e8e8e8] hover:border-[#444] transition-all">
                       VIEW →
                     </Link>
