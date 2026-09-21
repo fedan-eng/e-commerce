@@ -17,6 +17,9 @@ export default function AdminCustomersPage() {
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [cartFilter, setCartFilter] = useState("all");
+  const [sortBy, setSortBy]         = useState("createdAt");
+  const [sortOrder, setSortOrder]   = useState("desc");
   const [page, setPage]             = useState(1);
   const [totalPages, setTotalPages] = useState(1); 
   const [total, setTotal]           = useState(0);
@@ -26,13 +29,16 @@ export default function AdminCustomersPage() {
     const params = new URLSearchParams({ page, limit: 20 });
     if (search)              params.append("search", search);
     if (roleFilter !== "all") params.append("role", roleFilter);
+    if (cartFilter !== "all") params.append("cartStatus", cartFilter);
+    if (sortBy !== "createdAt") params.append("sortBy", sortBy);
+    if (sortOrder !== "desc") params.append("sortOrder", sortOrder);
     const res  = await fetch(`/api/admin/users?${params}`);
     const data = await res.json();
     setUsers(data.users || []);
     setTotalPages(data.totalPages || 1);
     setTotal(data.total || 0);
     setLoading(false);
-  }, [page, search, roleFilter]);
+  }, [page, search, roleFilter, cartFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     const t = setTimeout(fetchUsers, search ? 400 : 0);
@@ -49,6 +55,12 @@ export default function AdminCustomersPage() {
     { key: "all",   label: "All",   activeClass: "border-[#e8e8e8] text-[#e8e8e8] bg-[#e8e8e812]" },
     { key: "user",  label: "User",  activeClass: "border-[#6ab4e8] text-[#6ab4e8] bg-[#6ab4e812]" },
     { key: "admin", label: "Admin", activeClass: "border-[#e8c46a] text-[#e8c46a] bg-[#e8c46a12]" },
+  ];
+
+  const CART_TABS = [
+    { key: "all",       label: "All Carts",      activeClass: "border-[#e8e8e8] text-[#e8e8e8] bg-[#e8e8e812]" },
+    { key: "has_cart",  label: "Has Cart",       activeClass: "border-[#6ae8a0] text-[#6ae8a0] bg-[#6ae8a012]" },
+    { key: "abandoned", label: "Abandoned",      activeClass: "border-[#e86a6a] text-[#e86a6a] bg-[#e86a6a12]" },
   ];
 
   return (
@@ -77,6 +89,16 @@ export default function AdminCustomersPage() {
             </button>
           ))}
         </div>
+        {/* Cart tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-0.5 w-full sm:w-auto" style={{ scrollbarWidth: "none" }}>
+          {CART_TABS.map(c => (
+            <button key={c.key} onClick={() => { setCartFilter(c.key); setPage(1); }}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase cursor-pointer border transition-all font-mono
+                ${cartFilter === c.key ? c.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333] hover:text-[#777]"}`}>
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
@@ -95,8 +117,28 @@ export default function AdminCustomersPage() {
               <table className="w-full border-collapse min-w-[680px]">
                 <thead>
                   <tr className="border-b border-[#1a1a1a]">
-                    {["Customer","Email","Phone","Location","Role","Joined","Actions"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-[10px] tracking-[0.15em] text-[#444] uppercase font-semibold whitespace-nowrap">{h}</th>
+                    {["Customer","Email","Phone","Location","Role","Provider","Cart","Amount Spent","Joined","Actions"].map(h => (
+                      <th key={h} className="px-5 py-3.5 text-left text-[10px] tracking-[0.15em] text-[#444] uppercase font-semibold whitespace-nowrap">
+                        {h === "Amount Spent" ? (
+                          <button 
+                            onClick={() => {
+                              if (sortBy === "totalSpent") {
+                                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                              } else {
+                                setSortBy("totalSpent");
+                                setSortOrder("desc");
+                              }
+                              setPage(1);
+                            }}
+                            className="flex items-center gap-1 text-[#444] hover:text-[#e8e8e8] transition-colors cursor-pointer"
+                          >
+                            Amount Spent
+                            {sortBy === "totalSpent" && (
+                              <span className="text-[#e8c46a]">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </button>
+                        ) : h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -129,6 +171,30 @@ export default function AdminCustomersPage() {
                           <span className={`text-[10px] tracking-[0.1em] uppercase border px-2 py-0.5 rounded ${rs.text} ${rs.bg} ${rs.border}`}>
                             {user.role}
                           </span>
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          {user.provider === "google" ? (
+                            <span className="text-[11px] text-[#e8c46a] font-medium">Google</span>
+                          ) : (
+                            <span className="text-[11px] text-[#6ab4e8] font-medium">Email</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          {user.cart?.items?.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] text-[#6ae8a0]">{user.cart.items.length} item(s)</span>
+                              {user.cart.updatedAt && (
+                                <span className="text-[10px] text-[#444]">
+                                  {new Date(user.cart.updatedAt).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-[#444]">—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <span className="text-[13px] text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-5 py-3.5 text-[12px] text-[#fff] whitespace-nowrap">
                           {new Date(user.createdAt).toLocaleDateString()}
@@ -181,6 +247,9 @@ export default function AdminCustomersPage() {
                         <span className={`text-[9px] tracking-[0.1em] uppercase border px-1.5 py-px rounded ${rs.text} ${rs.bg} ${rs.border}`}>
                           {user.role}
                         </span>
+                        <span className={`text-[9px] tracking-[0.08em] uppercase border px-1.5 py-px rounded ${user.provider === "google" ? "text-[#e8c46a] bg-[#e8c46a18] border-[#e8c46a33]" : "text-[#6ab4e8] bg-[#6ab4e818] border-[#6ab4e833]"}`}>
+                          {user.provider === "google" ? "Google" : "Email"}
+                        </span>
                         {user.isActive === false && (
                           <span className="text-[9px] text-[#e86a6a] tracking-[0.08em] bg-[#e86a6a18] border border-[#e86a6a33] px-1.5 py-px rounded uppercase">
                             Suspended
@@ -193,6 +262,10 @@ export default function AdminCustomersPage() {
                   <div className="flex items-center justify-between pt-2.5 border-t border-[#1a1a1a]">
                     <div className="text-[11px] text-[#444]">
                       {user.phone && <span className="mr-3">{user.phone}</span>}
+                      {user.cart?.items?.length > 0 && (
+                        <span className="mr-3 text-[#6ae8a0]">{user.cart.items.length} cart item(s)</span>
+                      )}
+                      <span className="mr-3 text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
                       <span>{new Date(user.createdAt).toLocaleDateString()}</span>
                     </div>
                     <Link href={`/admin/customers/${user._id}`}
