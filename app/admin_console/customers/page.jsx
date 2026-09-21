@@ -111,10 +111,104 @@ export default function AdminCustomersPage() {
         </div>
       ) : (
         <>
-          {/* ── Desktop Table ── */}
-          <div className="hidden md:block bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+          {/* ── Tablet Table ── */}
+          <div className="hidden md:block lg:hidden bg-[#111] border border-[#222] rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[680px]">
+              <table className="w-full border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-[#1a1a1a]">
+                    {["Customer","Role","Cart","Amount Spent","Actions"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] tracking-[0.15em] text-[#444] uppercase font-semibold whitespace-nowrap">
+                        {h === "Amount Spent" ? (
+                          <button 
+                            onClick={() => {
+                              if (sortBy === "totalSpent") {
+                                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                              } else {
+                                setSortBy("totalSpent");
+                                setSortOrder("desc");
+                              }
+                              setPage(1);
+                            }}
+                            className="flex items-center gap-1 text-[#444] hover:text-[#e8e8e8] transition-colors cursor-pointer"
+                          >
+                            Amount Spent
+                            {sortBy === "totalSpent" && (
+                              <span className="text-[#e8c46a]">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </button>
+                        ) : h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(user => {
+                    const rs = getRoleStyle(user.role);
+                    return (
+                      <tr key={user._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold tracking-[0.05em] border ${rs.text} ${rs.bg} ${rs.border}`}>
+                              {getInitials(user)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-[12px] text-[#e8e8e8] whitespace-nowrap truncate">
+                                {[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}
+                              </div>
+                              <div className="text-[10px] text-[#666] truncate">{user.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`text-[9px] tracking-[0.1em] uppercase border px-1.5 py-0.5 rounded ${rs.text} ${rs.bg} ${rs.border}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {user.cart?.items?.length > 0 ? (
+                            <span className="text-[10px] text-[#6ae8a0]">{user.cart.items.length} item(s)</span>
+                          ) : (
+                            <span className="text-[10px] text-[#444]">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-[12px] text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <Link href={`/admin_console/customers/${user._id}`}
+                            className="text-[10px] text-[#fff] no-underline tracking-[0.08em] px-2 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
+                            VIEW
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-[#1a1a1a] flex justify-between items-center">
+                <span className="text-[11px] text-[#444]">Page {page} of {totalPages}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                    className={`px-3 py-1 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === 1 ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
+                    ← Prev
+                  </button>
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                    className={`px-3 py-1 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === totalPages ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Desktop Table ── */}
+          <div className="hidden lg:block bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse min-w-[900px]">
                 <thead>
                   <tr className="border-b border-[#1a1a1a]">
                     {["Customer","Email","Phone","Location","Role","Provider","Cart","Amount Spent","Joined","Actions"].map(h => (
