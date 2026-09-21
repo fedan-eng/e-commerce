@@ -64,7 +64,7 @@ export default function AdminCustomersPage() {
   ];
 
   return (
-    <div>
+    <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-6">
       {/* Header */}
       <div className="mb-8">
         <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Management</div>
@@ -74,23 +74,25 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start sm:items-center">
-        <input type="text" placeholder="Search by name, email, phone..."
-          value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="w-full sm:w-[300px] bg-[#111] border border-[#222] rounded-md px-4 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono"
-        />
-        {/* Role tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-0.5 w-full sm:w-auto" style={{ scrollbarWidth: "none" }}>
-          {ROLE_TABS.map(r => (
-            <button key={r.key} onClick={() => { setRoleFilter(r.key); setPage(1); }}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase cursor-pointer border transition-all font-mono
-                ${roleFilter === r.key ? r.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333] hover:text-[#777]"}`}>
-              {r.label}
-            </button>
-          ))}
+      <div className="flex flex-col lg:flex-row gap-4 mb-6 items-start lg:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-start sm:items-center">
+          <input type="text" placeholder="Search by name, email, phone..."
+            value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+            className="w-full sm:w-[300px] bg-[#111] border border-[#222] rounded-md px-4 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono"
+          />
+          {/* Role tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-0.5 w-full sm:w-auto" style={{ scrollbarWidth: "none" }}>
+            {ROLE_TABS.map(r => (
+              <button key={r.key} onClick={() => { setRoleFilter(r.key); setPage(1); }}
+                className={`flex-shrink-0 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase cursor-pointer border transition-all font-mono
+                  ${roleFilter === r.key ? r.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333] hover:text-[#777]"}`}>
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
         {/* Cart tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-0.5 w-full sm:w-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-2 overflow-x-auto pb-0.5 w-full lg:w-auto" style={{ scrollbarWidth: "none" }}>
           {CART_TABS.map(c => (
             <button key={c.key} onClick={() => { setCartFilter(c.key); setPage(1); }}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-[11px] tracking-[0.1em] uppercase cursor-pointer border transition-all font-mono
@@ -111,35 +113,39 @@ export default function AdminCustomersPage() {
         </div>
       ) : (
         <>
-          {/* ── Tablet Table ── */}
-          <div className="hidden md:block lg:hidden bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+          {/* ── Desktop Table ── */}
+          <div className="hidden md:block bg-[#111] border border-[#222] rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[700px]">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b border-[#1a1a1a]">
-                    {["Customer","Role","Cart","Amount Spent","Actions"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] tracking-[0.15em] text-[#444] uppercase font-semibold whitespace-nowrap">
-                        {h === "Amount Spent" ? (
-                          <button 
-                            onClick={() => {
-                              if (sortBy === "totalSpent") {
-                                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                              } else {
-                                setSortBy("totalSpent");
-                                setSortOrder("desc");
-                              }
-                              setPage(1);
-                            }}
-                            className="flex items-center gap-1 text-[#444] hover:text-[#e8e8e8] transition-colors cursor-pointer"
-                          >
-                            Amount Spent
-                            {sortBy === "totalSpent" && (
-                              <span className="text-[#e8c46a]">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                            )}
-                          </button>
-                        ) : h}
-                      </th>
-                    ))}
+                  <tr className="border-b border-[#1a1a1a] bg-[#0c0c0c]">
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap">Customer</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap hidden lg:table-cell">Phone</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap hidden xl:table-cell">Location</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap">Role</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap hidden lg:table-cell">Provider</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap">Cart</th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap">
+                      <button 
+                        onClick={() => {
+                          if (sortBy === "totalSpent") {
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                          } else {
+                            setSortBy("totalSpent");
+                            setSortOrder("desc");
+                          }
+                          setPage(1);
+                        }}
+                        className="flex items-center gap-1 text-[#555] hover:text-[#e8e8e8] transition-colors cursor-pointer"
+                      >
+                        Amount Spent
+                        {sortBy === "totalSpent" && (
+                          <span className="text-[#e8c46a]">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-5 py-4 text-left text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap hidden xl:table-cell">Joined</th>
+                    <th className="px-5 py-4 text-right text-[10px] tracking-[0.15em] text-[#555] uppercase font-semibold whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -147,136 +153,57 @@ export default function AdminCustomersPage() {
                     const rs = getRoleStyle(user.role);
                     return (
                       <tr key={user._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold tracking-[0.05em] border ${rs.text} ${rs.bg} ${rs.border}`}>
+                        {/* Customer + Email (Merged Column) */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-[12px] font-bold tracking-[0.05em] border ${rs.text} ${rs.bg} ${rs.border}`}>
                               {getInitials(user)}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-[12px] text-[#e8e8e8] whitespace-nowrap truncate">
+                              <div className="text-[13px] text-[#e8e8e8] font-medium truncate max-w-[180px]">
                                 {[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}
                               </div>
-                              <div className="text-[10px] text-[#666] truncate">{user.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`text-[9px] tracking-[0.1em] uppercase border px-1.5 py-0.5 rounded ${rs.text} ${rs.bg} ${rs.border}`}>
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {user.cart?.items?.length > 0 ? (
-                            <span className="text-[10px] text-[#6ae8a0]">{user.cart.items.length} item(s)</span>
-                          ) : (
-                            <span className="text-[10px] text-[#444]">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-[12px] text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <Link href={`/admin_console/customers/${user._id}`}
-                            className="text-[10px] text-[#fff] no-underline tracking-[0.08em] px-2 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
-                            VIEW
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {totalPages > 1 && (
-              <div className="px-4 py-3 border-t border-[#1a1a1a] flex justify-between items-center">
-                <span className="text-[11px] text-[#444]">Page {page} of {totalPages}</span>
-                <div className="flex gap-2">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    className={`px-3 py-1 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === 1 ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
-                    ← Prev
-                  </button>
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    className={`px-3 py-1 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === totalPages ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
-                    Next →
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Desktop Table ── */}
-          <div className="hidden lg:block bg-[#111] border border-[#222] rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[900px]">
-                <thead>
-                  <tr className="border-b border-[#1a1a1a]">
-                    {["Customer","Email","Phone","Location","Role","Provider","Cart","Amount Spent","Joined","Actions"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-[10px] tracking-[0.15em] text-[#444] uppercase font-semibold whitespace-nowrap">
-                        {h === "Amount Spent" ? (
-                          <button 
-                            onClick={() => {
-                              if (sortBy === "totalSpent") {
-                                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                              } else {
-                                setSortBy("totalSpent");
-                                setSortOrder("desc");
-                              }
-                              setPage(1);
-                            }}
-                            className="flex items-center gap-1 text-[#444] hover:text-[#e8e8e8] transition-colors cursor-pointer"
-                          >
-                            Amount Spent
-                            {sortBy === "totalSpent" && (
-                              <span className="text-[#e8c46a]">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                            )}
-                          </button>
-                        ) : h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(user => {
-                    const rs = getRoleStyle(user.role);
-                    return (
-                      <tr key={user._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold tracking-[0.05em] border ${rs.text} ${rs.bg} ${rs.border}`}>
-                              {getInitials(user)}
-                            </div>
-                            <div>
-                              <div className="text-[13px] text-[#e8e8e8] whitespace-nowrap">
-                                {[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}
-                              </div>
+                              <div className="text-[11px] text-[#666] truncate max-w-[180px]">{user.email}</div>
                               {user.isActive === false && (
-                                <div className="text-[10px] text-[#e86a6a] tracking-[0.08em]">SUSPENDED</div>
+                                <span className="text-[8px] text-[#e86a6a] font-bold tracking-[0.08em] bg-[#e86a6a12] border border-[#e86a6a33] px-1 rounded uppercase mt-0.5 inline-block">
+                                  Suspended
+                                </span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-[12px] text-[#888] whitespace-nowrap">{user.email}</td>
-                        <td className="px-5 py-3.5 text-[12px] text-[#666] whitespace-nowrap">{user.phone || "—"}</td>
-                        <td className="px-5 py-3.5 text-[12px] text-[#666] whitespace-nowrap">
+
+                        {/* Phone (Hidden on Medium, Shown on Large+) */}
+                        <td className="px-5 py-4 text-[12px] text-[#888] whitespace-nowrap hidden lg:table-cell">
+                          {user.phone || "—"}
+                        </td>
+
+                        {/* Location (Hidden on Laptop, Shown on Large Desktop) */}
+                        <td className="px-5 py-4 text-[12px] text-[#666] whitespace-nowrap hidden xl:table-cell">
                           {[user.city, user.country].filter(Boolean).join(", ") || "—"}
                         </td>
-                        <td className="px-5 py-3.5 whitespace-nowrap">
+
+                        {/* Role */}
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`text-[10px] tracking-[0.1em] uppercase border px-2 py-0.5 rounded ${rs.text} ${rs.bg} ${rs.border}`}>
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 whitespace-nowrap">
+
+                        {/* Provider (Hidden on Medium, Shown on Large+) */}
+                        <td className="px-5 py-4 whitespace-nowrap hidden lg:table-cell">
                           {user.provider === "google" ? (
                             <span className="text-[11px] text-[#e8c46a] font-medium">Google</span>
                           ) : (
                             <span className="text-[11px] text-[#6ab4e8] font-medium">Email</span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 whitespace-nowrap">
+
+                        {/* Cart */}
+                        <td className="px-5 py-4 whitespace-nowrap">
                           {user.cart?.items?.length > 0 ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-[#6ae8a0]">{user.cart.items.length} item(s)</span>
+                            <div className="flex flex-col">
+                              <span className="text-[12px] text-[#6ae8a0] font-medium">{user.cart.items.length} item(s)</span>
                               {user.cart.updatedAt && (
                                 <span className="text-[10px] text-[#444]">
                                   {new Date(user.cart.updatedAt).toLocaleDateString()}
@@ -287,15 +214,21 @@ export default function AdminCustomersPage() {
                             <span className="text-[11px] text-[#444]">—</span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 whitespace-nowrap">
+
+                        {/* Amount Spent */}
+                        <td className="px-5 py-4 whitespace-nowrap">
                           <span className="text-[13px] text-[#e8e8e8] font-semibold">₦{(user.totalSpent || 0).toLocaleString()}</span>
                         </td>
-                        <td className="px-5 py-3.5 text-[12px] text-[#fff] whitespace-nowrap">
+
+                        {/* Joined (Hidden on Laptop, Shown on Large Desktop) */}
+                        <td className="px-5 py-4 text-[12px] text-[#888] whitespace-nowrap hidden xl:table-cell">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-5 py-3.5 whitespace-nowrap">
-                          <Link href={`/admin_console/customers/${user._id}`}
-                            className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-2.5 py-1 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
+
+                        {/* View Action */}
+                        <td className="px-5 py-4 whitespace-nowrap text-right">
+                          <Link href={`/admin/customers/${user._id}`}
+                            className="text-[11px] text-[#fff] no-underline tracking-[0.08em] px-3 py-1.5 border border-[#222] rounded transition-all hover:text-[#e8e8e8] hover:border-[#444]">
                             VIEW
                           </Link>
                         </td>
