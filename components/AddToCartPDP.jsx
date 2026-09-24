@@ -2,7 +2,6 @@
 
 import { useDispatch } from "react-redux";
 import { useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { addToCart } from "@/store/features/cartSlice";
 import { itemAdded } from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
@@ -19,9 +18,9 @@ const SparkleIcon = ({ className }) => (
 const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
-  const buttonRef      = useRef(null); 
+  const buttonRef      = useRef(null);
 
-  const [phase, setPhase] = useState("idle"); 
+  const [phase, setPhase] = useState("idle"); // "idle" | "flying" | "landed"
 
   const { trackEvent }                     = useGAEvent();
   const { trackAddToCart: trackTikTokATC } = useTikTokEvent();
@@ -66,7 +65,7 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
     triggerFly({
       imageUrl: imageToUse,
       sourceElement,
-      buttonElement,   
+      buttonElement,
       onLand: () => {
         dispatch(
           itemAdded({
@@ -77,7 +76,7 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
           })
         );
         setPhase("landed");
-        setTimeout(() => setPhase("idle"), 1500);
+        setTimeout(() => setPhase("idle"), 1200);
       },
     });
   }, [phase, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
@@ -88,10 +87,9 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
   const isIdle      = phase === "idle";
 
   return (
-    // FIX: Added flex-1 and w-full so the wrapper perfectly shares space with the Checkout button
     <div className={`relative group flex-1 w-full ${className}`}>
 
-      {/* ── SPARKLES — only when idle & available ───────────────────────── */}
+      {/* ── SPARKLES — hover effect when idle & available ───────────────── */}
       {isAvailable && isIdle && (
         <>
           <SparkleIcon className="text-[#22c55e] absolute -top-3 left-1 w-4 h-4 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:-rotate-12 transition-all duration-300 ease-out z-10" />
@@ -102,102 +100,52 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
         </>
       )}
 
-      {/* ── LANDED sparkle burst — fires once when polaroid lands ────────── */}
-      {isLanded && (
-        <>
-          <SparkleIcon className="text-[#22c55e] absolute -top-4 left-2 w-4 h-4 animate-ping opacity-75 z-10" />
-          <SparkleIcon className="text-[#22c55e] absolute -top-3 right-3 w-3 h-3 animate-ping opacity-75 [animation-delay:75ms] z-10" />
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-4 left-4 w-5 h-5 animate-ping opacity-75 [animation-delay:150ms] z-10" />
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 right-6 w-3 h-3 animate-ping opacity-75 [animation-delay:50ms] z-10" />
-        </>
-      )}
-
       {/* ── Button ──────────────────────────────────────────────────────── */}
-      <motion.button
-        ref={buttonRef}                    
+      <button
+        ref={buttonRef}
         onClick={handleAddToCart}
         disabled={!isAvailable || isFlying}
-        whileTap={isIdle && isAvailable ? { scale: 0.95 } : {}}
-        animate={
-          isLanded
-            ? { scale: [1, 1.04, 1], transition: { duration: 0.3, ease: "easeOut" } }
-            : {}
-        }
         className={`
-          relative w-full h-full overflow-hidden flex items-center justify-center gap-2.5
-          px-4 sm:px-6 py-3.5 rounded-lg font-bold text-white text-sm sm:text-base
-          transition-colors duration-300 ease-out
+          relative w-full h-full flex items-center justify-center gap-2.5
+          px-4 sm:px-6 py-3.5 rounded-lg font-bold text-sm sm:text-base
+          transition-all duration-200 ease-out
           disabled:cursor-not-allowed cursor-pointer
-          ${isLanded  ? "bg-[#22c55e] border-2 border-[#22c55e]"
-          : isFlying  ? "bg-black/60 border-2 border-black/60"
-          :             "bg-black border-2 border-black hover:bg-[#22c55e] hover:border-[#22c55e]"}
+          ${
+            isFlying
+              ? "bg-[#e5e5e5] border-2 border-[#b5b5b5] text-[#222222]"
+              : isLanded
+              ? "bg-[#22c55e] border-2 border-[#22c55e] text-white"
+              : "bg-black border-2 border-black text-white hover:bg-[#22c55e] hover:border-[#22c55e]"
+          }
           ${!isAvailable ? "opacity-50" : ""}
         `}
       >
-        {/* FIX: Added w-full, h-full, and changed py-3 to py-3.5 to perfectly match the Checkout Now button's dimensions */}
-        
-        {/* Shimmer while flying */}
-        {isFlying && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none"
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ duration: 0.7, ease: "linear", repeat: Infinity }}
-          />
+        {!isAvailable ? (
+          <span>Out of Stock</span>
+        ) : isFlying ? (
+          <span>Adding...</span>
+        ) : isLanded ? (
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Added!
+          </span>
+        ) : (
+          <span className="flex items-center gap-2.5">
+            Add to Cart
+            <svg
+              className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </span>
         )}
-
-        <AnimatePresence mode="wait" initial={false}>
-          {!isAvailable ? (
-            <motion.span key="oos"
-              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.12 }}
-            >
-              Out of Stock
-            </motion.span>
-
-          ) : isFlying ? (
-            <motion.span key="flying"
-              className="flex items-center gap-2"
-              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.12 }}
-            >
-              {[0,1,2].map((i) => (
-                <motion.span key={i}
-                  className="w-1.5 h-1.5 bg-white rounded-full inline-block"
-                  animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
-                  transition={{ duration: 0.7, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
-                />
-              ))}
-              Adding...
-            </motion.span>
-
-          ) : isLanded ? (
-            <motion.span key="landed"
-              className="flex items-center gap-2"
-              initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ duration: 0.2, type: "spring", stiffness: 400 }}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Added!
-            </motion.span>
-
-          ) : (
-            <motion.span key="idle"
-              className="flex items-center gap-2.5"
-              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.12 }}
-            >
-              Add to Cart
-              <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.button>
+      </button>
     </div>
   );
 };
