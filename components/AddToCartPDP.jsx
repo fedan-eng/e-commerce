@@ -19,9 +19,9 @@ const SparkleIcon = ({ className }) => (
 const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
-  const buttonRef      = useRef(null); // ref on the <button> — this is the fly target
+  const buttonRef      = useRef(null); 
 
-  const [phase, setPhase] = useState("idle"); // "idle" | "flying" | "landed"
+  const [phase, setPhase] = useState("idle"); 
 
   const { trackEvent }                     = useGAEvent();
   const { trackAddToCart: trackTikTokATC } = useTikTokEvent();
@@ -36,7 +36,6 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
     const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
     const imageToUse = colorToAdd?.images?.[0] || product.image;
 
-    // 1. Dispatch immediately
     dispatch(
       addToCart({
         _id:      product._id,
@@ -49,20 +48,17 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
       })
     );
 
-    // 2. Analytics
     trackEvent("add_to_cart", {
       items: [{ item_id: product._id, item_name: product.name, price: product.price, quantity: 1 }],
     });
     trackTikTokATC(product, 1);
     trackMetaATC(product, 1);
 
-    // 3. Source: main product image on the PDP
     const sourceElement =
       document.querySelector("[data-product-gallery-image] img") ||
       document.querySelector(`[data-product-id="${product._id}"] img`) ||
       null;
 
-    // 4. Target: THIS button — the polaroid flies TO here, not the nav icon
     const buttonElement = buttonRef.current;
 
     setPhase("flying");
@@ -70,7 +66,7 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
     triggerFly({
       imageUrl: imageToUse,
       sourceElement,
-      buttonElement,   // ← key change
+      buttonElement,   
       onLand: () => {
         dispatch(
           itemAdded({
@@ -92,57 +88,54 @@ const AddToCartButtonPDP = ({ product, className = "", selectedColor = null }) =
   const isIdle      = phase === "idle";
 
   return (
-    <div className="relative w-full group">
+    // FIX: Added flex-1 and w-full so the wrapper perfectly shares space with the Checkout button
+    <div className={`relative group flex-1 w-full ${className}`}>
 
       {/* ── SPARKLES — only when idle & available ───────────────────────── */}
       {isAvailable && isIdle && (
         <>
-          {/* Top-Left */}
-          <SparkleIcon className="text-[#22c55e] absolute -top-3 left-1 w-4 h-4 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:-rotate-12 transition-all duration-300 ease-out" />
-          {/* Top-Right */}
-          <SparkleIcon className="text-[#22c55e] absolute -top-2 -right-2 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:rotate-12 transition-all duration-300 delay-75 ease-out" />
-          {/* Bottom-Left */}
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 -left-3 w-6 h-6 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-1 group-hover:-rotate-45 transition-all duration-300 delay-50 ease-out" />
-          {/* Bottom-Right */}
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 right-4 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-2 group-hover:-rotate-45 transition-all duration-300 delay-100 ease-out" />
-          {/* Far-Right tiny */}
-          <SparkleIcon className="text-[#22c55e] absolute top-1/2 -right-5 -translate-y-1/2 w-3 h-3 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-1 transition-all duration-300 delay-150 ease-out" />
+          <SparkleIcon className="text-[#22c55e] absolute -top-3 left-1 w-4 h-4 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:-rotate-12 transition-all duration-300 ease-out z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -top-2 -right-2 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:rotate-12 transition-all duration-300 delay-75 ease-out z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 -left-3 w-6 h-6 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-1 group-hover:-rotate-45 transition-all duration-300 delay-50 ease-out z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 right-4 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-2 group-hover:-rotate-45 transition-all duration-300 delay-100 ease-out z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute top-1/2 -right-5 -translate-y-1/2 w-3 h-3 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-1 transition-all duration-300 delay-150 ease-out z-10" />
         </>
       )}
 
       {/* ── LANDED sparkle burst — fires once when polaroid lands ────────── */}
       {isLanded && (
         <>
-          <SparkleIcon className="text-[#22c55e] absolute -top-4 left-2 w-4 h-4 animate-ping opacity-75" />
-          <SparkleIcon className="text-[#22c55e] absolute -top-3 right-3 w-3 h-3 animate-ping opacity-75 [animation-delay:75ms]" />
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-4 left-4 w-5 h-5 animate-ping opacity-75 [animation-delay:150ms]" />
-          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 right-6 w-3 h-3 animate-ping opacity-75 [animation-delay:50ms]" />
+          <SparkleIcon className="text-[#22c55e] absolute -top-4 left-2 w-4 h-4 animate-ping opacity-75 z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -top-3 right-3 w-3 h-3 animate-ping opacity-75 [animation-delay:75ms] z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -bottom-4 left-4 w-5 h-5 animate-ping opacity-75 [animation-delay:150ms] z-10" />
+          <SparkleIcon className="text-[#22c55e] absolute -bottom-3 right-6 w-3 h-3 animate-ping opacity-75 [animation-delay:50ms] z-10" />
         </>
       )}
 
       {/* ── Button ──────────────────────────────────────────────────────── */}
       <motion.button
-        ref={buttonRef}                    // ← the fly target
+        ref={buttonRef}                    
         onClick={handleAddToCart}
         disabled={!isAvailable || isFlying}
         whileTap={isIdle && isAvailable ? { scale: 0.95 } : {}}
         animate={
           isLanded
-            ? { scale: [1, 1.06, 1], transition: { duration: 0.3, ease: "easeOut" } }
+            ? { scale: [1, 1.04, 1], transition: { duration: 0.3, ease: "easeOut" } }
             : {}
         }
         className={`
-          relative overflow-hidden flex items-center justify-center gap-2.5
-          px-4 sm:px-6 py-3 rounded-lg font-bold text-white text-sm sm:text-base
+          relative w-full h-full overflow-hidden flex items-center justify-center gap-2.5
+          px-4 sm:px-6 py-3.5 rounded-lg font-bold text-white text-sm sm:text-base
           transition-colors duration-300 ease-out
           disabled:cursor-not-allowed cursor-pointer
           ${isLanded  ? "bg-[#22c55e] border-2 border-[#22c55e]"
           : isFlying  ? "bg-black/60 border-2 border-black/60"
           :             "bg-black border-2 border-black hover:bg-[#22c55e] hover:border-[#22c55e]"}
           ${!isAvailable ? "opacity-50" : ""}
-          ${className}
         `}
       >
+        {/* FIX: Added w-full, h-full, and changed py-3 to py-3.5 to perfectly match the Checkout Now button's dimensions */}
+        
         {/* Shimmer while flying */}
         {isFlying && (
           <motion.div
