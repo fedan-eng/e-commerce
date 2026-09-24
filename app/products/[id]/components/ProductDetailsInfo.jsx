@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CreditCard, Truck, Info } from "lucide-react";
 import Image from "next/image";
 import { formatAmount } from "@/lib/utils";
-import AddToCartButton from "@/components/AddToCart";
+import AddToCartButtonPDP from "@/components/AddToCartPDP";
 import BuyNow from "@/components/BuyNow";
 import ExpandableDescription from "./ExpandableDescription";
 
