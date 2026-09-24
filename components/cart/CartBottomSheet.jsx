@@ -139,7 +139,7 @@ export default function CartBottomSheet() {
                       <div className="w-5 h-5 rounded-full bg-[#22c55e] flex items-center justify-center flex-shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                       </div>
-                      <span className="text-[14px] font-poppins font-semibold text-[#166534]">
+                      <span className="text-[14px] font-roboto font-semibold text-[#166534]">
                         Added to your cart
                       </span>
                     </div>
@@ -147,7 +147,7 @@ export default function CartBottomSheet() {
                     {/* Free delivery line */}
                     <div className="flex items-center gap-2 px-1">
                       <Home className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" strokeWidth={2} />
-                      <span className="text-[12.5px] font-poppins text-gray-500 font-medium">
+                      <span className="text-[12.5px] font-roboto text-gray-500 font-medium">
                         Free delivery in Lagos on Thursday
                       </span>
                     </div>
@@ -159,10 +159,10 @@ export default function CartBottomSheet() {
               {cartItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
                   <ShoppingBag className="w-12 h-12 opacity-25" />
-                  <p className="text-sm font-poppins font-medium">Your cart is empty</p>
+                  <p className="text-sm font-roboto font-medium">Your cart is empty</p>
                   <button
                     onClick={() => dispatch(closeCart())}
-                    className="text-sm font-poppins text-black font-medium underline underline-offset-2 mt-1"
+                    className="text-sm font-roboto text-black font-medium underline underline-offset-2 mt-1"
                   >
                     Continue Shopping
                   </button>
@@ -187,14 +187,14 @@ export default function CartBottomSheet() {
                 {/* Subtotal row */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[14px] font-poppins font-medium text-gray-500">
+                    <span className="text-[14px] font-roboto font-medium text-gray-500">
                       Subtotal
                     </span>
-                    <span className="text-[12px] font-poppins text-gray-400">
+                    <span className="text-[12px] font-roboto text-gray-400">
                       {totalItems} {totalItems === 1 ? "item" : "items"} in cart
                     </span>
                   </div>
-                  <span className="font-poppins font-extrabold text-[17px] text-gray-900 tracking-tight">
+                  <span className="font-roboto font-extrabold text-[17px] text-gray-900 tracking-tight">
                     {formatAmount(subtotal)}
                   </span>
                 </div>
@@ -210,13 +210,13 @@ export default function CartBottomSheet() {
                   "
                 >
                   Checkout Now ({totalItems})
-                  <span className="font-poppins text-base leading-none">→</span>
+                  <span className="font-roboto text-base leading-none">→</span>
                 </Link>
 
                 {/* Continue Shopping */}
                 <button
                   onClick={() => dispatch(closeCart())}
-                  className="w-full text-center text-[13px] font-poppins font-semibold text-[#22c55e] active:text-[#16a34a] transition-colors underline underline-offset-4 mt-3.5"
+                  className="w-full text-center text-[13px] font-roboto font-semibold text-[#22c55e] active:text-[#16a34a] transition-colors underline underline-offset-4 mt-3.5"
                 >
                   Continue Shopping
                 </button>
@@ -251,13 +251,13 @@ function MobileCartItem({ item, onQtyChange }) {
       </div>
 
       {/* Name */}
-      <p className="text-[12.5px] font-poppins font-bold text-gray-900 leading-snug line-clamp-2 min-h-[32px]">
+      <p className="text-[12.5px] font-roboto font-bold text-gray-900 leading-snug line-clamp-2 min-h-[32px]">
         {item.name}
       </p>
 
       {/* Color */}
       {item.color && (
-        <p className="text-[11px] font-poppins text-gray-400 mt-0.5 capitalize leading-none">
+        <p className="text-[11px] font-roboto text-gray-400 mt-0.5 capitalize leading-none">
           {item.color}
         </p>
       )}
@@ -273,7 +273,7 @@ function MobileCartItem({ item, onQtyChange }) {
           >
             <Minus className="w-2.5 h-2.5 text-gray-600" strokeWidth={2.5} />
           </button>
-          <span className="w-5 text-center text-[11px] font-poppins font-bold text-gray-900 select-none">
+          <span className="w-5 text-center text-[11px] font-roboto font-bold text-gray-900 select-none">
             {item.quantity}
           </span>
           <button
@@ -286,7 +286,7 @@ function MobileCartItem({ item, onQtyChange }) {
         </div>
 
         {/* Price */}
-        <span className="text-[12.5px] font-poppins font-extrabold text-gray-900 tracking-tight whitespace-nowrap">
+        <span className="text-[12.5px] font-roboto font-extrabold text-gray-900 tracking-tight whitespace-nowrap">
           {formatAmount(item.price * item.quantity)}
         </span>
       </div>

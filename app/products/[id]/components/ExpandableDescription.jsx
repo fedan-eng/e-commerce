@@ -8,7 +8,7 @@ export default function ExpandableDescription({ description }) {
   const words = description.split(/\s+/);
   const truncated = words.slice(0, 29).join(" ");
   return (
-    <span className="text-gray-700 font-poppins">
+    <span className="text-gray-700 font-roboto">
       {expanded ? description : truncated}
       {words.length > 29 && (
         <>

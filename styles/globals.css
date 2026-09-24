@@ -4,7 +4,7 @@
 @theme {
   /* FONTS */
   --font-poppins: "Poppins", "sans-serif";
-  --font-roboto: "Roboto", "serif";
+  --font-roboto: "Roboto", "sans-serif";
   --font-oswald: "Oswald", sans-serif;
 
   /* COLORS */
@@ -39,7 +39,7 @@
 /* REUSABLE STYLE */
 
 .buttons {
-  @apply bg-filgreen hover:bg-gren px-4 xs:px-9 py-4 rounded-md font-poppins font-medium text-dark text-xs xs:text-sm;
+  @apply bg-filgreen hover:bg-gren px-4 xs:px-9 py-4 rounded-md font-roboto font-medium text-dark text-xs xs:text-sm;
 }
 
 .danger-btn {
