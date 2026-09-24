@@ -113,8 +113,8 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 mt-2">
-        <AddToCartButton
-          className="flex-1 bg-[#1a1a1a] text-white font-medium py-3.5 px-6 rounded-lg hover:bg-black transition-colors text-sm"
+        <AddToCartButtonPDP
+          className="flex-1"
           product={product}
           selectedColor={selectedColor}
         />

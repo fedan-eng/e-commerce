@@ -1,7 +1,8 @@
 "use client";
 
 import { useDispatch } from "react-redux";
-import { useRef } from "react";
+import { useRef, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { addToCart } from "@/store/features/cartSlice";
 import { itemAdded } from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
@@ -9,37 +10,26 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
-// Helper SVG
-const SparkleIcon = ({ className }) => (
-  <svg
-    className={`fill-current text-[#22c55e] pointer-events-none ${className}`}
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-  </svg>
-);
-
 const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
-  const dispatch   = useDispatch();
+  const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
-  // Ref attached to the <img> element inside this button's parent context.
-  // We pass it down to the product gallery via a sibling pattern —
-  // but for the fly animation we grab the main product image from the DOM
-  // using a data attribute, which avoids prop-drilling through the whole tree.
-  const buttonRef  = useRef(null);
 
-  const { trackEvent }                       = useGAEvent();
-  const { trackAddToCart: trackTikTokATC }   = useTikTokEvent();
-  const { trackAddToCart: trackMetaATC }     = useMetaPixelEvent();
+  const [phase, setPhase] = useState("idle"); // "idle" | "flying" | "landed"
 
-  const handleAddToCart = (e) => {
+  const { trackEvent }                     = useGAEvent();
+  const { trackAddToCart: trackTikTokATC } = useTikTokEvent();
+  const { trackAddToCart: trackMetaATC }   = useMetaPixelEvent();
+
+  const handleAddToCart = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const colorToAdd  = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
-    const imageToUse  = colorToAdd?.images?.[0] || product.image;
+    if (phase !== "idle") return; // block while animating
 
-    // 1. Dispatch to Redux cart immediately (UI is snappy, animation is cosmetic)
+    const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
+    const imageToUse = colorToAdd?.images?.[0] || product.image;
+
+    // 1. Dispatch immediately — cart never waits for the animation
     dispatch(
       addToCart({
         _id:      product._id,
@@ -52,86 +42,125 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
       })
     );
 
-    // 2. Track analytics
+    // 2. Analytics
     trackEvent("add_to_cart", {
       items: [{ item_id: product._id, item_name: product.name, price: product.price, quantity: 1 }],
     });
     trackTikTokATC(product, 1);
     trackMetaATC(product, 1);
 
-    // 3. Find the main product image on the page via data attribute
-    //    ProductGallery renders: <div data-product-gallery-image> wrapping the main <img>
-    //    This avoids prop drilling and works on both PDP and product cards.
+    // 3. Source element — product cards use data-product-id on their image wrapper
     const sourceElement =
-      document.querySelector("[data-product-gallery-image] img") ||
       document.querySelector(`[data-product-id="${product._id}"] img`) ||
+      document.querySelector("[data-product-gallery-image] img")       ||
       null;
 
-    // 4. Trigger the fly animation.
-    //    onLand fires when the polaroid reaches the cart icon —
-    //    THAT is when we open the sidebar/sheet and show the banner.
+    // 4. Fly
+    setPhase("flying");
+
     triggerFly({
-      imageUrl:      imageToUse,
+      imageUrl: imageToUse,
       sourceElement,
       onLand: () => {
         dispatch(
           itemAdded({
-            name:   product.name,
-            image:  imageToUse,
-            color:  colorToAdd?.name || null,
-            price:  product.price,
+            name:  product.name,
+            image: imageToUse,
+            color: colorToAdd?.name || null,
+            price: product.price,
           })
         );
-        // itemAdded sets isOpen:true and showBanner:true in cartUISlice
-        // CartSidebar (desktop) and CartBottomSheet (mobile) both listen to isOpen
+        setPhase("landed");
+        setTimeout(() => setPhase("idle"), 1500);
       },
     });
-  };
+  }, [phase, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
   const isAvailable = product && product.availability;
+  const isFlying    = phase === "flying";
+  const isLanded    = phase === "landed";
 
   return (
-    <div className="relative inline-block group" ref={buttonRef}>
-
-      {/* ANIMATED SPARKLES ON HOVER */}
-      {isAvailable && (
-        <>
-          <SparkleIcon className="absolute -top-3 left-1 w-4 h-4 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:-rotate-12 transition-all duration-300 ease-out" />
-          <SparkleIcon className="absolute -top-2 -right-2 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-2 group-hover:rotate-12 transition-all duration-300 delay-75 ease-out" />
-          <SparkleIcon className="absolute -bottom-3 -left-3 w-6 h-6 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-1 group-hover:-rotate-45 transition-all duration-300 delay-50 ease-out" />
-          <SparkleIcon className="absolute -bottom-3 right-4 w-5 h-5 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-2 group-hover:rotate-45 transition-all duration-300 delay-100 ease-out" />
-          <SparkleIcon className="absolute top-1/2 -right-5 -translate-y-1/2 w-3 h-3 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-1 transition-all duration-300 delay-150 ease-out" />
-        </>
+    <motion.button
+      onClick={handleAddToCart}
+      disabled={!isAvailable || isFlying}
+      whileTap={isAvailable && phase === "idle" ? { scale: 0.96 } : {}}
+      animate={
+        isLanded
+          ? { scale: [1, 1.05, 1], transition: { duration: 0.25, ease: "easeOut" } }
+          : {}
+      }
+      className={`relative overflow-hidden cursor-pointer ${className}`}
+    >
+      {/* Shimmer sweep while flying */}
+      {isFlying && (
+        <motion.span
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"
+          initial={{ x: "-100%" }}
+          animate={{ x: "100%" }}
+          transition={{ duration: 0.65, ease: "linear", repeat: Infinity }}
+        />
       )}
 
-      {/* BUTTON */}
-      <button
-        onClick={handleAddToCart}
-        disabled={!isAvailable}
-        className={`
-          relative flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-white
-          bg-black border-2 border-black
-          hover:bg-[#22c55e] hover:border-black hover:text-white
-          transition-all duration-300 ease-out
-          active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
-          ${className}
-        `}
-      >
-        <span>{isAvailable ? "Add to Cart" : "Out of Stock"}</span>
-
-        {isAvailable && (
-          <svg
-            className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            viewBox="0 0 24 24"
+      {/* Label swaps between phases */}
+      <AnimatePresence mode="wait" initial={false}>
+        {!isAvailable ? (
+          <motion.span
+            key="unavailable"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
+            Out of Stock
+          </motion.span>
+        ) : isFlying ? (
+          <motion.span
+            key="flying"
+            className="flex items-center justify-center gap-1.5"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+          >
+            {/* Three bouncing dots */}
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                className="w-1 h-1 bg-current rounded-full inline-block"
+                animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
+                transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+              />
+            ))}
+          </motion.span>
+        ) : isLanded ? (
+          <motion.span
+            key="landed"
+            className="flex items-center justify-center gap-1.5"
+            initial={{ opacity: 0, scale: 0.75 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.75 }}
+            transition={{ duration: 0.18, type: "spring", stiffness: 400 }}
+          >
+            {/* Inline check SVG — no import needed */}
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Added!
+          </motion.span>
+        ) : (
+          <motion.span
+            key="idle"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+          >
+            Add to cart
+          </motion.span>
         )}
-      </button>
-    </div>
+      </AnimatePresence>
+    </motion.button>
   );
 };
 
