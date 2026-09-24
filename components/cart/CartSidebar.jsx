@@ -90,7 +90,7 @@ export default function CartSidebar() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0 bg-white z-10">
               <div className="flex items-center gap-2.5">
                 <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2.5} />
-                <span className="font-bold text-[15px] text-gray-900">
+                <span className="font-oswald font-bold text-[15px] text-gray-900">
                   Your Cart ({totalItems})
                 </span>
               </div>
@@ -117,7 +117,7 @@ export default function CartSidebar() {
                   >
                     <div className="bg-[#f0fdf4] border border-green-200 text-green-800 px-4 py-3 rounded-xl flex items-center gap-2.5 mb-3">
                       <CheckCircle2 className="w-5 h-5 fill-green-600 text-white flex-shrink-0" />
-                      <span className="text-[14px] font-bold">Added to your cart</span>
+                      <span className="text-[14px] font-poppins font-bold">Added to your cart</span>
                     </div>
                     <div className="flex items-center gap-2.5 px-1 text-gray-500">
                       <Home className="w-4 h-4 flex-shrink-0 opacity-80" strokeWidth={2} />
@@ -155,12 +155,12 @@ export default function CartSidebar() {
                 {/* Subtotal */}
                 <div className="flex items-start justify-between mb-5">
                   <div className="flex flex-col">
-                    <span className="text-[15px] font-medium text-gray-500">Subtotal</span>
-                    <span className="text-[13px] text-gray-400 mt-1">
+                    <span className="text-[15px] font-poppins font-medium text-gray-500">Subtotal</span>
+                    <span className="text-[13px] font-poppins text-gray-400 mt-1">
                       {totalItems} {totalItems === 1 ? "item" : "items"} in cart
                     </span>
                   </div>
-                  <span className="font-bold text-[17px] text-gray-900">
+                  <span className="font-poppins font-bold text-[17px] text-gray-900">
                     {formatAmount(subtotal)}
                   </span>
                 </div>
@@ -175,13 +175,13 @@ export default function CartSidebar() {
                     hover:bg-black transition-colors text-[15px]
                   "
                 >
-                  Checkout Now ({totalItems}) <span className="text-[16px] leading-none">➔</span>
+                  Checkout Now ({totalItems}) <span className="font-poppins text-[16px] leading-none">➔</span>
                 </Link>
 
                 {/* Continue Shopping Link */}
                 <button
                   onClick={() => dispatch(closeCart())}
-                  className="w-full text-center text-[13px] font-medium text-emerald-500 hover:text-emerald-600 transition-colors underline underline-offset-4 mt-4"
+                  className="w-full text-center text-[13px] font-poppins font-medium text-emerald-500 hover:text-emerald-600 transition-colors underline underline-offset-4 mt-4"
                 >
                   Continue Shopping
                 </button>
@@ -220,11 +220,11 @@ function CartItem({ item, onQtyChange, isLast }) {
 
       {/* Info */}
       <div className="w-full">
-        <h3 className="text-[15px] font-extrabold text-gray-900 leading-snug truncate">
+        <h3 className="text-[15px] font-poppins font-extrabold text-gray-900 leading-snug truncate">
           {item.name}
         </h3>
         {item.color && (
-          <p className="text-[13px] text-gray-400 mt-1 capitalize">{item.color}</p>
+          <p className="text-[13px] font-poppins text-gray-400 mt-1 capitalize">{item.color}</p>
         )}
 
         {/* Bottom Stepper & Price Row */}

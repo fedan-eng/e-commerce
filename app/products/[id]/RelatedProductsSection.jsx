@@ -49,13 +49,13 @@ function RelatedProductsSection({ relatedProducts, product }) {
             {/* Product Info */}
             <div className="flex flex-col flex-1 px-0.5">
               {/* Product Title */}
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-tight mb-1.5">
+              <p className="text-xs sm:text-sm font-poppins font-semibold text-gray-900 line-clamp-2 leading-tight mb-1.5">
                 {rp.name}
               </p>
 
               {/* Price */}
               <div className="flex items-baseline gap-1.5 mb-1.5 flex-wrap">
-                <span className="text-sm sm:text-base font-bold text-gray-900">
+                <span className="text-sm sm:text-base font-poppins font-bold text-gray-900">
                   {formatAmount(rp.price)}
                 </span>
                 {rp.originalPrice && (
