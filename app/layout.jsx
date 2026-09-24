@@ -7,6 +7,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Oswald, Poppins, Roboto } from "next/font/google";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import AnalyticsProvider from "./AnalyticsProvider";
+import CartAnimationProvider from "@/context/CartAnimationProvider";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -65,11 +66,13 @@ export default function RootLayout({ children }) {
         <ErrorBoundary>
           <CookieConsentProvider>
             <Providers>
-              <AuthInitializer />
-              <ProfileCompletionChecker />
-              <ConditionalShell>{children}</ConditionalShell>
-              {/* Load analytics after main content */}
-              <AnalyticsProvider />
+              <CartAnimationProvider>
+                <AuthInitializer />
+                <ProfileCompletionChecker />
+                <ConditionalShell>{children}</ConditionalShell>
+                {/* Load analytics after main content */}
+                <AnalyticsProvider />
+              </CartAnimationProvider>
             </Providers>
           </CookieConsentProvider>
         </ErrorBoundary>

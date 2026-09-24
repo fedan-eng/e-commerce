@@ -3,6 +3,7 @@ import authReducer from "./features/authSlice";
 import registerReducer from "./features/registerSlice";
 import productReducer from "./features/productSlice";
 import cartReducer from "./features/cartSlice";
+import cartUIReducer from "./features/cartUISlice";
 import wishlistReducer from "./features/wishlistSlice";
 import recentlyViewedReducer from "./features/recentlyViewedSlice";
 import { cartSyncMiddleware } from "./features/cartSlice";
@@ -52,6 +53,7 @@ export const store = configureStore({
     register: registerReducer,
     products: productReducer,
     cart: cartReducer,
+    cartUI: cartUIReducer,
     wishlist: wishlistReducer,
     recentlyViewed: recentlyViewedReducer,
   },
