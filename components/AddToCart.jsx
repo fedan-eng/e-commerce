@@ -13,8 +13,9 @@ import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
+  const buttonRef      = useRef(null); // fly target
 
-  const [phase, setPhase] = useState("idle"); // "idle" | "flying" | "landed"
+  const [phase, setPhase] = useState("idle");
 
   const { trackEvent }                     = useGAEvent();
   const { trackAddToCart: trackTikTokATC } = useTikTokEvent();
@@ -24,12 +25,11 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (phase !== "idle") return; // block while animating
+    if (phase !== "idle") return;
 
     const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
     const imageToUse = colorToAdd?.images?.[0] || product.image;
 
-    // 1. Dispatch immediately — cart never waits for the animation
     dispatch(
       addToCart({
         _id:      product._id,
@@ -42,34 +42,32 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
       })
     );
 
-    // 2. Analytics
     trackEvent("add_to_cart", {
       items: [{ item_id: product._id, item_name: product.name, price: product.price, quantity: 1 }],
     });
     trackTikTokATC(product, 1);
     trackMetaATC(product, 1);
 
-    // 3. Source element — product cards use data-product-id on their image wrapper
+    // On product cards, source image is wrapped with data-product-id
     const sourceElement =
       document.querySelector(`[data-product-id="${product._id}"] img`) ||
-      document.querySelector("[data-product-gallery-image] img")       ||
       null;
 
-    // 4. Fly
+    const buttonElement = buttonRef.current;
+
     setPhase("flying");
 
     triggerFly({
       imageUrl: imageToUse,
       sourceElement,
+      buttonElement,  // polaroid flies TO this button
       onLand: () => {
-        dispatch(
-          itemAdded({
-            name:  product.name,
-            image: imageToUse,
-            color: colorToAdd?.name || null,
-            price: product.price,
-          })
-        );
+        dispatch(itemAdded({
+          name:  product.name,
+          image: imageToUse,
+          color: colorToAdd?.name || null,
+          price: product.price,
+        }));
         setPhase("landed");
         setTimeout(() => setPhase("idle"), 1500);
       },
@@ -82,17 +80,18 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
 
   return (
     <motion.button
+      ref={buttonRef}
       onClick={handleAddToCart}
       disabled={!isAvailable || isFlying}
       whileTap={isAvailable && phase === "idle" ? { scale: 0.96 } : {}}
       animate={
         isLanded
-          ? { scale: [1, 1.05, 1], transition: { duration: 0.25, ease: "easeOut" } }
+          ? { scale: [1, 1.05, 1], transition: { duration: 0.25 } }
           : {}
       }
       className={`relative overflow-hidden cursor-pointer ${className}`}
     >
-      {/* Shimmer sweep while flying */}
+      {/* Shimmer */}
       {isFlying && (
         <motion.span
           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"
@@ -102,58 +101,45 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
         />
       )}
 
-      {/* Label swaps between phases */}
       <AnimatePresence mode="wait" initial={false}>
         {!isAvailable ? (
-          <motion.span
-            key="unavailable"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.span key="oos"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
           >
             Out of Stock
           </motion.span>
+
         ) : isFlying ? (
-          <motion.span
-            key="flying"
+          <motion.span key="flying"
             className="flex items-center justify-center gap-1.5"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
           >
-            {/* Three bouncing dots */}
-            {[0, 1, 2].map((i) => (
-              <motion.span
-                key={i}
+            {[0,1,2].map((i) => (
+              <motion.span key={i}
                 className="w-1 h-1 bg-current rounded-full inline-block"
                 animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
                 transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
               />
             ))}
           </motion.span>
+
         ) : isLanded ? (
-          <motion.span
-            key="landed"
+          <motion.span key="landed"
             className="flex items-center justify-center gap-1.5"
-            initial={{ opacity: 0, scale: 0.75 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.75 }}
+            initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }}
             transition={{ duration: 0.18, type: "spring", stiffness: 400 }}
           >
-            {/* Inline check SVG — no import needed */}
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Added!
           </motion.span>
+
         ) : (
-          <motion.span
-            key="idle"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+          <motion.span key="idle"
+            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
           >
             Add to cart

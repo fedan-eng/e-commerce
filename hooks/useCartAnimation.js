@@ -5,40 +5,39 @@ import { useRef, useState, useCallback } from "react";
 /**
  * useCartAnimation
  *
- * Drives the "flying polaroid" effect when a user adds to cart.
+ * cartIconRef  — still used by Navbar for the count bounce animation
+ *                and as the FLY TARGET on desktop when no button rect is passed
  *
- * Usage:
- *   const { cartIconRef, triggerFly, FlyingImagePortal } = useCartAnimation();
- *
- *   1. Attach `cartIconRef` to the cart icon element in your Navbar.
- *   2. Call `triggerFly({ imageUrl, sourceElement })` from AddToCartButton,
- *      passing the product image URL and the <img> DOM node as sourceElement.
- *   3. Render <FlyingImagePortal /> somewhere high in the tree (e.g. Navbar or layout).
- *   4. Pass an `onLand` callback to `triggerFly` — it fires when the animation ends.
+ * triggerFly({ imageUrl, sourceElement, buttonElement, onLand })
+ *   imageUrl       — product image URL for the polaroid
+ *   sourceElement  — the product <img> DOM node  (fly starts here)
+ *   buttonElement  — the Add to Cart <button> DOM node (fly ends here)
+ *                    falls back to cartIconRef if not provided
+ *   onLand         — callback fired when polaroid reaches its target
  */
-
 export function useCartAnimation() {
   const cartIconRef = useRef(null);
   const [flyState, setFlyState] = useState(null);
-  // flyState shape:
-  // {
-  //   imageUrl: string,
-  //   from: { x, y, width, height },   — source bounding rect
-  //   to:   { x, y, width, height },   — cart icon bounding rect
-  //   onLand: () => void,
-  // }
 
-  const triggerFly = useCallback(({ imageUrl, sourceElement, onLand }) => {
-    if (!cartIconRef.current || !sourceElement) {
-      // Fallback: skip animation, just call onLand
+  const triggerFly = useCallback(({ imageUrl, sourceElement, buttonElement, onLand }) => {
+    // Source: product image rect
+    if (!sourceElement) {
       onLand?.();
       return;
     }
 
     const sourceRect = sourceElement.getBoundingClientRect();
-    const cartRect   = cartIconRef.current.getBoundingClientRect();
+
+    // Target: Add to Cart button rect (preferred) → nav cart icon (fallback)
+    const targetEl    = buttonElement || cartIconRef.current;
+    if (!targetEl) {
+      onLand?.();
+      return;
+    }
+    const targetRect  = targetEl.getBoundingClientRect();
 
     setFlyState({
+      id:    Date.now(), // unique key so AnimatePresence remounts cleanly on rapid clicks
       imageUrl,
       from: {
         x:      sourceRect.left,
@@ -47,8 +46,10 @@ export function useCartAnimation() {
         height: sourceRect.height,
       },
       to: {
-        x:      cartRect.left + cartRect.width  / 2,
-        y:      cartRect.top  + cartRect.height / 2,
+        x:      targetRect.left,
+        y:      targetRect.top,
+        width:  targetRect.width,
+        height: targetRect.height,
       },
       onLand,
     });
