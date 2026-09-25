@@ -29,6 +29,13 @@ export default function CartBottomSheet() {
     return () => clearTimeout(t);
   }, [showBanner, dispatch]);
 
+  // Auto-close cart after 3s
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = setTimeout(() => dispatch(closeCart()), 3000);
+    return () => clearTimeout(t);
+  }, [isOpen, dispatch]);
+
   // Lock body scroll
   useEffect(() => {
     if (isOpen) {
