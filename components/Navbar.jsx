@@ -280,6 +280,9 @@ export default function Navbar() {
                       <Link href="/profile"                onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">My Profile</Link>
                       <Link href="/profile?tab=My%20Orders" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">My Orders</Link>
                       <Link href="/profile?tab=Wishlist"   onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Wishlist</Link>
+                      {user?.role === "admin" && (
+                        <Link href="/admin_console" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Admin Dashboard</Link>
+                      )}
                     </>
                   )}
                 </div>
