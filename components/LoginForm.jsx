@@ -31,6 +31,7 @@ export default function LoginForm() {
   // Handles the case where middleware edge cache wrongly serves /login to
   // an already-authenticated user. Redux state is always fresh, never cached.
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const cartItems = useSelector((state) => state.cart.items);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -55,6 +56,9 @@ export default function LoginForm() {
   setLoading(true);
 
   try {
+    // Capture visitor cart BEFORE login wipes it
+    const visitorCart = cartItems;
+
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -64,7 +68,30 @@ export default function LoginForm() {
     const data = await res.json();
 
     if (res.ok) {
-      await dispatch(fetchUser());
+      // Merge visitor cart into account cart
+      if (visitorCart.length > 0) {
+        try {
+          const mergeRes = await fetch("/api/cart/merge", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ visitorCart }),
+          });
+          const mergeData = await mergeRes.json();
+          if (mergeRes.ok && mergeData.cart) {
+            dispatch({ type: "cart/setCartFromDB", payload: mergeData.cart });
+          } else {
+            // Fallback: load DB cart normally if merge fails
+            await dispatch(fetchUser());
+          }
+        } catch (mergeErr) {
+          console.error("Cart merge failed:", mergeErr);
+          // Fallback: load DB cart normally
+          await dispatch(fetchUser());
+        }
+      } else {
+        // No visitor items — just load DB cart as usual
+        await dispatch(fetchUser());
+      }
       router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
