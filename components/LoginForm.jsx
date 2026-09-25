@@ -286,12 +286,20 @@ export default function LoginForm() {
   <div className="flex-1 h-px bg-gray-300"></div>
 </div>
 
-<Link
-  href={`/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+<button
+  onClick={() => {
+    // Set visitor cart cookie before Google redirect
+    if (cartItems.length > 0) {
+      document.cookie = `visitor_cart=${encodeURIComponent(
+        JSON.stringify(cartItems)
+      )}; path=/; max-age=300; SameSite=Lax`;
+    }
+    window.location.href = `/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  }}
   className={`flex items-center justify-center gap-2 mt-4 w-full border rounded-md py-3 text-sm font-medium transition-colors ${
     showGoogleHint
-      ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300" 
-      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"      
+      ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300"
+      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
   }`}
 >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -313,7 +321,7 @@ export default function LoginForm() {
               />
             </svg>
              {showGoogleHint ? "Continue with Google →" : "Sign in with Google"}
-          </Link>
+          </button>
           <div className="mt-4">
             <p className="text-[#b7b7b7] text-xs">
               By clicking Sign In you are agreeing to our{" "}

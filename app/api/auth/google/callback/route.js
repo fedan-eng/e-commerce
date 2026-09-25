@@ -4,6 +4,7 @@ import User from "@/models/User";
 import { signToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 import { serialize } from "cookie";
+import { mergeVisitorCart } from "@/lib/mergeCart";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +106,28 @@ export async function GET(req) {
 
     const response = NextResponse.redirect(`${baseUrl}${callbackUrl}`);
     response.headers.set("Set-Cookie", cookie);
+
+    // Check for visitor cart cookie and merge
+    const rawCart = req.cookies.get("visitor_cart")?.value;
+    if (rawCart) {
+      try {
+        const visitorCart = JSON.parse(decodeURIComponent(rawCart));
+        if (visitorCart.length > 0) {
+          await mergeVisitorCart(user._id, visitorCart);
+        }
+      } catch (e) {
+        console.error("Cart cookie parse failed:", e);
+      }
+      // Clear the cookie by setting it with expired date
+      const clearCookie = serialize("visitor_cart", "", {
+        httpOnly: true,
+        path: "/",
+        maxAge: 0,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
+      response.headers.append("Set-Cookie", clearCookie);
+    }
 
     // Set flag for new Google users (readable by client)
     if (isNewUser) {
