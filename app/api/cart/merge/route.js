@@ -30,8 +30,13 @@ export async function POST(req) {
     const dbItems = user.cart?.items || [];
 
     // Build a map keyed by "_id|color" for O(1) lookup
+    // Filter out invalid DB items (missing required fields)
+    const validDbItems = dbItems.filter(item =>
+      item && item._id && item.name && item.price !== undefined && item.image
+    );
+
     const merged = new Map(
-      dbItems.map(item => [`${item._id}|${item.color}`, { ...item }])
+      validDbItems.map(item => [`${item._id}|${item.color}`, { ...item }])
     );
 
     // Merge visitor cart items

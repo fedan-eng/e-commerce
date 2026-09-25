@@ -77,10 +77,11 @@ export default function LoginForm() {
             body: JSON.stringify({ visitorCart }),
           });
           const mergeData = await mergeRes.json();
-          if (mergeRes.ok && mergeData.cart) {
-            dispatch({ type: "cart/setCartFromDB", payload: mergeData.cart });
+          if (mergeRes.ok) {
+            // Merge succeeded - now fetch user to load auth state + merged cart from DB
+            await dispatch(fetchUser());
           } else {
-            // Fallback: load DB cart normally if merge fails
+            // Merge failed - fallback to loading DB cart normally
             await dispatch(fetchUser());
           }
         } catch (mergeErr) {
