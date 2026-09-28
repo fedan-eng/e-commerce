@@ -15,7 +15,7 @@ export const metadata = {
   },
 }
 
-export const revalidate = 3600 // ISR: revalidate Substack feed every 1 hour
+export const revalidate = 300 // ISR: revalidate Substack feed every 5 minutes
 
 export default async function BlogPage() {
   const posts = await getBlogPosts()
