@@ -19,7 +19,8 @@ const NORMALISE = {
   processed:  "Processing", // "Processed" from old data → maps to Processing step
   processing: "Processing",
   shipped:    "Shipped",
-  "in-transit": "In Transit",
+  intransit:  "In Transit",
+  "in-transit": "In Transit", // Legacy support for old data
   delivered:  "Delivered",
   cancelled:  "Cancelled",
 };

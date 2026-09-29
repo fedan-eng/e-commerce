@@ -12,13 +12,14 @@ const STATUS_COLORS = {
   processing: "#6ab4e8",
   processed:  "#6ab4e8",
   shipped:    "#a06ae8",
+  intransit:  "#3b82f6",
   delivered:  "#6ae8a0",
   cancelled:  "#e86a6a",
 };
 
 // The canonical progression shown in the timeline
-const TIMELINE_STEPS = ["Confirmed", "Processing", "Shipped", "Delivered"];
-const ALL_STATUSES   = ["Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"];
+const TIMELINE_STEPS = ["Confirmed", "Processing", "Shipped", "In Transit", "Delivered"];
+const ALL_STATUSES   = ["Confirmed", "Processing", "Shipped", "In Transit", "Delivered", "Cancelled"];
 
 const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase()] || "#fff";
 

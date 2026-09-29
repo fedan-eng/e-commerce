@@ -41,22 +41,25 @@ export async function PATCH(req, context) {
 
     const { status } = await req.json();
 
+    // Normalize status: "In Transit" -> "inTransit", "in-transit" -> "inTransit"
+    const normalizedStatus = status.toLowerCase().replace(/[-\s]+/g, "");
+
     const validStatuses = [
       "processing",
       "shipped",
-      "in-transit",
+      "intransit",
       "delivered",
       "cancelled",
       "confirmed",
       "processed",
     ];
-    if (!validStatuses.includes(status.toLowerCase())) {
+    if (!validStatuses.includes(normalizedStatus)) {
       return new Response(JSON.stringify({ message: "Invalid status" }), {
         status: 400,
       });
     }
 
-    const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
+    const order = await Order.findByIdAndUpdate(id, { status: normalizedStatus }, { new: true });
     if (!order) {
       return new Response(JSON.stringify({ message: "Order not found" }), {
         status: 404,
@@ -64,8 +67,8 @@ export async function PATCH(req, context) {
     }
 
     const customerEmail = order.email;
-    if (customerEmail && STATUS_EMAIL_CONFIG[status.toLowerCase()]) {
-      const cfg = STATUS_EMAIL_CONFIG[status.toLowerCase()];
+    if (customerEmail && STATUS_EMAIL_CONFIG[normalizedStatus]) {
+      const cfg = STATUS_EMAIL_CONFIG[normalizedStatus];
       try {
         const html = buildStatusEmail(order, cfg);
         const plain = buildPlainText(order, cfg);
@@ -137,7 +140,7 @@ const STATUS_EMAIL_CONFIG = {
     plainMessage: () =>
       `Your order has been shipped and is on its way!\nExpected delivery: 1-3 working days (Lagos) or 5-7 working days (other regions).\nContact us: https://filstore.com.ng/contact`,
   },
-  "in-transit": {
+  inTransit: {
     subject: "Your FIL Order Is In Transit!",
     headline: "Your Order Is Getting Closer!",
     subheading: "Your package is on its final journey to you",
