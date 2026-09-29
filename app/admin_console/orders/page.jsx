@@ -37,7 +37,7 @@ const STAT_CARDS = [
 ];
 
 function getStatusStyle(k) {
-  return STATUS_COLORS[k?.toLowerCase()] || { text: "text-[#888]", bg: "bg-[#88888812]", border: "border-[#88888833]", hex: "#888" };
+  return STATUS_COLORS[k?.toLowerCase().replace(/\s/g, "")] || { text: "text-[#888]", bg: "bg-[#88888812]", border: "border-[#88888833]", hex: "#888" };
 }
 
 function StatusBadge({ status }) {

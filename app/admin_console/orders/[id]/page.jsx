@@ -20,7 +20,7 @@ const STATUS_COLORS = {
 const TIMELINE_STEPS = ["Confirmed", "Processing", "Shipped", "In Transit", "Delivered"];
 const ALL_STATUSES   = ["Confirmed", "Processing", "Shipped", "In Transit", "Delivered", "Cancelled"];
 
-const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase()] || "#fff";
+const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase().replace(/\s/g, "")] || "#fff";
 
 const getTotal = (order) => {
   if (order.total    != null) return parseFloat(order.total).toFixed(2);
@@ -44,10 +44,9 @@ function StatusBadge({ status }) {
 
 // Horizontal step timeline (matches reference screenshot style)
 function OrderTimeline({ currentStatus }) {
-  // Normalize: "InTransit" -> "intransit", "In Transit" -> "intransit"
-  const norm        = currentStatus?.toLowerCase().replace(/[-\s]+/g, "");
+  const norm        = currentStatus?.toLowerCase().replace(/\s/g, "");
   const isCancelled = norm === "cancelled";
-  const stepIdx     = TIMELINE_STEPS.findIndex(s => s.toLowerCase().replace(/[-\s]+/g, "") === norm);
+  const stepIdx     = TIMELINE_STEPS.findIndex(s => s.toLowerCase().replace(/\s/g, "") === norm);
 
   const steps = isCancelled
     ? [...TIMELINE_STEPS, "Cancelled"]
@@ -122,9 +121,7 @@ export default function AdminOrderDetailPage() {
       .then(r => r.json())
       .then(data => {
         setOrder(data.order);
-        // Normalize status for display: "InTransit" -> "In Transit"
-        const statusValue = data.order?.status || "Confirmed";
-        setStatus(statusValue.replace(/([A-Z])/g, ' $1').trim());
+        setStatus(data.order?.status || "Confirmed");
         setLoading(false);
       });
   }, [id]);
@@ -397,13 +394,13 @@ export default function AdminOrderDetailPage() {
               value={status}
               onChange={e => setStatus(e.target.value)}
               style={{
-                borderColor: (STATUS_COLORS[status?.toLowerCase()] || "#333") + "55",
-                color:        STATUS_COLORS[status?.toLowerCase()] || "#888",
+                borderColor: (STATUS_COLORS[status?.toLowerCase().replace(/\s/g, "")] || "#333") + "55",
+                color:        STATUS_COLORS[status?.toLowerCase().replace(/\s/g, "")] || "#888",
               }}
               className="w-full bg-[#0a0a0a] border rounded-xl px-3 py-2.5 text-[12px] uppercase cursor-pointer outline-none mb-3 font-mono"
             >
               {ALL_STATUSES.map(s => (
-                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[s.toLowerCase()] || "#888" }}>{s}</option>
+                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[s.toLowerCase().replace(/\s/g, "")] || "#888" }}>{s}</option>
               ))}
             </select>
 
