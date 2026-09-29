@@ -15,8 +15,6 @@ import {
   shortId,
 } from "@/lib/orderStatus";
 
-const getStatusColor = (s) => STATUS_COLORS[normalizeStatusKey(s)] || "#fff";
-
 const getTotal = (order) => {
   if (order.total    != null) return parseFloat(order.total).toFixed(2);
   if (order.subTotal != null) return parseFloat(order.subTotal).toFixed(2);
