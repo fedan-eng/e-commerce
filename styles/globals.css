@@ -4,7 +4,7 @@
 @theme {
   /* FONTS */
   --font-poppins: "Poppins", "sans-serif";
-  --font-roboto: "Roboto", "serif";
+  --font-roboto: "Roboto", "sans-serif";
   --font-oswald: "Oswald", sans-serif;
 
   /* COLORS */

@@ -69,6 +69,7 @@ function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal 
       {/* Main Image */}
       <div className="flex w-full gap-3">
         <div
+          data-product-gallery-image
           className="flex-1 aspect-square max-h-[480px] overflow-hidden relative bg-[#fafafa] rounded-lg"
           style={{ cursor: isZoomed ? "zoom-out" : "zoom-in" }}
         >

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CreditCard, Truck, Info } from "lucide-react";
 import Image from "next/image";
 import { formatAmount } from "@/lib/utils";
-import AddToCartButton from "@/components/AddToCart";
+import AddToCartButtonPDP from "@/components/AddToCartPDP";
 import BuyNow from "@/components/BuyNow";
 import ExpandableDescription from "./ExpandableDescription";
 
@@ -113,8 +113,8 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 mt-2">
-        <AddToCartButton
-          className="flex-1 bg-[#1a1a1a] text-white font-medium py-3.5 px-6 rounded-lg hover:bg-black transition-colors text-sm"
+        <AddToCartButtonPDP
+          className=""
           product={product}
           selectedColor={selectedColor}
         />

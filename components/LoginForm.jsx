@@ -31,6 +31,7 @@ export default function LoginForm() {
   // Handles the case where middleware edge cache wrongly serves /login to
   // an already-authenticated user. Redux state is always fresh, never cached.
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const cartItems = useSelector((state) => state.cart.items);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -55,6 +56,9 @@ export default function LoginForm() {
   setLoading(true);
 
   try {
+    // Capture visitor cart BEFORE login wipes it
+    const visitorCart = cartItems;
+
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -64,7 +68,31 @@ export default function LoginForm() {
     const data = await res.json();
 
     if (res.ok) {
-      await dispatch(fetchUser());
+      // Merge visitor cart into account cart
+      if (visitorCart.length > 0) {
+        try {
+          const mergeRes = await fetch("/api/cart/merge", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ visitorCart }),
+          });
+          const mergeData = await mergeRes.json();
+          if (mergeRes.ok) {
+            // Merge succeeded - now fetch user to load auth state + merged cart from DB
+            await dispatch(fetchUser());
+          } else {
+            // Merge failed - fallback to loading DB cart normally
+            await dispatch(fetchUser());
+          }
+        } catch (mergeErr) {
+          console.error("Cart merge failed:", mergeErr);
+          // Fallback: load DB cart normally
+          await dispatch(fetchUser());
+        }
+      } else {
+        // No visitor items — just load DB cart as usual
+        await dispatch(fetchUser());
+      }
       router.push(callbackUrl || "/products");
     } else {
       if (data.provider === "google") {
@@ -258,12 +286,20 @@ export default function LoginForm() {
   <div className="flex-1 h-px bg-gray-300"></div>
 </div>
 
-<Link
-  href={`/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+<button
+  onClick={() => {
+    // Set visitor cart cookie before Google redirect
+    if (cartItems.length > 0) {
+      document.cookie = `visitor_cart=${encodeURIComponent(
+        JSON.stringify(cartItems)
+      )}; path=/; max-age=300; SameSite=Lax`;
+    }
+    window.location.href = `/api/auth/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  }}
   className={`flex items-center justify-center gap-2 mt-4 w-full border rounded-md py-3 text-sm font-medium transition-colors ${
     showGoogleHint
-      ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300" 
-      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"      
+      ? "bg-blue-50 border-blue-400 text-blue-700 ring-2 ring-blue-300"
+      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
   }`}
 >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -285,7 +321,7 @@ export default function LoginForm() {
               />
             </svg>
              {showGoogleHint ? "Continue with Google →" : "Sign in with Google"}
-          </Link>
+          </button>
           <div className="mt-4">
             <p className="text-[#b7b7b7] text-xs">
               By clicking Sign In you are agreeing to our{" "}
