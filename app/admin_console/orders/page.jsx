@@ -11,13 +11,14 @@ const STATUS_COLORS = {
   processing: { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
   processed:  { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
   shipped:    { text: "text-[#a06ae8]", bg: "bg-[#a06ae812]", border: "border-[#a06ae833]", hex: "#a06ae8" },
+  "in-transit": { text: "text-[#3b82f6]", bg: "bg-[#3b82f612]", border: "border-[#3b82f633]", hex: "#3b82f6" },
   delivered:  { text: "text-[#6ae8a0]", bg: "bg-[#6ae8a012]", border: "border-[#6ae8a033]", hex: "#6ae8a0" },
   cancelled:  { text: "text-[#e86a6a]", bg: "bg-[#e86a6a12]", border: "border-[#e86a6a33]", hex: "#e86a6a" },
   pending:    { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
 };
 
-const ALL_STATUSES       = ["all", "Confirmed", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
-const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "Delivered", "Cancelled"];
+const ALL_STATUSES       = ["all", "Confirmed", "Pending", "Processing", "Shipped", "In Transit", "Delivered", "Cancelled"];
+const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "In Transit", "Delivered", "Cancelled"];
 const DAYS_OPTIONS       = [
   { label: "All time",      value: "" },
   { label: "Last 7 days",   value: "7" },

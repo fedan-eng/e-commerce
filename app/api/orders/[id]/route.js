@@ -44,6 +44,7 @@ export async function PATCH(req, context) {
     const validStatuses = [
       "processing",
       "shipped",
+      "in-transit",
       "delivered",
       "cancelled",
       "confirmed",
@@ -135,6 +136,30 @@ const STATUS_EMAIL_CONFIG = {
     ],
     plainMessage: () =>
       `Your order has been shipped and is on its way!\nExpected delivery: 1-3 working days (Lagos) or 5-7 working days (other regions).\nContact us: https://filstore.com.ng/contact`,
+  },
+  "in-transit": {
+    subject: "Your FIL Order Is In Transit!",
+    headline: "Your Order Is Getting Closer!",
+    subheading: "Your package is on its final journey to you",
+    badge: "In Transit",
+    badgeEmoji: "&#128666;",
+    headerBg: "#3b82f6",
+    headerText: "#eff6ff",
+    badgeBg: "#ffffff",
+    badgeTextColor: "#1d4ed8",
+    accentColor: "#3b82f6",
+    accentLight: "#f0f9ff",
+    accentBorder: "#bfdbfe",
+    ctaText: "Track Order",
+    ctaLink: "https://filstore.com.ng/contact",
+    messageLines: [
+      "Your order is now in transit and moving through the delivery network to your location!",
+      "We wanted to let you know that your package is making good progress and should be with you soon. Our delivery partners are working hard to get it to you safely and on time.",
+      "If you have any questions about your delivery or need to make any changes, please don't hesitate to reach out to us. We're here to help make this experience as smooth as possible.",
+      "Thank you for your patience and for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We can't wait for you to receive your order! &#128153;",
+    ],
+    plainMessage: () =>
+      `Your order is in transit and on its way to you!\nIt should arrive very soon. If you have any questions, please contact us.\nContact us: https://filstore.com.ng/contact`,
   },
   delivered: {
     subject: "Your FIL Order Has Been Delivered!",

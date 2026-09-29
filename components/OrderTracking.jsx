@@ -6,6 +6,7 @@ const defaultSteps = [
   { label: "Confirmed",  icon: FiCheck },
   { label: "Processing", icon: FiCheck },
   { label: "Shipped",    icon: FiCheck },
+  { label: "In Transit", icon: FiCheck },
   { label: "Delivered",  icon: FiCheck },
 ];
 
@@ -18,6 +19,7 @@ const NORMALISE = {
   processed:  "Processing", // "Processed" from old data → maps to Processing step
   processing: "Processing",
   shipped:    "Shipped",
+  "in-transit": "In Transit",
   delivered:  "Delivered",
   cancelled:  "Cancelled",
 };

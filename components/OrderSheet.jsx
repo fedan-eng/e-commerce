@@ -170,6 +170,7 @@ export default function OrderSheet() {
     Processing: "bg-[#ddeeff] text-[#0055cc]",
     Confirmed:  "bg-[#dcf3de] text-[#007c42]",
     Shipped:    "bg-[#e8e0ff] text-[#5500cc]",
+    "In Transit": "bg-[#dbeafe] text-[#1d4ed8]",
     Delivered:  "bg-[#dcf3de] text-[#004d2b]",
     Cancelled:  "bg-[#ffe0e0] text-[#cc0000]",
   };
