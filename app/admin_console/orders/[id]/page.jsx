@@ -58,7 +58,7 @@ function OrderTimeline({ currentStatus }) {
       <div className="absolute top-[14px] left-0 right-0 h-px bg-[#1e1e1e] z-0" />
 
       {steps.map((s, i) => {
-        const key        = s.toLowerCase();
+        const key        = s.toLowerCase().replace(/\s/g, "");
         const color      = STATUS_COLORS[key] || "#fff";
         const isActive   = key === norm;
         const isPast     = !isCancelled && stepIdx > i;
@@ -121,7 +121,11 @@ export default function AdminOrderDetailPage() {
       .then(r => r.json())
       .then(data => {
         setOrder(data.order);
-        setStatus(data.order?.status || "Confirmed");
+        // Normalize status to match ALL_STATUSES format
+        const dbStatus = data.order?.status || "Confirmed";
+        // Handle camelCase: "InTransit" → "In Transit", "Delivered" → "Delivered"
+        const normalizedStatus = dbStatus.replace(/([A-Z])/g, ' $1').trim();
+        setStatus(normalizedStatus);
         setLoading(false);
       });
   }, [id]);
