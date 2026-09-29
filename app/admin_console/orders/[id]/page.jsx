@@ -10,7 +10,6 @@ const STATUS_COLORS = {
   confirmed:  "#e8c46a",
   pending:    "#e8c46a",
   processing: "#6ab4e8",
-  processed:  "#6ab4e8",
   shipped:    "#a06ae8",
   intransit:  "#3b82f6",
   delivered:  "#6ae8a0",
@@ -45,9 +44,10 @@ function StatusBadge({ status }) {
 
 // Horizontal step timeline (matches reference screenshot style)
 function OrderTimeline({ currentStatus }) {
-  const norm        = currentStatus?.toLowerCase();
+  // Normalize: "InTransit" -> "intransit", "In Transit" -> "intransit"
+  const norm        = currentStatus?.toLowerCase().replace(/[-\s]+/g, "");
   const isCancelled = norm === "cancelled";
-  const stepIdx     = TIMELINE_STEPS.findIndex(s => s.toLowerCase() === norm);
+  const stepIdx     = TIMELINE_STEPS.findIndex(s => s.toLowerCase().replace(/[-\s]+/g, "") === norm);
 
   const steps = isCancelled
     ? [...TIMELINE_STEPS, "Cancelled"]
@@ -122,7 +122,9 @@ export default function AdminOrderDetailPage() {
       .then(r => r.json())
       .then(data => {
         setOrder(data.order);
-        setStatus(data.order?.status || "Confirmed");
+        // Normalize status for display: "InTransit" -> "In Transit"
+        const statusValue = data.order?.status || "Confirmed";
+        setStatus(statusValue.replace(/([A-Z])/g, ' $1').trim());
         setLoading(false);
       });
   }, [id]);

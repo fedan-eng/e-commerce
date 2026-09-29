@@ -51,7 +51,6 @@ export async function PATCH(req, context) {
       "delivered",
       "cancelled",
       "confirmed",
-      "processed",
     ];
     if (!validStatuses.includes(normalizedStatus)) {
       return new Response(JSON.stringify({ message: "Invalid status" }), {

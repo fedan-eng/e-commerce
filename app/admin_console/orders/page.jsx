@@ -9,7 +9,6 @@ import { Suspense } from "react";
 const STATUS_COLORS = {
   confirmed:  { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
   processing: { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
-  processed:  { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
   shipped:    { text: "text-[#a06ae8]", bg: "bg-[#a06ae812]", border: "border-[#a06ae833]", hex: "#a06ae8" },
   intransit:  { text: "text-[#3b82f6]", bg: "bg-[#3b82f612]", border: "border-[#3b82f633]", hex: "#3b82f6" },
   delivered:  { text: "text-[#6ae8a0]", bg: "bg-[#6ae8a012]", border: "border-[#6ae8a033]", hex: "#6ae8a0" },
@@ -382,8 +381,8 @@ function AdminOrdersPage() {
                             <select
                               value={
                                 ALL_ORDER_STATUSES.find(
-                                  s => s.toLowerCase() === order.status?.toLowerCase()
-                                ) || order.status
+                                  s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
+                                ) || order.status.replace(/([A-Z])/g, ' $1').trim()
                               }
                               onChange={e => updateStatus(order._id, e.target.value)}
                               style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
@@ -494,8 +493,8 @@ function AdminOrdersPage() {
                       <select
                         value={
                           ALL_ORDER_STATUSES.find(
-                            s => s.toLowerCase() === order.status?.toLowerCase()
-                          ) || order.status
+                            s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
+                          ) || order.status.replace(/([A-Z])/g, ' $1').trim()
                         }
                         onChange={e => updateStatus(order._id, e.target.value)}
                         style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
