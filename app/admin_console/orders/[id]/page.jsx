@@ -116,16 +116,17 @@ export default function AdminOrderDetailPage() {
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState(null);
 
+  // Whitespace-insensitive key for status comparison
+  const toKey = (s) => s?.toLowerCase().replace(/[\s_-]/g, "");
+
   useEffect(() => {
     fetch(`/api/orders/${id}`)
       .then(r => r.json())
       .then(data => {
         setOrder(data.order);
-        // Normalize status to match ALL_STATUSES format
-        const dbStatus = data.order?.status || "Confirmed";
-        // Handle camelCase: "InTransit" → "In Transit", "Delivered" → "Delivered"
-        const normalizedStatus = dbStatus.replace(/([A-Z])/g, ' $1').trim();
-        setStatus(normalizedStatus);
+        // Match DB status to canonical label from ALL_STATUSES
+        const match = ALL_STATUSES.find(s => toKey(s) === toKey(data.order?.status));
+        setStatus(match || "");
         setLoading(false);
       });
   }, [id]);
@@ -398,13 +399,14 @@ export default function AdminOrderDetailPage() {
               value={status}
               onChange={e => setStatus(e.target.value)}
               style={{
-                borderColor: (STATUS_COLORS[status?.toLowerCase().replace(/\s/g, "")] || "#333") + "55",
-                color:        STATUS_COLORS[status?.toLowerCase().replace(/\s/g, "")] || "#888",
+                borderColor: (STATUS_COLORS[toKey(status)] || "#333") + "55",
+                color:        STATUS_COLORS[toKey(status)] || "#888",
               }}
               className="w-full bg-[#0a0a0a] border rounded-xl px-3 py-2.5 text-[12px] uppercase cursor-pointer outline-none mb-3 font-mono"
             >
+              <option value="" disabled>Select status</option>
               {ALL_STATUSES.map(s => (
-                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[s.toLowerCase().replace(/\s/g, "")] || "#888" }}>{s}</option>
+                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[toKey(s)] || "#888" }}>{s}</option>
               ))}
             </select>
 
@@ -416,13 +418,13 @@ export default function AdminOrderDetailPage() {
 
             <button
               onClick={updateStatus}
-              disabled={saving || status?.toLowerCase() === order.status?.toLowerCase()}
+              disabled={saving || toKey(status) === toKey(order.status)}
               className={`w-full py-3 border-none rounded-xl text-[11px] tracking-[.12em] uppercase font-bold cursor-pointer transition-all font-mono
                 ${saved
                   ? "bg-[#6ae8a022] text-[#6ae8a0]"
                   : saving
                     ? "bg-[#1a1a1a] text-[#333] cursor-default"
-                    : status?.toLowerCase() === order.status?.toLowerCase()
+                    : toKey(status) === toKey(order.status)
                       ? "bg-[#e8c46a] text-[#0a0a0a] opacity-30 cursor-default"
                       : "bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#d4b05e]"
                 }`}
