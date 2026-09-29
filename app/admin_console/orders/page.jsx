@@ -85,19 +85,26 @@ function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
-    if (statusFilter !== "all") params.append("status", statusFilter);
-    if (search) params.append("search", search);
-    if (days) params.append("days", days);
-    const res = await fetch(`/api/admin/orders?${params}`);
-    const data = await res.json();
-    console.log("Frontend - API Response:", data);
-    console.log("Frontend - Stats from API:", data.stats);
-    setOrders(data.orders || []);
-    setTotalPages(data.totalPages || 1);
-    setTotal(data.total || 0);
-    if (data.stats) setStats(data.stats);
-    setLoading(false);
+    try {
+      const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (search) params.append("search", search);
+      if (days) params.append("days", days);
+      const res = await fetch(`/api/admin/orders?${params}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setOrders(data.orders || []);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
+      if (data.stats) setStats(data.stats);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+      alert("Failed to load orders. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
@@ -126,6 +133,10 @@ function AdminOrdersPage() {
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const updateStatus = async (orderId, newStatus) => {
+    if (!window.confirm(`Update order status to "${newStatus}"? This will send an email to the customer.`)) {
+      return;
+    }
+
     setUpdating(orderId);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -134,9 +145,14 @@ function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        // Re-fetch the current view - this already sets orders, stats, total — everything
         await fetchOrders();
+      } else {
+        const data = await res.json();
+        alert(`Failed to update status: ${data.message || "Unknown error"}`);
       }
+    } catch (err) {
+      console.error("Status update error:", err);
+      alert("Network error while updating status");
     } finally {
       setUpdating(null);
     }
