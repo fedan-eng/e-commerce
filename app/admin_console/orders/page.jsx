@@ -1,8 +1,9 @@
 // app/admin_console/orders/page.jsx
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import AlertModal from "@/components/AlertModal";
 import Image from "next/image";
 import { Suspense } from "react";
 
@@ -65,6 +66,7 @@ function AdminOrdersPage() {
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
+  const [alertModal,   setAlertModal]   = useState({ show: false, message: "" });
 
   // Sync URL params from state - single source of truth
   useEffect(() => {
@@ -101,7 +103,7 @@ function AdminOrdersPage() {
       if (data.stats) setStats(data.stats);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      alert("Failed to load orders. Please try again.");
+      setAlertModal({ show: true, message: "Failed to load orders. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -133,10 +135,6 @@ function AdminOrdersPage() {
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const updateStatus = async (orderId, newStatus) => {
-    if (!window.confirm(`Update order status to "${newStatus}"? This will send an email to the customer.`)) {
-      return;
-    }
-
     setUpdating(orderId);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -148,11 +146,11 @@ function AdminOrdersPage() {
         await fetchOrders();
       } else {
         const data = await res.json();
-        alert(`Failed to update status: ${data.message || "Unknown error"}`);
+        setAlertModal({ show: true, message: `Failed to update status: ${data.message || "Unknown error"}` });
       }
     } catch (err) {
       console.error("Status update error:", err);
-      alert("Network error while updating status");
+      setAlertModal({ show: true, message: "Network error while updating status" });
     } finally {
       setUpdating(null);
     }
@@ -534,6 +532,13 @@ function AdminOrdersPage() {
             <Pagination />
           </div>
         </>
+      )}
+
+      {alertModal.show && (
+        <AlertModal
+          message={alertModal.message}
+          onClose={() => setAlertModal({ show: false, message: "" })}
+        />
       )}
     </div>
   );
