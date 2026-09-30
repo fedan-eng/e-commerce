@@ -46,7 +46,7 @@ export async function PATCH(req, context) {
     }
 
     const decoded = verifyToken(token);
-    if (!decoded.isAdmin) {
+    if (!decoded || decoded.role !== "admin") {
       return new Response(JSON.stringify({ message: "Admin access required" }), {
         status: 403,
         headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
