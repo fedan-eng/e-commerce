@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
+import { normalizeStatusKey, API_STATUSES } from "@/lib/orderStatus";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,12 +17,17 @@ export async function GET(req, context) {
     if (!order) {
       return new Response(JSON.stringify({ message: "Order not found" }), {
         status: 404,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }
-    return new Response(JSON.stringify({ order }), { status: 200 });
+    return new Response(JSON.stringify({ order }), {
+      status: 200,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
   } catch (error) {
     return new Response(JSON.stringify({ message: error.message }), {
       status: 500,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
   }
 }
@@ -32,56 +38,82 @@ export async function PATCH(req, context) {
 
   try {
     const token = req.cookies.get("token")?.value;
-    if (!token) { 
+    if (!token) {
       return new Response(JSON.stringify({ message: "Unauthorized" }), {
         status: 401,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }
-    verifyToken(token);
+
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.role !== "admin") {
+      return new Response(JSON.stringify({ message: "Admin access required" }), {
+        status: 403,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      });
+    }
 
     const { status } = await req.json();
 
-    const validStatuses = [
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-      "confirmed",
-      "processed",
-    ];
-    if (!validStatuses.includes(status.toLowerCase())) {
+    // Normalize status using shared helper
+    const normalizedStatus = normalizeStatusKey(status);
+
+    if (!API_STATUSES.includes(normalizedStatus)) {
       return new Response(JSON.stringify({ message: "Invalid status" }), {
         status: 400,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }
 
-    const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
+    const order = await Order.findById(id);
     if (!order) {
       return new Response(JSON.stringify({ message: "Order not found" }), {
         status: 404,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }
 
+    // Guard against same-status updates
+    if (normalizeStatusKey(order.status) === normalizedStatus) {
+      return new Response(JSON.stringify({ order }), {
+        status: 200,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      });
+    }
+
+    // Update status and push to history
+    order.status = normalizedStatus;
+    order.statusHistory = order.statusHistory || [];
+    order.statusHistory.push({
+      status: normalizedStatus,
+      date: new Date(),
+    });
+    await order.save();
+
     const customerEmail = order.email;
-    if (customerEmail && STATUS_EMAIL_CONFIG[status.toLowerCase()]) {
-      const cfg = STATUS_EMAIL_CONFIG[status.toLowerCase()];
+    if (customerEmail && STATUS_EMAIL_CONFIG[normalizedStatus]) {
+      const cfg = STATUS_EMAIL_CONFIG[normalizedStatus];
       try {
         const html = buildStatusEmail(order, cfg);
         const plain = buildPlainText(order, cfg);
         await sendEmail(customerEmail, cfg.subject, plain, html);
         console.log(
-          `Status email sent to ${customerEmail} for status: ${status}`
+          `Status email sent to ${customerEmail} for status: ${normalizedStatus}`
         );
       } catch (emailErr) {
         console.error("Status email failed:", emailErr.message);
       }
     }
 
-    return new Response(JSON.stringify({ order }), { status: 200 });
+    return new Response(JSON.stringify({ order }), {
+      status: 200,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
   } catch (error) {
     console.error("PATCH error:", error.message);
     return new Response(JSON.stringify({ message: error.message }), {
       status: 500,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
   }
 }
@@ -135,6 +167,30 @@ const STATUS_EMAIL_CONFIG = {
     ],
     plainMessage: () =>
       `Your order has been shipped and is on its way!\nExpected delivery: 1-3 working days (Lagos) or 5-7 working days (other regions).\nContact us: https://filstore.com.ng/contact`,
+  },
+  intransit: {
+    subject: "Your FIL Order Is In Transit!",
+    headline: "Your Order Is Getting Closer!",
+    subheading: "Your package is on its final journey to you",
+    badge: "In Transit",
+    badgeEmoji: "&#128666;",
+    headerBg: "#3b82f6",
+    headerText: "#eff6ff",
+    badgeBg: "#ffffff",
+    badgeTextColor: "#1d4ed8",
+    accentColor: "#3b82f6",
+    accentLight: "#f0f9ff",
+    accentBorder: "#bfdbfe",
+    ctaText: "Track Order",
+    ctaLink: "https://filstore.com.ng/contact",
+    messageLines: [
+      "Your order is now in transit and moving through the delivery network to your location!",
+      "We wanted to let you know that your package is making good progress and should be with you soon. Our delivery partners are working hard to get it to you safely and on time.",
+      "If you have any questions about your delivery or need to make any changes, please don't hesitate to reach out to us. We're here to help make this experience as smooth as possible.",
+      "Thank you for your patience and for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We can't wait for you to receive your order! &#128153;",
+    ],
+    plainMessage: () =>
+      `Your order is in transit and on its way to you!\nIt should arrive very soon. If you have any questions, please contact us.\nContact us: https://filstore.com.ng/contact`,
   },
   delivered: {
     subject: "Your FIL Order Has Been Delivered!",

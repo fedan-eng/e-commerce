@@ -88,14 +88,15 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: [
-      "Confirmed",
-      "Processed",
-      "Shipped",
-      "Delivered",
-      "Cancelled",
-      "Returned",
+      "confirmed",
+      "processing",
+      "shipped",
+      "intransit",
+      "delivered",
+      "cancelled",
+      "returned",
     ],
-    default: "Confirmed",
+    default: "confirmed",
   },
   statusHistory: [
     {

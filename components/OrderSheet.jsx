@@ -170,8 +170,14 @@ export default function OrderSheet() {
     Processing: "bg-[#ddeeff] text-[#0055cc]",
     Confirmed:  "bg-[#dcf3de] text-[#007c42]",
     Shipped:    "bg-[#e8e0ff] text-[#5500cc]",
+    InTransit:  "bg-[#dbeafe] text-[#1d4ed8]",
     Delivered:  "bg-[#dcf3de] text-[#004d2b]",
     Cancelled:  "bg-[#ffe0e0] text-[#cc0000]",
+  };
+
+  // Normalize status for display: "InTransit" -> "In Transit"
+  const normalizeStatus = (status) => {
+    return status?.replace(/([A-Z])/g, ' $1').trim();
   };
 
   const INQUIRY_TYPES = [
@@ -214,8 +220,8 @@ export default function OrderSheet() {
                         <div>
                           <p className="min-w-0 text-xs break-all line-clamp-1">{item.orderId}</p>
                           <p className="my-1 font-oswald text-sm line-clamp-1">{item.name}</p>
-                          <p className={`inline-block px-2 py-1 rounded-md text-[10px] ${statusStyles[item.status] || "bg-gray-100 text-gray-600"}`}>
-                            {item.status}
+                          <p className={`inline-block px-2 py-1 rounded-md text-[10px] ${statusStyles[item.status?.replace(/\s/g, "")] || "bg-gray-100 text-gray-600"}`}>
+                            {normalizeStatus(item.status)}
                           </p>
                         </div>
                       </div>
@@ -310,8 +316,8 @@ export default function OrderSheet() {
                           </div>
                           <div>
                             <p className="my-1 min-w-0 font-oswald text-sm line-clamp-1">{item.name}</p>
-                            <p className={`inline-block px-2 py-1 rounded-md text-[10px] ${statusStyles[selectedOrder.status] || "bg-gray-100 text-gray-600"}`}>
-                              {selectedOrder.status}
+                            <p className={`inline-block px-2 py-1 rounded-md text-[10px] ${statusStyles[selectedOrder.status?.replace(/\s/g, "")] || "bg-gray-100 text-gray-600"}`}>
+                              {normalizeStatus(selectedOrder.status)}
                             </p>
                           </div>
                         </div>

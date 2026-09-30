@@ -6,6 +6,7 @@ const defaultSteps = [
   { label: "Confirmed",  icon: FiCheck },
   { label: "Processing", icon: FiCheck },
   { label: "Shipped",    icon: FiCheck },
+  { label: "In Transit", icon: FiCheck },
   { label: "Delivered",  icon: FiCheck },
 ];
 
@@ -15,9 +16,10 @@ const CANCELLED_STATUSES = ["Cancelled", "cancelled"];
 // Map any casing variant → canonical label used in defaultSteps
 const NORMALISE = {
   confirmed:  "Confirmed",
-  processed:  "Processing", // "Processed" from old data → maps to Processing step
   processing: "Processing",
   shipped:    "Shipped",
+  intransit:  "In Transit",
+  "in-transit": "In Transit", // Legacy support for old data
   delivered:  "Delivered",
   cancelled:  "Cancelled",
 };

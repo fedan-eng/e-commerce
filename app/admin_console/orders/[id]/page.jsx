@@ -5,22 +5,15 @@ import { Metadata } from "next";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
-const STATUS_COLORS = {
-  confirmed:  "#e8c46a",
-  pending:    "#e8c46a",
-  processing: "#6ab4e8",
-  processed:  "#6ab4e8",
-  shipped:    "#a06ae8",
-  delivered:  "#6ae8a0",
-  cancelled:  "#e86a6a",
-};
-
-// The canonical progression shown in the timeline
-const TIMELINE_STEPS = ["Confirmed", "Processing", "Shipped", "Delivered"];
-const ALL_STATUSES   = ["Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"];
-
-const getStatusColor = (s) => STATUS_COLORS[s?.toLowerCase()] || "#fff";
+import {
+  STATUS_COLORS,
+  TIMELINE_STEPS,
+  ALL_STATUSES,
+  normalizeStatusKey,
+  matchStatusLabel,
+  getStatusColor,
+  shortId,
+} from "@/lib/orderStatus";
 
 const getTotal = (order) => {
   if (order.total    != null) return parseFloat(order.total).toFixed(2);
@@ -44,9 +37,9 @@ function StatusBadge({ status }) {
 
 // Horizontal step timeline (matches reference screenshot style)
 function OrderTimeline({ currentStatus }) {
-  const norm        = currentStatus?.toLowerCase();
+  const norm        = normalizeStatusKey(currentStatus);
   const isCancelled = norm === "cancelled";
-  const stepIdx     = TIMELINE_STEPS.findIndex(s => s.toLowerCase() === norm);
+  const stepIdx     = TIMELINE_STEPS.findIndex(s => normalizeStatusKey(s) === norm);
 
   const steps = isCancelled
     ? [...TIMELINE_STEPS, "Cancelled"]
@@ -58,7 +51,7 @@ function OrderTimeline({ currentStatus }) {
       <div className="absolute top-[14px] left-0 right-0 h-px bg-[#1e1e1e] z-0" />
 
       {steps.map((s, i) => {
-        const key        = s.toLowerCase();
+        const key        = normalizeStatusKey(s);
         const color      = STATUS_COLORS[key] || "#fff";
         const isActive   = key === norm;
         const isPast     = !isCancelled && stepIdx > i;
@@ -117,11 +110,16 @@ export default function AdminOrderDetailPage() {
   const [error,   setError]   = useState(null);
 
   useEffect(() => {
-    fetch(`/api/orders/${id}`)
+    fetch(`/api/orders/${id}`, { cache: "no-store" })
       .then(r => r.json())
       .then(data => {
         setOrder(data.order);
-        setStatus(data.order?.status || "Confirmed");
+        setStatus(matchStatusLabel(data.order?.status));
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch order:", err);
+        setError("Failed to load order");
         setLoading(false);
       });
   }, [id]);
@@ -135,7 +133,9 @@ export default function AdminOrderDetailPage() {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setOrder(prev => ({ ...prev, status }));
+        const data = await res.json();
+        setOrder(data.order);
+        setStatus(matchStatusLabel(data.order?.status));
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
       } else {
@@ -152,7 +152,7 @@ export default function AdminOrderDetailPage() {
   if (loading) return <div className="text-[#444] text-[13px] pt-10 font-mono">Loading order…</div>;
   if (!order)  return <div className="text-[#e86a6a] text-[13px] pt-10 font-mono">Order not found.</div>;
 
-  const norm = order.status?.toLowerCase();
+  const norm = normalizeStatusKey(order.status);
 
   return (
     <div className="w-full max-w-[1000px]">
@@ -173,7 +173,7 @@ export default function AdminOrderDetailPage() {
           <div>
             <div className="text-[10px] tracking-[.2em] text-[#444] uppercase mb-1">Order detail</div>
             <h1 className="text-xl font-bold text-[#e8e8e8] font-mono break-all">
-              Order details (#{String(order._id).slice(-9).toUpperCase()})
+              Order details (#{shortId(order._id)})
             </h1>
           </div>
           <StatusBadge status={order.status} />
@@ -190,7 +190,7 @@ export default function AdminOrderDetailPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
             <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-1">Order number</div>
-            <div className="text-[13px] text-[#e8c46a] font-mono">#{String(order._id).slice(-9).toUpperCase()}</div>
+            <div className="text-[13px] text-[#e8c46a] font-mono">#{shortId(order._id)}</div>
           </div>
           <div>
             <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-1">Order date</div>
@@ -394,13 +394,14 @@ export default function AdminOrderDetailPage() {
               value={status}
               onChange={e => setStatus(e.target.value)}
               style={{
-                borderColor: (STATUS_COLORS[status?.toLowerCase()] || "#333") + "55",
-                color:        STATUS_COLORS[status?.toLowerCase()] || "#888",
+                borderColor: (STATUS_COLORS[normalizeStatusKey(status)] || "#333") + "55",
+                color:        STATUS_COLORS[normalizeStatusKey(status)] || "#888",
               }}
               className="w-full bg-[#0a0a0a] border rounded-xl px-3 py-2.5 text-[12px] uppercase cursor-pointer outline-none mb-3 font-mono"
             >
+              <option value="" disabled>Select status</option>
               {ALL_STATUSES.map(s => (
-                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[s.toLowerCase()] || "#888" }}>{s}</option>
+                <option key={s} value={s} style={{ background: "#111", color: STATUS_COLORS[normalizeStatusKey(s)] || "#888" }}>{s}</option>
               ))}
             </select>
 
@@ -412,13 +413,13 @@ export default function AdminOrderDetailPage() {
 
             <button
               onClick={updateStatus}
-              disabled={saving || status?.toLowerCase() === order.status?.toLowerCase()}
+              disabled={saving || normalizeStatusKey(status) === normalizeStatusKey(order.status)}
               className={`w-full py-3 border-none rounded-xl text-[11px] tracking-[.12em] uppercase font-bold cursor-pointer transition-all font-mono
                 ${saved
                   ? "bg-[#6ae8a022] text-[#6ae8a0]"
                   : saving
                     ? "bg-[#1a1a1a] text-[#333] cursor-default"
-                    : status?.toLowerCase() === order.status?.toLowerCase()
+                    : normalizeStatusKey(status) === normalizeStatusKey(order.status)
                       ? "bg-[#e8c46a] text-[#0a0a0a] opacity-30 cursor-default"
                       : "bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#d4b05e]"
                 }`}

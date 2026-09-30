@@ -1,23 +1,24 @@
 // app/admin_console/orders/page.jsx
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import AlertModal from "@/components/AlertModal";
 import Image from "next/image";
 import { Suspense } from "react";
 
 const STATUS_COLORS = {
   confirmed:  { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
   processing: { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
-  processed:  { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
   shipped:    { text: "text-[#a06ae8]", bg: "bg-[#a06ae812]", border: "border-[#a06ae833]", hex: "#a06ae8" },
+  intransit:  { text: "text-[#3b82f6]", bg: "bg-[#3b82f612]", border: "border-[#3b82f633]", hex: "#3b82f6" },
   delivered:  { text: "text-[#6ae8a0]", bg: "bg-[#6ae8a012]", border: "border-[#6ae8a033]", hex: "#6ae8a0" },
   cancelled:  { text: "text-[#e86a6a]", bg: "bg-[#e86a6a12]", border: "border-[#e86a6a33]", hex: "#e86a6a" },
   pending:    { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
 };
 
-const ALL_STATUSES       = ["all", "Confirmed", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
-const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "Delivered", "Cancelled"];
+const ALL_STATUSES       = ["all", "Confirmed", "Pending", "Processing", "Shipped", "In Transit", "Delivered", "Cancelled"];
+const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "In Transit", "Delivered", "Cancelled"];
 const DAYS_OPTIONS       = [
   { label: "All time",      value: "" },
   { label: "Last 7 days",   value: "7" },
@@ -31,12 +32,13 @@ const STAT_CARDS = [
   { label: "Confirmed",       key: "confirmed", color: "#e8c46a" },
   { label: "Processing",     key: "processing", color: "#6ab4e8" },
   { label: "Shipped",         key: "shipped",   color: "#a06ae8" },
+  { label: "In Transit",     key: "intransit", color: "#3b82f6" },
   { label: "Delivered",       key: "delivered", color: "#6ae8a0" },
   { label: "Cancelled",       key: "cancelled", color: "#e86a6a" },
 ];
 
 function getStatusStyle(k) {
-  return STATUS_COLORS[k?.toLowerCase()] || { text: "text-[#888]", bg: "bg-[#88888812]", border: "border-[#88888833]", hex: "#888" };
+  return STATUS_COLORS[k?.toLowerCase().replace(/\s/g, "")] || { text: "text-[#888]", bg: "bg-[#88888812]", border: "border-[#88888833]", hex: "#888" };
 }
 
 function StatusBadge({ status }) {
@@ -58,12 +60,13 @@ function AdminOrdersPage() {
   const [updating,     setUpdating]     = useState(null);
   const [orders,       setOrders]       = useState([]);
   const [expanded,     setExpanded]     = useState({});
-  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 });
+  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, processing: 0, shipped: 0, intransit: 0, delivered: 0, cancelled: 0 });
   const [page,         setPage]         = useState(Number(searchParams.get("page")) || 1);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
   const [search,       setSearch]       = useState(searchParams.get("search") || "");
   const [days,         setDays]         = useState(searchParams.get("days") || "");
+  const [alertModal,   setAlertModal]   = useState({ show: false, message: "" });
 
   // Sync URL params from state - single source of truth
   useEffect(() => {
@@ -84,19 +87,26 @@ function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
-    if (statusFilter !== "all") params.append("status", statusFilter);
-    if (search) params.append("search", search);
-    if (days) params.append("days", days);
-    const res = await fetch(`/api/admin/orders?${params}`);
-    const data = await res.json();
-    console.log("Frontend - API Response:", data);
-    console.log("Frontend - Stats from API:", data.stats);
-    setOrders(data.orders || []);
-    setTotalPages(data.totalPages || 1);
-    setTotal(data.total || 0);
-    if (data.stats) setStats(data.stats);
-    setLoading(false);
+    try {
+      const params = new URLSearchParams({ page, limit: 15, _t: Date.now() });
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (search) params.append("search", search);
+      if (days) params.append("days", days);
+      const res = await fetch(`/api/admin/orders?${params}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setOrders(data.orders || []);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
+      if (data.stats) setStats(data.stats);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+      setAlertModal({ show: true, message: "Failed to load orders. Please try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
@@ -133,9 +143,14 @@ function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
-        // Re-fetch the current view - this already sets orders, stats, total — everything
         await fetchOrders();
+      } else {
+        const data = await res.json();
+        setAlertModal({ show: true, message: `Failed to update status: ${data.message || "Unknown error"}` });
       }
+    } catch (err) {
+      console.error("Status update error:", err);
+      setAlertModal({ show: true, message: "Network error while updating status" });
     } finally {
       setUpdating(null);
     }
@@ -380,8 +395,8 @@ function AdminOrdersPage() {
                             <select
                               value={
                                 ALL_ORDER_STATUSES.find(
-                                  s => s.toLowerCase() === order.status?.toLowerCase()
-                                ) || order.status
+                                  s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
+                                ) || order.status.replace(/([A-Z])/g, ' $1').trim()
                               }
                               onChange={e => updateStatus(order._id, e.target.value)}
                               style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
@@ -492,8 +507,8 @@ function AdminOrdersPage() {
                       <select
                         value={
                           ALL_ORDER_STATUSES.find(
-                            s => s.toLowerCase() === order.status?.toLowerCase()
-                          ) || order.status
+                            s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
+                          ) || order.status.replace(/([A-Z])/g, ' $1').trim()
                         }
                         onChange={e => updateStatus(order._id, e.target.value)}
                         style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
@@ -517,6 +532,13 @@ function AdminOrdersPage() {
             <Pagination />
           </div>
         </>
+      )}
+
+      {alertModal.show && (
+        <AlertModal
+          message={alertModal.message}
+          onClose={() => setAlertModal({ show: false, message: "" })}
+        />
       )}
     </div>
   );
