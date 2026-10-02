@@ -339,8 +339,8 @@ export async function POST(req) {
         paymentMethod: orderData.paymentMethod,
         paymentReference: orderData.paymentReference,
         paymentStatus: orderData.paymentStatus,
-        status: "Confirmed",
-        statusHistory: [{ status: "Confirmed", date: new Date() }],
+        status: "confirmed",
+        statusHistory: [{ status: "confirmed", date: new Date() }],
         gaClientId: orderData.gaClientId, // Store GA client_id
       });
 

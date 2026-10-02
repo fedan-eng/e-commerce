@@ -8,43 +8,103 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 const STATUS_COLORS = {
-  confirmed:  { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
-  processing: { text: "text-[#6ab4e8]", bg: "bg-[#6ab4e812]", border: "border-[#6ab4e833]", hex: "#6ab4e8" },
-  shipped:    { text: "text-[#a06ae8]", bg: "bg-[#a06ae812]", border: "border-[#a06ae833]", hex: "#a06ae8" },
-  intransit:  { text: "text-[#3b82f6]", bg: "bg-[#3b82f612]", border: "border-[#3b82f633]", hex: "#3b82f6" },
-  delivered:  { text: "text-[#6ae8a0]", bg: "bg-[#6ae8a012]", border: "border-[#6ae8a033]", hex: "#6ae8a0" },
-  cancelled:  { text: "text-[#e86a6a]", bg: "bg-[#e86a6a12]", border: "border-[#e86a6a33]", hex: "#e86a6a" },
-  pending:    { text: "text-[#e8c46a]", bg: "bg-[#e8c46a12]", border: "border-[#e8c46a33]", hex: "#e8c46a" },
+  confirmed: {
+    text: "text-[#e8c46a]",
+    bg: "bg-[#e8c46a12]",
+    border: "border-[#e8c46a33]",
+    hex: "#e8c46a",
+  },
+  processing: {
+    text: "text-[#6ab4e8]",
+    bg: "bg-[#6ab4e812]",
+    border: "border-[#6ab4e833]",
+    hex: "#6ab4e8",
+  },
+  shipped: {
+    text: "text-[#a06ae8]",
+    bg: "bg-[#a06ae812]",
+    border: "border-[#a06ae833]",
+    hex: "#a06ae8",
+  },
+  intransit: {
+    text: "text-[#3b82f6]",
+    bg: "bg-[#3b82f612]",
+    border: "border-[#3b82f633]",
+    hex: "#3b82f6",
+  },
+  delivered: {
+    text: "text-[#6ae8a0]",
+    bg: "bg-[#6ae8a012]",
+    border: "border-[#6ae8a033]",
+    hex: "#6ae8a0",
+  },
+  cancelled: {
+    text: "text-[#e86a6a]",
+    bg: "bg-[#e86a6a12]",
+    border: "border-[#e86a6a33]",
+    hex: "#e86a6a",
+  },
+  pending: {
+    text: "text-[#e8c46a]",
+    bg: "bg-[#e8c46a12]",
+    border: "border-[#e8c46a33]",
+    hex: "#e8c46a",
+  },
 };
 
-const ALL_STATUSES       = ["all", "Confirmed", "Pending", "Processing", "Shipped", "In Transit", "Delivered", "Cancelled"];
-const ALL_ORDER_STATUSES = ["Processing", "Confirmed", "Shipped", "In Transit", "Delivered", "Cancelled"];
-const DAYS_OPTIONS       = [
-  { label: "All time",      value: "" },
-  { label: "Last 7 days",   value: "7" },
-  { label: "Last 14 days",  value: "14" },
-  { label: "Last 30 days",  value: "30" },
-  { label: "Last 90 days",  value: "90" },
+const ALL_STATUSES = [
+  "all",
+  "Confirmed",
+  "Pending",
+  "Processing",
+  "Shipped",
+  "In Transit",
+  "Delivered",
+  "Cancelled",
+];
+const ALL_ORDER_STATUSES = [
+  "Processing",
+  "Confirmed",
+  "Shipped",
+  "In Transit",
+  "Delivered",
+  "Cancelled",
+];
+const DAYS_OPTIONS = [
+  { label: "All time", value: "" },
+  { label: "Last 7 days", value: "7" },
+  { label: "Last 14 days", value: "14" },
+  { label: "Last 30 days", value: "30" },
+  { label: "Last 90 days", value: "90" },
 ];
 
 const STAT_CARDS = [
-  { label: "Total orders",    key: "total",     color: "#e8e8e8" },
-  { label: "Confirmed",       key: "confirmed", color: "#e8c46a" },
-  { label: "Processing",     key: "processing", color: "#6ab4e8" },
-  { label: "Shipped",         key: "shipped",   color: "#a06ae8" },
-  { label: "In Transit",     key: "intransit", color: "#3b82f6" },
-  { label: "Delivered",       key: "delivered", color: "#6ae8a0" },
-  { label: "Cancelled",       key: "cancelled", color: "#e86a6a" },
+  { label: "Total orders", key: "total", color: "#e8e8e8" },
+  { label: "Confirmed", key: "confirmed", color: "#e8c46a" },
+  { label: "Processing", key: "processing", color: "#6ab4e8" },
+  { label: "Shipped", key: "shipped", color: "#a06ae8" },
+  { label: "In Transit", key: "intransit", color: "#3b82f6" },
+  { label: "Delivered", key: "delivered", color: "#6ae8a0" },
+  { label: "Cancelled", key: "cancelled", color: "#e86a6a" },
 ];
 
 function getStatusStyle(k) {
-  return STATUS_COLORS[k?.toLowerCase().replace(/\s/g, "")] || { text: "text-[#888]", bg: "bg-[#88888812]", border: "border-[#88888833]", hex: "#888" };
+  return (
+    STATUS_COLORS[k?.toLowerCase().replace(/\s/g, "")] || {
+      text: "text-[#888]",
+      bg: "bg-[#88888812]",
+      border: "border-[#88888833]",
+      hex: "#888",
+    }
+  );
 }
 
 function StatusBadge({ status }) {
   const ss = getStatusStyle(status?.toLowerCase());
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-[.08em] uppercase border ${ss.text} ${ss.bg} ${ss.border}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-[.08em] uppercase border ${ss.text} ${ss.bg} ${ss.border}`}
+    >
       {status}
     </span>
   );
@@ -52,21 +112,33 @@ function StatusBadge({ status }) {
 
 function AdminOrdersPage() {
   const searchParams = useSearchParams();
-  const router       = useRouter();
+  const router = useRouter();
 
-  const [loading,      setLoading]      = useState(true);
-  const [totalPages,   setTotalPages]   = useState(1);
-  const [total,        setTotal]        = useState(0);
-  const [updating,     setUpdating]     = useState(null);
-  const [orders,       setOrders]       = useState([]);
-  const [expanded,     setExpanded]     = useState({});
-  const [stats,        setStats]        = useState({ total: 0, confirmed: 0, processing: 0, shipped: 0, intransit: 0, delivered: 0, cancelled: 0 });
-  const [page,         setPage]         = useState(Number(searchParams.get("page")) || 1);
-  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
-  const [searchInput,  setSearchInput]  = useState(searchParams.get("search") || "");
-  const [search,       setSearch]       = useState(searchParams.get("search") || "");
-  const [days,         setDays]         = useState(searchParams.get("days") || "");
-  const [alertModal,   setAlertModal]   = useState({ show: false, message: "" });
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [updating, setUpdating] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [expanded, setExpanded] = useState({});
+  const [stats, setStats] = useState({
+    total: 0,
+    confirmed: 0,
+    processing: 0,
+    shipped: 0,
+    intransit: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "all",
+  );
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") || "",
+  );
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [days, setDays] = useState(searchParams.get("days") || "");
+  const [alertModal, setAlertModal] = useState({ show: false, message: "" });
 
   // Sync URL params from state - single source of truth
   useEffect(() => {
@@ -77,9 +149,10 @@ function AdminOrdersPage() {
     if (page > 1) params.set("page", page);
     const qs = params.toString();
     const newUrl = qs ? `/admin_console/orders?${qs}` : "/admin_console/orders";
-    
+
     // Only navigate if URL actually changed
-    const currentUrl = window.location.pathname + (window.location.search || "");
+    const currentUrl =
+      window.location.pathname + (window.location.search || "");
     if (currentUrl !== newUrl) {
       router.replace(newUrl, { scroll: false });
     }
@@ -103,13 +176,18 @@ function AdminOrdersPage() {
       if (data.stats) setStats(data.stats);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setAlertModal({ show: true, message: "Failed to load orders. Please try again." });
+      setAlertModal({
+        show: true,
+        message: "Failed to load orders. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchOrders(); }, [page, statusFilter, search, days]);
+  useEffect(() => {
+    fetchOrders();
+  }, [page, statusFilter, search, days]);
 
   const submitSearch = () => {
     const v = searchInput.trim();
@@ -132,7 +210,8 @@ function AdminOrdersPage() {
   const changePage = (p) => {
     setPage(p);
   };
-  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleExpand = (id) =>
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const updateStatus = async (orderId, newStatus) => {
     setUpdating(orderId);
@@ -146,74 +225,98 @@ function AdminOrdersPage() {
         await fetchOrders();
       } else {
         const data = await res.json();
-        setAlertModal({ show: true, message: `Failed to update status: ${data.message || "Unknown error"}` });
+        setAlertModal({
+          show: true,
+          message: `Failed to update status: ${data.message || "Unknown error"}`,
+        });
       }
     } catch (err) {
       console.error("Status update error:", err);
-      setAlertModal({ show: true, message: "Network error while updating status" });
+      setAlertModal({
+        show: true,
+        message: "Network error while updating status",
+      });
     } finally {
       setUpdating(null);
     }
   };
 
   const getTotal = (order) => {
-    if (order.total    != null) return parseFloat(order.total).toLocaleString();
-    if (order.subTotal != null) return parseFloat(order.subTotal).toLocaleString();
+    if (order.total != null) return parseFloat(order.total).toLocaleString();
+    if (order.subTotal != null)
+      return parseFloat(order.subTotal).toLocaleString();
     return (order.items || [])
-      .reduce((acc, i) => acc + parseFloat(i.price || 0) * parseFloat(i.quantity || 1), 0)
+      .reduce(
+        (acc, i) =>
+          acc + parseFloat(i.price || 0) * parseFloat(i.quantity || 1),
+        0,
+      )
       .toLocaleString();
   };
 
-  const Pagination = () => totalPages > 1 ? (
-    <div className="flex justify-between items-center px-5 py-3 border-t border-[#1a1a1a]">
-      <span className="text-[11px] text-[#444] font-mono">
-        Page {page} of {totalPages} &middot; {total} orders
-      </span>
-      <div className="flex gap-1.5">
-        <button
-          onClick={() => changePage(Math.max(1, page - 1))}
-          disabled={page === 1}
-          className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
-            ${page === 1
-              ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
-              : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
+  const Pagination = () =>
+    totalPages > 1 ? (
+      <div className="flex justify-between items-center px-5 py-3 border-t border-[#1a1a1a]">
+        <span className="text-[11px] text-[#444] font-mono">
+          Page {page} of {totalPages} &middot; {total} orders
+        </span>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => changePage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
+            ${
+              page === 1
+                ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
+                : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
             }`}
-        >
-          ← Prev
-        </button>
-        <button
-          onClick={() => changePage(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages}
-          className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
-            ${page === totalPages
-              ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
-              : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
+          >
+            ← Prev
+          </button>
+          <button
+            onClick={() => changePage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
+            ${
+              page === totalPages
+                ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
+                : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
             }`}
-        >
-          Next →
-        </button>
+          >
+            Next →
+          </button>
+        </div>
       </div>
-    </div>
-  ) : null;
+    ) : null;
 
   return (
     <div className="w-full max-w-full">
-
       {/* Page header */}
       <div className="mb-6">
-        <div className="text-[10px] tracking-[.2em] text-[#fff] uppercase mb-1">Management</div>
+        <div className="text-[10px] tracking-[.2em] text-[#fff] uppercase mb-1">
+          Management
+        </div>
         <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">
           Orders
-          <span className="text-[#3a3a3a] text-base font-normal ml-2">({total})</span>
+          <span className="text-[#3a3a3a] text-base font-normal ml-2">
+            ({total})
+          </span>
         </h1>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {STAT_CARDS.map(({ label, key, color }) => (
-          <div key={key} className="bg-[#111] border border-[#1a1a1a] rounded-xl p-4">
-            <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-2">{label}</div>
-            <div className="text-2xl font-bold" style={{ color }}>{stats[key] ?? "—"}</div>
+          <div
+            key={key}
+            className="bg-[#111] border border-[#1a1a1a] rounded-xl p-4"
+          >
+            <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-2">
+              {label}
+            </div>
+            <div className="text-2xl font-bold" style={{ color }}>
+              {stats[key] ?? "—"}
+            </div>
           </div>
         ))}
       </div>
@@ -221,25 +324,46 @@ function AdminOrdersPage() {
       {/* Filters */}
       <div className="bg-[#111] border border-[#1a1a1a] rounded-xl p-4 mb-4">
         <div className="flex flex-col gap-3">
-
           {/* Search row */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#444]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#444]"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input
                 type="text"
                 value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submitSearch()}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && submitSearch()}
                 placeholder="Search by order ID, email or name…"
                 className="w-full bg-[#0d0d0d] border border-[#1e1e1e] rounded-lg pl-9 pr-9 py-2.5 text-[12px] text-[#ccc] placeholder-[#333] outline-none focus:border-[#2a2a2a] font-mono"
               />
               {searchInput && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888]">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888]"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               )}
@@ -256,26 +380,33 @@ function AdminOrdersPage() {
           <div className="flex flex-wrap items-center gap-2">
             <select
               value={days}
-              onChange={e => handleDays(e.target.value)}
+              onChange={(e) => handleDays(e.target.value)}
               className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-lg px-3 py-2 text-[12px] text-[#888] outline-none cursor-pointer font-mono"
             >
-              {DAYS_OPTIONS.map(o => (
-                <option key={o.value} value={o.value} style={{ background: "#111" }}>{o.label}</option>
+              {DAYS_OPTIONS.map((o) => (
+                <option
+                  key={o.value}
+                  value={o.value}
+                  style={{ background: "#111" }}
+                >
+                  {o.label}
+                </option>
               ))}
             </select>
 
             <div className="flex gap-1.5 flex-wrap">
-              {ALL_STATUSES.map(s => {
+              {ALL_STATUSES.map((s) => {
                 const active = statusFilter === s;
-                const ss     = getStatusStyle(s.toLowerCase());
+                const ss = getStatusStyle(s.toLowerCase());
                 return (
                   <button
                     key={s}
                     onClick={() => handleStatus(s)}
                     className={`px-3 py-1.5 rounded-full text-[10px] tracking-[.08em] uppercase cursor-pointer border transition-all font-mono whitespace-nowrap
-                      ${active
-                        ? `${ss.text} ${ss.bg} ${ss.border}`
-                        : "text-[#fff] bg-transparent border-[#1e1e1e] hover:border-[#333] hover:text-[#777]"
+                      ${
+                        active
+                          ? `${ss.text} ${ss.bg} ${ss.border}`
+                          : "text-[#fff] bg-transparent border-[#1e1e1e] hover:border-[#333] hover:text-[#777]"
                       }`}
                   >
                     {s}
@@ -290,20 +421,46 @@ function AdminOrdersPage() {
             <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[#1a1a1a]">
               {search && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#e8c46a12] border border-[#e8c46a33] rounded-full text-[10px] text-[#e8c46a] font-mono">
-                  {search.length > 20 ? search.slice(0, 20) + "…" : `"${search}"`}
-                  <button onClick={clearSearch} className="hover:text-white cursor-pointer">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  {search.length > 20
+                    ? search.slice(0, 20) + "…"
+                    : `"${search}"`}
+                  <button
+                    onClick={clearSearch}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <svg
+                      width="9"
+                      height="9"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </span>
               )}
               {days && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#e8c46a12] border border-[#e8c46a33] rounded-full text-[10px] text-[#e8c46a] font-mono">
-                  {DAYS_OPTIONS.find(d => d.value === days)?.label}
-                  <button onClick={() => handleDays("")} className="hover:text-white cursor-pointer">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  {DAYS_OPTIONS.find((d) => d.value === days)?.label}
+                  <button
+                    onClick={() => handleDays("")}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <svg
+                      width="9"
+                      height="9"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </span>
@@ -341,13 +498,28 @@ function AdminOrdersPage() {
           {/* ── Desktop table ── */}
           <div className="hidden md:block bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse" style={{ minWidth: 700 }}>
+              <table
+                className="w-full border-collapse"
+                style={{ minWidth: 700 }}
+              >
                 <thead>
                   <tr className="border-b border-[#1a1a1a]">
                     {/* expand toggle col */}
                     <th className="w-10 px-4 py-3.5" />
-                    {["SN", "Order date", "Order number", "Customer email", "Order qty", "Total", "Status", "Action"].map(h => (
-                      <th key={h} className="px-4 py-3.5 text-left text-[10px] tracking-[.12em] text-[#3a3a3a] uppercase font-semibold whitespace-nowrap">
+                    {[
+                      "SN",
+                      "Order date",
+                      "Order number",
+                      "Customer email",
+                      "Order qty",
+                      "Total",
+                      "Status",
+                      "Action",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3.5 text-left text-[10px] tracking-[.12em] text-[#3a3a3a] uppercase font-semibold whitespace-nowrap"
+                      >
                         {h}
                       </th>
                     ))}
@@ -355,8 +527,8 @@ function AdminOrdersPage() {
                 </thead>
                 <tbody>
                   {orders.map((order, idx) => {
-                    const sKey  = order.status?.toLowerCase();
-                    const ss    = getStatusStyle(sKey);
+                    const sKey = order.status?.toLowerCase();
+                    const ss = getStatusStyle(sKey);
                     const isExp = expanded[order._id];
                     return (
                       <>
@@ -368,46 +540,111 @@ function AdminOrdersPage() {
                           {/* chevron */}
                           <td className="px-4 py-3.5 text-[#444]">
                             <svg
-                              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
-                              style={{ transform: isExp ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .2s" }}
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              style={{
+                                transform: isExp
+                                  ? "rotate(90deg)"
+                                  : "rotate(0deg)",
+                                transition: "transform .2s",
+                              }}
                             >
-                              <polyline points="9 18 15 12 9 6"/>
+                              <polyline points="9 18 15 12 9 6" />
                             </svg>
                           </td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#444] font-mono">{idx + 1 + (page - 1) * 15}</td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#666] whitespace-nowrap">
-                            {new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                          <td className="px-4 py-3.5 text-[12px] text-[#444] font-mono">
+                            {idx + 1 + (page - 1) * 15}
                           </td>
-                          <td className="px-4 py-3.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                            <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                          <td className="px-4 py-3.5 text-[12px] text-[#666] whitespace-nowrap">
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              },
+                            )}
+                          </td>
+                          <td
+                            className="px-4 py-3.5 whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Link
+                              href={`/admin_console/orders/${order._id}`}
+                              className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline"
+                            >
                               Order #{String(order._id).slice(-8).toUpperCase()}
                             </Link>
                           </td>
-                          <td className="px-4 py-3.5 max-w-[180px]" onClick={e => e.stopPropagation()}>
-                            {order.email
-                              ? <a href={`mailto:${order.email}`} className="text-[12px] text-[#6ab4e8] no-underline hover:underline truncate block">{order.email}</a>
-                              : <span className="text-[12px] text-[#444]">—</span>
-                            }
+                          <td
+                            className="px-4 py-3.5 max-w-[180px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {order.email ? (
+                              <a
+                                href={`mailto:${order.email}`}
+                                className="text-[12px] text-[#6ab4e8] no-underline hover:underline truncate block"
+                              >
+                                {order.email}
+                              </a>
+                            ) : (
+                              <span className="text-[12px] text-[#444]">—</span>
+                            )}
                           </td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#888]">{order.items?.length || 0}</td>
-                          <td className="px-4 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">₦{getTotal(order)}</td>
-                          <td className="px-4 py-3.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                          <td className="px-4 py-3.5 text-[12px] text-[#888]">
+                            {order.items?.length || 0}
+                          </td>
+                          <td className="px-4 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">
+                            ₦{getTotal(order)}
+                          </td>
+                          <td
+                            className="px-4 py-3.5 whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <select
                               value={
                                 ALL_ORDER_STATUSES.find(
-                                  s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
-                                ) || order.status.replace(/([A-Z])/g, ' $1').trim()
+                                  (s) =>
+                                    s.toLowerCase().replace(/[-\s]+/g, "") ===
+                                    order.status
+                                      ?.toLowerCase()
+                                      .replace(/[-\s]+/g, ""),
+                                ) ||
+                                order.status.replace(/([A-Z])/g, " $1").trim()
                               }
-                              onChange={e => updateStatus(order._id, e.target.value)}
-                              style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
+                              onChange={(e) =>
+                                updateStatus(order._id, e.target.value)
+                              }
+                              style={{
+                                background: ss.hex + "12",
+                                borderColor: ss.hex + "44",
+                                color: ss.hex,
+                              }}
                               className={`border rounded-lg px-2.5 py-1.5 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
                             >
-                              {ALL_ORDER_STATUSES.map(s => (
-                                <option key={s} value={s} style={{ background: "#111", color: getStatusStyle(s.toLowerCase()).hex }}>{s}</option>
+                              {ALL_ORDER_STATUSES.map((s) => (
+                                <option
+                                  key={s}
+                                  value={s}
+                                  style={{
+                                    background: "#111",
+                                    color: getStatusStyle(s.toLowerCase()).hex,
+                                  }}
+                                >
+                                  {s}
+                                </option>
                               ))}
                             </select>
                           </td>
-                          <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                          <td
+                            className="px-4 py-3.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Link
                               href={`/admin_console/orders/${order._id}`}
                               className="text-[11px] text-[#fff] no-underline px-3 py-1.5 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#3a3a3a] transition-all whitespace-nowrap font-mono"
@@ -419,41 +656,88 @@ function AdminOrdersPage() {
 
                         {/* Expanded items sub-table */}
                         {isExp && order.items?.length > 0 && (
-                          <tr key={`${order._id}-exp`} className="border-b border-[#161616]">
+                          <tr
+                            key={`${order._id}-exp`}
+                            className="border-b border-[#161616]"
+                          >
                             <td />
                             <td colSpan={8} className="px-4 py-3 bg-[#0d0d0d]">
-                              <table className="w-full border-collapse" style={{ minWidth: 500 }}>
+                              <table
+                                className="w-full border-collapse"
+                                style={{ minWidth: 500 }}
+                              >
                                 <thead>
                                   <tr className="border-b border-[#1a1a1a]">
-                                    {["SKU | ID", "Product", "Category", "Unit price", "Qty", "Status", "Action"].map(h => (
-                                      <th key={h} className="pb-2 pr-5 text-left text-[10px] tracking-[.1em] text-[#333] uppercase font-semibold whitespace-nowrap">{h}</th>
+                                    {[
+                                      "SKU | ID",
+                                      "Product",
+                                      "Category",
+                                      "Unit price",
+                                      "Qty",
+                                      "Status",
+                                      "Action",
+                                    ].map((h) => (
+                                      <th
+                                        key={h}
+                                        className="pb-2 pr-5 text-left text-[10px] tracking-[.1em] text-[#333] uppercase font-semibold whitespace-nowrap"
+                                      >
+                                        {h}
+                                      </th>
                                     ))}
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {order.items.map((item, i) => {
-                                    const iStatus = item.status?.toLowerCase() || sKey;
-                                    const iss     = getStatusStyle(iStatus);
+                                    const iStatus =
+                                      item.status?.toLowerCase() || sKey;
+                                    const iss = getStatusStyle(iStatus);
                                     return (
-                                      <tr key={i} className="border-b border-[#161616] last:border-0">
-                                        <td className="pt-2.5 pr-5 text-[11px] text-[#444] font-mono whitespace-nowrap">{item.sku || "—"}</td>
+                                      <tr
+                                        key={i}
+                                        className="border-b border-[#161616] last:border-0"
+                                      >
+                                        <td className="pt-2.5 pr-5 text-[11px] text-[#444] font-mono whitespace-nowrap">
+                                          {item.sku || "—"}
+                                        </td>
                                         <td className="pt-2.5 pr-5">
                                           <div className="flex items-center gap-2.5">
                                             {item.image && (
-                                              <Image src={item.image} alt="" width={32} height={32} className="w-8 h-8 rounded object-cover bg-[#1a1a1a] shrink-0" />
+                                              <Image
+                                                src={item.image}
+                                                alt=""
+                                                width={32}
+                                                height={32}
+                                                className="w-8 h-8 rounded object-cover bg-[#1a1a1a] shrink-0"
+                                              />
                                             )}
-                                            <span className="text-[12px] text-[#ccc] truncate max-w-[160px]">{item.name}</span>
+                                            <span className="text-[12px] text-[#ccc] truncate max-w-[160px]">
+                                              {item.name}
+                                            </span>
                                           </div>
                                         </td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#fff] whitespace-nowrap">{item.category || "—"}</td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888] whitespace-nowrap">₦{parseFloat(item.price).toLocaleString()}</td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888]">{item.quantity}</td>
+                                        <td className="pt-2.5 pr-5 text-[12px] text-[#fff] whitespace-nowrap">
+                                          {item.category || "—"}
+                                        </td>
+                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888] whitespace-nowrap">
+                                          ₦
+                                          {parseFloat(
+                                            item.price,
+                                          ).toLocaleString()}
+                                        </td>
+                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888]">
+                                          {item.quantity}
+                                        </td>
                                         <td className="pt-2.5 pr-5 whitespace-nowrap">
-                                          <StatusBadge status={item.status || order.status} />
+                                          <StatusBadge
+                                            status={item.status || order.status}
+                                          />
                                         </td>
                                         <td className="pt-2.5">
                                           {item.productId && (
-                                            <Link href={`/admin_console/products/${item.productId}`} className="text-[10px] text-[#444] hover:text-[#888] no-underline font-mono border border-[#1e1e1e] rounded px-2 py-1 whitespace-nowrap hover:border-[#333] transition-all">
+                                            <Link
+                                              href={`/admin_console/products/${item.productId}`}
+                                              className="text-[10px] text-[#444] hover:text-[#888] no-underline font-mono border border-[#1e1e1e] rounded px-2 py-1 whitespace-nowrap hover:border-[#333] transition-all"
+                                            >
                                               View details ↗
                                             </Link>
                                           )}
@@ -479,43 +763,76 @@ function AdminOrdersPage() {
           <div className="md:hidden flex flex-col gap-2.5 w-full">
             {orders.map((order, idx) => {
               const sKey = order.status?.toLowerCase();
-              const ss   = getStatusStyle(sKey);
+              const ss = getStatusStyle(sKey);
               return (
-                <div key={order._id} className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden">
+                <div
+                  key={order._id}
+                  className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden"
+                >
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div>
-                        <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                        <Link
+                          href={`/admin_console/orders/${order._id}`}
+                          className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline"
+                        >
                           Order #{String(order._id).slice(-8).toUpperCase()}
                         </Link>
                         <div className="text-[10px] text-[#444] mt-0.5 font-mono">
-                          {new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          {new Date(order.createdAt).toLocaleDateString(
+                            "en-GB",
+                            { day: "numeric", month: "short", year: "numeric" },
+                          )}
                         </div>
                       </div>
-                      <span className="text-[15px] font-bold text-[#e8e8e8] shrink-0">₦{getTotal(order)}</span>
+                      <span className="text-[15px] font-bold text-[#e8e8e8] shrink-0">
+                        ₦{getTotal(order)}
+                      </span>
                     </div>
 
                     {order.email && (
-                      <div className="text-[11px] text-[#6ab4e8] truncate mb-2">{order.email}</div>
+                      <div className="text-[11px] text-[#6ab4e8] truncate mb-2">
+                        {order.email}
+                      </div>
                     )}
 
                     <div className="text-[11px] text-[#444] mb-3 font-mono">
-                      {order.items?.length || 0} item{order.items?.length !== 1 ? "s" : ""}
+                      {order.items?.length || 0} item
+                      {order.items?.length !== 1 ? "s" : ""}
                     </div>
 
                     <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a]">
                       <select
                         value={
                           ALL_ORDER_STATUSES.find(
-                            s => s.toLowerCase().replace(/[-\s]+/g, "") === order.status?.toLowerCase().replace(/[-\s]+/g, "")
-                          ) || order.status.replace(/([A-Z])/g, ' $1').trim()
+                            (s) =>
+                              s.toLowerCase().replace(/[-\s]+/g, "") ===
+                              order.status
+                                ?.toLowerCase()
+                                .replace(/[-\s]+/g, ""),
+                          ) || order.status.replace(/([A-Z])/g, " $1").trim()
                         }
-                        onChange={e => updateStatus(order._id, e.target.value)}
-                        style={{ background: ss.hex + "12", borderColor: ss.hex + "44", color: ss.hex }}
+                        onChange={(e) =>
+                          updateStatus(order._id, e.target.value)
+                        }
+                        style={{
+                          background: ss.hex + "12",
+                          borderColor: ss.hex + "44",
+                          color: ss.hex,
+                        }}
                         className={`flex-1 min-w-0 border rounded-lg px-2.5 py-2 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
                       >
-                        {ALL_ORDER_STATUSES.map(s => (
-                          <option key={s} value={s} style={{ background: "#111", color: getStatusStyle(s.toLowerCase()).hex }}>{s}</option>
+                        {ALL_ORDER_STATUSES.map((s) => (
+                          <option
+                            key={s}
+                            value={s}
+                            style={{
+                              background: "#111",
+                              color: getStatusStyle(s.toLowerCase()).hex,
+                            }}
+                          >
+                            {s}
+                          </option>
                         ))}
                       </select>
                       <Link
@@ -546,7 +863,9 @@ function AdminOrdersPage() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="text-[#333] p-10 text-[13px]">Loading…</div>}>
+    <Suspense
+      fallback={<div className="text-[#333] p-10 text-[13px]">Loading…</div>}
+    >
       <AdminOrdersPage />
     </Suspense>
   );
