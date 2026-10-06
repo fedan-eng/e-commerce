@@ -1,5 +1,6 @@
 import React from "react";
-import Hero from "../components/Hero";
+import Hero1 from "../components/landing/Hero1";
+import Hero2 from "../components/landing/Hero2";
 import About from "../components/About";
 import ProductCategory from "../components/ProductCategory";
 import BestSellerSection from "../components/BestSellerSection";
@@ -190,7 +191,8 @@ const page = () => {
         }}
       />
 
-      <Hero />
+      <Hero1 />
+      <Hero2 />
       <About />
       <ProductCategory />
       <BestSellerSection />
