@@ -1,6 +1,9 @@
 import React from "react";
 import Hero1 from "../components/landing/Hero1";
 import Hero2 from "../components/landing/Hero2";
+import Hero3 from "../components/landing/Hero3";
+import TopProducts from "../components/landing/TopProducts";
+import MustHave from "../components/landing/MustHave";
 import About from "../components/About";
 import ProductCategory from "../components/ProductCategory";
 import BestSellerSection from "../components/BestSellerSection";
@@ -193,6 +196,9 @@ const page = () => {
 
       <Hero1 />
       <Hero2 />
+      <TopProducts/>
+      <MustHave />
+      <Hero3 />
       <About />
       <ProductCategory />
       <BestSellerSection />
