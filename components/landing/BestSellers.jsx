@@ -7,7 +7,7 @@ import Link from 'next/link';
 const categories = ['Power Banks', 'Earbuds', 'Chargers', 'Lifestyle'];
 
 const categoryMapping = {
-  'Power Banks': 'Power Banks',
+  'Power Banks': 'Power Bank',
   'Earbuds': 'Wearables',
   'Chargers': 'Chargers',
   'Lifestyle': 'Lifestyle',
@@ -56,7 +56,9 @@ export default function BestSellers() {
           params.append('categories', mappedCategory);
         }
         
-        const res = await fetch(`/api/products?${params.toString()}`);
+        const res = await fetch(`/api/products?${params.toString()}`, {
+          cache: 'no-store',
+        });
         if (!res.ok) throw new Error('Failed to fetch products');
         
         const data = await res.json();

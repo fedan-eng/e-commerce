@@ -137,5 +137,11 @@ export async function GET(req) {
       limit,
       totalPages: Math.ceil(totalCount / limit),
     },
+  }, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
   });
 }
