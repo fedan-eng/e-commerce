@@ -1,18 +1,14 @@
 import React from "react";
-import Hero1 from "../components/landing/Hero1";
-import Hero2 from "../components/landing/Hero2";
-import Hero3 from "../components/landing/Hero3";
-import TopProducts from "../components/landing/TopProducts";
-import MustHave from "../components/landing/MustHave";
-import Promotion from "../components/landing/Promotion";
-import Reviews from "../components/landing/Reviews";
-import Creators from "../components/landing/Creators";
-
-import About from "../components/About";
-import ProductCategory from "../components/ProductCategory";
-import BestSellerSection from "../components/BestSellerSection";
-import VideoSection from "../components/VideoSection";
-import FAQ from "./../components/FAQ";
+import Hero1 from "@/components/landing/Hero1";
+import Hero2 from "@/components/landing/Hero2";
+import Hero3 from "@/components/landing/Hero3";
+import TopProducts from "@/components/landing/TopProducts";
+import ShopBy from "@/components/landing/ShopBy";
+import BestSellers from "@/components/landing/BestSellers";
+import Promotion from "@/components/landing/Promotion";
+import Reviews from "@/components/landing/Reviews";
+import Creators from "@/components/landing/Creators";
+import FeaturedBlog from "@/components/landing/FeaturedBlog";
 
 export const metadata = {
   title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
@@ -200,17 +196,14 @@ const page = () => {
 
       <Hero1 />
       <Hero2 />
+      <ShopBy/>
       <TopProducts/>
-      <MustHave />
+      <BestSellers/>
       <Hero3 />
       <Promotion/>
       <Reviews/>
       <Creators/>
-      <About />
-      <ProductCategory />
-      <BestSellerSection />
-      <VideoSection />
-      <FAQ />
+      <FeaturedBlog/>
     </div>
   );
 };

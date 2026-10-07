@@ -4,7 +4,7 @@ import {
   Timer, 
   CalendarCheck, 
   CreditCard, 
-  Headphones, 
+  Headset,
   BadgeCheck, 
   BadgePercent 
 } from 'lucide-react';
@@ -32,7 +32,7 @@ const features = [
     id: 4,
     title: 'WE ARE HERE TO HELP',
     description: 'Contact our team via WhatsApp or live chat, 24/7.',
-    icon: Headphones,
+    icon: Headset,
   },
   {
     id: 5,

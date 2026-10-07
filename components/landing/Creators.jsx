@@ -79,7 +79,9 @@ export default function Creators() {
   const videoRefs = useRef({});
   const fullscreenVideoRef = useRef(null);
 
-  // Responsive cards count
+  const GAP_PX = 16; // Exact gap size in pixels
+
+  // Handle responsive visible card counts
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) setCardsToShow(1);
@@ -149,13 +151,13 @@ export default function Creators() {
           Your Faves Fave
         </h2>
 
-        {/* Carousel */}
+        {/* Carousel Container */}
         <div className="relative">
           
           {/* Left Arrow */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 sm:-translate-x-3 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
             aria-label="Previous"
           >
             <ChevronLeft size={20} strokeWidth={2} />
@@ -164,17 +166,19 @@ export default function Creators() {
           {/* Right Arrow */}
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 sm:translate-x-3 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
             aria-label="Next"
           >
             <ChevronRight size={20} strokeWidth={2} />
           </button>
 
-          {/* Track */}
-          <div className="overflow-hidden mx-2 sm:mx-4">
+          {/* Track Viewport */}
+          <div className="overflow-hidden">
             <motion.div
-              className="flex gap-3 md:gap-4"
-              animate={{ x: `-${active * (100 / cardsToShow)}%` }}
+              className="flex gap-4 items-start"
+              animate={{
+                x: `calc(-${active} * (100% + ${GAP_PX}px) / ${cardsToShow})`,
+              }}
               transition={{ type: "spring", stiffness: 180, damping: 24 }}
             >
               {items.map((item) => {
@@ -183,73 +187,73 @@ export default function Creators() {
                 return (
                   <div
                     key={item.id}
-                    className="relative flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 shadow-sm"
-                    style={{ width: `${100 / cardsToShow}%` }}
+                    className="relative flex-shrink-0 rounded-2xl overflow-hidden bg-black shadow-sm aspect-[9/16]"
+                    style={{
+                      width: `calc((100% - ${(cardsToShow - 1) * GAP_PX}px) / ${cardsToShow})`,
+                    }}
                   >
-                    <div className="relative w-full aspect-[9/16]">
-                      
-                      <video
-                        ref={(el) => {
-                          if (el) {
-                            videoRefs.current[item.id] = el;
-                            applyIOSInlineAttributes(el);
-                          }
-                        }}
-                        poster={item.poster}
-                        muted={isMuted}
-                        playsInline
-                        loop
-                        preload="metadata"
-                        className="absolute inset-0 w-full h-full object-cover"
+                    {/* Video element */}
+                    <video
+                      ref={(el) => {
+                        if (el) {
+                          videoRefs.current[item.id] = el;
+                          applyIOSInlineAttributes(el);
+                        }
+                      }}
+                      poster={item.poster}
+                      muted={isMuted}
+                      playsInline
+                      loop
+                      preload="metadata"
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => handlePlayClick(item)}
+                    >
+                      <source src={item.img} type="video/mp4" />
+                    </video>
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+
+                    {/* Play Button */}
+                    {!isPlaying && (
+                      <button
                         onClick={() => handlePlayClick(item)}
+                        className="absolute inset-0 m-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-black/60 hover:scale-105 transition-all z-10"
+                        aria-label="Play video"
                       >
-                        <source src={item.img} type="video/mp4" />
-                      </video>
+                        <Play size={22} className="text-white fill-white ml-0.5" />
+                      </button>
+                    )}
 
-                      {/* Bottom gradient */}
-                      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                    {/* Mute Button */}
+                    {isPlaying && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMuted((m) => !m);
+                        }}
+                        className="absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+                      >
+                        {isMuted ? (
+                          <VolumeX size={14} className="text-white" />
+                        ) : (
+                          <Volume2 size={14} className="text-white" />
+                        )}
+                      </button>
+                    )}
 
-                      {/* Center Play Button */}
-                      {!isPlaying && (
-                        <button
-                          onClick={() => handlePlayClick(item)}
-                          className="absolute inset-0 m-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-black/60 hover:scale-105 transition-all z-10"
-                          aria-label="Play video"
-                        >
-                          <Play size={22} className="text-white fill-white ml-0.5" />
-                        </button>
-                      )}
-
-                      {/* Mute */}
-                      {isPlaying && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsMuted((m) => !m);
-                          }}
-                          className="absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center"
-                        >
-                          {isMuted ? (
-                            <VolumeX size={14} className="text-white" />
-                          ) : (
-                            <Volume2 size={14} className="text-white" />
-                          )}
-                        </button>
-                      )}
-
-                      {/* Fullscreen */}
-                      {isPlaying && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsFullscreen(true);
-                          }}
-                          className="absolute bottom-3 left-3 z-10 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center"
-                        >
-                          <Maximize2 size={14} className="text-white" />
-                        </button>
-                      )}
-                    </div>
+                    {/* Fullscreen Button */}
+                    {isPlaying && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsFullscreen(true);
+                        }}
+                        className="absolute bottom-3 left-3 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
+                      >
+                        <Maximize2 size={14} className="text-white" />
+                      </button>
+                    )}
                   </div>
                 );
               })}
