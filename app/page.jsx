@@ -4,6 +4,10 @@ import Hero2 from "../components/landing/Hero2";
 import Hero3 from "../components/landing/Hero3";
 import TopProducts from "../components/landing/TopProducts";
 import MustHave from "../components/landing/MustHave";
+import Promotion from "../components/landing/Promotion";
+import Reviews from "../components/landing/Reviews";
+import Creators from "../components/landing/Creators";
+
 import About from "../components/About";
 import ProductCategory from "../components/ProductCategory";
 import BestSellerSection from "../components/BestSellerSection";
@@ -199,6 +203,9 @@ const page = () => {
       <TopProducts/>
       <MustHave />
       <Hero3 />
+      <Promotion/>
+      <Reviews/>
+      <Creators/>
       <About />
       <ProductCategory />
       <BestSellerSection />
