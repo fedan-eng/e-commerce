@@ -33,7 +33,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const pathname = usePathname();
 
-  // Cart animation context — gives us the ref to put on the cart icon
   const { cartIconRef } = useCartAnimationContext();
 
   const cartItems  = useSelector((state) => state.cart.items);
@@ -70,10 +69,6 @@ export default function Navbar() {
 
   if (noNavigationMenu) return null;
 
-  // ── Cart icon click handler ──────────────────────────────────────────────
-  // Opens sidebar on desktop, bottom sheet on mobile.
-  // Both components listen to the same Redux `cartUI.isOpen` flag
-  // and show/hide themselves based on screen size via Tailwind's `hidden md:flex`.
   const handleCartClick = (e) => {
     e.preventDefault();
     dispatch(toggleCart());
@@ -82,46 +77,61 @@ export default function Navbar() {
   return (
     <>
       <nav className="relative bg-white">
-        {/* Top green accent stripe */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#b8e8c8] via-[#7ed09a] to-[#b8e8c8]" />
+        {/* MATCHED BANNER: Replaced the gradient stripe with the text banner from your design */}
+        <div className="w-full bg-[#cbebc9] py-[8px] flex justify-center items-center px-4">
+          <span className="text-[#1a1a1a] text-[12px] font-medium text-center tracking-tight">
+            All deliveries in Lagos are free on Thursday but express deliveries are priced
+          </span>
+        </div>
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-5 nav:py-6">
+          {/* Centering Strategy: using flex-1 on the Left and Right containers forces the Middle container to absolute true center */}
+          <div className="flex items-center justify-between w-full py-4 nav:py-5">
+            
             {/* LEFT: Logo */}
-            <Link href="/" className="flex items-center flex-shrink-0">
-              <Image
-                width={64} height={30}
-                alt="FIL"
-                src="/fillogo.png"
-                priority
-                className="h-auto w-auto"
-              />
-            </Link>
+            <div className="flex-1 flex justify-start">
+              <Link href="/" className="flex items-center flex-shrink-0">
+                <Image
+                  width={64} height={30}
+                  alt="FIL"
+                  src="/fillogo.png"
+                  priority
+                  className="h-auto w-auto"
+                />
+              </Link>
+            </div>
 
-            {/* CENTER: Desktop nav links */}
-            <ul className="hidden nav:flex items-center gap-12 mx-auto text-sm">
-              <ProductTooltip />
-              <ArrivalTooltip />
-              <li>
-                <Link href="/contact" className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200">
-                  Contact us
-                </Link>
+            {/* CENTER: Desktop nav links - Pixel perfect matching */}
+            <ul className="hidden nav:flex flex-shrink-0 items-center justify-center gap-10 text-[14px] font-medium text-[#1a1a1a]">
+              <li className="flex items-center justify-center hover:text-filgreen transition-colors cursor-pointer">
+                <ProductTooltip />
+              </li>
+              <li className="flex items-center justify-center hover:text-filgreen transition-colors cursor-pointer">
+                <ArrivalTooltip />
               </li>
               <li>
-                <Link href="/blog" className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200">
-                  Blog
+                <Link href="/bulk-order" className="hover:text-filgreen transition-colors duration-200">
+                  Bulk Order
                 </Link>
+              </li>
+              <li className="flex items-center justify-center gap-2 hover:text-filgreen transition-colors cursor-pointer">
+                <NavSearchTooltip />
               </li>
             </ul>
 
-            {/* RIGHT: Desktop icons */}
-            <ul className="hidden nav:flex items-center gap-7 ml-auto">
-              <NavSearchTooltip />
-
-              {/* ── Cart icon — attach cartIconRef here ── */}
+            {/* RIGHT: Desktop icons - Re-ordered to match your image exactly */}
+            <ul className="hidden nav:flex flex-1 items-center justify-end gap-8">
+              <li className="flex items-center hover:text-filgreen transition-colors cursor-pointer text-[14px] font-medium text-[#1a1a1a]">
+                <ProfileTooltip />
+              </li>
+              <li>
+                <Link href="/contact" className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors" aria-label="Help">
+                  <HelpCircle size={20} strokeWidth={1.75} />
+                </Link>
+              </li>
               <li>
                 <button
-                  ref={cartIconRef}         // 👈 THE KEY REF — fly animation targets this
+                  ref={cartIconRef}
                   onClick={handleCartClick}
                   className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                   aria-label="Cart"
@@ -140,22 +150,14 @@ export default function Navbar() {
                   )}
                 </button>
               </li>
-
-              <ProfileTooltip />
-              <li>
-                <Link href="/contact" className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors" aria-label="Help">
-                  <HelpCircle size={20} strokeWidth={1.75} />
-                </Link>
-              </li>
             </ul>
 
             {/* MOBILE: Right icons */}
-            <div className="nav:hidden flex items-center gap-5 ml-auto">
+            <div className="nav:hidden flex flex-1 items-center justify-end gap-5">
               <NavSearchTooltip />
 
-              {/* ── Mobile cart icon — same ref ── */}
               <button
-                ref={cartIconRef}           // 👈 same ref — on mobile this is the target
+                ref={cartIconRef}
                 onClick={handleCartClick}
                 className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                 aria-label="Cart"
@@ -258,10 +260,10 @@ export default function Navbar() {
                   </div>
 
                   <Link href="/products?sort=newest" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">New Arrivals</Link>
+                  <Link href="/bulk-order"           onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Bulk Order</Link>
                   <Link href="/track"                onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Contact us</Link>
                   <Link href="/blog"                 onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Blog</Link>
 
-                  {/* Cart link in mobile drawer — still works as a full-page link */}
                   <Link
                     href="/cart"
                     onClick={() => setMenuOpen(false)}
@@ -321,12 +323,6 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
 
-      {/*
-        Cart panels live OUTSIDE the <nav> so they can cover the full viewport.
-        CartSidebar  → hidden on mobile  (hidden md:flex  inside the component)
-        CartBottomSheet → hidden on desktop (md:hidden inside the component)
-        Both listen to the same Redux cartUI.isOpen flag.
-      */}
       <CartSidebar />
       <CartBottomSheet />
     </>
