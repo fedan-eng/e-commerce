@@ -87,7 +87,7 @@ export default function ShopBy() {
   const bottomRow = others.slice(2, 4);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
       {/* Header */}
       <div className="mb-6 md:mb-8">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">

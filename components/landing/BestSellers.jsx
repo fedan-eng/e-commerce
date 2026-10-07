@@ -22,16 +22,16 @@ function mapProductToDisplay(product) {
     _id: product._id,
     slug: product.slug,
     title: product.name,
-    image: product.images?.[0] || '/placeholder.png',
+    image: product.image || product.colors?.[0]?.images?.[0] || '/placeholder.png',
     price: product.price,
-    originalPrice: product.comparePrice || null,
+    originalPrice: product.originalPrice || null,
     rating: product.averageRating || 0,
-    reviews: product.reviewCount || 0,
+    reviews: product.ratingsCount || 0,
     features: (product.features || []).slice(0, 2).map((feat, idx) => ({
       icon: idx === 0 ? 'zap' : 'check',
       text: feat,
     })),
-    badge: product.bestseller ? 'Best Seller' : product.newArrival ? 'New' : null,
+    badge: product.isBestseller ? 'Best Seller' : product.isWhatsNew ? 'New' : null,
   };
 }
 
@@ -49,7 +49,7 @@ export default function BestSellers() {
         
         const params = new URLSearchParams();
         params.append('limit', '8');
-        params.append('specials', 'bestseller');
+        params.append('specials', 'isBestseller');
         
         const mappedCategory = categoryMapping[activeCategory];
         if (mappedCategory) {
