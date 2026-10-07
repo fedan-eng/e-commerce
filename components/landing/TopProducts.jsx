@@ -52,7 +52,7 @@ export default function TopProducts() {
           <Link 
             key={category.id} 
             href={category.link}
-            className="group flex flex-col items-center justify-between bg-[#f4f5f7] aspect-square p-4 sm:p-6 transition-all duration-300 hover:shadow-md hover:bg-[#ebecef]"
+            className="group flex flex-col items-center justify-between bg-[#F5F6F8] aspect-square p-4 sm:p-6 transition-all duration-300 hover:shadow-md hover:bg-[#ebecef]"
           >
             {/* Image Container */}
             <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden mb-4">

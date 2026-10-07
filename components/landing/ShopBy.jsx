@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 const departments = [
   {
@@ -70,9 +71,10 @@ function SmallCard({ item }) {
           </p>
         </div>
 
-        <span className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold text-gray-900 underline underline-offset-4 decoration-2 transition-all group-hover:gap-2">
+        {/* Single unified underline covering text + Lucide icon */}
+        <span className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold text-gray-900 underline underline-offset-4 decoration-2">
           {item.cta}
-          <span aria-hidden>→</span>
+          <ArrowRight size={13} className="shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
         </span>
       </div>
     </Link>
@@ -119,9 +121,10 @@ export default function ShopBy() {
               <p className="mt-1 text-xs leading-snug text-white/90">{featured.description}</p>
             </div>
 
-            <span className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold text-white transition-all group-hover:gap-2">
+            {/* Single unified underline covering text + Lucide icon */}
+            <span className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold text-white underline underline-offset-4 decoration-2">
               {featured.cta}
-              <span aria-hidden>→</span>
+              <ArrowRight size={13} className="shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
             </span>
           </div>
         </Link>

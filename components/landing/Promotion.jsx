@@ -34,7 +34,7 @@ const offers = [
 
 export default function Promotion() {
   return (
-    <section className="w-full bg-[#efefefdb] my-10 py-12 md:py-16 lg:py-20">
+    <section className="w-full bg-[#F5F6F8] my-10 py-12 md:py-16 lg:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
@@ -51,12 +51,12 @@ export default function Promotion() {
               className="group flex flex-col"
             >
               {/* Image Placeholder */}
-              <div className="relative w-full aspect-[4/3] bg-[#d1d5db] overflow-hidden mb-4">
+              <div className="relative w-full aspect-[4/3] bg-[#D9DCE1] overflow-hidden mb-4">
                 {/* 
                   Using a solid gray block to match the screenshot exactly.
                   When you have real images, replace the div below with an <img> or next/image.
                 */}
-                <div className="absolute inset-0 bg-[#d1d5db] group-hover:bg-[#c4c9d0] transition-colors duration-300" />
+                <div className="absolute inset-0 bg-[#D9DCE1] group-hover:bg-[#c4c9d0] transition-colors duration-300" />
                 
                 {/* Optional: Uncomment this when you want real images instead of gray boxes
                 <img
