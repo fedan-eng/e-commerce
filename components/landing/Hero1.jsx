@@ -7,7 +7,7 @@ const Hero1 = () => {
       
       {/* Background Image (Placed in /public/Hero1.png) */}
       <Image
-        src="/Hero1.png"
+        src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Hero1.png"
         alt="Fall Savings Start Now background"
         fill
         sizes="100vw"

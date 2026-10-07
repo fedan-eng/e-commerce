@@ -10,7 +10,7 @@ const departments = [
     description: 'Our best-selling department, never run out of charge again.',
     cta: 'Shop Power Banks',
     href: '/products?category=power-banks',
-    image: '/ShopBy1.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ShopBy1.png',
   },
   {
     id: 'chargers',
@@ -18,7 +18,7 @@ const departments = [
     description: 'Fast, compact charging for every device.',
     cta: 'Shop Chargers',
     href: '/products?category=chargers',
-    image: '/ShopBy3.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ShopBy3.png',
   },
   {
     id: 'wearables',
@@ -26,7 +26,7 @@ const departments = [
     description: 'Earbuds and smartwatches.',
     cta: 'Shop Wearables',
     href: '/products?category=wearables',
-    image: '/ShopBy2.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ShopBy2.png',
   },
   {
     id: 'lifestyle',
@@ -34,7 +34,7 @@ const departments = [
     description: 'Projectors, lamps & fans.',
     cta: 'Shop Lifestyle',
     href: '/products?category=lifestyle',
-    image: '/ShopBy4.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ShopBy4.png',
   },
   {
     id: 'extensions',
@@ -42,7 +42,7 @@ const departments = [
     description: 'Power more devices, safely.',
     cta: 'Shop Extensions',
     href: '/products?category=extensions',
-    image: '/ShopBy5.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ShopBy5.png',
   },
 ];
 

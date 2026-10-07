@@ -7,7 +7,7 @@ const Hero2 = () => {
       
       {/* Background Image (Placed in /public/Hero2.jpg) */}
       <Image
-        src="/Hero2.jpg"
+        src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Hero2.jpg"
     
         alt="FIL MagFlex Power Bank background"
         fill

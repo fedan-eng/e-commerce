@@ -7,10 +7,10 @@ import Link from 'next/link';
 const categories = ['Power Banks', 'Earbuds', 'Chargers', 'Lifestyle'];
 
 const categoryMapping = {
-  'Power Banks': 'power-banks',
-  'Earbuds': 'wearables',
-  'Chargers': 'chargers',
-  'Lifestyle': 'lifestyle',
+  'Power Banks': 'Power Banks',
+  'Earbuds': 'Wearables',
+  'Chargers': 'Chargers',
+  'Lifestyle': 'Lifestyle',
 };
 
 function formatPrice(amount) {

@@ -54,7 +54,7 @@ export function Hero3() {
       
       {/* Background Image (Placed in /public/Hero3.jpg) */}
       <Image
-        src="/Hero3.jpg"
+        src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Hero3.jpg"
         alt="Shop With Confidence background pattern"
         fill
         sizes="100vw"
