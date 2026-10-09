@@ -13,7 +13,7 @@ const categories = [
     textSub: 'text-[#043B1E]/80',
     btnBg: 'bg-white/50',
     btnIcon: 'text-[#043B1E]',
-    image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Need1.png',
     blend: 'mix-blend-multiply',
   },
   {
@@ -25,7 +25,7 @@ const categories = [
     textSub: 'text-[#0B0A10]/70',
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Need2.png',
     blend: 'mix-blend-multiply',
   },
   {
@@ -37,7 +37,7 @@ const categories = [
     textSub: 'text-black/70',
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
-    image: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Need3.png',
     blend: 'mix-blend-multiply',
   },
   {
@@ -49,7 +49,7 @@ const categories = [
     textSub: 'text-black/70',
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
-    image: 'https://images.unsplash.com/photo-1538681105587-85640961bf8b?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-i7i6igi7i6igi7i6-1.webp',
     blend: 'mix-blend-multiply',
   },
   {
@@ -61,7 +61,7 @@ const categories = [
     textSub: 'text-black/70',
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
-    image: 'https://images.unsplash.com/photo-1618365908648-e71bd5716cba?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/bfaa0d7e92484ec783dc80fcb299da8f5a08211d.png',
     blend: 'mix-blend-multiply',
   },
   {
@@ -73,7 +73,7 @@ const categories = [
     textSub: 'text-[#A5C3B2]',
     btnBg: 'bg-white/10',
     btnIcon: 'text-white',
-    image: 'https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=500&q=80',
+    image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/d1b4692616e16fe21028d967cfa20bb6b85d07fc.png',
     blend: 'opacity-90', 
   },
 ];

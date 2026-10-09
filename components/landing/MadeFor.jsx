@@ -9,7 +9,7 @@ const moments = [
     title: 'Earbuds in, noise out.',
     product: 'FIL Pods Pro',
     // Using a lifestyle/product mix that works well with the blend mode
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor1.png',
     // Staggered layout classes for tablet and desktop
     marginClasses: 'md:mt-0 lg:mt-0',
   },
@@ -20,7 +20,7 @@ const moments = [
     imageBg: 'bg-[#E5FDF0]',
     title: '9% battery. Not a problem.',
     product: 'FIL Thunder 30K',
-    image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=600&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor2.png',
     marginClasses: 'md:mt-[60px] lg:mt-[80px]',
   },
   {
@@ -30,7 +30,7 @@ const moments = [
     imageBg: 'bg-[#EBF5FF]',
     title: 'Light is not. Fan is on.',
     product: 'FIL Flex Fan',
-    image: 'https://images.unsplash.com/photo-1618365908648-e71bd5716cba?auto=format&fit=crop&w=600&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor3.png',
     marginClasses: 'md:mt-0 lg:mt-[30px]',
   },
   {
@@ -40,7 +40,7 @@ const moments = [
     imageBg: 'bg-[#FFF9E5]',
     title: 'Long call, still charging strong.',
     product: 'FIL MagFlex 10K',
-    image: 'https://images.unsplash.com/photo-1662947995689-ec8a85ba4e68?auto=format&fit=crop&w=600&q=80',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor4.png',
     marginClasses: 'md:mt-[60px] lg:mt-[110px]',
   },
 ];

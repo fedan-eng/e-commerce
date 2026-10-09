@@ -30,7 +30,7 @@ const Banner = () => {
         {/* Bottom Row: Copy + CTAs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
 
-          <p className="text-[#0A321B] text-[14px] sm:text-[15px] leading-[1.45] font-normal max-w-[340px]">
+          <p className="text-[#0A321B] text-[14px] sm:text-[15px] leading-[1.45] font-bold max-w-[400px]">
             Find the power bank, earbuds or fan that fits your day.<br className="hidden sm:block" />
             {' '}Pay when it arrives.
           </p>
