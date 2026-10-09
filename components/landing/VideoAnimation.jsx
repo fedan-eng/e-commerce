@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 
 const tabs = [
@@ -71,7 +73,7 @@ const VideoAnimation = () => {
         <div className="w-full bg-[#C8F3D8] rounded-[32px] md:rounded-[40px] aspect-[4/3] sm:aspect-[16/9] lg:aspect-[2.2/1] flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-500">
           
           {/* Dashed Content Box */}
-          <div className="bg-white border border-dashed border-[#0F472B]/30 rounded-xl px-8 py-3.5 z-10 flex items-center justify-center backdrop-blur-sm bg-white/90">
+          <div className=" border border-dashed border-[#0F472B]/30 rounded-xl px-8 py-3.5 z-10 flex items-center justify-center backdrop-blur-sm bg-white/90">
             <span className="text-[12px] sm:text-[13px] font-semibold text-[#0F472B]">
               Video of Products
             </span>
