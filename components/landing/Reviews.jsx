@@ -1,197 +1,141 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef } from 'react';
+import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 
 const reviews = [
   {
     id: 1,
-    name: 'Lanre K.',
-    initials: 'LK',
-    rating: 5,
-    text: 'Sample review text. Replace with a real customer review about a FIL product and how it worked for them.',
-    product: 'FIL Thunder Power Bank',
+    quoteBg: 'bg-[#B2F0CB]', // Mint Green
+    text: 'Review about the Thunder 30K goes here: how long it lasts and where they use it.',
+    author: 'Lanre K.',
+    city: 'Lagos',
+    product: 'FIL Thunder 20K',
   },
   {
     id: 2,
-    name: 'Chioma A.',
-    initials: 'CA',
-    rating: 5,
-    text: 'The MagFlex is seriously the fastest wireless bank I’ve used. Charges my phone ridiculously quick.',
-    product: 'FIL MagFlex Power Bank',
+    quoteBg: 'bg-[#B0DDFF]', // Light Blue
+    text: 'Review about the Breeze fan goes here: how it handles hot nights when light goes.',
+    author: 'Chioma A.',
+    city: 'Abuja',
+    product: 'FIL Breeze 16"',
   },
   {
     id: 3,
-    name: 'Emeka O.',
-    initials: 'EO',
-    rating: 5,
-    text: 'Odogwu Earbuds have insane bass and the case looks premium. Battery life is excellent too.',
-    product: 'FIL Odogwu Earbuds',
+    quoteBg: 'bg-[#C9BCFF]', // Light Purple
+    text: 'Review about the Pods Pro goes here: sound, battery life, comfort on long rides.',
+    author: 'Emeka O.',
+    city: 'Port Harcourt',
+    product: 'FIL Pods Pro',
   },
   {
     id: 4,
-    name: 'Blessing T.',
-    initials: 'BT',
-    rating: 5,
-    text: 'Bought the 30,000mAh Thunder for my trip. Still had 40% left after 4 days of heavy use. Highly recommend!',
-    product: 'FIL Thunder Power Bank',
+    quoteBg: 'bg-[#FFCD4D]', // Yellow
+    text: 'Review about the MagFlex goes here: the magnetic grip and fast wireless charging.',
+    author: 'Blessing T.',
+    city: 'Ibadan',
+    product: 'FIL MagFlex 10K',
   },
   {
     id: 5,
-    name: 'Tunde F.',
-    initials: 'TF',
-    rating: 5,
+    quoteBg: 'bg-[#FFA488]', // Peach
     text: 'Customer service was amazing and the product arrived in 2 days. Solid build quality.',
-    product: 'FIL Volt Cube 40,000mAh',
-  },
-  {
-    id: 6,
-    name: 'Aisha M.',
-    initials: 'AM',
-    rating: 5,
-    text: 'The cable + power bank bundle saved me money and everything works perfectly together.',
-    product: 'FIL Bundle Pack',
+    author: 'Tunde F.',
+    city: 'Kano',
+    product: 'FIL Volt Cube 40K',
   },
 ];
 
 export default function Reviews() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [cardsToShow, setCardsToShow] = useState(3);
+  const scrollRef = useRef(null);
 
-  // Handle responsive number of visible cards
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setCardsToShow(1);
-      } else if (window.innerWidth < 1024) {
-        setCardsToShow(2);
-      } else {
-        setCardsToShow(3);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const maxIndex = Math.max(0, reviews.length - cardsToShow);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = 340; // Card width + gap
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
   };
 
   return (
-    <section className="w-full bg-white py-14 md:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full bg-[#F1F5F2] py-16 md:py-24 overflow-hidden">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-8 md:mb-10 tracking-tight">
-          Straight From Our Fans
-        </h2>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 gap-6">
+          <div>
+            <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
+              FIL fans have spoken.
+            </h2>
+            <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
+              Real reviews from people using FIL every day.
+            </p>
+          </div>
 
-        {/* Carousel Container */}
-        <div className="relative">
-          
-          {/* Left Arrow */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all duration-200"
-            aria-label="Previous reviews"
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-          </button>
-
-          {/* Right Arrow */}
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all duration-200"
-            aria-label="Next reviews"
-          >
-            <ChevronRight size={20} strokeWidth={2} />
-          </button>
-
-          {/* Cards Viewport */}
-          <div className="overflow-hidden px-2">
-            <div
-              className="flex transition-transform duration-500 ease-out gap-4 md:gap-6"
-              style={{
-                transform: `translateX(-${currentIndex * (100 / cardsToShow)}%)`,
-              }}
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-3 self-start sm:self-auto">
+            <button
+              onClick={() => scroll('left')}
+              className="w-10 h-10 rounded-full border border-gray-300/80 bg-white/50 flex items-center justify-center hover:bg-white transition-colors group shadow-xs"
+              aria-label="Scroll left"
             >
-              {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/3"
-                  style={{ width: `${100 / cardsToShow}%` }}
-                >
-                  <div className="h-full bg-[#f3f4f6] rounded-xl p-5 sm:p-6 flex flex-col border border-transparent hover:border-gray-200 transition-colors">
-                    
-                    {/* Header: Name + Stars + Avatar */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">
-                          {review.name}
-                        </h3>
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={14}
-                              className={`${
-                                i < review.rating
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'fill-gray-300 text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Avatar */}
-                      <div className="w-9 h-9 rounded-full bg-gray-800 text-white text-xs font-semibold flex items-center justify-center shrink-0">
-                        {review.initials}
-                      </div>
-                    </div>
-
-                    {/* Review Text */}
-                    <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
-                      “{review.text}”
-                    </p>
-
-                    {/* Product Row */}
-                    <div className="mt-auto pt-4">
-                      <div className="inline-flex items-center gap-2.5 bg-white rounded-lg px-3 py-2 border border-gray-200/80">
-                        {/* Product image placeholder */}
-                        <div className="w-6 h-6 rounded bg-gray-200 shrink-0" />
-                        <span className="text-xs font-medium text-gray-800 truncate max-w-[140px]">
-                          {review.product}
-                        </span>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              ))}
-            </div>
+              <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-[#0A321B] transition-colors" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className="w-10 h-10 rounded-full border border-gray-300/80 bg-white/50 flex items-center justify-center hover:bg-white transition-colors group shadow-xs"
+              aria-label="Scroll right"
+            >
+              <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-[#0A321B] transition-colors" strokeWidth={2} />
+            </button>
           </div>
         </div>
 
-        {/* Dots (Mobile friendly indicator) */}
-        <div className="flex justify-center gap-2 mt-8">
-          {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                currentIndex === idx ? 'bg-gray-800 w-5' : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
+        {/* Carousel Container */}
+        <div 
+          ref={scrollRef}
+          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-6 -mx-4 px-4 sm:mx-0 sm:px-0"
+        >
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="flex-none w-[280px] sm:w-[320px] md:w-[340px] bg-white rounded-[28px] p-6 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300"
+            >
+              {/* Top: Colored Quote Badge */}
+              <div>
+                <div className={`w-12 h-12 rounded-full ${review.quoteBg} flex items-center justify-center mb-6`}>
+                  <Quote className="w-5 h-5 text-[#0A321B] fill-[#0A321B] rotate-180" />
+                </div>
+
+                {/* Review Text */}
+                <p className="text-[14px] sm:text-[15px] text-gray-600 italic leading-relaxed font-normal mb-8">
+                  "{review.text}"
+                </p>
+              </div>
+
+              {/* Bottom: Customer Info & Product */}
+              <div className="pt-4 border-t border-gray-100">
+                <h3 className="text-[14px] font-bold text-[#0A321B]">
+                  {review.author}, <span className="font-normal text-gray-500">{review.city}</span>
+                </h3>
+                <p className="text-[12px] text-gray-500 mt-1">
+                  Bought <span className="underline underline-offset-2 decoration-gray-300">{review.product}</span>
+                </p>
+              </div>
+
+            </div>
           ))}
         </div>
 

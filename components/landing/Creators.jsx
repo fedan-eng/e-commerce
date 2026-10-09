@@ -4,39 +4,57 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Play, Volume2, VolumeX, Maximize2, X } from "lucide-react";
 
+// Updated data structure to accommodate the new mixed layout
 const items = [
   {
     id: 1,
+    type: "campaign",
+    badge: "Campaign Film",
+    title: "Light can go. You stay on.",
+    duration: "1:20",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/magflex.mp4",
-    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
+    poster: "", // Leaving blank to show the dark green background initially as per screenshot
     previewStart: 0,
   },
   {
     id: 2,
+    type: "creator",
+    badge: "Creator",
+    badgeColor: "bg-[#00E575]", // Bright Green
+    title: "So if you've been seeing",
+    description: "Honest review, no script",
+    handle: "@peacelucci",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-2.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-2-thumb.png",
     previewStart: 0,
   },
   {
     id: 3,
-    img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-1.mp4",
-    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-1-thumb.png",
-    previewStart: 0,
-  },
-  {
-    id: 4,
+    type: "creator",
+    badge: "Creator",
+    badgeColor: "bg-[#C49BFF]", // Purple
+    title: "Honest review...",
+    description: "no script",
+    handle: "@papeetyah",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/papeetyah.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/papeetyah-thumb.png",
     previewStart: 87,
   },
   {
-    id: 5,
+    id: 4,
+    type: "creator",
+    badge: "Creator",
+    badgeColor: "bg-[#FFD166]", // Yellow
+    title: "Thunder Power Bank test",
+    description: "Charge speed test",
+    handle: "@techguy",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/thunder-power-bank.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/thunder-power-bank-thumb.png",
     previewStart: 0,
   },
 ];
 
+// Utility functions kept intact
 function safePlay(videoEl) {
   const p = videoEl.play();
   videoEl._pendingPlay = p;
@@ -69,35 +87,26 @@ function applyIOSInlineAttributes(el) {
 }
 
 export default function Creators() {
-  const [active, setActive] = useState(0);
+  const [activeFilter, setActiveFilter] = useState('Instagram');
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [cardsToShow, setCardsToShow] = useState(4);
   const [playingId, setPlayingId] = useState(null);
+  const [activeFullscreenId, setActiveFullscreenId] = useState(null);
 
   const videoRefs = useRef({});
   const fullscreenVideoRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
-  const GAP_PX = 16; // Exact gap size in pixels
-
-  // Handle responsive visible card counts
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) setCardsToShow(1);
-      else if (window.innerWidth < 768) setCardsToShow(2);
-      else if (window.innerWidth < 1024) setCardsToShow(3);
-      else setCardsToShow(4);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const maxIndex = Math.max(0, items.length - cardsToShow);
-
-  const next = () => setActive((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  const prev = () => setActive((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  const scroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = window.innerWidth < 768 ? 300 : 500;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const pauseAllExcept = useCallback((id) => {
     Object.entries(videoRefs.current).forEach(([vid, el]) => {
@@ -124,6 +133,18 @@ export default function Creators() {
     }
   };
 
+  const openFullscreen = (item, e) => {
+    e.stopPropagation();
+    // Pause inline video before opening fullscreen
+    if (playingId === item.id) {
+      const el = videoRefs.current[item.id];
+      if (el) safePause(el);
+      setPlayingId(null);
+    }
+    setActiveFullscreenId(item.id);
+    setIsFullscreen(true);
+  };
+
   useEffect(() => {
     return () => {
       Object.values(videoRefs.current).forEach((el) => {
@@ -140,147 +161,192 @@ export default function Creators() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const activeItem = items[Math.min(active, items.length - 1)];
+  const activeFullscreenItem = items.find(i => i.id === activeFullscreenId) || items[0];
 
   return (
-    <section className="w-full bg-white py-12 md:py-16 lg:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full bg-[#082C17] py-16 md:py-24 overflow-hidden text-white font-sans">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-8 md:mb-10 tracking-tight">
-          Your Faves Fave
-        </h2>
+        {/* Header Section */}
+        <div className="mb-10">
+          <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold tracking-tight mb-2">
+            See FIL in action.
+          </h2>
+          <p className="text-gray-300 text-[15px] sm:text-base max-w-2xl leading-relaxed mb-6">
+            Demos, creator reviews and behind-the-scenes from our team.<br className="hidden sm:block"/>
+            Real people using real gear, no studio magic.
+          </p>
 
-        {/* Carousel Container */}
-        <div className="relative">
-          
-          {/* Left Arrow */}
-          <button
-            onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
-            aria-label="Previous"
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-          </button>
+          <div className="flex items-end justify-between gap-4">
+            {/* Filters */}
+            <div className="flex gap-3">
+              {['Instagram', 'TikTok'].map((platform) => (
+                <button
+                  key={platform}
+                  onClick={() => setActiveFilter(platform)}
+                  className={`px-5 py-2 rounded-full text-sm font-medium border transition-colors duration-200 ${
+                    activeFilter === platform 
+                      ? 'border-white text-white' 
+                      : 'border-white/30 text-white/70 hover:border-white/60 hover:text-white'
+                  }`}
+                >
+                  {platform}
+                </button>
+              ))}
+            </div>
 
-          {/* Right Arrow */}
-          <button
-            onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 z-20 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all"
-            aria-label="Next"
-          >
-            <ChevronRight size={20} strokeWidth={2} />
-          </button>
-
-          {/* Track Viewport */}
-          <div className="overflow-hidden">
-            <motion.div
-              className="flex gap-4 items-start"
-              animate={{
-                x: `calc(-${active} * (100% + ${GAP_PX}px) / ${cardsToShow})`,
-              }}
-              transition={{ type: "spring", stiffness: 180, damping: 24 }}
-            >
-              {items.map((item) => {
-                const isPlaying = playingId === item.id;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="relative flex-shrink-0 rounded-2xl overflow-hidden bg-black shadow-sm aspect-[9/16]"
-                    style={{
-                      width: `calc((100% - ${(cardsToShow - 1) * GAP_PX}px) / ${cardsToShow})`,
-                    }}
-                  >
-                    {/* Video element */}
-                    <video
-                      ref={(el) => {
-                        if (el) {
-                          videoRefs.current[item.id] = el;
-                          applyIOSInlineAttributes(el);
-                        }
-                      }}
-                      poster={item.poster}
-                      muted={isMuted}
-                      playsInline
-                      loop
-                      preload="metadata"
-                      className="w-full h-full object-cover cursor-pointer"
-                      onClick={() => handlePlayClick(item)}
-                    >
-                      <source src={item.img} type="video/mp4" />
-                    </video>
-
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-
-                    {/* Play Button */}
-                    {!isPlaying && (
-                      <button
-                        onClick={() => handlePlayClick(item)}
-                        className="absolute inset-0 m-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-black/60 hover:scale-105 transition-all z-10"
-                        aria-label="Play video"
-                      >
-                        <Play size={22} className="text-white fill-white ml-0.5" />
-                      </button>
-                    )}
-
-                    {/* Mute Button */}
-                    {isPlaying && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMuted((m) => !m);
-                        }}
-                        className="absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                      >
-                        {isMuted ? (
-                          <VolumeX size={14} className="text-white" />
-                        ) : (
-                          <Volume2 size={14} className="text-white" />
-                        )}
-                      </button>
-                    )}
-
-                    {/* Fullscreen Button */}
-                    {isPlaying && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsFullscreen(true);
-                        }}
-                        className="absolute bottom-3 left-3 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-                      >
-                        <Maximize2 size={14} className="text-white" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </motion.div>
+            {/* Navigation Arrows */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => scroll('left')}
+                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
+              >
+                <ChevronLeft size={18} strokeWidth={2} className="text-white" />
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
+              >
+                <ChevronRight size={18} strokeWidth={2} className="text-white" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Dots */}
-        <div className="flex justify-center gap-2 mt-6">
-          {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActive(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                active === idx ? "bg-gray-900 w-5" : "bg-gray-300 w-2 hover:bg-gray-400"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+        {/* Carousel Container */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-4 px-4 sm:mx-0 sm:px-0"
+        >
+          {items.map((item) => {
+            const isPlaying = playingId === item.id;
+            const isCampaign = item.type === "campaign";
+
+            return (
+              <div
+                key={item.id}
+                className={`relative flex-shrink-0 snap-start rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group ${
+                  isCampaign 
+                    ? "w-[85vw] sm:w-[600px] lg:w-[700px] aspect-[4/3] sm:aspect-[16/9]" 
+                    : "w-[260px] sm:w-[280px] aspect-[9/16]"
+                }`}
+                onClick={() => handlePlayClick(item)}
+              >
+                {/* Video Element */}
+                <video
+                  ref={(el) => {
+                    if (el) {
+                      videoRefs.current[item.id] = el;
+                      applyIOSInlineAttributes(el);
+                    }
+                  }}
+                  poster={item.poster}
+                  muted={isMuted}
+                  playsInline
+                  loop
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${!isPlaying && isCampaign && !item.poster ? 'opacity-0' : 'opacity-100'}`}
+                >
+                  <source src={item.img} type="video/mp4" />
+                </video>
+
+                {/* Overlays & Badges */}
+                <div className="absolute inset-0 flex flex-col justify-between p-6 pointer-events-none">
+                  
+                  {/* Top: Badge & Controls */}
+                  <div className="flex justify-between items-start w-full">
+                    {/* Badge */}
+                    <span className={`px-3 py-1.5 rounded-full text-[12px] font-bold text-gray-900 leading-none ${
+                      isCampaign ? "bg-white" : item.badgeColor
+                    }`}>
+                      {item.badge}
+                    </span>
+                    
+                    {/* Top Right Controls (Fullscreen) */}
+                    {isPlaying && (
+                      <button
+                        onClick={(e) => openFullscreen(item, e)}
+                        className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors pointer-events-auto"
+                      >
+                        <Maximize2 size={18} className="text-white" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Campaign Card - Center Play Button */}
+                  {isCampaign && !isPlaying && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#00E575] rounded-full flex items-center justify-center shadow-xl group-hover:scale-105 transition-transform duration-300">
+                        <Play size={32} className="text-[#082C17] fill-[#082C17] ml-1.5" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bottom Content Area */}
+                  <div className="flex items-end justify-between w-full relative z-10 pointer-events-auto">
+                    
+                    {/* Text Data */}
+                    <div className="flex flex-col gap-1 pr-4">
+                      <h3 className={`font-bold leading-tight ${isCampaign ? "text-xl sm:text-2xl" : "text-[18px]"}`}>
+                        {item.title}
+                      </h3>
+                      {item.description && (
+                        <p className="text-white/80 text-[13px] leading-snug">
+                          {item.description}
+                        </p>
+                      )}
+                      {item.handle && (
+                        <p className="text-white/60 text-[12px] mt-1">
+                          {item.handle}
+                        </p>
+                      )}
+                      {item.duration && (
+                        <p className="text-white/80 text-[14px] mt-1">
+                          {item.duration}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Creator Card - Bottom Right Play Button & Mute */}
+                    <div className="flex flex-col gap-3">
+                      {isPlaying && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setIsMuted((m) => !m); }}
+                          className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors"
+                        >
+                          {isMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
+                        </button>
+                      )}
+                      
+                      {!isCampaign && !isPlaying && (
+                        <div className="w-10 h-10 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 self-end pointer-events-none">
+                          <Play size={20} className="text-[#082C17] fill-[#082C17] ml-1" />
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Dark Gradient Overlay for text readability (only really needed for creator cards) */}
+                {!isCampaign && (
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Fullscreen Modal */}
+      {/* Fullscreen Modal (Kept from original logic) */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -289,39 +355,36 @@ export default function Creators() {
             }}
           >
             <motion.div
-              className="relative w-full max-w-sm md:max-w-md rounded-xl overflow-hidden shadow-2xl"
-              initial={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-lg md:max-w-2xl rounded-2xl overflow-hidden shadow-2xl bg-black"
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
             >
               <video
                 ref={fullscreenVideoRef}
-                key={activeItem.id}
-                src={activeItem.img}
-                poster={activeItem.poster}
+                key={activeFullscreenItem.id}
+                src={activeFullscreenItem.img}
+                poster={activeFullscreenItem.poster}
                 muted={isFullscreenMuted}
                 playsInline
                 controls
                 autoPlay
-                className="w-full h-auto max-h-[85vh] object-contain bg-black"
+                className="w-full h-auto max-h-[85vh] object-contain"
               />
 
               <button
                 onClick={() => setIsFullscreen(false)}
-                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 flex items-center justify-center transition-colors"
+                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 flex items-center justify-center transition-colors"
               >
-                <X size={18} className="text-white" />
+                <X size={20} className="text-white" />
               </button>
 
+              {/* Added a secondary mute toggle specifically for fullscreen for better UX if controls hide */}
               <button
                 onClick={() => setIsFullscreenMuted((m) => !m)}
-                className="absolute bottom-4 right-4 z-10 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center"
+                className="absolute bottom-6 right-6 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors md:hidden"
               >
-                {isFullscreenMuted ? (
-                  <VolumeX size={16} className="text-white" />
-                ) : (
-                  <Volume2 size={16} className="text-white" />
-                )}
+                {isFullscreenMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
               </button>
             </motion.div>
           </motion.div>

@@ -1,14 +1,15 @@
 import React from "react";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
-import Hero3 from "@/components/landing/Hero3";
-import TopProducts from "@/components/landing/TopProducts";
-import ShopBy from "@/components/landing/ShopBy";
 import BestSellers from "@/components/landing/BestSellers";
-import Promotion from "@/components/landing/Promotion";
 import Reviews from "@/components/landing/Reviews";
 import Creators from "@/components/landing/Creators";
 import FeaturedBlog from "@/components/landing/FeaturedBlog";
+import Marquee from "@/components/landing/Marquee";
+import NeedsPower from "@/components/landing/NeedsPower";
+import VideoAnimation from "@/components/landing/VideoAnimation";
+import MadeFor from "@/components/landing/MadeFor";
+import Banner from "@/components/landing/Banner";
 
 export const metadata = {
   title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
@@ -196,14 +197,15 @@ const page = () => {
 
       <Hero1 />
       <Hero2 />
-      <ShopBy/>
-      <TopProducts/>
+      <Marquee/>
+      <NeedsPower/>
       <BestSellers/>
-      <Hero3 />
-      <Promotion/>
-      <Reviews/>
+      <VideoAnimation/>
       <Creators/>
+      <MadeFor/>
+      <Reviews/>
       <FeaturedBlog/>
+      <Banner/>
     </div>
   );
 };

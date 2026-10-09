@@ -28,7 +28,7 @@ const ProfileTooltip = () => {
         className="flex items-center gap-1.5 text-[#1a1a1a] hover:text-filgreen transition-colors"
       >
         <User size={18} strokeWidth={1.75} />
-        <span className="font-roboto text-sm">
+        <span className="font-roboto text-sm font-medium">
           {isAuthenticated ? `Hi, ${user?.firstName || "User"}` : "Sign in"}
         </span>
       </Link>

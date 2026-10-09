@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Menu, X, ChevronDown, ChevronUp,
-  ShoppingBag, HelpCircle, User,
+  ShoppingCart, HelpCircle, User,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -78,7 +78,7 @@ export default function Navbar() {
     <>
       <nav className="relative bg-white">
         {/* MATCHED BANNER: Replaced the gradient stripe with the text banner from your design */}
-        <div className="w-full bg-[#cbebc9] py-[8px] flex justify-center items-center px-4">
+        <div className="w-full bg-[#c6e8b9] py-[8px] flex justify-center items-center px-4">
           <span className="text-[#1a1a1a] text-[12px] font-medium text-center tracking-tight">
             All deliveries in Lagos are free on Thursday but express deliveries are priced
           </span>
@@ -103,27 +103,19 @@ export default function Navbar() {
 
             {/* CENTER: Desktop nav links - Pixel perfect matching */}
             <ul className="hidden nav:flex flex-shrink-0 items-center justify-center gap-10 text-[14px] font-medium text-[#1a1a1a]">
-              <li className="flex items-center justify-center hover:text-filgreen transition-colors cursor-pointer">
-                <ProductTooltip />
-              </li>
-              <li className="flex items-center justify-center hover:text-filgreen transition-colors cursor-pointer">
-                <ArrivalTooltip />
-              </li>
+              <ProductTooltip />
+              <ArrivalTooltip />
               <li>
                 <Link href="/bulk-order" className="hover:text-filgreen transition-colors duration-200">
                   Bulk Order
                 </Link>
               </li>
-              <li className="flex items-center justify-center gap-2 hover:text-filgreen transition-colors cursor-pointer">
-                <NavSearchTooltip />
-              </li>
+              <NavSearchTooltip />
             </ul>
 
             {/* RIGHT: Desktop icons - Re-ordered to match your image exactly */}
             <ul className="hidden nav:flex flex-1 items-center justify-end gap-8">
-              <li className="flex items-center hover:text-filgreen transition-colors cursor-pointer text-[14px] font-medium text-[#1a1a1a]">
-                <ProfileTooltip />
-              </li>
+              <ProfileTooltip />
               <li>
                 <Link href="/contact" className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors" aria-label="Help">
                   <HelpCircle size={20} strokeWidth={1.75} />
@@ -136,7 +128,7 @@ export default function Navbar() {
                   className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                   aria-label="Cart"
                 >
-                  <ShoppingBag size={20} strokeWidth={1.75} />
+                  <ShoppingCart size={20} strokeWidth={1.75} />
                   {hasMounted && totalItems > 0 && (
                     <motion.span
                       key={totalItems}
@@ -162,7 +154,7 @@ export default function Navbar() {
                 className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                 aria-label="Cart"
               >
-                <ShoppingBag size={20} strokeWidth={1.75} />
+                <ShoppingCart size={20} strokeWidth={1.75} />
                 {hasMounted && totalItems > 0 && (
                   <motion.span
                     key={totalItems}
