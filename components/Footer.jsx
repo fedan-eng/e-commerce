@@ -364,7 +364,7 @@ const Footer = () => {
               <div className="flex items-center gap-2">
                 <span className="text-white/60 text-[13px]">Secure payments by</span>
                 <div className="bg-white rounded-sm px-2 py-1 flex items-center justify-center">
-                  <Image src="/paystack.png" alt="Paystack" width={60} height={16} className="h-3 w-auto object-contain" />
+                  <Image src="/paystack.png" alt="Paystack" width={100} height={60} className="h-3 w-auto object-contain" />
                 </div>
               </div>
               <Link href="/policies" className="text-white/60 hover:text-white text-[13px] transition-colors">Terms</Link>

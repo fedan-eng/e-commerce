@@ -4,13 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
-const categories = ['Power Banks', 'Earbuds', 'Chargers', 'Lifestyle'];
+const filters = ['All', 'Bestsellers', 'New in'];
 
-const categoryMapping = {
-  'Power Banks': 'Power Bank',
-  'Earbuds': 'Wearables',
-  'Chargers': 'Chargers',
-  'Lifestyle': 'Lifestyle',
+const filterMapping = {
+  'All': null,
+  'Bestsellers': 'isBestseller',
+  'New in': 'isWhatsNew',
 };
 
 // Pastel backgrounds to match the design aesthetics dynamically
@@ -40,7 +39,7 @@ function mapProductToDisplay(product) {
 }
 
 export default function BestSellers() {
-  const [activeCategory, setActiveCategory] = useState('Power Banks');
+  const [activeFilter, setActiveFilter] = useState('All');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -52,12 +51,11 @@ export default function BestSellers() {
         setError(null);
 
         const params = new URLSearchParams();
-        params.append('limit', '4'); // max 4
-        params.append('specials', 'isBestseller');
+        params.append('limit', '3'); // max 3 per design
 
-        const mappedCategory = categoryMapping[activeCategory];
-        if (mappedCategory) {
-          params.append('categories', mappedCategory);
+        const special = filterMapping[activeFilter];
+        if (special) {
+          params.append('specials', special);
         }
 
         const res = await fetch(`/api/products?${params.toString()}`, {
@@ -77,7 +75,7 @@ export default function BestSellers() {
     };
 
     fetchProducts();
-  }, [activeCategory]);
+  }, [activeFilter]);
 
   // Dynamic badge color logic based on the badge text
   const getBadgeColor = (badgeText) => {
@@ -104,19 +102,19 @@ export default function BestSellers() {
           {/* New Pill-Style Filter Navigation */}
           <div className="flex overflow-x-auto no-scrollbar pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
             <div className="inline-flex items-center gap-1 bg-gray-100/70 rounded-full p-1 border border-gray-200/70 whitespace-nowrap">
-              {categories.map((cat) => {
-                const isActive = activeCategory === cat;
+              {filters.map((filter) => {
+                const isActive = activeFilter === filter;
                 return (
                   <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
                     className={`px-4 sm:px-5 py-2 text-[13px] sm:text-[14px] font-semibold rounded-full transition-all duration-200 ${
                       isActive
                         ? 'bg-[#0F472B] text-white shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    {cat}
+                    {filter}
                   </button>
                 );
               })}
@@ -127,7 +125,7 @@ export default function BestSellers() {
         {/* Loading Skeletons matching the Asymmetrical Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div
                 key={i}
                 className={`${
@@ -184,7 +182,7 @@ export default function BestSellers() {
                       <img
                         src={product.image}
                         alt={product.title}
-                        className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   </Link>
