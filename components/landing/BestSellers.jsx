@@ -192,7 +192,7 @@ export default function BestSellers() {
                     {/* CTA: fixed spacing, same width on every card */}
                     <Link
                       href={href}
-                      className="mt-5 w-fit min-w-[170px] inline-flex items-center justify-center gap-2 bg-[#0A321B] hover:bg-black text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
+                      className="mt-5 w-fit min-w-[230px] inline-flex items-center justify-center gap-2 bg-[#004328] hover:bg-black text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
                     >
                       <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
                         <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
