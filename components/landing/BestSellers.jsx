@@ -195,6 +195,7 @@ export default function BestSellers() {
                     {/* CTA: fixed spacing, same width on every card */}
                     <AddToCartButton
                       product={product.raw}
+                      animated={false}
                       className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
                       label={
                         <span className="flex items-center gap-2">

@@ -63,6 +63,21 @@ const productSchema = new mongoose.Schema(
 
     category:         { type: String, required: true },
     features:         { type: [String], default: [] },
+
+    // ✅ Structured specs used by the category page filters (/products/<slug>).
+    // Which fields apply to which category is defined in lib/categories.js.
+    specs: {
+      capacityMah:   { type: Number },   // power banks
+      outputW:       { type: Number },   // chargers, power banks
+      batteryHours:  { type: Number },   // wearables
+      portCount:     { type: Number },   // chargers
+      ports:         { type: [String], default: undefined },  // "USB-C", "USB-A", "Lightning"
+      chargingType:  { type: String },   // "wall" | "desktop" | "car"
+      connectivity:  { type: String },   // "Bluetooth 5.3"
+      wearableType:  { type: String },   // "earbuds" | "headphones" | "smartwatch"
+      compatibility: { type: [String], default: undefined },  // "phones", "laptops", "multi-device"
+      featureTags:   { type: [String], default: undefined },  // "noise-cancellation", "magnetic", …
+    },
     availability:     { type: Boolean, default: true },
     secondaryImages:  { type: [String], default: [] },
 

@@ -196,8 +196,8 @@ const page = () => {
       />
 
       <Hero1 />
-      <Hero2 />
       <Marquee/>
+      <Hero2 />
       <NeedsPower/>
       <BestSellers/>
       <VideoAnimation/>

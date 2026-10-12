@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/categories";
 
 const TAG_OPTIONS = ["", "hurry", "fast", "new", "discount"];
 const TAG_COLORS  = {
@@ -201,12 +202,67 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
   );
 };
 
+// Inputs for product.specs — which fields show depends on the category (see lib/categories.js)
+const SpecsFields = ({ fields, specs, onChange }) => {
+  const toggle = (name, id) => {
+    const current = specs[name] || [];
+    onChange(name, current.includes(id) ? current.filter(v => v !== id) : [...current, id]);
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5">
+      {fields.map(f => (
+        <Field key={f.name} label={f.unit ? `${f.label} (${f.unit})` : f.label}
+          className={f.kind === "multiselect" ? "sm:col-span-2" : ""}>
+          {f.kind === "number" && (
+            <input type="number" min="0" step="any" value={specs[f.name] ?? ""}
+              onChange={e => onChange(f.name, e.target.value)} className={INPUT_CLASS} />
+          )}
+          {f.kind === "select" && (
+            <select value={specs[f.name] ?? ""} onChange={e => onChange(f.name, e.target.value)} className={INPUT_CLASS}>
+              <option value="">— Not set —</option>
+              {f.options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          )}
+          {f.kind === "multiselect" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-1.5">
+              {f.options.map(o => (
+                <Checkbox key={o.id} label={o.label} checked={(specs[f.name] || []).includes(o.id)}
+                  onChange={() => toggle(f.name, o.id)} accentClass={SPEC_ACCENT} />
+              ))}
+            </div>
+          )}
+        </Field>
+      ))}
+    </div>
+  );
+};
+
+const SPEC_ACCENT = { border: "border-[#6ab4e844]", bg: "bg-[#6ab4e80a]", checkBorder: "border-[#6ab4e8]", checkBg: "bg-[#6ab4e822]", checkText: "text-[#6ab4e8]" };
+
+// Only send the specs that belong to the selected category, with numbers parsed
+function buildSpecs(fields, specs) {
+  const out = {};
+  for (const f of fields) {
+    const v = specs[f.name];
+    if (f.kind === "number") {
+      const n = parseFloat(v);
+      if (!isNaN(n)) out[f.name] = n;
+    } else if (f.kind === "select") {
+      if (v) out[f.name] = v;
+    } else if (v?.length) {
+      out[f.name] = v;
+    }
+  }
+  return out;
+}
+
 export default function ProductForm({ initial = {}, isEdit = false }) {
   const router = useRouter();
 
   const [form, setForm] = useState({
     name: initial.name || "", price: initial.price || "", originalPrice: initial.originalPrice || "",
-    category: initial.category || "", tag: initial.tag || "", description: initial.description || "",
+    category: getCategoryByDbName(initial.category)?.dbCategory || initial.category || "", tag: initial.tag || "", description: initial.description || "",
     image: initial.image || "", availability: initial.availability ?? true,
     features: (initial.features || []).join(", "),
     isBestseller: initial.isBestseller || false, isTodaysDeal: initial.isTodaysDeal || false,
@@ -217,6 +273,9 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const [colors,     setColors]     = useState(initial.colors?.length ? initial.colors.map(c => ({ name: c.name || "", images: c.images?.length ? c.images : [""] })) : []);
   const [videos,     setVideos]     = useState(initial.videos?.length ? initial.videos : []);
   const [boxContent, setBoxContent] = useState(initial.boxContent?.length ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 })) : []);
+  const [specs,      setSpecs]      = useState(initial.specs || {});
+  const specFields = getSpecFields(form.category);
+  const setSpec    = (name, value) => setSpecs(p => ({ ...p, [name]: value }));
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [success, setSuccess] = useState(false);
@@ -301,6 +360,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean) })).filter(c => c.name),
         videos: videos.filter(Boolean),
         boxContent: boxContent.filter(b => b.item?.trim()).map(b => ({ item: b.item.trim(), quantity: parseInt(b.quantity) || 1 })),
+        specs: buildSpecs(specFields, specs),
       };
       const url = isEdit ? `/api/products/${initial._id}` : "/api/admin/products";
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -360,7 +420,15 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       <Section title="Core Details">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Field label="Product Name"><input value={form.name} onChange={set("name")} placeholder="e.g. MagFlex Powerbank" className={INPUT_CLASS} /></Field>
-          <Field label="Category"><input value={form.category} onChange={set("category")} placeholder="e.g. Power Bank" className={INPUT_CLASS} /></Field>
+          <Field label="Category">
+            <select value={form.category} onChange={set("category")} className={INPUT_CLASS}>
+              <option value="">— Select category —</option>
+              {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {form.category && !CATEGORY_OPTIONS.some(c => c.value === form.category) && (
+                <option value={form.category}>{form.category} (not a shop category)</option>
+              )}
+            </select>
+          </Field>
           <Field label="Price (₦)"><input type="number" value={form.price} onChange={set("price")} placeholder="19000" min="0" className={INPUT_CLASS} /></Field>
           <Field label="Original Price (₦)"><input type="number" value={form.originalPrice} onChange={set("originalPrice")} placeholder="23000 — leave blank if no discount" min="0" className={INPUT_CLASS} /></Field>
         </div>
@@ -417,6 +485,22 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         <Field label="Features (comma-separated)">
           <input value={form.features} onChange={set("features")} placeholder="Fast charging, Built-in cable, 10000mAh" className={INPUT_CLASS} />
         </Field>
+      </Section>
+
+      {/* Specs (drive the category page filters) */}
+      <Section title="Specs / Filters">
+        {specFields.length === 0 ? (
+          <div className="text-[12px] text-[#666]">
+            {form.category ? "No filterable specs for this category yet." : "Pick a category to see its specs."}
+          </div>
+        ) : (
+          <>
+            <div className="text-[11px] text-[#fff] mb-3.5">
+              These power the filters on the {form.category} page. Leave blank if it doesn&apos;t apply.
+            </div>
+            <SpecsFields fields={specFields} specs={specs} onChange={setSpec} />
+          </>
+        )}
       </Section>
 
       {/* Main Image */}

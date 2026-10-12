@@ -10,7 +10,7 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
-const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart" }) => {
+const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart", animated = true }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null); // fly target
@@ -48,6 +48,18 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
     trackTikTokATC(product, 1);
     trackMetaATC(product, 1);
 
+    const addedItem = {
+      name:  product.name,
+      image: imageToUse,
+      color: colorToAdd?.name || null,
+      price: product.price,
+    };
+
+    if (!animated) {
+      dispatch(itemAdded(addedItem));
+      return;
+    }
+
     // On product cards, source image is wrapped with data-product-id
     const sourceElement =
       document.querySelector(`[data-product-id="${product._id}"] img`) ||
@@ -62,19 +74,27 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
       sourceElement,
       buttonElement,  // polaroid flies TO this button
       onLand: () => {
-        dispatch(itemAdded({
-          name:  product.name,
-          image: imageToUse,
-          color: colorToAdd?.name || null,
-          price: product.price,
-        }));
+        dispatch(itemAdded(addedItem));
         setPhase("landed");
         setTimeout(() => setPhase("idle"), 1500);
       },
     });
-  }, [phase, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
+  }, [phase, animated, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
   const isAvailable = product && product.availability;
+
+  if (!animated) {
+    return (
+      <button
+        type="button"
+        onClick={handleAddToCart}
+        disabled={!isAvailable}
+        className={`cursor-pointer ${className}`}
+      >
+        {isAvailable ? label : "Out of Stock"}
+      </button>
+    );
+  }
   const isFlying    = phase === "flying";
   const isLanded    = phase === "landed";
 
