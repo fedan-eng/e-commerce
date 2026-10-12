@@ -10,7 +10,7 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
-const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
+const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart" }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null); // fly target
@@ -142,7 +142,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null }) => {
             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
           >
-            Add to cart
+            {label}
           </motion.span>
         )}
       </AnimatePresence>

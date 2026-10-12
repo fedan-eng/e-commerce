@@ -53,7 +53,7 @@ export default async function FeaturedBlog() {
           
           {/* Left Column: Featured Post */}
           <div className="flex flex-col group">
-            <Link href={featuredPost.url} className="block overflow-hidden rounded-[28px] md:rounded-[32px] mb-6">
+            <Link href={featuredPost.url} className="block overflow-hidden border-1 border-black/5  rounded-[28px] md:rounded-[32px] mb-6">
               <img
                 src={featuredPost.image}
                 alt={featuredPost.title}
@@ -92,7 +92,7 @@ export default async function FeaturedBlog() {
               >
                 
                 {/* Thumbnail Image */}
-                <Link href={post.url} className="shrink-0 overflow-hidden rounded-[20px] md:rounded-[24px] w-[110px] h-[110px] sm:w-[140px] sm:h-[140px]">
+                <Link href={post.url} className="shrink-0 overflow-hidden border-1 border-black/5 rounded-[20px] md:rounded-[24px] w-[110px] h-[110px] sm:w-[140px] sm:h-[140px]">
                   <img
                     src={post.image}
                     alt={post.title}

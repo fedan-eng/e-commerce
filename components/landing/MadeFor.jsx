@@ -10,7 +10,7 @@ const moments = [
     product: 'FIL Pods Pro',
     // Using a lifestyle/product mix that works well with the blend mode
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor1.png',
-    // Staggered layout classes for tablet and desktop
+    focus: 'object-top',
     marginClasses: 'md:mt-0 lg:mt-0',
   },
   {
@@ -31,6 +31,7 @@ const moments = [
     title: 'Light is not. Fan is on.',
     product: 'FIL Flex Fan',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor3.png',
+    focus: 'object-top',
     marginClasses: 'md:mt-0 lg:mt-[30px]',
   },
   {
@@ -41,6 +42,7 @@ const moments = [
     title: 'Long call, still charging strong.',
     product: 'FIL MagFlex 10K',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor4.png',
+    focus: 'object-top',
     marginClasses: 'md:mt-[60px] lg:mt-[110px]',
   },
 ];
@@ -79,15 +81,12 @@ const MadeFor = () => {
               <div
                 className={`relative w-full aspect-[4/5] rounded-[32px] overflow-hidden mb-4 ${moment.imageBg} flex items-center justify-center`}
               >
-                {/* 
-                  mix-blend-multiply makes the white backgrounds of the 
-                  unsplash placeholders vanish into the colored card background 
-                */}
-                <img
-                  src={moment.image}
-                  alt={moment.title}
-                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
-                />
+                
+               <img
+  src={moment.image}
+  alt={moment.title}
+  className={`absolute inset-0 w-full h-full  ${moment.focus || 'object-contain'} transition-transform duration-500 group-hover:scale-105`}
+/>
               </div>
 
               {/* Text & Product Pill */}

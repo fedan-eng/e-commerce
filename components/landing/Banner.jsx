@@ -12,7 +12,7 @@ const Banner = () => {
         </h2>
 
         {/* Battery: shell + nub sit side by side, so nothing overflows the container */}
-        <div className="flex items-center w-full mb-6 md:mb-8" aria-hidden="true">
+        <div className="flex items-center w-[90%] mb-6 md:mb-8" aria-hidden="true">
           {/* Outlined shell */}
           <div className="flex-1 h-[44px] sm:h-[50px] md:h-[56px] rounded-full border-[3px] md:border-[4px] border-[#0A321B] p-[4px] md:p-[5px]">
             {/* Filled charge bar */}

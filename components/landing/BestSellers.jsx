@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import AddToCartButton from '@/components/AddToCart';
 
 const filters = ['All', 'Bestsellers', 'New in'];
 
@@ -33,6 +34,7 @@ function mapProductToDisplay(product) {
     originalPrice: product.originalPrice ? formatPrice(product.originalPrice) : null,
     description: (product.features || []).slice(0, 2).join(', '),
     badge: product.isBestseller ? 'Bestseller' : product.isWhatsNew ? 'New in' : 'New',
+    raw: product,
   };
 }
 
@@ -145,6 +147,7 @@ export default function BestSellers() {
                   {/* Image card */}
                   <Link
                     href={href}
+                    data-product-id={product._id}
                     className={`relative ${bgColor} rounded-[28px] overflow-hidden aspect-[4/3] md:aspect-auto md:h-[360px] mb-4 block`}
                   >
                     {product.badge && (
@@ -190,15 +193,18 @@ export default function BestSellers() {
                     </p>
 
                     {/* CTA: fixed spacing, same width on every card */}
-                    <Link
-                      href={href}
-                      className="mt-5 w-fit min-w-[230px] inline-flex items-center justify-center gap-2 bg-[#004328] hover:bg-black text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
-                    >
-                      <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
-                        <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
-                      </span>
-                      Add to Cart
-                    </Link>
+                    <AddToCartButton
+                      product={product.raw}
+                      className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
+                      label={
+                        <span className="flex items-center gap-2">
+                          <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
+                            <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
+                          </span>
+                          Add to Cart
+                        </span>
+                      }
+                    />
                   </div>
                 </div>
               );
