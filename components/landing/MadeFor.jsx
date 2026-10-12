@@ -77,7 +77,7 @@ const MadeFor = () => {
 
               {/* Image Card */}
               <div
-                className={`relative w-full aspect-[4/5] rounded-[32px] overflow-hidden mb-4 ${moment.imageBg} flex items-center justify-center p-4`}
+                className={`relative w-full aspect-[4/5] rounded-[32px] overflow-hidden mb-4 ${moment.imageBg} flex items-center justify-center`}
               >
                 {/* 
                   mix-blend-multiply makes the white backgrounds of the 

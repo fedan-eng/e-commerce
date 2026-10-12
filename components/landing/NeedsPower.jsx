@@ -3,6 +3,20 @@
 import React, { useRef } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 
+/*
+  bleed: how the image breaks out of the card (omit for contained images)
+  - 'full'   → photo fills the lower card edge to edge (for images with their own background)
+  - 'bottom' → cut-out runs off the bottom edge
+  - 'left'   → cut-out runs off the left edge
+  - 'right'  → cut-out runs off the right edge
+*/
+const bleedPosition = {
+  full: 'inset-x-0 bottom-0 h-[72%]',
+  bottom: 'left-1/2 -translate-x-1/2 -bottom-[8%] h-[78%]',
+  left: '-left-[14%] bottom-5 h-[62%]',
+  right: '-right-[14%] bottom-5 h-[62%]',
+};
+
 const categories = [
   {
     id: 1,
@@ -14,6 +28,7 @@ const categories = [
     btnBg: 'bg-white/50',
     btnIcon: 'text-[#043B1E]',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Need1.png',
+    bleed: 'full',
   },
   {
     id: 2,
@@ -47,6 +62,7 @@ const categories = [
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
     image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/Gemini-Generated-Image-i7i6igi7i6igi7i6-1.webp',
+    bleed: 'bottom',
   },
   {
     id: 5,
@@ -69,17 +85,59 @@ const categories = [
     btnBg: 'bg-white/10',
     btnIcon: 'text-white',
     image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/d1b4692616e16fe21028d967cfa20bb6b85d07fc.png',
+    // Current asset's cable runs to the right. Switch to 'left' if you use the design's asset.
+    bleed: 'right',
   },
 ];
+
+const CategoryImage = ({ cat }) => {
+  const imgMotion = 'transition-transform duration-500 group-hover:scale-[1.04]';
+
+  // Contained (default)
+  if (!cat.bleed) {
+    return (
+      <div className="absolute bottom-0 left-0 right-0 h-[62%] px-4 pb-4 flex items-end justify-center pointer-events-none">
+        <img
+          src={cat.image}
+          alt={cat.title}
+          className={`w-full h-full object-contain object-bottom ${imgMotion}`}
+        />
+      </div>
+    );
+  }
+
+  // Full photo bleed: fills the lower card, clipped by the card's rounded corners
+  if (cat.bleed === 'full') {
+    return (
+      <div className={`absolute ${bleedPosition.full} pointer-events-none`}>
+        <img
+          src={cat.image}
+          alt={cat.title}
+          className={`w-full h-full object-cover object-left-top ${imgMotion}`}
+        />
+      </div>
+    );
+  }
+
+  // Edge bleed: cut-out sized by height and pushed past one edge
+  return (
+    <div className={`absolute ${bleedPosition[cat.bleed]} pointer-events-none`}>
+      <img
+        src={cat.image}
+        alt={cat.title}
+        className={`h-full w-auto max-w-none ${imgMotion}`}
+      />
+    </div>
+  );
+};
 
 const NeedsPower = () => {
   const scrollRef = useRef(null);
 
   const scroll = (direction) => {
     if (scrollRef.current) {
-      const scrollAmount = 340;
       scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        left: direction === 'left' ? -340 : 340,
         behavior: 'smooth',
       });
     }
@@ -93,7 +151,7 @@ const NeedsPower = () => {
       `}</style>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-6">
           <div>
@@ -133,7 +191,7 @@ const NeedsPower = () => {
               key={cat.id}
               className={`flex-none w-[280px] sm:w-[300px] h-[410px] rounded-[28px] ${cat.bg} p-5 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
             >
-              {/* Text */}
+              {/* Text stays above any bleeding image */}
               <div className="relative z-10 pr-10">
                 <h3 className={`text-[20px] sm:text-[22px] font-bold ${cat.textTitle} mb-1.5 leading-tight`}>
                   {cat.title}
@@ -148,13 +206,7 @@ const NeedsPower = () => {
                 <ArrowUpRight className={`w-4 h-4 ${cat.btnIcon}`} strokeWidth={2.5} />
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 h-[62%] px-4 pb-4 flex items-end justify-center pointer-events-none">
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  className="w-full h-full object-contain object-bottom transition-transform duration-500 group-hover:scale-[1.04]"
-                />
-              </div>
+              <CategoryImage cat={cat} />
             </div>
           ))}
         </div>
