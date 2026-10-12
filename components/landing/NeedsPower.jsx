@@ -131,7 +131,7 @@ const NeedsPower = () => {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className={`flex-none w-[280px] sm:w-[300px] h-[400px] rounded-[28px] ${cat.bg} p-5 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
+              className={`flex-none w-[280px] sm:w-[300px] h-[410px] rounded-[28px] ${cat.bg} p-5 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
             >
               {/* Text */}
               <div className="relative z-10 pr-10">
@@ -148,8 +148,7 @@ const NeedsPower = () => {
                 <ArrowUpRight className={`w-4 h-4 ${cat.btnIcon}`} strokeWidth={2.5} />
               </div>
 
-              {/* Image — tightened, no extra spacing */}
-              <div className="absolute -bottom-10 left-0 right-0 h-[58%] flex items-end justify-center pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 h-[62%] px-4 pb-4 flex items-end justify-center pointer-events-none">
                 <img
                   src={cat.image}
                   alt={cat.title}
