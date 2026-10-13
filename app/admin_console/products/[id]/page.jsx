@@ -11,7 +11,7 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
  
   useEffect(() => {
-    fetch(`/api/products/${id}`)
+    fetch(`/api/products/${id}`, { cache: "no-store" })
       .then(r => r.json())
       .then(data => { setProduct(data); setLoading(false); });
   }, [id]);
