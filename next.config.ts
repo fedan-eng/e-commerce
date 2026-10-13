@@ -100,7 +100,9 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:path*",
+        // Exclude /api — otherwise this later rule overrides the no-store header above
+        // and browsers cache API responses (e.g. product details) for a year.
+        source: "/((?!api/).*)",
         headers: [
           {
             key: "X-Robots-Tag",

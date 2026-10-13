@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [chartMode,    setChartMode]    = useState("week");
   const [filterMonth,  setFilterMonth]  = useState(0);
   const [filterYear,   setFilterYear]   = useState(0);
+  const [filterSource, setFilterSource] = useState("all"); // all | online | manual
 
   const salesRef  = useRef(null);
   const donutRef  = useRef(null);
@@ -71,6 +72,7 @@ export default function AdminDashboard() {
     const d = new Date(o.createdAt);
     if (filterMonth > 0 && d.getMonth() + 1 !== filterMonth) return false;
     if (filterYear  > 0 && d.getFullYear()   !== filterYear)  return false;
+    if (filterSource !== "all" && (o.source || "online") !== filterSource) return false;
     return true;
   });
 
@@ -86,7 +88,7 @@ export default function AdminDashboard() {
       statusInst.current?.destroy();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, filtered.length, chartMode, filterMonth, filterYear]);
+  }, [loading, filtered.length, chartMode, filterMonth, filterYear, filterSource]);
 
   function buildSalesChart() {
     salesInst.current?.destroy();
@@ -211,7 +213,16 @@ export default function AdminDashboard() {
           <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Overview</div>
           <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">Dashboard</h1>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
+          <select
+            value={filterSource}
+            onChange={e => setFilterSource(e.target.value)}
+            className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-3 py-1.5 rounded-md outline-none cursor-pointer"
+          >
+            <option value="all">All Sales</option>
+            <option value="online">Online</option>
+            <option value="manual">Manual</option>
+          </select>
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(+e.target.value)}
