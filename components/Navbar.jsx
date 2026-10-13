@@ -9,7 +9,6 @@ import {
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileTooltip   from "./ProfileTooltip";
-import ArrivalTooltip   from "./ArrivalTooltip";
 import ProductMenu      from "./ProductMenu";
 import NavSearchTooltip from "./NavSearchTooltip";
 import { useSelector, useDispatch } from "react-redux";
@@ -22,6 +21,12 @@ import CartBottomSheet from "@/components/cart/CartBottomSheet";
 import { CATEGORIES } from "@/lib/categories";
 
 const MOBILE_CATEGORIES = Object.values(CATEGORIES);
+
+const NAV_LINKS = [
+  { label: "Best Selling", href: "/products?specials=isBestseller" },
+  { label: "Contact us",   href: "/contact" },
+  { label: "Blogs",        href: "/blog" },
+];
 
 export default function Navbar() {
   const router   = useRouter();
@@ -99,12 +104,14 @@ export default function Navbar() {
             {/* CENTER: Desktop nav links - Pixel perfect matching */}
             <ul className="hidden nav:flex flex-shrink-0 items-center justify-center gap-10 text-[14px] font-medium text-[#1a1a1a]">
               <ProductMenu />
-              <ArrivalTooltip />
-              <li>
-                <Link href="/bulk-order" className="hover:text-filgreen transition-colors duration-200">
-                  Bulk Order
-                </Link>
-              </li>
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="hover:text-filgreen transition-colors duration-200">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+              <li aria-hidden="true" className="w-4" />
               <NavSearchTooltip />
             </ul>
 
@@ -212,7 +219,7 @@ export default function Navbar() {
                       onClick={() => setProductOpen((o) => !o)}
                       className="w-full flex items-center justify-between py-4 text-left"
                     >
-                      <span className="font-medium text-[17px] text-[#1a1a1a]">Product</span>
+                      <span className="font-medium text-[17px] text-[#1a1a1a]">All Products</span>
                       {productOpen
                         ? <ChevronUp size={20} className="text-[#1a1a1a]" />
                         : <ChevronDown size={20} className="text-[#1a1a1a]" />
@@ -247,10 +254,9 @@ export default function Navbar() {
                     </AnimatePresence>
                   </div>
 
-                  <Link href="/products?sort=newest" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">New Arrivals</Link>
-                  <Link href="/bulk-order"           onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Bulk Order</Link>
-                  <Link href="/track"                onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Contact us</Link>
-                  <Link href="/blog"                 onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Blog</Link>
+                  {NAV_LINKS.map((l) => (
+                    <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">{l.label}</Link>
+                  ))}
 
                   <Link
                     href="/cart"

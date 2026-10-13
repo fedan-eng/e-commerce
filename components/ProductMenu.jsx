@@ -1,6 +1,6 @@
 "use client";
-// components/ProductMenu.jsx — "Product" dropdown in the desktop navbar.
-// Category tiles share their colours/images with the category pages (lib/categories.js).
+// components/ProductMenu.jsx — the "All Products" pill + dropdown in the desktop navbar.
+// Category colours/images come from lib/categories.js, same as the category pages.
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,8 +15,9 @@ export default function ProductMenu() {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
   const pathname = usePathname();
+  const onCategoryPage = pathname === "/products" || categories.some((c) => pathname === `/products/${c.slug}`);
 
-  // Small delay so moving the cursor from the link down into the panel doesn't close it
+  // Small delay so moving the cursor from the pill down into the panel doesn't close it
   const show = () => {
     clearTimeout(closeTimer.current);
     setOpen(true);
@@ -37,14 +38,16 @@ export default function ProductMenu() {
   }, [open]);
 
   return (
-    <li onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
+    <li className="relative" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
       <Link
         href="/products"
         aria-haspopup="true"
         aria-expanded={open}
-        className={`flex items-center gap-1 transition-colors hover:text-filgreen ${open ? "text-filgreen" : ""}`}
+        className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 font-medium text-[#0A321B] transition-colors ${
+          open || onCategoryPage ? "bg-[#D4EEDC]" : "bg-[#E8F5EC] hover:bg-[#D4EEDC]"
+        }`}
       >
-        Product
+        All Products
         <ChevronDown size={14} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </Link>
 
@@ -54,50 +57,68 @@ export default function ProductMenu() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18 }}
-            className="absolute left-0 top-full z-[60] w-full border-t border-[#E3EDE6] bg-white shadow-[0_24px_40px_-20px_rgba(10,50,27,0.25)]"
+            transition={{ duration: 0.16 }}
+            // pt-3 is an invisible bridge between the pill and the card so hover isn't lost
+            className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3"
           >
-            <div className="mx-auto max-w-[1280px] px-4 py-7 sm:px-6 lg:px-8">
-              <div className="mb-4 flex items-end justify-between">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#0A321B]/60">
-                  Shop by category
-                </p>
-                <Link
-                  href="/products"
-                  className="group/all flex items-center gap-1.5 text-[13px] font-semibold text-[#0A321B] hover:text-filgreen"
-                >
-                  Shop all products
-                  <ArrowRight size={14} className="transition-transform group-hover/all:translate-x-0.5" />
-                </Link>
-              </div>
+            <div className="w-[600px] rounded-[24px] border border-[#E3EDE6] bg-white p-3 shadow-[0_24px_48px_-16px_rgba(10,50,27,0.22)]">
+              <ul className="grid grid-cols-2 gap-1">
+                {categories.map((c) => {
+                  const active = pathname === `/products/${c.slug}`;
+                  return (
+                    <li key={c.slug}>
+                      <Link
+                        href={`/products/${c.slug}`}
+                        className={`group/item flex items-center gap-3 rounded-[16px] p-2.5 transition-colors hover:bg-[#F3F7F2] ${
+                          active ? "bg-[#F3F7F2]" : ""
+                        }`}
+                      >
+                        <span
+                          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[14px]"
+                          style={{ backgroundColor: c.theme.exploreBg }}
+                        >
+                          <Image
+                            src={c.exploreImage}
+                            alt=""
+                            fill
+                            sizes="56px"
+                            className="object-contain p-1.5 transition-transform duration-300 group-hover/item:scale-110"
+                          />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-1 text-[14px] font-bold text-[#0A321B]">
+                            {c.title}
+                            <ArrowUpRight
+                              size={14}
+                              className="opacity-0 transition-opacity group-hover/item:opacity-100"
+                            />
+                          </span>
+                          <span className="mt-0.5 line-clamp-2 text-[12px] font-normal leading-snug text-[#5B6B61]">
+                            {c.menuText}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
 
-              <ul className="grid grid-cols-5 gap-4">
-                {categories.map((c) => (
-                  <li key={c.slug}>
-                    <Link
-                      href={`/products/${c.slug}`}
-                      className="group/tile relative flex h-[190px] flex-col overflow-hidden rounded-[22px] p-4"
-                      style={{ backgroundColor: c.theme.exploreBg }}
-                    >
-                      <span className="relative z-10 text-[16px] font-bold leading-tight text-[#0A321B]">
-                        {c.title}
+                {/* Sixth cell: everything */}
+                <li>
+                  <Link
+                    href="/products"
+                    className="group/all flex h-full items-center justify-between gap-3 rounded-[16px] bg-[#004328] p-4 text-white transition-colors hover:bg-[#0A321B]"
+                  >
+                    <span>
+                      <span className="block text-[14px] font-bold">Shop all products</span>
+                      <span className="mt-0.5 block text-[12px] font-normal text-white/70">
+                        Every FIL gadget in one place
                       </span>
-                      <span className="relative z-10 mt-1 max-w-[85%] text-[11.5px] leading-snug text-[#0A321B]/70">
-                        {c.menuText}
-                      </span>
-                      <Image
-                        src={c.exploreImage}
-                        alt=""
-                        fill
-                        sizes="240px"
-                        className="object-contain object-right-bottom pl-12 pt-16 transition-transform duration-500 group-hover/tile:scale-105"
-                      />
-                      <span className="absolute bottom-3.5 left-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/60 text-[#0A321B] transition-transform group-hover/tile:scale-110">
-                        <ArrowUpRight size={15} strokeWidth={2.5} />
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+                    </span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 transition-transform group-hover/all:translate-x-0.5">
+                      <ArrowRight size={15} />
+                    </span>
+                  </Link>
+                </li>
               </ul>
             </div>
           </motion.div>
