@@ -49,7 +49,7 @@ export default function CategoryShop({ category, products }) {
 
   return (
     <section id="shop" className="mx-auto max-w-[1440px] px-4 py-8 md:px-16">
-      <CategoryChips chips={category.chips} selected={selected} onSelect={applyFilters} />
+      <CategoryChips chips={category.chips} selected={selected} onSelect={applyFilters} theme={category.theme} />
       <div className="mt-6 flex flex-col gap-8 md:flex-row">
         <FilterSidebar
           filters={category.filters.filter((f) => !f.hidden)}

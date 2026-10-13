@@ -71,10 +71,14 @@ const productSchema = new mongoose.Schema(
       outputW:       { type: Number },   // chargers, power banks
       batteryHours:  { type: Number },   // wearables
       portCount:     { type: Number },   // chargers
+      socketCount:   { type: Number },   // extensions
+      cableLengthM:  { type: Number },   // extensions, in metres
       ports:         { type: [String], default: undefined },  // "USB-C", "USB-A", "Lightning"
       chargingType:  { type: String },   // "wall" | "desktop" | "car"
       connectivity:  { type: String },   // "Bluetooth 5.3"
       wearableType:  { type: String },   // "earbuds" | "headphones" | "smartwatch"
+      lifestyleType: { type: String },   // "projector" | "lamp" | "fan"
+      powerSource:   { type: [String], default: undefined },  // "rechargeable", "mains"
       compatibility: { type: [String], default: undefined },  // "phones", "laptops", "multi-device"
       featureTags:   { type: [String], default: undefined },  // "noise-cancellation", "magnetic", …
     },

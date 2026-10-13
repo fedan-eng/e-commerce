@@ -2,32 +2,47 @@
 // components/category/FilterSidebar.jsx
 // Checkbox changes are a local draft; "Apply" pushes them to the URL.
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+
+function FilterCheckbox({ label, checked, onChange }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 py-1 text-[12px] text-[#4A4A4A] hover:text-[#0A321B]">
+      <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
+      <span
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[#1FA34A]/40 ${
+          checked ? "border-[#1FA34A] bg-[#1FA34A]" : "border-[#CFE3D6] bg-white"
+        }`}
+      >
+        {checked && <Check size={11} strokeWidth={3.5} className="text-white" />}
+      </span>
+      {label}
+    </label>
+  );
+}
 
 function FilterGroup({ filter, draft, onToggle }) {
   const [open, setOpen] = useState(true);
   const values = draft[filter.key] || [];
 
   return (
-    <div className="border-b border-gray-200 py-3">
+    <div className="border-b border-[#E3EDE6] py-4">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between text-sm font-semibold"
+        aria-expanded={open}
+        className="flex w-full items-center justify-between text-[13px] font-bold text-[#0A321B]"
       >
         {filter.label}
         {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {open && (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2.5 space-y-1">
           {filter.options.map((opt) => (
-            <label key={opt.id} className="flex cursor-pointer items-center gap-2 text-xs">
-              <input
-                type="checkbox"
-                checked={values.includes(opt.id)}
-                onChange={() => onToggle(filter.key, opt.id)}
-              />
-              {opt.label}
-            </label>
+            <FilterCheckbox
+              key={opt.id}
+              label={opt.label}
+              checked={values.includes(opt.id)}
+              onChange={() => onToggle(filter.key, opt.id)}
+            />
           ))}
         </div>
       )}
@@ -55,24 +70,31 @@ export default function FilterSidebar({ filters, selected, onApply }) {
   };
 
   return (
-    <aside className="w-full shrink-0 md:w-[260px]">
-      {/* TODO: design + mobile drawer */}
-      <div className="flex items-center justify-between pb-2">
-        <span className="flex items-center gap-2 text-xs font-semibold">
+    <aside className="w-full shrink-0 md:w-[240px]">
+      {/* TODO: mobile drawer */}
+      <div className="flex items-center justify-between border-b border-[#E3EDE6] pb-3">
+        <span className="flex items-center gap-2 text-[12px] font-semibold text-[#0A321B]">
           <SlidersHorizontal size={14} /> Clear filter
         </span>
-        <button onClick={clear} className="text-xs text-green-600">Clear</button>
+        <button onClick={clear} className="text-[12px] font-semibold text-[#1FA34A] hover:underline">
+          Clear
+        </button>
       </div>
 
       {filters.map((f) => (
         <FilterGroup key={f.key} filter={f} draft={draft} onToggle={toggle} />
       ))}
 
-      <div className="mt-4 flex gap-2">
-        <button onClick={clear} className="flex-1 rounded-full border py-2 text-xs">Clear</button>
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={clear}
+          className="flex-1 rounded-full border border-[#D6E2DA] bg-white py-2.5 text-[12px] font-semibold text-[#0A321B] hover:border-[#0A321B]"
+        >
+          Clear
+        </button>
         <button
           onClick={() => onApply(draft)}
-          className="flex-1 rounded-full bg-[#004328] py-2 text-xs text-white"
+          className="flex-1 rounded-full bg-[#004328] py-2.5 text-[12px] font-semibold text-white hover:bg-black"
         >
           Apply
         </button>

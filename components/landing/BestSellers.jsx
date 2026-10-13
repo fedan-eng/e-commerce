@@ -40,7 +40,7 @@ function mapProductToDisplay(product) {
 
 // Used on the homepage (all categories) and on the category pages,
 // where `category` is the stored Product.category value, e.g. "Power Bank".
-export default function BestSellers({ category = null, limit = 3 }) {
+export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying" }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,7 @@ export default function BestSellers({ category = null, limit = 3 }) {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div className="max-w-md">
             <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
-              What everyone's carrying
+              {title}
             </h2>
             <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
               Our most-loved gear right now. Hover a product to see it out in the world.

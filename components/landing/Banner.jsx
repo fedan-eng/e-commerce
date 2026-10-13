@@ -18,7 +18,7 @@ const Banner = () => {
             {/* Filled charge bar */}
             <div className="w-full h-full rounded-full bg-[#0A321B] flex items-center justify-end pr-4 sm:pr-5">
               <span className="text-[#00E575] font-bold text-[12px] sm:text-[13px] md:text-[14px] tracking-wide">
-                100%
+                Stay on 100% always
               </span>
             </div>
           </div>

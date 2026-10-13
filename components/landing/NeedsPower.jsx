@@ -13,7 +13,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 */
 // Every image starts at IMAGE_TOP — just under the title/subtitle.
 // Nudge this one value to move all card images up or down.
-const IMAGE_TOP = 'top-[25%]';
+const IMAGE_TOP = 'top-[27%]';
 
 const bleedPosition = {
   full: `inset-x-0 ${IMAGE_TOP} bottom-0`,

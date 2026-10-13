@@ -10,7 +10,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileTooltip   from "./ProfileTooltip";
 import ArrivalTooltip   from "./ArrivalTooltip";
-import ProductTooltip   from "./ProductTooltip";
+import ProductMenu      from "./ProductMenu";
 import NavSearchTooltip from "./NavSearchTooltip";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,14 +19,9 @@ import { toggleCart }  from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import CartSidebar     from "@/components/cart/CartSidebar";
 import CartBottomSheet from "@/components/cart/CartBottomSheet";
+import { CATEGORIES } from "@/lib/categories";
 
-const MOBILE_CATEGORIES = [
-  { name: "Power Bank",  key: "Power Bank"  },
-  { name: "Wearables",   key: "Wearables"   },
-  { name: "Chargers",    key: "Chargers"    },
-  { name: "Lifestyle",   key: "Lifestyle"   },
-  { name: "Extensions",  key: "Extensions"  },
-];
+const MOBILE_CATEGORIES = Object.values(CATEGORIES);
 
 export default function Navbar() {
   const router   = useRouter();
@@ -103,7 +98,7 @@ export default function Navbar() {
 
             {/* CENTER: Desktop nav links - Pixel perfect matching */}
             <ul className="hidden nav:flex flex-shrink-0 items-center justify-center gap-10 text-[14px] font-medium text-[#1a1a1a]">
-              <ProductTooltip />
+              <ProductMenu />
               <ArrivalTooltip />
               <li>
                 <Link href="/bulk-order" className="hover:text-filgreen transition-colors duration-200">
@@ -235,13 +230,14 @@ export default function Navbar() {
                         >
                           <ul className="pb-2 space-y-4">
                             {MOBILE_CATEGORIES.map((cat) => (
-                              <li key={cat.key}>
+                              <li key={cat.slug}>
                                 <Link
-                                  href={`/products?categories=${encodeURIComponent(cat.key)}`}
+                                  href={`/products/${cat.slug}`}
                                   onClick={() => setMenuOpen(false)}
-                                  className="block text-[15px] text-[#b5b5b5] hover:text-filgreen transition-colors"
+                                  className="flex items-center gap-3 text-[15px] text-[#4A4A4A] hover:text-filgreen transition-colors"
                                 >
-                                  {cat.name}
+                                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.theme.exploreBg }} />
+                                  {cat.title}
                                 </Link>
                               </li>
                             ))}
