@@ -7,6 +7,10 @@ import { filterProducts, selectedFromParams, selectedToQuery } from "@/lib/categ
 import CategoryChips from "./CategoryChips";
 import FilterSidebar from "./FilterSidebar";
 import ProductGrid from "./ProductGrid";
+import Pagination from "./Pagination";
+
+// 3×3 grid: 8 products + the help card
+const PER_PAGE = 8;
 
 export default function CategoryShop({ category, products }) {
   const router = useRouter();
@@ -23,9 +27,24 @@ export default function CategoryShop({ category, products }) {
     [products, category, selected]
   );
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  // ?page=N — clamped so a stale link can't land on an empty page
+  const page = Math.min(Math.max(1, parseInt(searchParams.get("page")) || 1), totalPages);
+  const pageProducts = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  // New filters always start from page 1 (page isn't carried over)
   const applyFilters = (next) => {
     const qs = selectedToQuery(next);
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  const goToPage = (n) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (n > 1) params.set("page", String(n));
+    else params.delete("page");
+    const qs = params.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -37,7 +56,10 @@ export default function CategoryShop({ category, products }) {
           selected={selected}
           onApply={applyFilters}
         />
-        <ProductGrid products={filtered} category={category} />
+        <div className="flex-1">
+          <ProductGrid products={pageProducts} category={category} />
+          <Pagination page={page} totalPages={totalPages} onChange={goToPage} />
+        </div>
       </div>
     </section>
   );

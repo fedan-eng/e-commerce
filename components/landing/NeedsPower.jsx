@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from 'react';
+import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 
 /*
@@ -10,17 +11,22 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
   - 'left'   → cut-out runs off the left edge
   - 'right'  → cut-out runs off the right edge
 */
+// Every image starts at IMAGE_TOP — just under the title/subtitle.
+// Nudge this one value to move all card images up or down.
+const IMAGE_TOP = 'top-[25%]';
+
 const bleedPosition = {
-  full: 'inset-x-0 bottom-0 h-[72%]',
-  bottom: 'left-1/2 -translate-x-1/2 -bottom-[8%] h-[78%]',
-  left: '-left-[14%] bottom-5 h-[62%]',
-  right: '-right-[14%] bottom-5 h-[62%]',
+  full: `inset-x-0 ${IMAGE_TOP} bottom-0`,
+  bottom: `left-1/2 -translate-x-1/2 ${IMAGE_TOP} -bottom-[8%]`,
+  left: `-left-[14%] ${IMAGE_TOP} bottom-5`,
+  right: `-right-[14%] ${IMAGE_TOP} bottom-5`,
 };
 
 const categories = [
   {
     id: 1,
     title: 'Power Banks',
+    href: '/products/power-banks',
     subtitle: 'Pocket-sized backup for when light takes a break.',
     bg: 'bg-[#B2F0CB]',
     textTitle: 'text-[#004328]',
@@ -33,6 +39,7 @@ const categories = [
   {
     id: 2,
     title: 'Audio',
+    href: '/products/wearables',
     subtitle: 'Earbuds that outlast your longest go-slow.',
     bg: 'bg-[#C9BCFF]',
     textTitle: 'text-[#004328]',
@@ -44,6 +51,7 @@ const categories = [
   {
     id: 3,
     title: 'Charging',
+    href: '/products/chargers',
     subtitle: 'Fast chargers that get you from 5% to out the door.',
     bg: 'bg-[#FFCD4D]',
     textTitle: 'text-[#004328]',
@@ -55,6 +63,7 @@ const categories = [
   {
     id: 4,
     title: 'Cables',
+    href: '/products/chargers',
     subtitle: 'Tough enough for bags, buses and bedside drama.',
     bg: 'bg-[#FFA488]',
     textTitle: 'text-[#004328]',
@@ -67,6 +76,7 @@ const categories = [
   {
     id: 5,
     title: 'Fans',
+    href: '/products/lifestyle',
     subtitle: 'Rechargeable cool for hot nights and no light.',
     bg: 'bg-[#B0DDFF]',
     textTitle: 'text-[#004328]',
@@ -78,6 +88,7 @@ const categories = [
   {
     id: 6,
     title: 'Sockets',
+    href: '/products/extensions',
     subtitle: 'Surge-protected extensions for every room.',
     bg: 'bg-[#0F472B]',
     textTitle: 'text-white',
@@ -96,11 +107,11 @@ const CategoryImage = ({ cat }) => {
   // Contained (default)
   if (!cat.bleed) {
     return (
-      <div className="absolute bottom-0 left-0 right-0 h-[62%] px-4 pb-4 flex items-end justify-center pointer-events-none">
+      <div className={`absolute ${IMAGE_TOP} bottom-0 left-0 right-0 px-4 pb-4 flex items-start justify-center pointer-events-none`}>
         <img
           src={cat.image}
           alt={cat.title}
-          className={`w-full h-full object-contain object-bottom ${imgMotion}`}
+          className={`w-full h-full object-contain object-top ${imgMotion}`}
         />
       </div>
     );
@@ -155,7 +166,7 @@ const NeedsPower = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-6">
           <div>
-            <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
+            <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#004328] tracking-tight">
               What needs Power today?
             </h2>
             <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
@@ -182,13 +193,15 @@ const NeedsPower = () => {
         </div>
 
         {/* Carousel */}
-        <div
+        <div 
           ref={scrollRef}
           className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-4 px-4 sm:mx-0 sm:px-0"
         >
           {categories.map((cat) => (
-            <div
+            <Link
               key={cat.id}
+              href={cat.href}
+              aria-label={`Shop ${cat.title}`}
               className={`flex-none w-[280px] sm:w-[300px] h-[410px] rounded-[28px] ${cat.bg} p-5 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
             >
               {/* Text stays above any bleeding image */}
@@ -207,7 +220,7 @@ const NeedsPower = () => {
               </div>
 
               <CategoryImage cat={cat} />
-            </div>
+            </Link>
           ))}
         </div>
       </div>

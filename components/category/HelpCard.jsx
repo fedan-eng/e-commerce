@@ -3,7 +3,7 @@ import { WHATSAPP_URL } from "@/lib/categories";
 
 export default function HelpCard({ helpCard }) {
   return (
-    <div className="flex flex-col rounded-3xl bg-[#004328] p-6 text-white">
+    <div className="flex flex-col rounded-3xl bg-[#004328] max-h-[230px] p-6 text-white">
       {/* TODO: design */}
       <h3 className="text-2xl font-semibold">{helpCard.title}</h3>
       <p className="mt-3 text-sm text-white/80">{helpCard.text}</p>

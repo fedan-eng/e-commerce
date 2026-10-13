@@ -21,7 +21,7 @@ const moments = [
     title: '9% battery. Not a problem.',
     product: 'FIL Thunder 30K',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor2.png',
-    marginClasses: 'md:mt-[60px] lg:mt-[80px]',
+    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[80px]',
   },
   {
     id: 3,
@@ -43,7 +43,7 @@ const moments = [
     product: 'FIL MagFlex 10K',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor4.png',
     focus: 'object-top',
-    marginClasses: 'md:mt-[60px] lg:mt-[110px]',
+    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[110px]',
   },
 ];
 
@@ -63,23 +63,23 @@ const MadeFor = () => {
         </div>
 
         {/* Timeline Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5 md:gap-6 lg:gap-8">
           {moments.map((moment) => (
             <div
               key={moment.id}
               className={`flex flex-col group ${moment.marginClasses}`}
             >
               {/* Time Indicator */}
-              <div className="flex items-center gap-2.5 mb-3.5 px-1">
+              <div className="flex items-center gap-2 sm:gap-2.5 mb-2.5 sm:mb-3.5 px-1">
                 <span className={`w-2 h-2 rounded-full ${moment.dotColor}`} />
-                <span className="text-[#0A321B] font-bold text-[14px] sm:text-[15px]">
+                <span className="text-[#0A321B] font-bold text-[12px] sm:text-[15px]">
                   {moment.time}
                 </span>
               </div>
 
               {/* Image Card */}
               <div
-                className={`relative w-full aspect-[4/5] rounded-[32px] overflow-hidden mb-4 ${moment.imageBg} flex items-center justify-center`}
+                className={`relative w-full aspect-[4/5] rounded-[20px] sm:rounded-[32px] overflow-hidden mb-3 sm:mb-4 ${moment.imageBg} flex items-center justify-center`}
               >
                 
                <img
@@ -91,14 +91,14 @@ const MadeFor = () => {
 
               {/* Text & Product Pill */}
               <div className="px-1 flex flex-col items-start">
-                <h3 className="text-[15px] font-bold text-gray-900 leading-snug mb-3">
+                <h3 className="text-[13px] sm:text-[15px] font-bold text-gray-900 leading-snug mb-2 sm:mb-3">
                   {moment.title}
                 </h3>
                 
                 {/* Pill */}
-                <div className="inline-flex items-center gap-2 px-1.5 py-1.5 bg-[#F4F5F4] rounded-full">
-                  <div className={`w-[22px] h-[22px] rounded-full ${moment.dotColor} flex-shrink-0 shadow-sm`} />
-                  <span className="text-[12px] font-bold text-[#0A321B] pr-3">
+                <div className="inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-1 py-1 sm:px-1.5 sm:py-1.5 bg-[#F4F5F4] rounded-full">
+                  <div className={`w-[16px] h-[16px] sm:w-[22px] sm:h-[22px] rounded-full ${moment.dotColor} flex-shrink-0 shadow-sm`} />
+                  <span className="truncate text-[10.5px] sm:text-[12px] font-bold text-[#0A321B] pr-2 sm:pr-3">
                     {moment.product}
                   </span>
                 </div>

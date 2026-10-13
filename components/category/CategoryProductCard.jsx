@@ -2,6 +2,7 @@
 // Used by both the featured row and the filter grid (variant switches the layout).
 import Image from "next/image";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import AddToCartButton from "@/components/AddToCart";
 
 function formatPrice(amount) {
@@ -19,7 +20,7 @@ export default function CategoryProductCard({ product, accent, variant = "grid" 
   const badge = getBadge(product);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       {/* TODO: design — variant === "featured" vs "grid" */}
       <Link
         href={`/products/${product._id}`}
@@ -34,11 +35,16 @@ export default function CategoryProductCard({ product, accent, variant = "grid" 
         <Image src={image} alt={product.name} fill className="object-contain p-6" />
       </Link>
 
-      <div className="mt-3 flex items-start justify-between gap-2">
-        <Link href={`/products/${product._id}`} className="text-sm font-medium">
+      <div className="mt-3 flex min-w-0 items-start justify-between gap-2">
+        {/* One line with an ellipsis; full name shows on hover */}
+        <Link
+          href={`/products/${product._id}`}
+          title={product.name}
+          className="min-w-0 flex-1 truncate text-sm font-medium"
+        >
           {product.name}
         </Link>
-        {variant === "featured" && <span className="text-sm font-semibold">{formatPrice(product.price)}</span>}
+        {variant === "featured" && <span className="shrink-0 text-sm font-semibold">{formatPrice(product.price)}</span>}
       </div>
 
       {variant === "grid" && (
@@ -53,7 +59,14 @@ export default function CategoryProductCard({ product, accent, variant = "grid" 
       <AddToCartButton
         product={product}
         animated={false}
-        label="Add to Cart"
+        label={
+          <span className="flex items-center gap-2">
+            <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
+              <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
+            </span>
+            Add to Cart
+          </span>
+        }
         className="mt-3 flex w-full items-center justify-center rounded-full bg-[#004328] px-6 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
       />
     </div>

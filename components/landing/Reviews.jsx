@@ -3,7 +3,10 @@
 import React, { useRef } from 'react';
 import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 
-const reviews = [
+const QUOTE_BGS = ['bg-[#B2F0CB]', 'bg-[#B0DDFF]', 'bg-[#C9BCFF]', 'bg-[#FFCD4D]', 'bg-[#FFA488]'];
+
+// Placeholder reviews shown on the homepage
+const defaultReviews = [
   {
     id: 1,
     quoteBg: 'bg-[#B2F0CB]', // Mint Green
@@ -46,7 +49,14 @@ const reviews = [
   },
 ];
 
-export default function Reviews() {
+// Homepage: <Reviews /> uses the defaults below.
+// Category pages pass their own title/subtitle and real reviews:
+//   reviews = [{ id, text, author, city, product }]
+export default function Reviews({
+  title = 'FIL fans have spoken.',
+  subtitle = 'Real reviews from people using FIL every day.',
+  reviews = defaultReviews,
+}) {
   const scrollRef = useRef(null);
 
   const scroll = (direction) => {
@@ -77,10 +87,10 @@ export default function Reviews() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 gap-6">
           <div>
             <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
-              FIL fans have spoken.
+              {title}
             </h2>
             <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
-              Real reviews from people using FIL every day.
+              {subtitle}
             </p>
           </div>
 
@@ -108,14 +118,14 @@ export default function Reviews() {
           ref={scrollRef}
           className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-6 -mx-4 px-4 sm:mx-0 sm:px-0"
         >
-          {reviews.map((review) => (
+          {reviews.map((review, i) => (
             <div
               key={review.id}
               className="flex-none w-[280px] sm:w-[320px] md:w-[340px] bg-white rounded-[28px] p-6 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300"
             >
               {/* Top: Colored Quote Badge */}
               <div>
-                <div className={`w-12 h-12 rounded-full ${review.quoteBg} flex items-center justify-center mb-6`}>
+                <div className={`w-12 h-12 rounded-full ${review.quoteBg || QUOTE_BGS[i % QUOTE_BGS.length]} flex items-center justify-center mb-6`}>
                   <Quote className="w-5 h-5 text-[#0A321B] fill-[#0A321B] rotate-180" />
                 </div>
 
@@ -128,7 +138,7 @@ export default function Reviews() {
               {/* Bottom: Customer Info & Product */}
               <div className="pt-4 border-t border-gray-100">
                 <h3 className="text-[14px] font-bold text-[#0A321B]">
-                  {review.author}, <span className="font-normal text-gray-500">{review.city}</span>
+                  {review.author}{review.city && <>, <span className="font-normal text-gray-500">{review.city}</span></>}
                 </h3>
                 <p className="text-[12px] text-gray-500 mt-1">
                   Bought <span className="underline underline-offset-2 decoration-gray-300">{review.product}</span>

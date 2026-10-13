@@ -4,7 +4,7 @@ import HelpCard from "./HelpCard";
 
 export default function ProductGrid({ products, category }) {
   return (
-    <div className="grid flex-1 grid-cols-2 gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
       {/* TODO: design */}
       {products.map((p) => (
         <CategoryProductCard key={p._id} product={p} accent={category.accent} />

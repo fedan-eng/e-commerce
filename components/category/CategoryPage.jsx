@@ -4,13 +4,14 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import "@/models/User"; // registers the model for populate()
 import { getCategory } from "@/lib/categories";
 import CategoryHero from "./CategoryHero";
 import TrustBar from "./TrustBar";
-import FeaturedProducts from "./FeaturedProducts";
+import BestSellers from "@/components/landing/BestSellers";
 import CategoryShop from "./CategoryShop";
-import CategoryVideos from "./CategoryVideos";
-import CategoryReviews from "./CategoryReviews";
+import VideoAnimation from "@/components/landing/VideoAnimation";
+import Reviews from "@/components/landing/Reviews";
 import CategoryFAQ from "./CategoryFAQ";
 import ExploreMore from "./ExploreMore";
 
@@ -20,6 +21,7 @@ async function getCategoryProducts(dbCategory) {
   const docs = await Product.find({ category: dbCategory })
     .collation({ locale: "en", strength: 2 })
     .select("-ratings -comments.likes -comments.dislikes")
+    .populate({ path: "comments.user", select: "firstName lastName city" })
     .lean();
 
   // Respect the admin's manual ordering for this category
@@ -31,22 +33,38 @@ async function getCategoryProducts(dbCategory) {
   return JSON.parse(JSON.stringify(docs));
 }
 
+// "Lanre Kuti" → "Lanre K."
+function shortName(user) {
+  const first = user?.firstName?.trim();
+  if (!first) return "FIL customer";
+  const lastInitial = user.lastName?.trim()?.[0];
+  return lastInitial ? `${first} ${lastInitial.toUpperCase()}.` : first;
+}
+
+// Approved reviews across the category, in the shape <Reviews /> expects
 function collectReviews(products) {
   return products
     .flatMap((p) =>
       (p.comments || [])
-        .filter((c) => c.status === "approved")
+        .filter((c) => c.status === "approved" && c.text?.trim())
         .map((c) => ({
-          _id: c._id,
+          id: c._id,
           text: c.text,
-          rating: c.rating,
+          author: shortName(c.user),
+          city: c.user?.city || "",
+          product: p.name,
           createdAt: c.createdAt,
-          productId: p._id,
-          productName: p.name,
         }))
     )
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 12);
+}
+
+// One tab per product that has a video, in the shape <VideoAnimation /> expects
+function collectVideoTabs(products) {
+  return products
+    .map((p) => ({ id: p._id, label: p.name, src: (p.videos || []).find(Boolean) }))
+    .filter((t) => t.src);
 }
 
 export default async function CategoryPage({ slug }) {
@@ -62,13 +80,21 @@ export default async function CategoryPage({ slug }) {
     <main>
       <CategoryHero category={category} />
       <TrustBar />
-      <FeaturedProducts category={category} products={listProducts} />
+      {/* Same "What everyone's carrying" section as the homepage, scoped to this category */}
+      <BestSellers category={category.dbCategory} />
       {/* useSearchParams inside CategoryShop needs a Suspense boundary for static rendering */}
       <Suspense fallback={null}>
         <CategoryShop category={category} products={listProducts} />
       </Suspense>
-      <CategoryVideos category={category} products={listProducts} />
-      <CategoryReviews category={category} reviews={reviews} />
+      {/* Shared with the homepage — empty tabs show the "Video of Products" placeholder */}
+      <VideoAnimation tabs={collectVideoTabs(listProducts)} />
+      {reviews.length > 0 && (
+        <Reviews
+          title={`What customers say about our ${category.title}`}
+          subtitle={`Real reviews from people using FIL ${category.title} every day.`}
+          reviews={reviews}
+        />
+      )}
       <CategoryFAQ category={category} />
       <ExploreMore currentSlug={slug} />
     </main>

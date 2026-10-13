@@ -38,7 +38,9 @@ function mapProductToDisplay(product) {
   };
 }
 
-export default function BestSellers() {
+// Used on the homepage (all categories) and on the category pages,
+// where `category` is the stored Product.category value, e.g. "Power Bank".
+export default function BestSellers({ category = null, limit = 3 }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,8 @@ export default function BestSellers() {
         setError(null);
 
         const params = new URLSearchParams();
-        params.append('limit', '3');
+        params.append('limit', String(limit));
+        if (category) params.append('categories', category);
 
         const special = filterMapping[activeFilter];
         if (special) params.append('specials', special);
@@ -70,7 +73,7 @@ export default function BestSellers() {
     };
 
     fetchProducts();
-  }, [activeFilter]);
+  }, [activeFilter, category, limit]);
 
   return (
     <section className="w-full bg-[#F2F8F4] py-16 md:py-24">
@@ -110,7 +113,7 @@ export default function BestSellers() {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(limit)].map((_, i) => (
               <div key={i} className={`${i === 0 ? 'lg:col-span-2' : 'lg:col-span-1'} flex flex-col animate-pulse`}>
                 <div className="bg-gray-200 rounded-[28px] aspect-[4/3] md:aspect-auto md:h-[360px] mb-4" />
                 <div className="px-1 space-y-3">

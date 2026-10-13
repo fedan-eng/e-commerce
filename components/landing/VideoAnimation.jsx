@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react';
 
-const tabs = [
+const DOT_COLORS = ['bg-[#10B981]', 'bg-[#FBBF24]', 'bg-[#C084FC]', 'bg-[#60A5FA]', 'bg-[#F87171]'];
+
+// Placeholder tabs shown on the homepage (no video yet)
+const defaultTabs = [
   { 
     id: 'thunder', 
     label: 'Thunder 20K', 
@@ -23,8 +26,11 @@ const tabs = [
   },
 ];
 
-const VideoAnimation = () => {
-  const [activeTab, setActiveTab] = useState('thunder');
+// Homepage: <VideoAnimation /> uses the placeholder tabs.
+// Category pages pass real videos: tabs = [{ id, label, src }]
+const VideoAnimation = ({ tabs = defaultTabs }) => {
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id);
+  const active = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
     <section className="w-full bg-white py-12 md:py-20">
@@ -42,8 +48,9 @@ const VideoAnimation = () => {
           </div>
 
           {/* Tab Navigation */}
+          {tabs.length > 1 && (
           <div className="inline-flex items-center gap-1 bg-[#F4F5F4] rounded-full p-1.5 self-start md:self-end">
-            {tabs.map((tab) => {
+            {tabs.map((tab, i) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
@@ -57,8 +64,8 @@ const VideoAnimation = () => {
                 >
                   {/* Indicator Dot */}
                   <span 
-                    className={`w-2 h-2 rounded-full flex-shrink-0 transition-opacity duration-300 ${tab.dotColor} ${
-                      !isActive && tab.id === 'thunder' ? 'opacity-40' : 'opacity-100'
+                    className={`w-2 h-2 rounded-full flex-shrink-0 transition-opacity duration-300 ${tab.dotColor || DOT_COLORS[i % DOT_COLORS.length]} ${
+                      !isActive && i === 0 ? 'opacity-40' : 'opacity-100'
                     }`} 
                   />
                   {tab.label}
@@ -66,18 +73,32 @@ const VideoAnimation = () => {
               );
             })}
           </div>
+          )}
         </div>
 
         {/* Video Player Placeholder Area */}
         {/* Aspect ratio changes from closer to square on mobile to wide rectangle on desktop */}
         <div className="w-full bg-[#C8F3D8] rounded-[32px] md:rounded-[40px] aspect-[4/3] sm:aspect-[16/9] lg:aspect-[2.2/1] flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-500">
           
-          {/* Dashed Content Box */}
-          <div className=" border border-dashed border-[#0F472B]/30 rounded-xl px-8 py-3.5 z-10 flex items-center justify-center backdrop-blur-sm bg-white/90">
-            <span className="text-[12px] sm:text-[13px] font-semibold text-[#0F472B]">
-              Video of Products
-            </span>
-          </div>
+          {active?.src ? (
+            <video
+              key={active.id}
+              src={active.src}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            /* Dashed Content Box */
+            <div className=" border border-dashed border-[#0F472B]/30 rounded-xl px-8 py-3.5 z-10 flex items-center justify-center backdrop-blur-sm bg-white/90">
+              <span className="text-[12px] sm:text-[13px] font-semibold text-[#0F472B]">
+                Video of Products
+              </span>
+            </div>
+          )}
           
         </div>
         
