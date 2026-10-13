@@ -4,7 +4,7 @@ import Hero2 from "@/components/landing/Hero2";
 import BestSellers from "@/components/landing/BestSellers";
 import Reviews from "@/components/landing/Reviews";
 import Creators from "@/components/landing/Creators";
-import FeaturedBlog from "@/components/landing/FeaturedBlog";
+// import FeaturedBlog from "@/components/landing/FeaturedBlog";
 import Marquee from "@/components/landing/Marquee";
 import NeedsPower from "@/components/landing/NeedsPower";
 import VideoAnimation from "@/components/landing/VideoAnimation";
@@ -204,7 +204,7 @@ const page = () => {
       <Creators/>
       <MadeFor/>
       <Reviews/>
-      <FeaturedBlog/>
+      {/* <FeaturedBlog/> */}
       <Banner/>
     </div>
   );

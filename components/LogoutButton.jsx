@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "@/store/features/authSlice";
 
-const LogoutButton = () => {
+const LogoutButton = ({ className, children = "Logout" }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -22,12 +22,13 @@ const LogoutButton = () => {
   };
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handleLogout}
-      className="block py-2 pl-3 border-[#E5E5E5] border-t text-black hover:text-mustard text-sm hover:underline cursor-pointer"
+      className={className ?? "block w-full text-left py-2 pl-3 border-[#E5E5E5] border-t text-black hover:text-mustard text-sm hover:underline cursor-pointer"}
     >
-      Logout
-    </div>
+      {children}
+    </button>
   );
 };
 

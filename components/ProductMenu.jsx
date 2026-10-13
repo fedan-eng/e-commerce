@@ -1,44 +1,23 @@
 "use client";
 // components/ProductMenu.jsx — the "All Products" pill + dropdown in the desktop navbar.
 // Category colours/images come from lib/categories.js, same as the category pages.
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
+import { useHoverMenu } from "@/hooks/useHoverMenu";
 
 const categories = Object.values(CATEGORIES);
 
 export default function ProductMenu() {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef(null);
+  const { open, bind } = useHoverMenu();
   const pathname = usePathname();
   const onCategoryPage = pathname === "/products" || categories.some((c) => pathname === `/products/${c.slug}`);
 
-  // Small delay so moving the cursor from the pill down into the panel doesn't close it
-  const show = () => {
-    clearTimeout(closeTimer.current);
-    setOpen(true);
-  };
-  const hide = () => {
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpen(false), 120);
-  };
-
-  useEffect(() => setOpen(false), [pathname]);
-  useEffect(() => () => clearTimeout(closeTimer.current), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-
   return (
-    <li className="relative" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
+    <li className="relative" {...bind}>
       <Link
         href="/products"
         aria-haspopup="true"

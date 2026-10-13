@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { Twitter, Facebook, Instagram } from "lucide-react";
+import FloatingActions from "@/components/FloatingActions";
 
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
 
@@ -276,15 +277,8 @@ const Footer = () => {
       {/* ✅ NEW REDESIGNED PIXEL-PERFECT FOOTER */}
       <footer className="bg-[#082C17] pt-16 pb-8 md:pt-20 text-white relative">
         
-        {/* Floating Action Buttons (WhatsApp & Scroll to Top) */}
-        <div className="right-4 md:right-[34px] bottom-[105px] z-50 fixed flex flex-col gap-4">
-          <Link target="_blank" href="https://wa.me/2347018900705" className="flex justify-center items-center bg-white border border-[#d9d9d9] rounded-full w-[45px] h-[45px] sm:w-[50px] sm:h-[50px] hover:scale-105 transition-transform shadow-md">
-            <Image width={28} height={28} src="/whatsapp.png" alt="WhatsApp" />
-          </Link>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex justify-center items-center bg-black/70 border border-white/20 rounded-full w-[45px] h-[45px] sm:w-[50px] sm:h-[50px] hover:bg-black transition-colors shadow-md">
-            <Image width={16} height={16} src="/upward.png" alt="Scroll Up" className="brightness-200" />
-          </button>
-        </div>
+        {/* Floating Action Buttons (WhatsApp & back to top) */}
+        <FloatingActions />
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           

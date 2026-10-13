@@ -1,6 +1,6 @@
 "use client";
 // components/category/FilterSidebar.jsx
-// Checkbox changes are a local draft; "Apply" pushes them to the URL.
+// Results update as boxes are ticked (live). "Apply" still applies the current selection.
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 
@@ -50,18 +50,19 @@ function FilterGroup({ filter, draft, onToggle }) {
   );
 }
 
-export default function FilterSidebar({ filters, selected, onApply }) {
+// applyLabel / onDone: used by the mobile filter sheet ("Show 6 products", then close)
+export default function FilterSidebar({ filters, selected, onApply, applyLabel = "Apply", onDone }) {
   const [draft, setDraft] = useState(selected);
 
   // Keep the draft in sync when the URL changes (chips, back button)
   useEffect(() => setDraft(selected), [selected]);
 
   const toggle = (key, id) => {
-    setDraft((d) => {
-      const current = d[key] || [];
-      const next = current.includes(id) ? current.filter((v) => v !== id) : [...current, id];
-      return { ...d, [key]: next };
-    });
+    const current = draft[key] || [];
+    const values = current.includes(id) ? current.filter((v) => v !== id) : [...current, id];
+    const next = { ...draft, [key]: values };
+    setDraft(next);
+    onApply(next, { live: true });
   };
 
   const clear = () => {
@@ -71,7 +72,6 @@ export default function FilterSidebar({ filters, selected, onApply }) {
 
   return (
     <aside className="w-full shrink-0 md:w-[240px]">
-      {/* TODO: mobile drawer */}
       <div className="flex items-center justify-between border-b border-[#E3EDE6] pb-3">
         <span className="flex items-center gap-2 text-[12px] font-semibold text-[#0A321B]">
           <SlidersHorizontal size={14} /> Clear filter
@@ -93,10 +93,13 @@ export default function FilterSidebar({ filters, selected, onApply }) {
           Clear
         </button>
         <button
-          onClick={() => onApply(draft)}
+          onClick={() => {
+            onApply(draft);
+            onDone?.();
+          }}
           className="flex-1 rounded-full bg-[#004328] py-2.5 text-[12px] font-semibold text-white hover:bg-black"
         >
-          Apply
+          {applyLabel}
         </button>
       </div>
     </aside>
