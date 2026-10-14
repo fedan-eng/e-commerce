@@ -21,6 +21,16 @@
   --color-filblue: #5386e4;
   --color-filgrey: #99a1af;
 
+  /* Revamp palette (product details page and onwards) */
+  --color-forest: #004328;  /* headings, primary buttons */
+  --color-mint: #cff6df;    /* image tiles, soft buttons, pills */
+  --color-sage: #f2f6f1;    /* cards, section backgrounds, bar tracks */
+  --color-muted: #596e65;   /* body copy */
+  --color-line: #dfe6e2;    /* dividers and outlines */
+  --color-star: #f5a524;
+  --color-star-empty: #d5ddd8;
+  --color-signal: #0bd46f;  /* in-stock dot, "Free" badge */
+
   /* SCREEN SIZES */ 
   --breakpoint-s: 500px;
   --breakpoint-xs: 400px;

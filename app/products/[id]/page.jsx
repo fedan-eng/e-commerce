@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import ProductDetailsPage from "./ProductDetailsPage";
 
 async function fetchProduct(id) {
@@ -5,6 +6,7 @@ async function fetchProduct(id) {
     const res = await fetch(`https://www.filstore.com.ng/api/products/${id}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
+    if (!res.ok) return null;
     const json = await res.json();
     return json.product || json;
   } catch (e) {
@@ -101,6 +103,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { id } = await params;
   const product = await fetchProduct(id);
+  if (!product?._id) notFound();
 
   const productName = cleanText(product.name || "Product");
   const productUrl = `https://www.filstore.com.ng/products/${id}`;

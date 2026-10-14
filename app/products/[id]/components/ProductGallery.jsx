@@ -1,214 +1,109 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { ChevronLeft, ChevronRight, Share, CheckCircle, Zap, Shield, AlertTriangle, Usb, Truck, Info } from "lucide-react";
-import { ProductImage } from "@/components/ProductImage";
-import WishlistButtonPD from "@/components/WishlistButtonPD";
+import { useRef, useState } from "react";
+import Image from "next/image";
+import { ArrowLeft, ArrowRight, Share } from "lucide-react";
+import { CircleButton } from "./ui";
+import WishlistToggle from "./WishlistToggle";
 
-// ─── Feature Icon Helper ───────────────────────────────────────────────────────
-const getFeatureIcon = (feature) => {
-  const f = feature.toLowerCase();
-  if (f.includes("fast") && f.includes("charg"))
-    return <Zap className="w-8 h-8" />;
-  if (f.includes("protect") && f.includes("heat"))
-    return <Shield className="w-8 h-8" />;
-  if (f.includes("overload") && f.includes("protect"))
-    return <AlertTriangle className="w-8 h-8" />;
-  if (f.includes("type") && f.includes("c") && f.includes("port"))
-    return <Usb className="w-8 h-8" />;
-  if (f.includes("fast") && f.includes("delivery"))
-    return <Truck className="w-8 h-8" />;
-  if (f.includes("return")) return <AlertTriangle className="w-8 h-8" />;
-  if (f.includes("support")) return <Info className="w-8 h-8" />;
-  if (f.includes("quality")) return <Shield className="w-8 h-8" />;
-  return <CheckCircle className="w-8 h-8" />;
-};
+const SWIPE_THRESHOLD = 40;
 
-function ProductGallery({ product, selectedColor, onFullViewImage, onShareModal }) {
-  const [selectedImageId, setSelectedImageId] = useState("main");
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
-  const [isPending, startTransition] = useTransition();
+// Parent re-mounts this (via `key`) when the colour changes, so the index resets.
+export default function ProductGallery({ product, images, imageBg, onShare, onOpenImage }) {
+  const [index, setIndex] = useState(0);
+  const touchStartX = useRef(null);
+  const total = images.length;
+  const current = images[index];
 
-  // Map all images from all colors into the carousel with unique IDs
-  const colorImages = product.colors?.flatMap((color, colorIdx) =>
-    (color.images || []).map((img, imgIdx) => ({
-      id: `${color._id}-${imgIdx}`,
-      url: img,
-      colorName: color.name
-    }))
-  ) || [];
-  
-  const secondaryImagesWithIds = (product.secondaryImages || []).map((img, idx) => ({
-    id: `secondary-${idx}`,
-    url: img
-  }));
-  
-  const currentImages = [
-    { id: "main", url: product.image },
-    ...colorImages,
-    ...secondaryImagesWithIds
-  ];
-  
-  const selectedImage = currentImages.find(img => img.id === selectedImageId)?.url || product.image;
+  const go = (step) => setIndex((i) => (i + step + total) % total);
 
-  const handleImageClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    if (isZoomed) {
-      setIsZoomed(false);
-    } else {
-      setZoomOrigin({ x, y });
-      setIsZoomed(true);
-    }
+  const onTouchStart = (e) => (touchStartX.current = e.touches[0].clientX);
+  const onTouchEnd = (e) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > SWIPE_THRESHOLD) go(dx < 0 ? 1 : -1);
+    touchStartX.current = null;
   };
 
   return (
-    <div className="flex flex-col mx-5 md:max-w-[50%] items-center gap-4 md:gap-10 mt-3 md:mt-12 basis-[546px]">
-      {/* Main Image */}
-      <div className="flex w-full gap-3">
-        <div
-          data-product-gallery-image
-          className="flex-1 aspect-square max-h-[480px] overflow-hidden relative bg-[#fafafa] rounded-lg"
-          style={{ cursor: isZoomed ? "zoom-out" : "zoom-in" }}
-        >
-          {selectedImage ? (
-            <ProductImage
-              src={selectedImage}
+    <div className="flex min-w-0 flex-col gap-3.5">
+      {/* Main image */}
+      <div
+        data-product-gallery-image
+        className="relative aspect-square overflow-hidden rounded-[24px] md:rounded-[30px]"
+        style={{ backgroundColor: imageBg }}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {current && (
+          <button
+            type="button"
+            onClick={() => onOpenImage(current)}
+            aria-label="View full image"
+            className="absolute inset-0 cursor-zoom-in"
+          >
+            <Image
+              src={current}
               alt={product.name}
               fill
-              sizes="(max-width: 768px) 100vw, 480px"
               priority
               quality={90}
-              containerClassName="w-full h-full"
-              imageClassName={`object-contain transition-transform duration-300 ease-out ${
-                isZoomed ? "scale-[2]" : "scale-100"
-              }`}
-              style={{
-                transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
-              }}
-              onClick={handleImageClick}
-              draggable={false}
-            />
-          ) : (
-            <div className="flex justify-center items-center w-full h-full text-gray-400 bg-gray-100">
-              <p className="text-sm">Image not available</p>
-            </div>
-          )}
-        </div>
-
-        {/* Side Actions */}
-        <div className="flex flex-col justify-between items-center py-2">
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => onShareModal(true)}
-              className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Share className="w-4 h-4 text-gray-600" />
-            </button>
-            <WishlistButtonPD
-              product={product}
-              selectedColor={selectedColor}
-              className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            />
-            <button
-              onClick={() => onFullViewImage(selectedImage)}
-              className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              title="Full view"
-            >
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                />
-              </svg>
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => {
-                const i = currentImages.findIndex(img => img.id === selectedImageId);
-                const newImage = currentImages[i === 0 ? currentImages.length - 1 : i - 1];
-                setSelectedImageId(newImage.id);
-                setIsZoomed(false);
-              }}
-              className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-700" />
-            </button>
-            <button
-              onClick={() => {
-                const i = currentImages.findIndex(img => img.id === selectedImageId);
-                const newImage = currentImages[i === currentImages.length - 1 ? 0 : i + 1];
-                setSelectedImageId(newImage.id);
-                setIsZoomed(false);
-              }}
-              className="w-9 h-9 flex items-center justify-center bg-[#fafafa] border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4 text-gray-700" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Thumbnails */}
-      <div className="flex md:justify-center gap-3 pt-4 pb-2 w-full overflow-x-auto px-4 sm:px-0">
-        {currentImages.map((img) => (
-          <button
-            key={img.id}
-            onClick={() => {
-              startTransition(() => {
-                setSelectedImageId(img.id);
-                setIsZoomed(false);
-              });
-            }}
-            className={`w-[65px] bg-[#fafafa] h-[65px] flex-shrink-0 rounded-lg border-2 overflow-hidden p-1.5 transition-all ${
-              selectedImageId === img.id
-                ? "border-filgreen"
-                : "border-gray-200 hover:border-gray-400"
-            }`}
-          >
-            <ProductImage
-              src={img.url}
-              alt={`Thumbnail`}
-              width={65}
-              height={65}
-              className="w-full h-full object-contain"
-              loading="lazy"
-              sizes="65px"
-              quality={75}
-              priority={false}
+              sizes="(min-width: 1024px) 620px, 100vw"
+              className="object-contain p-[12%]"
             />
           </button>
-        ))}
+        )}
+
+        <div className="absolute right-4 top-4 flex flex-col gap-2.5 md:right-6 md:top-6">
+          <CircleButton label="Share" onClick={onShare}>
+            <Share size={17} />
+          </CircleButton>
+          <WishlistToggle product={product} />
+        </div>
+
+        {total > 1 && (
+          <>
+            <CircleButton
+              label="Previous image"
+              onClick={() => go(-1)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 md:hidden"
+            >
+              <ArrowLeft size={17} />
+            </CircleButton>
+            <CircleButton
+              label="Next image"
+              onClick={() => go(1)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 md:right-6"
+            >
+              <ArrowRight size={17} />
+            </CircleButton>
+            <span className="absolute bottom-4 left-4 rounded-full bg-white/85 px-3 py-1.5 text-[13px] font-medium text-forest md:bottom-6 md:left-6">
+              {index + 1} / {total}
+            </span>
+          </>
+        )}
       </div>
 
-      {/* Product Features */}
-      {product.features?.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 mt-6 w-full border-t border-gray-200 pt-6">
-          {product.features.slice(0, 4).map((feat, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col items-center text-center gap-2"
+      {/* Thumbnails: five across, scroll if there are more */}
+      {total > 1 && (
+        <div className="no-scrollbar grid auto-cols-[calc((100%-4*0.625rem)/5)] grid-flow-col gap-2.5 overflow-x-auto">
+          {images.map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Show image ${i + 1}`}
+              aria-current={i === index}
+              className={`relative aspect-square overflow-hidden rounded-[14px] border-2 transition-colors md:rounded-[18px] ${
+                i === index ? "border-forest" : "border-transparent hover:border-line"
+              }`}
+              style={{ backgroundColor: imageBg }}
             >
-              {getFeatureIcon(feat)}
-              <span className="text-xs font-medium text-gray-700">
-                {feat}
-              </span>
-            </div>
+              <Image src={src} alt="" fill sizes="120px" className="object-contain p-[18%]" />
+            </button>
           ))}
         </div>
       )}
     </div>
   );
 }
-
-export default ProductGallery;
