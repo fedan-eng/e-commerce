@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Toaster } from "react-hot-toast";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
-import CheckoutModal from "@/components/CheckoutModal";
+import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
 import { getGalleryImages, getHighlights, getImageBg, getOverviewMedia, getSpecRows } from "./productUtils";
 import { Container } from "./components/ui";
@@ -69,8 +68,6 @@ export default function ProductDetailsPage({ product }) {
 
   return (
     <div className="bg-white text-forest">
-      <Toaster position="top-center" toastOptions={{ style: { borderRadius: 999, fontSize: 14 } }} />
-
       {/* ── Hero: gallery + buy box ── */}
       <Container className="pb-14 pt-5 md:pb-20 md:pt-8">
         <Breadcrumbs items={getBreadcrumbs(product)} />
@@ -108,7 +105,7 @@ export default function ProductDetailsPage({ product }) {
       </Container>
 
       <ProductOverview productName={product.name} media={overviewMedia} onOpenImage={setLightboxSrc} />
-      <ProductSpecs rows={specRows} boxContent={product.boxContent} />
+      <ProductSpecs productName={product.name} rows={specRows} boxContent={product.boxContent} />
       <ProductReviews product={product} user={user} />
       <RelatedProducts product={product} />
 

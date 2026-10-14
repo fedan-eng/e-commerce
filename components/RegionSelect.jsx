@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-export default function RegionSelect({ value, onChange, disabled }) {
+const DEFAULT_CLASS = "block bg-[#f6f6f6] mt-2 px-3 py-3 rounded-md outline-0 w-full text-sm";
+
+export default function RegionSelect({ value, onChange, disabled, id, className = DEFAULT_CLASS }) {
   const [regions, setRegions] = useState([]);
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export default function RegionSelect({ value, onChange, disabled }) {
 
   return (
     <select
+      id={id}
       name="region"
       value={value?.name || ""}
       onChange={(e) => {
@@ -32,7 +35,7 @@ export default function RegionSelect({ value, onChange, disabled }) {
         );
       }}
       disabled={disabled}
-      className="block bg-[#f6f6f6] mt-2 px-3 py-3 rounded-md outline-0 w-full text-sm"
+      className={className}
     >
       <option value="">-- Select Region --</option>
       {regions.map((region) => (

@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CircleCheck, Tag } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 
 export default function PromoCodeInput({ subTotal, onApply, userId }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [discount, setDiscount] = useState(0);
-  const [appliedCode, setAppliedCode] = useState(null);
   const [requiresLogin, setRequiresLogin] = useState(false);
 
   const handleApply = async () => {
@@ -41,14 +42,12 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
           setError(data.message || "Invalid promo code");
         }
         setDiscount(0);
-        setAppliedCode(null);
         onApply({ promoCode: null, amount: 0 });
         return;
       }
 
       const discountAmount = (subTotal * data.discount) / 100;
       setDiscount(discountAmount);
-      setAppliedCode(code.toUpperCase());
       onApply({ promoCode: code.toUpperCase(), amount: discountAmount });
     } catch (err) {
       setError("Something went wrong, try again.");
@@ -59,44 +58,47 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-end gap-[10px] rounded-md w-full">
-        <input
-          type="text"
-          placeholder="Enter Promo Code"
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value.toUpperCase());
-            setError("");
-            setRequiresLogin(false);
-          }}
-          className="bg-[#f7f7f7] p-3 rounded-md outline-0 w-full placeholder-text-[#3e3e3e] text-sm"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Tag size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            aria-label="Promo code"
+            placeholder="Promo code"
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value.toUpperCase());
+              setError("");
+              setRequiresLogin(false);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleApply()}
+            className="h-12 w-full rounded-full border border-transparent bg-sage pl-10 pr-4 text-[15px] font-medium tracking-wide text-forest outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-muted/70 focus:border-forest focus:bg-white"
+          />
+        </div>
         <button
+          type="button"
           onClick={handleApply}
           disabled={loading}
-          className="bg-filgreen disabled:opacity-50 px-[18px] py-3 rounded-md font-roboto text-sm"
+          className="h-12 shrink-0 rounded-full bg-mint px-6 text-[15px] font-semibold text-forest transition-colors hover:bg-[#b9f0d0] disabled:opacity-50"
         >
-          {loading ? "Applying..." : "Apply"}
+          {loading ? "Applying…" : "Apply"}
         </button>
       </div>
 
-      {/* Regular error */}
-      {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
-      {/* Login required message with link */}
       {requiresLogin && (
-  <p className="mt-2 text-sm text-[#1a1a1a]">
-    👉{" "}
-    <Link href="/login?redirect=/cart" className="underline text-filgreen font-medium">
-      Click here to claim your promo code
-    </Link>
-  </p>
-)}
+        <p className="mt-2 text-sm text-muted">
+          This code is for members.{" "}
+          <Link href="/login?callbackUrl=/cart" className="font-semibold text-forest underline underline-offset-2">
+            Log in to use it
+          </Link>
+        </p>
+      )}
 
-      {/* Success message */}
       {discount > 0 && (
-        <p className="mt-2 text-green-600 text-sm">
-          🎉 Promo applied! You saved ₦{discount.toLocaleString()}
+        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[#0b9a52]">
+          <CircleCheck size={16} /> Promo applied, you save {formatAmount(discount)}
         </p>
       )}
     </div>
