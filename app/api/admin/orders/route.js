@@ -51,6 +51,18 @@ export async function GET(req) {
       query.createdAt = { $gte: since };
     }
 
+    // Explicit date range (ISO strings) — used by the dashboard date filter
+    const from = searchParams.get("from") ? new Date(searchParams.get("from")) : null;
+    const to   = searchParams.get("to")   ? new Date(searchParams.get("to"))   : null;
+    if ((from && isNaN(from)) || (to && isNaN(to))) {
+      return new Response(JSON.stringify({ message: "Invalid date range" }), {
+        status: 400,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      });
+    }
+    if (from) query.createdAt = { ...query.createdAt, $gte: query.createdAt?.$gte > from ? query.createdAt.$gte : from };
+    if (to)   query.createdAt = { ...query.createdAt, $lte: to };
+
     // Search filter - escape regex and support short IDs
     if (search) {
       const conditions = [];
