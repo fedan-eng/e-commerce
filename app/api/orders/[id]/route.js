@@ -6,6 +6,11 @@ import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 import { normalizeStatusKey, API_STATUSES } from "@/lib/orderStatus";
 import { countOrderSales, uncountOrderSales, UNSOLD_STATUSES } from "@/lib/soldCount";
+import { siteUrl } from "@/lib/siteUrl";
+import { productIdOf, reviewLink, reviewableItems } from "@/lib/reviews";
+
+// Links open on the deployment that sends the email (preview or live)
+const SITE = siteUrl();
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -139,7 +144,7 @@ const STATUS_EMAIL_CONFIG = {
     accentLight: "#fff8f0",
     accentBorder: "#ffcc80",
     ctaText: "View Our Store",
-    ctaLink: "https://filstore.com.ng/products",
+    ctaLink: `${SITE}/products`,
     messageLines: [
       "Great news — we've received your order and our team is now carefully processing it for you!",
       "Our team is reviewing your order details and preparing everything with the utmost care. At FIL, every order matters, and we want to make sure yours is handled perfectly before it gets on its way to you.",
@@ -147,7 +152,7 @@ const STATUS_EMAIL_CONFIG = {
       "Thank you for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We're excited to get this to you! &#128153;",
     ],
     plainMessage: () =>
-      `We've received your order and our team is now processing it!\nYou'll receive another update once your order has been shipped.\nVisit our store: https://filstore.com.ng/products`,
+      `We've received your order and our team is now processing it!\nYou'll receive another update once your order has been shipped.\nVisit our store: ${SITE}/products`,
   },
   shipped: {
     subject: "Your FIL Order Has Been Shipped!",
@@ -163,7 +168,7 @@ const STATUS_EMAIL_CONFIG = {
     accentLight: "#f3ecff",
     accentBorder: "#c9a8f5",
     ctaText: "Contact Us",
-    ctaLink: "https://filstore.com.ng/contact",
+    ctaLink: `${SITE}/contact`,
     messageLines: [
       "Your order is now in the hands of our delivery team and on its way to you!",
       "We know how much you've been looking forward to this, and we're just as excited for you to experience your new product. Every FIL package is prepared with care, because to us, you're not just a customer — you're family.",
@@ -171,7 +176,7 @@ const STATUS_EMAIL_CONFIG = {
       "Thank you for trusting us to be part of your journey. The best is yet to come. &#128153;",
     ],
     plainMessage: () =>
-      `Your order has been shipped and is on its way!\nExpected delivery: 1-3 working days (Lagos) or 5-7 working days (other regions).\nContact us: https://filstore.com.ng/contact`,
+      `Your order has been shipped and is on its way!\nExpected delivery: 1-3 working days (Lagos) or 5-7 working days (other regions).\nContact us: ${SITE}/contact`,
   },
   intransit: {
     subject: "Your FIL Order Is In Transit!",
@@ -187,7 +192,7 @@ const STATUS_EMAIL_CONFIG = {
     accentLight: "#f0f9ff",
     accentBorder: "#bfdbfe",
     ctaText: "Track Order",
-    ctaLink: "https://filstore.com.ng/contact",
+    ctaLink: `${SITE}/contact`,
     messageLines: [
       "Your order is now in transit and moving through the delivery network to your location!",
       "We wanted to let you know that your package is making good progress and should be with you soon. Our delivery partners are working hard to get it to you safely and on time.",
@@ -195,7 +200,7 @@ const STATUS_EMAIL_CONFIG = {
       "Thank you for your patience and for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We can't wait for you to receive your order! &#128153;",
     ],
     plainMessage: () =>
-      `Your order is in transit and on its way to you!\nIt should arrive very soon. If you have any questions, please contact us.\nContact us: https://filstore.com.ng/contact`,
+      `Your order is in transit and on its way to you!\nIt should arrive very soon. If you have any questions, please contact us.\nContact us: ${SITE}/contact`,
   },
   delivered: {
     subject: "Your FIL Order Has Been Delivered!",
@@ -211,16 +216,24 @@ const STATUS_EMAIL_CONFIG = {
     accentLight: "#f0faf5",
     accentBorder: "#b2dfca",
     ctaText: "Leave a Review",
-    ctaLink: "https://filstore.com.ng/products",
+    ctaLink: `${SITE}/products`,
     messageLines: [
       "Your order has been marked as delivered. We hope everything arrived in perfect condition!",
       "We'd love to hear what you think — feel free to leave a review on the product page. Your feedback helps us serve you and thousands of others better.",
       "Thank you for choosing <strong style=\"color:#1a1a2e;\">FIL Store</strong>. We're always here if you need anything. &#128153;",
     ],
     plainMessage: () =>
-      `Your order has been delivered! We hope everything arrived in perfect condition. Thank you for choosing FIL Store.\nShop again: https://filstore.com.ng/products`,
+      `Your order has been delivered! We hope everything arrived in perfect condition. Thank you for choosing FIL Store.\nShop again: ${SITE}/products`,
   },
 };
+
+// "Leave a Review" on the delivered email opens the review form for the first product
+// (a signed link, so guests can review too); other statuses use the configured link.
+function ctaLinkFor(order, cfg) {
+  if (cfg.badge !== "Delivered") return cfg.ctaLink;
+  const first = reviewableItems(order)[0];
+  return first ? reviewLink(order._id, productIdOf(first)) : cfg.ctaLink;
+}
 
 // ── Shared head block ─────────────────────────────────────────────────────────
 function emailHead(title) {
@@ -271,15 +284,7 @@ function buildStatusEmail(order, cfg) {
   const discount  = order.discount ?? 0;
   const regionName = order.region?.name || order.region || "—";
 
-  // Determine CTA link for delivered status - link to product review section if single item
-  let ctaLink = cfg.ctaLink;
-  if (cfg.badge === "Delivered" && order.items && order.items.length === 1) {
-    const singleItem = order.items[0];
-    const productId = singleItem.productId || singleItem._id;
-    if (productId) {
-      ctaLink = `https://filstore.com.ng/products/${productId}#reviews-section`;
-    }
-  }
+  const ctaLink = ctaLinkFor(order, cfg);
 
   // ── item rows ───────────────────────────────────────────────────────────────
   const itemRowsHtml = (order.items || [])
@@ -561,7 +566,7 @@ ${emailHead(cfg.headline)}
                 </td></tr>
                 <tr><td style="text-align:center; padding-bottom:10px;">
                   <p style="margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#666677;">
-                    Visit us at <a href="https://filstore.com.ng" target="_blank" style="color:#0fa968; text-decoration:none; font-weight:600;">filstore.com.ng</a>
+                    Visit us at <a href="${SITE}" target="_blank" style="color:#0fa968; text-decoration:none; font-weight:600;">filstore.com.ng</a>
                   </p>
                 </td></tr>
                 <tr><td style="text-align:center;">
@@ -598,15 +603,7 @@ function buildPlainText(order, cfg) {
   const discount   = order.discount ?? 0;
   const regionName = order.region?.name || order.region || "—";
 
-  // Determine CTA link for delivered status - link to product review section if single item
-  let ctaLink = cfg.ctaLink;
-  if (cfg.badge === "Delivered" && order.items && order.items.length === 1) {
-    const singleItem = order.items[0];
-    const productId = singleItem.productId || singleItem._id;
-    if (productId) {
-      ctaLink = `https://filstore.com.ng/products/${productId}#reviews-section`;
-    }
-  }
+  const ctaLink = ctaLinkFor(order, cfg);
 
   const itemLines = (order.items || [])
     .map(
@@ -647,6 +644,6 @@ ${cfg.ctaText}: ${ctaLink}
 
 Thank you for choosing FIL Store.
 Think Quality, Think FIL.
-https://filstore.com.ng
+${SITE}
   `.trim();
 }
