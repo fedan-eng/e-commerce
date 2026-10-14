@@ -1,4 +1,4 @@
-import { ThumbsDown, ThumbsUp, User } from "lucide-react";
+import { BadgeCheck, ThumbsDown, ThumbsUp, User } from "lucide-react";
 import { countOf, formatReviewDate } from "../../productUtils";
 import { StarRating } from "../ui";
 
@@ -19,8 +19,10 @@ function VoteButton({ active, label, onClick, children }) {
 }
 
 export default function ReviewCard({ review, onVote }) {
-  const name = review.user?.firstName;
+  const name = review.user?.firstName || review.authorName || "FIL customer";
   const likes = countOf(review.likes);
+  // "Verified buyer" only when the review is tied to a delivered order
+  const details = [review.verified && "Verified buyer", review.color && `Colour: ${review.color[0].toUpperCase()}${review.color.slice(1)}`].filter(Boolean).join(" · ");
 
   return (
     <article className="border-b border-line py-7 first:pt-2">
@@ -40,8 +42,11 @@ export default function ReviewCard({ review, onVote }) {
             <User size={16} />
           </span>
           <div className="leading-tight">
-            <p className="text-[15px] font-semibold text-forest">{name || "Verified buyer"}</p>
-            <p className="mt-0.5 text-[13px] text-muted">{review.color ? `Colour: ${review.color}` : name ? "Verified buyer" : ""}</p>
+            <p className="flex items-center gap-1 text-[15px] font-semibold text-forest">
+              {name}
+              {review.verified && <BadgeCheck size={15} className="text-[#0b9a52]" aria-hidden />}
+            </p>
+            {details && <p className="mt-0.5 text-[13px] text-muted">{details}</p>}
           </div>
         </div>
 

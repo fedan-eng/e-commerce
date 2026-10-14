@@ -39,6 +39,9 @@ export async function GET(req) {
           status: comment.status || "pending",
           createdAt: comment.createdAt,
           user: comment.user,
+          authorName: comment.authorName || "",
+          verified: Boolean(comment.verified),
+          color: comment.color || "",
           product: {
             _id: product._id,
             name: product.name,
@@ -61,7 +64,8 @@ export async function GET(req) {
         r.product?.name?.toLowerCase().includes(q) ||
         r.user?.firstName?.toLowerCase().includes(q) ||
         r.user?.lastName?.toLowerCase().includes(q) ||
-        r.user?.email?.toLowerCase().includes(q)
+        r.user?.email?.toLowerCase().includes(q) ||
+        r.authorName?.toLowerCase().includes(q)
       );
     }
 

@@ -141,6 +141,15 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Review emails (app/api/cron/review-requests): the first ask, then one reminder
+  reviewRequestSentAt: {
+    type: Date,
+    default: null,
+  },
+  reviewReminderSentAt: {
+    type: Date,
+    default: null,
+  },
 });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

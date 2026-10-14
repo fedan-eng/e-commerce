@@ -50,7 +50,7 @@ function collectReviews(products) {
         .map((c) => ({
           id: c._id,
           text: c.text,
-          author: shortName(c.user),
+          author: c.user ? shortName(c.user) : c.authorName?.trim() || "FIL customer", // link reviews may have no account
           city: c.user?.city || "",
           product: p.name,
           createdAt: c.createdAt,

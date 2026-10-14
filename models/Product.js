@@ -7,13 +7,21 @@ const ratingSchema = new mongoose.Schema({
 });
 
 // ─── Subdoc: a review comment (text + its own star rating) ───────────────────
+// Written by a signed-in user, or by a buyer through an emailed review link
+// (lib/reviews.js), in which case `user` may be empty and `authorName` is used.
 const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    default: null,
   },
+  authorName: { type: String, trim: true, default: "" },
   text: { type: String, required: true, trim: true },
+
+  // Verified purchase: the order this review came from, and the colour bought
+  verified: { type: Boolean, default: false },
+  orderId:  { type: mongoose.Schema.Types.ObjectId, ref: "Order", default: null },
+  color:    { type: String, default: "" },
 
   // ✅ Each review carries its own star rating (1–5)
   rating: { type: Number, min: 1, max: 5, default: null },

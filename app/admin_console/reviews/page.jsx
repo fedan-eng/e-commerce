@@ -85,10 +85,12 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
   const [editError,     setEditError]     = useState(null);
 
   const status   = review.status || "pending";
-  // Resolve display name: populated user object → full name or email, otherwise "Deleted User"
+  // Resolve display name: account name/email, else the buyer's name from an emailed review link
   const userName = review.user
     ? [review.user.firstName, review.user.lastName].filter(Boolean).join(" ").trim() || review.user.email || "Unknown"
-    : "Deleted User";
+    : review.authorName
+      ? `${review.authorName} (guest)`
+      : "Deleted User";
 
   // ✅ review.rating is now a proper 1–5 field on the comment subdoc
   const rating = review.rating ?? null;
@@ -153,6 +155,11 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
           </Link>
           <div className="text-[10px] text-[#fff] mt-0.5 truncate">
             by <span className="text-[#777]">{userName}</span>
+            {review.verified && (
+              <span className="ml-1.5 text-[#6ae8a0]" title="Bought and received this product">
+                · Verified purchase{review.color ? ` (${review.color})` : ""}
+              </span>
+            )}
           </div>
         </div>
 

@@ -30,7 +30,7 @@ export async function POST(req, { params }) {
 
   // Prevent double rating
   const existingRating = product.ratings.find(
-    (r) => r.user.toString() === decoded.id
+    (r) => r.user?.toString() === decoded.id
   );
   if (existingRating) {
     return NextResponse.json({ error: "Already rated" }, { status: 400 });
@@ -80,7 +80,7 @@ export async function GET(req, { params }) {
   let userRating = null;
 
   if (userId) {
-    const ratingDoc = product.ratings.find((r) => r.user.toString() === userId);
+    const ratingDoc = product.ratings.find((r) => r.user?.toString() === userId);
     if (ratingDoc) {
       userHasRated = true;
       userRating = ratingDoc.value;
