@@ -4,6 +4,7 @@ import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { verifyToken } from "@/lib/auth";
+import { revalidateProduct } from "@/lib/revalidate";
 
 // GET SINGLE PRODUCT
 export async function GET(req, context) {
@@ -19,7 +20,9 @@ export async function GET(req, context) {
       );
     }
 
-    const product = await Product.findById(id);
+    // Public endpoint: never expose reviews (pending ones included) or who rated what.
+    // Approved reviews come from /api/products/[id]/comments; admins use /api/admin/reviews.
+    const product = await Product.findById(id).select("-comments -ratings");
     if (!product) {
       return NextResponse.json(
         { message: "Product not found" },
@@ -58,6 +61,7 @@ export async function PUT(req, context) {
     const product = await Product.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
     if (!product) return NextResponse.json({ message: "Product not found" }, { status: 404 });
 
+    revalidateProduct(id);
     return NextResponse.json(product);
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
@@ -81,6 +85,7 @@ export async function DELETE(req, context) {
     }
 
     await Product.findByIdAndDelete(id);
+    revalidateProduct(id);
     return NextResponse.json({ message: "Product deleted successfully" });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
