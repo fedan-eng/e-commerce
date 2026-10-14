@@ -4,6 +4,8 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 import Link from "next/link";
 import axios from "axios";
+import { Download } from "lucide-react";
+import { toCSV, downloadCSV } from "@/lib/csv";
 
 const STATUS_COLORS = {
   confirmed:  { text: "#e8c46a", bg: "#e8c46a18", border: "#e8c46a33" },
@@ -24,10 +26,46 @@ function fmtK(n) {
   const v = Math.round(Number(n) || 0);
   return v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v);
 }
-function getDayLabels() {
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const today = new Date().getDay();
-  return Array.from({ length: 7 }, (_, i) => days[(today - (6 - i) + 7) % 7]);
+
+// ── Date range helpers (all in the admin's local time) ──────
+const RANGE_PRESETS = [
+  { value: "all",       label: "All Time" },
+  { value: "today",     label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "7d",        label: "Last 7 Days" },
+  { value: "30d",       label: "Last 30 Days" },
+  { value: "thisMonth", label: "This Month" },
+  { value: "lastMonth", label: "Last Month" },
+  { value: "thisYear",  label: "This Year" },
+  { value: "custom",    label: "Custom Range" },
+];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const endOfDay   = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+const addDays    = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+// "YYYY-MM-DD" (from <input type="date">) → local Date
+const parseDay   = s => { if (!s) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const pad2       = n => String(n).padStart(2, "0");
+const dayKey     = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const monthKey   = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+
+function getRangeBounds(preset, customFrom, customTo) {
+  const now = new Date();
+  switch (preset) {
+    case "today":     return { from: startOfDay(now), to: endOfDay(now) };
+    case "yesterday": { const y = addDays(now, -1); return { from: startOfDay(y), to: endOfDay(y) }; }
+    case "7d":        return { from: addDays(startOfDay(now), -6),  to: endOfDay(now) };
+    case "30d":       return { from: addDays(startOfDay(now), -29), to: endOfDay(now) };
+    case "thisMonth": return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: endOfDay(now) };
+    case "lastMonth": return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: endOfDay(new Date(now.getFullYear(), now.getMonth(), 0)) };
+    case "thisYear":  return { from: new Date(now.getFullYear(), 0, 1), to: endOfDay(now) };
+    case "custom": {
+      const f = parseDay(customFrom), t = parseDay(customTo);
+      return { from: f ? startOfDay(f) : null, to: t ? endOfDay(t) : null };
+    }
+    default:          return { from: null, to: null };
+  }
 }
 
 export default function AdminDashboard() {
@@ -35,9 +73,10 @@ export default function AdminDashboard() {
   const [allProducts,  setAllProducts]  = useState([]);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [loading,      setLoading]      = useState(true);
-  const [chartMode,    setChartMode]    = useState("week");
-  const [filterMonth,  setFilterMonth]  = useState(0);
-  const [filterYear,   setFilterYear]   = useState(0);
+  const [chartMode,    setChartMode]    = useState("monthly"); // daily | monthly
+  const [rangePreset,  setRangePreset]  = useState("all");
+  const [customFrom,   setCustomFrom]   = useState("");
+  const [customTo,     setCustomTo]     = useState("");
   const [filterSource, setFilterSource] = useState("all"); // all | online | manual
 
   const salesRef  = useRef(null);
@@ -47,34 +86,56 @@ export default function AdminDashboard() {
   const donutInst  = useRef(null);
   const statusInst = useRef(null);
 
+  // ── Date range ─────────────────────────────────────────────
+  const { from: rangeFrom, to: rangeTo } = getRangeBounds(rangePreset, customFrom, customTo);
+  const fromISO    = rangeFrom ? rangeFrom.toISOString() : "";
+  const toISO      = rangeTo   ? rangeTo.toISOString()   : "";
+  const rangeError = rangeFrom && rangeTo && rangeFrom > rangeTo ? "Start date is after end date" : "";
+
+  // Pick a sensible chart granularity whenever the range changes
+  useEffect(() => {
+    const span = rangeFrom && rangeTo ? (rangeTo - rangeFrom) / 86400000 : Infinity;
+    setChartMode(span <= 62 ? "daily" : "monthly");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromISO, toISO]);
+
   // ── Load data ──────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
-      axios.get("/api/admin/orders?limit=500"),
       axios.get("/api/products?limit=500"),
       axios.get("/api/admin/users?limit=1"),
     ])
-      .then(([{ data: ordersData }, { data: productsData }, { data: usersData }]) => {
-        setAllOrders(ordersData.orders || []);
+      .then(([{ data: productsData }, { data: usersData }]) => {
         setAllProducts(productsData.products || []);
         setTotalCustomers(usersData.total || 0);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {});
   }, []);
+
+  // Orders are fetched per date range so older ranges aren't cut off by the limit
+  useEffect(() => {
+    if (rangeError) return;
+    let cancelled = false;
+    setLoading(true);
+    const params = new URLSearchParams({ limit: "10000" });
+    if (fromISO) params.set("from", fromISO);
+    if (toISO)   params.set("to", toISO);
+    axios.get(`/api/admin/orders?${params}`)
+      .then(({ data }) => { if (!cancelled) setAllOrders(data.orders || []); })
+      .catch(() => { if (!cancelled) setAllOrders([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [fromISO, toISO, rangeError]);
 
   // ── Product lookup (category + rating by _id) ─────────────
   const productLookup = {};
   allProducts.forEach(p => { productLookup[String(p._id)] = { category: p.category || "Other", rating: p.averageRating || 0 }; });
 
   // ── Filtered slice ─────────────────────────────────────────
-  const filtered = allOrders.filter(o => {
-    const d = new Date(o.createdAt);
-    if (filterMonth > 0 && d.getMonth() + 1 !== filterMonth) return false;
-    if (filterYear  > 0 && d.getFullYear()   !== filterYear)  return false;
-    if (filterSource !== "all" && (o.source || "online") !== filterSource) return false;
-    return true;
-  });
+  // (date range is applied server-side; source is filtered here)
+  const filtered = allOrders.filter(o =>
+    filterSource === "all" || (o.source || "online") === filterSource
+  );
 
   // ── Rebuild charts whenever deps change ───────────────────
   useEffect(() => {
@@ -88,25 +149,36 @@ export default function AdminDashboard() {
       statusInst.current?.destroy();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, filtered.length, chartMode, filterMonth, filterYear, filterSource]);
+  }, [loading, allOrders, chartMode, filterSource]);
 
   function buildSalesChart() {
     salesInst.current?.destroy();
     if (!salesRef.current) return;
-    let labels, data;
-    if (chartMode === "week") {
-      labels = getDayLabels();
-      data   = Array(7).fill(0);
-      const today = new Date(); today.setHours(23, 59, 59, 999);
-      filtered.forEach(o => {
-        const diff = Math.floor((today - new Date(o.createdAt)) / 86400000);
-        if (diff >= 0 && diff < 7) data[6 - diff] += parseFloat(o.total || o.subTotal || 0);
-      });
+    // Buckets span the selected range; "All Time" falls back to the data's own extent
+    const end  = rangeTo ? startOfDay(rangeTo) : startOfDay(new Date());
+    const keys = [], labels = [];
+    if (chartMode === "daily") {
+      const start = rangeFrom ? startOfDay(rangeFrom) : addDays(end, -29);
+      for (let d = start; d <= end; d = addDays(d, 1)) {
+        keys.push(dayKey(d));
+        labels.push(`${d.getDate()} ${MONTHS[d.getMonth()]}`);
+      }
     } else {
-      labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      data   = Array(12).fill(0);
-      filtered.forEach(o => { data[new Date(o.createdAt).getMonth()] += parseFloat(o.total || o.subTotal || 0); });
+      const earliest  = filtered.reduce((min, o) => Math.min(min, new Date(o.createdAt).getTime()), end.getTime());
+      const first     = rangeFrom || new Date(earliest);
+      const multiYear = first.getFullYear() !== end.getFullYear();
+      for (let d = new Date(first.getFullYear(), first.getMonth(), 1); d <= end; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+        keys.push(monthKey(d));
+        labels.push(multiYear ? `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}` : MONTHS[d.getMonth()]);
+      }
     }
+    const index = Object.fromEntries(keys.map((k, i) => [k, i]));
+    const data  = Array(keys.length).fill(0);
+    filtered.forEach(o => {
+      const d = new Date(o.createdAt);
+      const i = index[chartMode === "daily" ? dayKey(d) : monthKey(d)];
+      if (i !== undefined) data[i] += parseFloat(o.total || o.subTotal || 0);
+    });
     salesInst.current = new Chart(salesRef.current, {
       type: "line",
       data: { labels, datasets: [{ label: "Sales (₦)", data, borderColor: "#1cc978", backgroundColor: "rgba(28,201,120,0.08)", borderWidth: 1.5, pointBackgroundColor: "#1cc978", pointRadius: 3, tension: 0.4, fill: true }] },
@@ -203,6 +275,64 @@ export default function AdminDashboard() {
   }));
   const topProducts = Object.values(prodMap).sort((a, b) => b.total - a.total).slice(0, 10);
 
+  // ── CSV export (respects date range + source filter) ──────
+  const fmtDay   = d => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  const rangeLabel = rangeFrom || rangeTo
+    ? `${rangeFrom ? fmtDay(rangeFrom) : "start"} – ${rangeTo ? fmtDay(rangeTo) : "today"}`
+    : "";
+
+  function exportCSV(kind) {
+    const when  = o => { const d = new Date(o.createdAt); return `${dayKey(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+    const name  = o => `${o.firstName || ""} ${o.lastName || ""}`.trim();
+    const phone = o => { const p = o.phone ? String(o.phone) : ""; return p.length === 10 ? "0" + p : p; };
+    const catOf = it => it.category || (productLookup[String(it.productId)] || productLookup[String(it._id)] || {}).category || "Other";
+    const orderCols = [
+      { header: "Order ID",       value: o => String(o._id) },
+      { header: "Date",           value: when },
+      { header: "Source",         value: o => o.source || "online" },
+      { header: "Customer",       value: name },
+      { header: "Email",          value: o => o.email },
+      { header: "Phone",          value: phone },
+      { header: "City",           value: o => o.city },
+      { header: "Region",         value: o => o.region?.name },
+    ];
+
+    let rows, columns;
+    if (kind === "items") {
+      rows = filtered.flatMap(o => (o.items || []).map(it => ({ o, it })));
+      columns = [
+        ...orderCols.map(c => ({ header: c.header, value: r => c.value(r.o) })),
+        { header: "Product",        value: r => r.it.name },
+        { header: "Category",       value: r => catOf(r.it) },
+        { header: "Color",          value: r => r.it.color },
+        { header: "Quantity",       value: r => parseInt(r.it.quantity, 10) || 1 },
+        { header: "Unit Price",     value: r => parseFloat(r.it.price || 0) },
+        { header: "Line Total",     value: r => parseFloat(r.it.price || 0) * (parseInt(r.it.quantity, 10) || 1) },
+        { header: "Payment Method", value: r => r.o.paymentMethod },
+        { header: "Order Status",   value: r => r.o.status },
+      ];
+    } else {
+      rows = filtered;
+      columns = [
+        ...orderCols,
+        { header: "Items",          value: o => (o.items || []).map(it => `${it.name} x${parseInt(it.quantity, 10) || 1}`).join("; ") },
+        { header: "Units",          value: o => (o.items || []).reduce((a, it) => a + (parseInt(it.quantity, 10) || 1), 0) },
+        { header: "Subtotal",       value: o => Number(o.subTotal || 0) },
+        { header: "Delivery Fee",   value: o => Number(o.deliveryFee || 0) },
+        { header: "Discount",       value: o => Number(o.discount || 0) },
+        { header: "Total",          value: o => Number(o.total || 0) },
+        { header: "Promo Code",     value: o => o.promoCode },
+        { header: "Payment Method", value: o => o.paymentMethod },
+        { header: "Payment Status", value: o => o.paymentStatus },
+        { header: "Status",         value: o => o.status },
+      ];
+    }
+
+    const span   = rangeFrom || rangeTo ? `${rangeFrom ? dayKey(rangeFrom) : "start"}_to_${dayKey(rangeTo || new Date())}` : "all-time";
+    const source = filterSource === "all" ? "" : `_${filterSource}`;
+    downloadCSV(`fil-${kind}${source}_${span}.csv`, toCSV(rows, columns));
+  }
+
   // ─────────────────────────────────────────────────────────
   return (
     <div className="w-full">
@@ -224,25 +354,50 @@ export default function AdminDashboard() {
             <option value="manual">Manual</option>
           </select>
           <select
-            value={filterMonth}
-            onChange={e => setFilterMonth(+e.target.value)}
+            value={rangePreset}
+            onChange={e => setRangePreset(e.target.value)}
             className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-3 py-1.5 rounded-md outline-none cursor-pointer"
           >
-            <option value={0}>All Months</option>
-            {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m, i) => (
-              <option key={m} value={i + 1}>{m}</option>
-            ))}
+            {RANGE_PRESETS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
-          <select
-            value={filterYear}
-            onChange={e => setFilterYear(+e.target.value)}
-            className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-3 py-1.5 rounded-md outline-none cursor-pointer"
-          >
-            <option value={0}>All Years</option>
-            {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+          {rangePreset === "custom" && (
+            <div className="flex gap-1.5 items-center">
+              <input
+                type="date" value={customFrom} max={customTo || dayKey(new Date())}
+                onChange={e => setCustomFrom(e.target.value)} aria-label="From date"
+                className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-2 py-1 rounded-md outline-none [color-scheme:dark]"
+              />
+              <span className="text-[#555] text-[11px]">to</span>
+              <input
+                type="date" value={customTo} min={customFrom || undefined} max={dayKey(new Date())}
+                onChange={e => setCustomTo(e.target.value)} aria-label="To date"
+                className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-2 py-1 rounded-md outline-none [color-scheme:dark]"
+              />
+            </div>
+          )}
+          <div className="flex rounded-md overflow-hidden border border-[#2a2a2a]">
+            <button
+              onClick={() => exportCSV("orders")} disabled={loading || !filtered.length || !!rangeError}
+              className="flex items-center gap-1.5 bg-[#111] text-[#e8c46a] text-[12px] px-3 py-1.5 cursor-pointer hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="One row per order"
+            >
+              <Download size={13} /> Orders CSV
+            </button>
+            <button
+              onClick={() => exportCSV("items")} disabled={loading || !filtered.length || !!rangeError}
+              className="bg-[#111] text-[#e8c46a] text-[12px] px-3 py-1.5 border-l border-[#2a2a2a] cursor-pointer hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="One row per product line"
+            >
+              Items CSV
+            </button>
+          </div>
         </div>
       </div>
+      {(rangeError || rangeLabel) && (
+        <div className={`-mt-3 mb-4 text-[11px] ${rangeError ? "text-[#e86a6a]" : "text-[#666]"}`}>
+          {rangeError || `Showing ${rangeLabel}`}
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4">
@@ -272,7 +427,7 @@ export default function AdminDashboard() {
           <div className="px-4 py-3 border-b border-[#1a1a1a] flex justify-between items-center">
             <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Sales</span>
             <div className="flex bg-[#0a0a0a] border border-[#1e1e1e] rounded-md overflow-hidden">
-              {["week","month"].map(m => (
+              {["daily","monthly"].map(m => (
                 <button
                   key={m}
                   onClick={() => setChartMode(m)}
