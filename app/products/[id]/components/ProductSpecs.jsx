@@ -41,17 +41,26 @@ function InTheBox({ items }) {
   );
 }
 
-export default function ProductSpecs({ rows, boxContent = [] }) {
-  const boxItems = boxContent.filter((b) => b.item);
-  if (!rows.length && !boxItems.length) return null;
+// The product itself always comes first, unless the admin already listed it
+function getBoxItems(productName, boxContent) {
+  const listed = boxContent.filter((b) => b.item?.trim());
+  const name = productName.trim().toLowerCase();
+  const hasProduct = listed.some((b) => b.item.trim().toLowerCase() === name);
+  return hasProduct ? listed : [{ item: productName, quantity: 1 }, ...listed];
+}
+
+export default function ProductSpecs({ productName, rows, boxContent = [] }) {
+  const boxItems = getBoxItems(productName, boxContent);
 
   return (
     <section className="py-14 md:py-20">
       <Container className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-20">
-        <div>
-          <SectionHeading title="Specifications" />
-          {rows.length > 0 && <SpecTable rows={rows} />}
-        </div>
+        {rows.length > 0 && (
+          <div>
+            <SectionHeading title="Specifications" />
+            <SpecTable rows={rows} />
+          </div>
+        )}
         <div className="lg:pt-0">
           <InTheBox items={boxItems} />
         </div>

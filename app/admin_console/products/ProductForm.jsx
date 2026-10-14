@@ -347,6 +347,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const updateBox = (i, f, v) => setBoxContent(p => p.map((b, idx) => idx === i ? { ...b, [f]: v } : b));
   const addBox    = () => setBoxContent(p => [...p, { item: "", quantity: 1 }]);
   const removeBox = (i) => setBoxContent(p => p.filter((_, idx) => idx !== i));
+  // The product page lists the product first in "In the box" unless it's here under its exact name
+  const productName   = form.name?.trim() || "";
+  const boxHasProduct = boxContent.some(b => b.item?.trim().toLowerCase() === productName.toLowerCase());
+  const addProductToBox = () => setBoxContent(p => [{ item: productName, quantity: 1 }, ...p]);
 
   const handleSubmit = async () => {
     setSaving(true); setError(null);
@@ -569,7 +573,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Box Content */}
       <Section title="Box Contents (optional)">
-        <div className="text-[11px] text-[#fff] mb-2.5">What's included in the box — each item with quantity.</div>
+        <div className="text-[11px] text-[#fff] mb-2.5">
+          What's included in the box — each item with quantity. The product itself is always shown first on the
+          product page; add it here only to change its quantity or position.
+        </div>
         {boxContent.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No box items yet.</div>}
         {boxContent.length > 1 && <DragTip />}
         {boxContent.map((b, i) => (
@@ -581,7 +588,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
               className={`${INPUT_CLASS} w-14 sm:w-16 text-[12px] text-center`} style={{ flex: "none" }} />
           </SortRow>
         ))}
-        <AddBtn onClick={addBox} label="Add Item" />
+        <div className="flex flex-wrap gap-2">
+          <AddBtn onClick={addBox} label="Add Item" />
+          {productName && !boxHasProduct && <AddBtn onClick={addProductToBox} label={`Add "${productName}"`} />}
+        </div>
       </Section>
 
       {/* Specials */}
