@@ -51,8 +51,15 @@ export default function ProductReviews({ product, user }) {
   const listRef = useRef(null);
 
   const ratingOf = (r) => r.rating ?? 5;
-  const filterCounts = useMemo(() => ratingBreakdown(reviews, ratingOf), [reviews]);
-  const summaryBreakdown = useMemo(() => ratingBreakdown(product.ratings || [], (r) => r.value), [product.ratings]);
+  // Summary, bars and filter counts all come from the same approved-review list,
+  // so they can never disagree with what's shown below them.
+  const breakdown = useMemo(() => ratingBreakdown(reviews, ratingOf), [reviews]);
+  const summary = useMemo(() => {
+    if (loading) return { average: product.averageRating || 0, total: product.ratingsCount || 0 };
+    const total = reviews.length;
+    const average = total ? reviews.reduce((sum, r) => sum + ratingOf(r), 0) / total : 0;
+    return { average, total };
+  }, [loading, reviews, product.averageRating, product.ratingsCount]);
 
   const visible = useMemo(() => {
     const filtered = selectedRatings.length ? reviews.filter((r) => selectedRatings.includes(ratingOf(r))) : reviews;
@@ -105,12 +112,7 @@ export default function ProductReviews({ product, user }) {
         <SectionHeading title="Product reviews" />
 
         <div className="mt-8">
-          <RatingSummary
-            average={product.averageRating || 0}
-            total={product.ratingsCount || 0}
-            breakdown={summaryBreakdown}
-            action={writeButton}
-          />
+          <RatingSummary average={summary.average} total={summary.total} breakdown={breakdown} action={writeButton} />
         </div>
 
         {writing && (
@@ -121,7 +123,7 @@ export default function ProductReviews({ product, user }) {
 
         <div ref={listRef} className="mt-10 grid scroll-mt-24 grid-cols-1 gap-6 lg:mt-14 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-14">
           <aside className="lg:pt-6">
-            <RatingFilter counts={filterCounts} selected={selectedRatings} onToggle={toggleRating} />
+            <RatingFilter counts={breakdown} selected={selectedRatings} onToggle={toggleRating} />
           </aside>
 
           <div>

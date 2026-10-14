@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { verifyToken } from "@/lib/auth";
 import mongoose from "mongoose";
+import { revalidateProduct } from "@/lib/revalidate";
 
 // PATCH — update comment status (approve / archive / pending)
 export async function PATCH(req, context) {
@@ -32,6 +33,7 @@ export async function PATCH(req, context) {
       const comment = product.comments.id(commentId);
       comment.text = body.text.trim();
       await product.save();
+      revalidateProduct(product._id);
       return new Response(JSON.stringify({ message: "Text updated" }), { status: 200 });
     }
 
@@ -63,6 +65,7 @@ export async function PATCH(req, context) {
       .map(c => ({ user: c.user, value: c.rating }));
     
     await product.save();
+    revalidateProduct(product._id);
 
     return new Response(JSON.stringify({ message: "Status updated", status }), { status: 200 });
   } catch (err) {
@@ -106,6 +109,7 @@ export async function DELETE(req, context) {
       .map(c => ({ user: c.user, value: c.rating }));
     
     await product.save();
+    revalidateProduct(product._id);
 
     return new Response(JSON.stringify({ message: "Comment deleted" }), { status: 200 });
   } catch (err) {

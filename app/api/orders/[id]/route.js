@@ -5,6 +5,7 @@ import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 import { normalizeStatusKey, API_STATUSES } from "@/lib/orderStatus";
+import { countOrderSales, uncountOrderSales, UNSOLD_STATUSES } from "@/lib/soldCount";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -89,6 +90,10 @@ export async function PATCH(req, context) {
       date: new Date(),
     });
     await order.save();
+
+    // Cancelled/returned orders stop counting as sold; reinstated ones count again
+    if (UNSOLD_STATUSES.includes(normalizedStatus)) await uncountOrderSales(order._id);
+    else await countOrderSales(order._id);
 
     const customerEmail = order.email;
     if (customerEmail && STATUS_EMAIL_CONFIG[normalizedStatus]) {

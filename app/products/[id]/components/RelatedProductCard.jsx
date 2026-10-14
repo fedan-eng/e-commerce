@@ -37,19 +37,14 @@ export default function RelatedProductCard({ product, bg }) {
         />
       </Link>
 
-      {(product.ratingsCount > 0 || product.soldCount > 0) && (
-        <p className="mt-3 flex items-center gap-1.5 text-[13px] text-muted">
-          {product.ratingsCount > 0 && (
-            <>
-              <Star size={13} strokeWidth={0} className="fill-star" />
-              <span className="font-semibold text-forest">{product.averageRating.toFixed(1)}</span>
-            </>
-          )}
-          {product.soldCount > 0 && <span>{product.soldCount.toLocaleString()} sold</span>}
-        </p>
-      )}
+      {/* Always rendered so every card lines up; only the sold count is optional */}
+      <p className="mt-3 flex items-center gap-1.5 text-[13px] text-muted">
+        <Star size={13} strokeWidth={0} className="fill-star" />
+        <span className="font-semibold text-forest">{(product.averageRating || 0).toFixed(1)}</span>
+        {product.soldCount > 0 && <span>{product.soldCount.toLocaleString()} sold</span>}
+      </p>
 
-      <Link href={href} className="mt-2 line-clamp-2 text-[15px] font-semibold leading-snug text-forest md:text-base">
+      <Link href={href} className="mt-2 line-clamp-2 min-h-[2lh] text-[15px] font-semibold leading-snug text-forest md:text-base">
         {product.name}
       </Link>
 

@@ -136,6 +136,11 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // true once this order's quantities are included in Product.soldCount (see lib/soldCount.js)
+  soldCounted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);
