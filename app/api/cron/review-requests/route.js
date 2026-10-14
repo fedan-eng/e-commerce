@@ -1,8 +1,8 @@
-// app/api/cron/review-requests/route.js — asks buyers to review what they bought.
+// app/api/cron/review-requests/route.js — reminds buyers to review what they bought.
 //
-// Per delivered order, at most two emails, each listing only the items not reviewed yet:
-//   1. the request, REQUEST_AFTER_DAYS after delivery
-//   2. one reminder, REMINDER_AFTER_DAYS after the request
+// The first ask is the "Delivered" status email (its "Leave a Review" button). This job
+// sends ONE reminder, REMINDER_AFTER_DAYS after delivery, listing only the items that
+// still have no review; if everything's been reviewed, nothing is sent.
 // Orders delivered more than MAX_AGE_DAYS ago are never emailed.
 //
 // GET with "Authorization: Bearer $CRON_SECRET" (Vercel Cron sends it automatically).
@@ -15,46 +15,30 @@ import { buildReviewRequestEmail } from "@/lib/emails/reviewRequestEmail";
 
 export const dynamic = "force-dynamic";
 
-const REQUEST_AFTER_DAYS = 2;
 const REMINDER_AFTER_DAYS = 7;
 const MAX_AGE_DAYS = 60;
-const BATCH_SIZE = 40; // per phase per run, to stay well inside Gmail's sending limits
+const BATCH_SIZE = 40; // per run, to stay well inside Gmail's sending limits
 
 const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 
-// Online orders that were delivered (and paid) between MAX_AGE_DAYS and `deliveredBefore` ago
-const deliveredOrders = (deliveredBefore) => ({
+// Paid online orders delivered between REMINDER_AFTER_DAYS and MAX_AGE_DAYS ago, not reminded yet
+const dueForReminder = () => ({
   source: { $ne: "manual" },
   email: { $nin: [null, ""] },
   paymentStatus: "paid",
   status: { $regex: /^delivered$/i },
   statusHistory: {
-    $elemMatch: { status: { $regex: /^delivered$/i }, date: { $lte: deliveredBefore, $gte: daysAgo(MAX_AGE_DAYS) } },
+    $elemMatch: {
+      status: { $regex: /^delivered$/i },
+      date: { $lte: daysAgo(REMINDER_AFTER_DAYS), $gte: daysAgo(MAX_AGE_DAYS) },
+    },
   },
+  reviewReminderSentAt: null,
 });
 
-const PHASES = [
-  {
-    name: "request",
-    field: "reviewRequestSentAt",
-    isReminder: false,
-    query: () => ({ ...deliveredOrders(daysAgo(REQUEST_AFTER_DAYS)), reviewRequestSentAt: null }),
-  },
-  {
-    name: "reminder",
-    field: "reviewReminderSentAt",
-    isReminder: true,
-    query: () => ({
-      ...deliveredOrders(new Date()),
-      reviewRequestSentAt: { $ne: null, $lte: daysAgo(REMINDER_AFTER_DAYS) },
-      reviewReminderSentAt: null,
-    }),
-  },
-];
-
-async function runPhase(phase, dryRun) {
-  const orders = await Order.find(phase.query()).sort({ createdAt: 1 }).limit(BATCH_SIZE).lean();
-  const report = { phase: phase.name, emailed: [], nothingToReview: 0, failed: 0 };
+async function sendReminders(dryRun) {
+  const orders = await Order.find(dueForReminder()).sort({ createdAt: 1 }).limit(BATCH_SIZE).lean();
+  const report = { emailed: [], nothingToReview: 0, failed: 0 };
 
   for (const order of orders) {
     const items = await unreviewedItems(order);
@@ -62,7 +46,7 @@ async function runPhase(phase, dryRun) {
     if (items.length === 0) {
       // Everything's reviewed: close the order out so it's never emailed
       report.nothingToReview++;
-      if (!dryRun) await Order.updateOne({ _id: order._id }, { reviewRequestSentAt: order.reviewRequestSentAt || new Date(), reviewReminderSentAt: new Date() });
+      if (!dryRun) await Order.updateOne({ _id: order._id }, { reviewReminderSentAt: new Date() });
       continue;
     }
 
@@ -73,20 +57,20 @@ async function runPhase(phase, dryRun) {
     }
 
     // Claim the order first so overlapping runs can't email it twice
-    const claimed = await Order.findOneAndUpdate({ _id: order._id, [phase.field]: null }, { [phase.field]: new Date() });
+    const claimed = await Order.findOneAndUpdate({ _id: order._id, reviewReminderSentAt: null }, { reviewReminderSentAt: new Date() });
     if (!claimed) continue;
 
     try {
       const { subject, html, text } = buildReviewRequestEmail({
         firstName: order.firstName,
-        isReminder: phase.isReminder,
+        isReminder: true,
         items: items.map((i) => ({ name: i.name, image: i.image, color: i.color, link: reviewLink(order._id, productIdOf(i)) })),
       });
       await sendEmail(order.email, subject, text, html);
       report.emailed.push(entry);
     } catch (err) {
-      console.error(`Review ${phase.name} email failed for order ${order._id}:`, err.message);
-      await Order.updateOne({ _id: order._id }, { [phase.field]: null }); // retry next run
+      console.error(`Review reminder failed for order ${order._id}:`, err.message);
+      await Order.updateOne({ _id: order._id }, { reviewReminderSentAt: null }); // retry next run
       report.failed++;
     }
   }
@@ -103,11 +87,9 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const results = [];
-    for (const phase of PHASES) results.push(await runPhase(phase, dryRun));
-    return Response.json({ dryRun, results });
+    return Response.json({ dryRun, ...(await sendReminders(dryRun)) });
   } catch (err) {
-    console.error("Review request cron failed:", err);
+    console.error("Review reminder cron failed:", err);
     return Response.json({ message: "Server error" }, { status: 500 });
   }
 }

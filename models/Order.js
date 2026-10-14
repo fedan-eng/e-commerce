@@ -141,11 +141,8 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  // Review emails (app/api/cron/review-requests): the first ask, then one reminder
-  reviewRequestSentAt: {
-    type: Date,
-    default: null,
-  },
+  // Set when the review reminder was sent, or when there was nothing left to review
+  // (app/api/cron/review-requests)
   reviewReminderSentAt: {
     type: Date,
     default: null,
