@@ -476,13 +476,13 @@ export async function POST(req) {
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
                   <tr>
                     <td style="padding: 0 8px;">
-                      <a href="https://facebook.com/filstore" target="_blank" style="text-decoration: none; font-size: 22px;">📘</a>
+                      <a href="https://www.facebook.com/filstoreng/" target="_blank" style="text-decoration: none; font-size: 22px;">📘</a>
                     </td>
                     <td style="padding: 0 8px;">
-                      <a href="https://instagram.com/filstore" target="_blank" style="text-decoration: none; font-size: 22px;">📷</a>
+                      <a href="https://www.instagram.com/filstoreng/" target="_blank" style="text-decoration: none; font-size: 22px;">📷</a>
                     </td>
                     <td style="padding: 0 8px;">
-                      <a href="https://twitter.com/filstore" target="_blank" style="text-decoration: none; font-size: 22px;">🐦</a>
+                      <a href="https://www.tiktok.com/@filstoreng_" target="_blank" style="text-decoration: none; font-size: 22px;">🎵</a>
                     </td>
                   </tr>
                 </table>

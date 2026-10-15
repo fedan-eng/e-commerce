@@ -5,7 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
-import { Twitter, Facebook, Instagram } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6";
+import { SOCIALS } from "@/lib/socials";
+
+const SOCIAL_ICONS = { TikTok: FaTiktok, Instagram: FaInstagram, Facebook: FaFacebookF };
 import FloatingActions from "@/components/FloatingActions";
 
 const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
@@ -293,9 +296,15 @@ const Footer = () => {
                 Power banks, audio, chargers, cables, sockets and fans.
               </p>
               <div className="flex items-center gap-5 mt-2">
-                <Link href="#" className="text-white hover:text-[#00E575] transition-colors"><Twitter size={20} strokeWidth={2} /></Link>
-                <Link href="#" className="text-white hover:text-[#00E575] transition-colors"><Facebook size={20} strokeWidth={2} /></Link>
-                <Link href="#" className="text-white hover:text-[#00E575] transition-colors"><Instagram size={20} strokeWidth={2} /></Link>
+                {SOCIALS.map(({ name, url }) => {
+                  const Icon = SOCIAL_ICONS[name];
+                  return (
+                    <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={`FIL on ${name}`}
+                      className="text-white hover:text-[#00E575] transition-colors">
+                      <Icon size={20} />
+                    </a>
+                  );
+                })}
               </div>
             </div>
 

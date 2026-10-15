@@ -1,4 +1,5 @@
 import React from "react";
+import { SOCIAL_URLS } from "@/lib/socials";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
 import BestSellers from "@/components/landing/BestSellers";
@@ -104,10 +105,7 @@ const page = () => {
       "postalCode": "102113",
       "addressCountry": "NG"
     },
-    "sameAs": [
-  "https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz",
-  "https://www.tiktok.com/@filstoreng_",
-],
+    "sameAs": SOCIAL_URLS,
     "priceRange": "$",
     "areaServed": [
       {
