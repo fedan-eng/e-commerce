@@ -1,72 +1,44 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Cookie, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useCookieConsent } from '../context/CookieConsentContext'
 
+const DISMISSED_KEY = 'filstore_cookie_banner_dismissed'
+const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000 // "×" hides the banner for a week
+
 const PREF_ITEMS = [
-  {
-    key: 'necessary',
-    label: 'Strictly necessary',
-    sub: 'Required for the site to work',
-    locked: true,
-  },
-  {
-    key: 'analytics',
-    label: 'Analytics',
-    sub: 'Help us understand usage',
-    locked: false,
-  },
-  {
-    key: 'marketing',
-    label: 'Marketing',
-    sub: 'Personalised ads & offers',
-    locked: false,
-  },
-  {
-    key: 'functional',
-    label: 'Functional',
-    sub: 'Remember your preferences',
-    locked: false,
-  },
+  { key: 'necessary', label: 'Strictly necessary', sub: 'Required for the site to work', locked: true },
+  { key: 'analytics', label: 'Analytics', sub: 'Help us understand how the site is used', locked: false },
+  { key: 'marketing', label: 'Marketing', sub: 'Personalised ads and offers', locked: false },
+  { key: 'functional', label: 'Functional', sub: 'Remember your preferences', locked: false },
 ]
 
+const btn = {
+  primary: 'h-11 rounded-full bg-forest px-5 text-sm font-semibold text-white transition-colors hover:bg-black',
+  outline: 'h-11 rounded-full border-2 border-forest px-5 text-sm font-semibold text-forest transition-colors hover:bg-sage',
+  ghost: 'h-11 rounded-full px-5 text-sm font-semibold text-forest underline-offset-4 hover:underline',
+}
+
 export default function CookieBanner() {
-  const { status, preferences, acceptAll, declineAll, savePreferences, mounted } =
-    useCookieConsent()
+  const { status, preferences, acceptAll, declineAll, savePreferences, mounted } = useCookieConsent()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
-
-  // Check if banner was dismissed and if it's been more than a week
-  useEffect(() => {
-    const dismissedAt = localStorage.getItem('filstore_cookie_banner_dismissed')
-    if (dismissedAt) {
-      const dismissedTime = parseInt(dismissedAt, 10)
-      const weekInMs = 7 * 24 * 60 * 60 * 1000
-      const now = Date.now()
-      
-      if (now - dismissedTime > weekInMs) {
-        // More than a week has passed, clear the storage
-        localStorage.removeItem('filstore_cookie_banner_dismissed')
-      } else {
-        // Less than a week, keep it dismissed
-        setBannerDismissed(true)
-      }
-    }
-  }, [])
   const [hiddenForPath, setHiddenForPath] = useState(false)
-  const [localPrefs, setLocalPrefs] = useState({
-    analytics: false,
-    marketing: false,
-    functional: false,
-  })
-  const [toast, setToast] = useState(null)
-  const [toastVisible, setToastVisible] = useState(false)
+  const [localPrefs, setLocalPrefs] = useState({ analytics: false, marketing: false, functional: false })
+
+  // Respect a recent "×" (expires after a week)
+  useEffect(() => {
+    const dismissedAt = parseInt(localStorage.getItem(DISMISSED_KEY) || '', 10)
+    if (!dismissedAt) return
+    if (Date.now() - dismissedAt > DISMISS_FOR_MS) localStorage.removeItem(DISMISSED_KEY)
+    else setBannerDismissed(true)
+  }, [])
 
   useEffect(() => {
-    if (window.location.pathname === '/cookie-policy') {
-      setHiddenForPath(true)
-    }
+    if (window.location.pathname === '/cookie-policy') setHiddenForPath(true)
   }, [])
 
   useEffect(() => {
@@ -79,246 +51,155 @@ export default function CookieBanner() {
     }
   }, [modalOpen, preferences])
 
-  if (!mounted) return null
-  if (status !== 'pending') return null
-  if (bannerDismissed) return null
-  if (hiddenForPath) return null
+  if (!mounted || status !== 'pending' || bannerDismissed || hiddenForPath) return null
 
-  const showToast = (msg, sub) => {
-    setToast({ msg, sub })
-    setToastVisible(true)
-    setTimeout(() => {
-      setToastVisible(false)
-      setTimeout(() => setToast(null), 300)
-    }, 3000)
-  }
-
+  // Confirmations go through the site-wide toaster: this banner unmounts as soon as
+  // consent is given, so anything it rendered itself would vanish immediately.
   const handleAcceptAll = () => {
     acceptAll()
-    showToast('Cookies accepted', 'Thanks for enabling a better experience')
+    setModalOpen(false)
+    toast.success('Cookies accepted')
   }
 
   const handleDecline = () => {
     declineAll()
-    showToast('Cookies declined', 'Only essential cookies will be used')
+    toast('Only essential cookies will be used')
   }
 
-  const handleCancel = () => {
+  const handleDismiss = () => {
     setBannerDismissed(true)
-    localStorage.setItem('filstore_cookie_banner_dismissed', Date.now().toString())
+    localStorage.setItem(DISMISSED_KEY, Date.now().toString())
   }
 
   const handleSavePrefs = () => {
     savePreferences(localPrefs)
     setModalOpen(false)
-    showToast('Preferences saved', 'Your cookie choices have been applied')
+    toast.success('Cookie preferences saved')
   }
 
-  const handleAcceptAllFromModal = () => {
-    acceptAll()
-    setModalOpen(false)
-    showToast('All cookies accepted', 'Thanks for enabling a better experience')
-  }
-
-  const togglePref = (key) =>
-    setLocalPrefs((prev) => ({ ...prev, [key]: !prev[key] }))
+  const togglePref = (key) => setLocalPrefs((prev) => ({ ...prev, [key]: !prev[key] }))
 
   return (
     <>
-      {/* ── Banner ──
-          Mobile:  pinned to bottom, full width with mx-3 breathing room, smaller text/padding
-          Desktop: fixed bottom-right, 340px wide
-      */}
-      <div className="
-        fixed z-[9999] rounded-2xl overflow-hidden
-        bg-[#111111] border border-white/10 shadow-2xl shadow-black/50
-
-        bottom-3 left-3 right-3
-        sm:bottom-6 sm:left-auto sm:right-6 sm:w-[340px]
-      ">
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3.5 bg-[#1cc978]">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black/15 flex items-center justify-center shrink-0">
-              <CookieSVG />
-            </div>
-            <div>
-              <p className="text-white text-[12px] sm:text-[13px] font-medium leading-none">
-                We use cookies
-              </p>
-              <span className="text-white/75 text-[10px] sm:text-[11px]">
-                Filstore · filstore.com.ng
-              </span>
-            </div>
+      {/* ── Banner: full width at the bottom on mobile, a card bottom-right on desktop ── */}
+      <div
+        role="region"
+        aria-label="Cookie consent"
+        className="fixed bottom-3 left-3 right-3 z-[9999] rounded-[24px] bg-white p-5 font-roboto shadow-[0_12px_48px_rgba(0,67,40,0.18)] ring-1 ring-line sm:bottom-6 sm:left-auto sm:right-6 sm:w-[380px]"
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mint text-forest">
+            <Cookie size={20} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-base font-bold text-forest">We use cookies</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-muted">
+              They improve your shopping experience, personalise content and help us understand traffic.{' '}
+              <a href="/cookie-policy" className="font-semibold text-forest underline underline-offset-2">
+                Learn more
+              </a>
+            </p>
           </div>
-
-          {/* Cancel button */}
           <button
-            onClick={handleCancel}
-            aria-label="Dismiss banner"
-            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/15 flex items-center justify-center text-white/80 hover:bg-black/30 hover:text-white active:scale-95 transition-all text-sm leading-none"
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Dismiss for now"
+            className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-sage hover:text-forest"
           >
-            ×
+            <X size={16} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-3 pt-2.5 pb-1 sm:px-4 sm:pt-3.5 sm:pb-1.5">
-          <p className="text-[11.5px] sm:text-[12.5px] text-white/45 leading-relaxed">
-            We use cookies to improve your shopping experience, personalise content, and analyse
-            traffic.{' '}
-            <a href="/cookie-policy" className="text-[#1cc978] font-medium hover:underline">
-              Learn more
-            </a>
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="px-3 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4 flex flex-col gap-1.5 sm:gap-2">
-          <div className="flex gap-1.5 sm:gap-2">
-            <button
-              onClick={handleAcceptAll}
-              className="flex-1 py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium bg-[#1cc978] text-white hover:opacity-90 active:scale-[0.98] transition-all"
-            >
-              Accept all
-            </button>
-            <button
-              onClick={handleDecline}
-              className="flex-1 py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium text-white/60 border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all"
-            >
-              Decline
-            </button>
-          </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="w-full py-2 sm:py-2.5 rounded-lg text-[12px] sm:text-[12.5px] font-medium text-[#1cc978] border border-[#1cc978]/30 bg-transparent hover:bg-[#1cc978]/8 active:scale-[0.98] transition-all"
-          >
-            Customize preferences
+        <div className="mt-4 flex gap-2">
+          <button type="button" onClick={handleAcceptAll} className={`flex-1 ${btn.primary}`}>
+            Accept all
+          </button>
+          <button type="button" onClick={handleDecline} className={`flex-1 ${btn.outline}`}>
+            Decline
           </button>
         </div>
+        <button type="button" onClick={() => setModalOpen(true)} className={`mt-1 w-full ${btn.ghost}`}>
+          Customise preferences
+        </button>
       </div>
 
-      {/* ── Preferences Modal ── */}
+      {/* ── Preferences: bottom sheet on mobile, centred card on desktop ── */}
       {modalOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/45 sm:items-center sm:p-4"
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="
-              bg-[#1a1a1a] border border-white/10 shadow-2xl
-              w-full rounded-t-2xl sm:rounded-2xl sm:w-[320px]
-              overflow-hidden
-            "
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-prefs-title"
+            className="w-full rounded-t-[28px] bg-white p-6 font-roboto shadow-2xl sm:max-w-[420px] sm:rounded-[28px]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* drag handle on mobile */}
-            <div className="flex justify-center pt-3 sm:hidden">
-              <div className="w-8 h-1 rounded-full bg-white/20" />
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-3 sm:py-3.5 border-b border-white/[0.07]">
-              <h3 className="text-[13px] sm:text-[14px] font-medium text-white">
+            <div className="flex items-center justify-between">
+              <h3 id="cookie-prefs-title" className="text-xl font-bold text-forest">
                 Cookie preferences
               </h3>
               <button
+                type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-white/35 hover:text-white/70 text-xl leading-none px-1 transition-colors"
+                aria-label="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-sage text-forest transition-colors hover:bg-mint"
               >
-                ×
+                <X size={18} />
               </button>
             </div>
 
-            <div className="px-4">
-              {PREF_ITEMS.map((item, i) => (
-                <div
-                  key={item.key}
-                  className={`flex items-center justify-between py-3 ${
-                    i < PREF_ITEMS.length - 1 ? 'border-b border-white/[0.06]' : ''
-                  }`}
-                >
-                  <div>
-                    <p className="text-[12px] sm:text-[12.5px] font-medium text-white/80">
-                      {item.label}
-                    </p>
-                    <p className="text-[10.5px] sm:text-[11px] text-white/35 mt-0.5">
-                      {item.sub}
-                    </p>
-                  </div>
-                  <Toggle
-                    on={item.locked ? true : localPrefs[item.key]}
-                    locked={item.locked}
-                    onChange={() => !item.locked && togglePref(item.key)}
-                  />
-                </div>
-              ))}
-            </div>
+            <ul className="mt-4 divide-y divide-line">
+              {PREF_ITEMS.map((item) => {
+                const on = item.locked || localPrefs[item.key]
+                return (
+                  <li key={item.key} className="flex items-center justify-between gap-4 py-3.5">
+                    <div>
+                      <p id={`cookie-${item.key}`} className="text-[15px] font-semibold text-forest">
+                        {item.label}
+                      </p>
+                      <p className="mt-0.5 text-[13px] text-muted">{item.sub}</p>
+                    </div>
+                    <Toggle on={on} locked={item.locked} labelledBy={`cookie-${item.key}`} onChange={() => togglePref(item.key)} />
+                  </li>
+                )
+              })}
+            </ul>
 
-            <div className="flex gap-2 px-4 pt-2.5 pb-5 sm:pb-4">
-              <button
-                onClick={handleSavePrefs}
-                className="flex-1 py-2.5 rounded-lg text-[12px] font-medium text-white/60 border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all"
-              >
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={handleSavePrefs} className={`flex-1 ${btn.outline}`}>
                 Save selection
               </button>
-              <button
-                onClick={handleAcceptAllFromModal}
-                className="flex-1 py-2.5 rounded-lg text-[12px] font-medium bg-[#1cc978] text-white hover:opacity-90 active:scale-[0.98] transition-all"
-              >
+              <button type="button" onClick={handleAcceptAll} className={`flex-1 ${btn.primary}`}>
                 Accept all
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* ── Toast ── */}
-      {toast && (
-        <div
-          className={`
-            fixed z-[10001] bg-[#1a1a1a] border-l-[3px] border-l-[#1cc978]
-            border border-white/10 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3
-            shadow-xl transition-all duration-300
-            bottom-20 left-3 right-3
-            sm:bottom-6 sm:left-auto sm:right-6 sm:min-w-[220px] sm:w-auto
-            ${toastVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-          `}
-        >
-          <p className="text-[12.5px] sm:text-[13px] font-medium text-white">{toast.msg}</p>
-          <p className="text-[11.5px] sm:text-[12px] text-white/40 mt-0.5">{toast.sub}</p>
-        </div>
-      )}
     </>
   )
 }
 
-function Toggle({ on, locked, onChange }) {
+function Toggle({ on, locked, labelledBy, onChange }) {
   return (
     <button
-      onClick={onChange}
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-labelledby={labelledBy}
+      onClick={locked ? undefined : onChange}
       disabled={locked}
-      className={`relative w-9 h-5 rounded-full shrink-0 ml-3 transition-colors duration-200 ${
-        on ? 'bg-[#1cc978]' : 'bg-white/15'
-      } ${locked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${
+        on ? 'bg-forest' : 'bg-star-empty'
+      } ${locked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
     >
       <span
-        className={`absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white transition-transform duration-200 ${
-          on ? 'translate-x-4' : 'translate-x-0'
+        className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+          on ? 'translate-x-5' : 'translate-x-0'
         }`}
       />
     </button>
-  )
-}
-
-function CookieSVG() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" fill="rgba(255,255,255,0.9)" />
-      <circle cx="5.5" cy="6" r="1.2" fill="#1cc978" />
-      <circle cx="9.5" cy="5" r="0.9" fill="#1cc978" />
-      <circle cx="10.5" cy="9" r="1.1" fill="#1cc978" />
-      <circle cx="6" cy="10.5" r="0.8" fill="#1cc978" />
-      <circle cx="8.5" cy="12" r="0.7" fill="#1cc978" />
-    </svg>
   )
 }
