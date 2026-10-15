@@ -1,20 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { FileText, Mail, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 
 const sections = [
   {
     id: "terms",
     label: "Terms of Service",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <polyline points="10 9 9 9 8 9" />
-      </svg>
-    ),
+    icon: FileText,
     content: [
       {
         heading: "Acceptance of Terms",
@@ -53,11 +47,7 @@ const sections = [
   {
     id: "privacy",
     label: "Privacy Policy",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: ShieldCheck,
     content: [
       {
         heading: "Information We Collect",
@@ -96,12 +86,7 @@ const sections = [
   {
     id: "returns",
     label: "Returns & Refunds",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="1 4 1 10 7 10" />
-        <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
-      </svg>
-    ),
+    icon: RotateCcw,
     content: [
       {
         heading: "Return Eligibility",
@@ -132,14 +117,7 @@ const sections = [
   {
     id: "shipping",
     label: "Shipping Policy",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="3" width="15" height="13" />
-        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-        <circle cx="5.5" cy="18.5" r="2.5" />
-        <circle cx="18.5" cy="18.5" r="2.5" />
-      </svg>
-    ),
+    icon: Truck,
     content: [
       {
         heading: "Delivery Areas",
@@ -172,96 +150,107 @@ const sections = [
 export default function PolicyPage() {
   const [active, setActive] = useState("terms");
   const current = sections.find((s) => s.id === active);
+  const CurrentIcon = current.icon;
+
+  // Deep links like /policies#privacy open the matching section
+  useEffect(() => {
+    const fromHash = () => {
+      const id = window.location.hash.slice(1);
+      if (sections.some((s) => s.id === id)) setActive(id);
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
+
+  const select = (id) => {
+    setActive(id);
+    window.history.replaceState(null, "", `#${id}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-8 font-roboto sm:px-6 md:pt-12">
+      {/* ── Header ── */}
+      <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
+        Legal
+      </span>
+      <h1 className="mt-4 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">Policies &amp; terms</h1>
+      <p className="mt-1 max-w-xl text-[15px] text-muted">
+        How we operate, protect your data and get your orders to you. Questions? We&apos;re a message away.
+      </p>
+      <p className="mt-3 text-[13px] text-muted/80">Last updated: March 2025</p>
 
-      {/* ── Hero ── */}
-      <section className="w-full bg-gradient-to-br from-[#0d3d26] to-[#1cc978] px-6 py-16 text-center">
-        <span className="mb-5 inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-white">
-          Fedan Investment Limited
-        </span>
-        <h1 className="mb-3 text-4xl font-bold text-white md:text-5xl">
-          Policies &amp; Terms
-        </h1>
-        <p className="mx-auto max-w-md text-sm leading-relaxed text-white/70">
-          Everything you need to know about how we operate, protect your data, and serve you better.
-        </p>
-        <p className="mt-5 text-xs text-white/40">Last updated: March 2025</p>
-      </section>
-
-      {/* ── Layout ── */}
-      <div className="mx-auto max-w-5xl px-4 py-12 md:flex md:items-start md:gap-8">
-
-        {/* Sidebar */}
-        <aside className="mb-6 shrink-0 md:sticky md:top-6 md:mb-0 md:w-56">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <p className="px-5 pb-2 pt-5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              Sections
-            </p>
-            {sections.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setActive(s.id)}
-                className={`flex w-full items-center gap-3 border-l-4 px-5 py-3.5 text-left text-sm font-medium transition-all duration-150
-                  ${
-                    active === s.id
-                      ? "border-[#1cc978] bg-green-50 text-[#1cc978]"
-                      : "border-transparent text-gray-500 hover:bg-green-50/60 hover:text-[#1cc978]"
+      <div className="mt-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12">
+        {/* Section picker: scrolling pills on mobile, sticky list on desktop */}
+        <nav aria-label="Policy sections" className="lg:sticky lg:top-24">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:overflow-visible lg:rounded-[24px] lg:bg-sage lg:p-2">
+            {sections.map(({ id, label, icon: Icon }) => {
+              const on = active === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => select(id)}
+                  aria-current={on ? "page" : undefined}
+                  className={`flex h-11 shrink-0 items-center gap-2.5 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors ${
+                    on
+                      ? "bg-forest text-white"
+                      : "bg-sage text-forest hover:bg-mint lg:bg-transparent lg:hover:bg-white"
                   }`}
-              >
-                <span className="shrink-0">{s.icon}</span>
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* Content panel */}
-        <div className="flex-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-          {/* Panel header */}
-          <div className="border-b border-gray-100 bg-gradient-to-r from-green-50/60 to-white px-8 py-7">
-            <h2 className="text-2xl font-bold text-gray-900">{current.label}</h2>
-            <p className="mt-1 text-sm text-gray-400">
-              Please read this section carefully before using FIL Store.
-            </p>
+                >
+                  <Icon size={17} strokeWidth={2} />
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Clauses */}
-          {current.content.map((item, i) => (
-            <div
-              key={i}
-              className="border-b border-gray-100 px-8 py-7 last:border-b-0 hover:bg-gray-50/50 transition-colors duration-100"
-            >
-              <div className="mb-3 flex items-center gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1cc978] to-[#16a05f] text-xs font-bold text-white">
+          <Link
+            href="/cookie-policy"
+            className="mt-4 hidden px-4 text-sm font-semibold text-forest underline-offset-4 hover:underline lg:block"
+          >
+            Cookie policy →
+          </Link>
+        </nav>
+
+        {/* Content */}
+        <article>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mint text-forest">
+              <CurrentIcon size={20} />
+            </span>
+            <h2 className="text-2xl font-bold tracking-tight text-forest md:text-[28px]">{current.label}</h2>
+          </div>
+
+          <ol className="mt-6 divide-y divide-line border-y border-line">
+            {current.content.map((item, i) => (
+              <li key={item.heading} className="grid grid-cols-[32px_minmax(0,1fr)] gap-4 py-6 md:gap-5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sage text-[13px] font-bold text-forest">
                   {i + 1}
                 </span>
-                <h3 className="text-base font-semibold text-gray-800">{item.heading}</h3>
-              </div>
-              <p className="text-sm leading-relaxed text-gray-500">{item.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+                <div>
+                  <h3 className="pt-1 text-base font-bold text-forest">{item.heading}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-muted">{item.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
 
-      {/* ── Footer ── */}
-      <div className="border-t border-gray-200 bg-white px-6 py-10 text-center">
-        <p className="text-sm text-gray-400">Questions about our policies?</p>
-        <p className="mt-1 text-sm text-gray-400">
-          We&apos;re happy to help — reach out to our support team.
-        </p>
-        <a
-          href="mailto:filsmteam@gmail.com"
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0d3d26] to-[#1cc978] px-7 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-            <polyline points="22,6 12,13 2,6" />
-          </svg>
-          filsmteam@gmail.com
-        </a>
+          {/* ── Contact ── */}
+          <div className="mt-10 flex flex-col items-start gap-4 rounded-[24px] bg-sage p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+            <div>
+              <p className="text-lg font-bold text-forest">Questions about our policies?</p>
+              <p className="mt-1 text-sm text-muted">We&apos;re happy to help. Reach out to our support team.</p>
+            </div>
+            <a
+              href="mailto:filsmteam@gmail.com"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white transition-colors hover:bg-black"
+            >
+              <Mail size={16} />
+              filsmteam@gmail.com
+            </a>
+          </div>
+        </article>
       </div>
     </div>
   );

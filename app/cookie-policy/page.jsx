@@ -1,5 +1,7 @@
 // app/cookie-policy/page.jsx
 
+import Link from 'next/link'
+
 export const metadata = {
   title: 'Cookie Policy | Filstore',
   description:
@@ -35,7 +37,7 @@ When you visit Filstore, cookies may be stored in your browser. Each cookie cont
       {
         title: 'Strictly necessary cookies',
         badge: 'Always active',
-        badgeColor: 'green',
+        locked: true,
         content:
           'These cookies are essential for Filstore to function. They enable core features like your shopping cart, account login, and secure checkout. Without these cookies, the services you have asked for cannot be provided. You cannot opt out of these cookies.',
         examples: ['Session ID (keeps you logged in)', 'Cart token (preserves your cart items)', 'CSRF token (protects against security attacks)'],
@@ -43,7 +45,6 @@ When you visit Filstore, cookies may be stored in your browser. Each cookie cont
       {
         title: 'Analytics cookies',
         badge: 'Optional',
-        badgeColor: 'blue',
         content:
           'These cookies help us understand how visitors interact with Filstore. We use Google Analytics to collect anonymous data about pages visited, time spent on site, and how users navigate. This helps us identify what is working well and what needs improvement.',
         examples: ['_ga (Google Analytics visitor ID, expires 2 years)', '_ga_XXXXXX (Google Analytics session, expires 2 years)'],
@@ -51,7 +52,6 @@ When you visit Filstore, cookies may be stored in your browser. Each cookie cont
       {
         title: 'Marketing cookies',
         badge: 'Optional',
-        badgeColor: 'amber',
         content:
           'These cookies track your activity across websites so that we can show you relevant ads on platforms like Facebook, Instagram, and Google. They are set by third-party advertising networks with our permission. If you decline, you may still see ads, but they will not be personalised to your interests.',
         examples: ['_fbp (Meta/Facebook Pixel, expires 3 months)', 'IDE (Google Ads, expires 1 year)'],
@@ -59,7 +59,6 @@ When you visit Filstore, cookies may be stored in your browser. Each cookie cont
       {
         title: 'Functional cookies',
         badge: 'Optional',
-        badgeColor: 'purple',
         content:
           'These cookies allow Filstore to remember choices you make, such as your delivery region or preferred language, to provide a more personalised experience. Declining these will not prevent you from using the site, but some features may not work as smoothly.',
         examples: ['region_pref (remembered delivery location)', 'recently_viewed (products you recently looked at)'],
@@ -146,145 +145,136 @@ Lagos, Nigeria`,
   },
 ]
 
-const badgeStyles = {
-  green: 'bg-[#1cc978]/15 text-[#1cc978]',
-  blue: 'bg-blue-500/10 text-blue-400',
-  amber: 'bg-amber-500/10 text-amber-400',
-  purple: 'bg-purple-500/10 text-purple-400',
+// Paragraphs are separated by blank lines; lines starting with "•" become a list
+function Prose({ text }) {
+  return text.split('\n\n').map((block, i) => {
+    const lines = block.split('\n')
+    const items = lines.filter((l) => l.startsWith('• '))
+    if (!items.length) {
+      return (
+        <p key={i} className="whitespace-pre-line">
+          {block}
+        </p>
+      )
+    }
+    const intro = lines.filter((l) => !l.startsWith('• ')).join('\n')
+    return (
+      <div key={i}>
+        {intro && <p className="mb-2 whitespace-pre-line">{intro}</p>}
+        <ul className="space-y-1.5">
+          {items.map((item) => (
+            <li key={item} className="flex gap-3">
+              <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-signal" />
+              {item.slice(2)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  })
 }
 
 export default function CookiePolicyPage() {
   return (
-    <main className="min-h-screen bg-[#0e0e0e] text-white">
-      {/* Hero */}
-      <div className="border-b border-white/[0.07] bg-[#111]">
-        <div className="max-w-3xl mx-auto px-6 py-16">
-          <div className="inline-flex items-center gap-2 bg-[#1cc978]/10 border border-[#1cc978]/20 rounded-full px-3 py-1 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1cc978]" />
-            <span className="text-[#1cc978] text-[11px] font-medium tracking-wide uppercase">
-              Legal
-            </span>
-          </div>
-          <h1 className="text-3xl font-semibold text-white mb-3 leading-tight">
-            Cookie Policy
-          </h1>
-          <p className="text-white/45 text-[15px] leading-relaxed max-w-xl">
-            This policy explains how Filstore uses cookies and similar technologies when you visit{' '}
-            <span className="text-white/70">filstore.com.ng</span>. Please read it alongside our
-            Privacy Policy.
-          </p>
-          <p className="text-white/30 text-[13px] mt-5">
-            Last updated: {LAST_UPDATED}
-          </p>
-        </div>
-      </div>
+    <main className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-8 font-roboto sm:px-6 md:pt-12">
+      {/* Header */}
+      <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
+        Legal
+      </span>
+      <h1 className="mt-4 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">Cookie policy</h1>
+      <p className="mt-1 max-w-xl text-[15px] leading-relaxed text-muted">
+        How Filstore uses cookies and similar technologies when you visit filstore.com.ng. Please read it alongside
+        our{' '}
+        <Link href="/policies#privacy" className="font-semibold text-forest underline underline-offset-2">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+      <p className="mt-3 text-[13px] text-muted/80">Last updated: {LAST_UPDATED}</p>
 
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-6 py-14">
-
-        {/* Quick nav */}
-        <div className="bg-[#1a1a1a] border border-white/[0.07] rounded-xl p-5 mb-12">
-          <p className="text-[12px] font-medium text-white/40 uppercase tracking-wider mb-3">
-            Contents
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+      <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12">
+        {/* Contents */}
+        <nav aria-label="Contents" className="rounded-[24px] bg-sage p-5 lg:sticky lg:top-24">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Contents</p>
+          <ol className="grid grid-cols-1 gap-0.5 sm:grid-cols-2 lg:grid-cols-1">
             {sections.map((s) => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
-                className="text-[13px] text-white/50 hover:text-[#1cc978] transition-colors py-0.5"
-              >
-                {s.title}
-              </a>
+              <li key={s.id}>
+                <a
+                  href={`#${s.id}`}
+                  className="block rounded-full px-3 py-1.5 text-sm text-forest transition-colors hover:bg-white"
+                >
+                  {s.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <article>
+          <div className="divide-y divide-line border-y border-line">
+            {sections.map((section) => (
+              <section key={section.id} id={section.id} className="scroll-mt-24 py-8">
+                <h2 className="text-xl font-bold tracking-tight text-forest md:text-2xl">{section.title}</h2>
+
+                {section.content && (
+                  <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-muted">
+                    <Prose text={section.content} />
+                  </div>
+                )}
+
+                {/* Cookie categories */}
+                {section.subsections && (
+                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {section.subsections.map((sub) => (
+                      <div key={sub.title} className="flex flex-col rounded-[24px] bg-sage p-5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-base font-bold text-forest">{sub.title}</h3>
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                              sub.locked ? 'bg-forest text-white' : 'bg-mint text-forest'
+                            }`}
+                          >
+                            {sub.badge}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm leading-relaxed text-muted">{sub.content}</p>
+                        <div className="mt-4 border-t border-line pt-3">
+                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                            Examples
+                          </p>
+                          <ul className="space-y-1">
+                            {sub.examples.map((ex) => (
+                              <li key={ex} className="flex gap-2.5 text-[13px] text-forest">
+                                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-signal" />
+                                {ex}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
             ))}
           </div>
-        </div>
 
-        {/* Sections */}
-        <div className="space-y-14">
-          {sections.map((section) => (
-            <section key={section.id} id={section.id}>
-              <h2 className="text-[18px] font-medium text-white mb-4 pb-3 border-b border-white/[0.07]">
-                {section.title}
-              </h2>
-
-              {/* Regular content */}
-              {section.content && (
-                <div className="text-[14.5px] text-white/55 leading-[1.85] whitespace-pre-line">
-                  {section.content}
-                </div>
-              )}
-
-              {/* Subsections (cookie types) */}
-              {section.subsections && (
-                <div className="space-y-4">
-                  {section.subsections.map((sub) => (
-                    <div
-                      key={sub.title}
-                      className="bg-[#1a1a1a] border border-white/[0.07] rounded-xl p-5"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-[14px] font-medium text-white">{sub.title}</h3>
-                        <span
-                          className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
-                            badgeStyles[sub.badgeColor]
-                          }`}
-                        >
-                          {sub.badge}
-                        </span>
-                      </div>
-                      <p className="text-[13.5px] text-white/50 leading-relaxed mb-3">
-                        {sub.content}
-                      </p>
-                      <div className="border-t border-white/[0.06] pt-3">
-                        <p className="text-[11px] text-white/30 uppercase tracking-wider mb-2">
-                          Examples
-                        </p>
-                        <ul className="space-y-1">
-                          {sub.examples.map((ex) => (
-                            <li
-                              key={ex}
-                              className="flex items-start gap-2 text-[13px] text-white/40"
-                            >
-                              <span className="text-[#1cc978] mt-0.5 shrink-0">›</span>
-                              {ex}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          ))}
-        </div>
-
-        {/* Footer CTA */}
-        <div className="mt-16 bg-[#1a1a1a] border border-white/[0.07] rounded-2xl p-7 text-center">
-          <div className="w-10 h-10 rounded-full bg-[#1cc978]/10 flex items-center justify-center mx-auto mb-4">
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="7" fill="rgba(28,201,120,0.2)" />
-              <circle cx="5.5" cy="6" r="1.2" fill="#1cc978" />
-              <circle cx="9.5" cy="5" r="0.9" fill="#1cc978" />
-              <circle cx="10.5" cy="9" r="1.1" fill="#1cc978" />
-              <circle cx="6" cy="10.5" r="0.8" fill="#1cc978" />
-              <circle cx="8.5" cy="12" r="0.7" fill="#1cc978" />
-            </svg>
+          {/* Footer CTA */}
+          <div className="mt-10 flex flex-col items-start gap-4 rounded-[24px] bg-sage p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+            <div>
+              <p className="text-lg font-bold text-forest">Want to update your cookie choices?</p>
+              <p className="mt-1 text-sm text-muted">
+                Go back to the homepage and use the cookie banner to update your preferences.
+              </p>
+            </div>
+            <Link
+              href="/"
+              className="inline-flex h-11 shrink-0 items-center rounded-full bg-forest px-5 text-sm font-semibold text-white transition-colors hover:bg-black"
+            >
+              Back to Filstore
+            </Link>
           </div>
-          <h3 className="text-[15px] font-medium text-white mb-1.5">
-            Want to update your cookie choices?
-          </h3>
-          <p className="text-[13px] text-white/40 mb-5 max-w-sm mx-auto">
-  Go back to the homepage and use the cookie banner to update your preferences.
-</p>
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 bg-[#1cc978] text-white text-[13px] font-medium px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
-          >
-            Back to Filstore
-          </a>
-        </div>
+        </article>
       </div>
     </main>
   )
