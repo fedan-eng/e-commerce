@@ -8,13 +8,17 @@ export default function ConditionalShell({ children }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin_console");
 
+  // The admin console brings its own full-width shell; the store's wrapper
+  // (overflow-x-hidden) would also stop its sticky sidebar and top bar working.
+  if (isAdmin) return children;
+
   return (
     <>
-      {!isAdmin && <Navbar />}
+      <Navbar />
        <div className="mx-auto w-full max-w-[1640px] overflow-x-hidden font-roboto">
       {children}
        </div>
-      {!isAdmin && <Footer />}
+      <Footer />
     </>
   );
 }

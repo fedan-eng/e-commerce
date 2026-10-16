@@ -32,12 +32,16 @@
   --color-signal: #0bd46f;  /* in-stock dot, "Free" badge */
 
   /* Admin console */
-  --color-pine: #0f472b;        /* primary: sidebar, buttons, headings */
-  --color-pine-deep: #0a3320;   /* primary hover */
-  --color-zest: #d7f75b;        /* the fun accent: active nav, highlights */
-  --color-canvas: #f5f8f4;      /* page background behind white cards */
-  --color-ink: #14261c;         /* main text */
-  --color-faint: #6f8279;       /* labels, table headers */
+  --color-pine: #0f472b;        /* primary: CTAs, links, active states */
+  --color-pine-deep: #0b3a23;   /* primary hover */
+  --color-pine-tint: #eef5f1;   /* active nav, selected rows */
+  --color-zest: #d7f75b;        /* legacy accent (pages not yet rebuilt) */
+  --color-canvas: #f6f7f6;      /* page background behind white cards */
+  --color-edge: #e6e9e7;        /* card borders and dividers */
+  --color-hover: #f4f6f5;       /* hover fill on menus and rows */
+  --color-ink: #111814;         /* main text */
+  --color-sub: #4a5550;         /* secondary text */
+  --color-faint: #6b7570;       /* labels, captions, table headers */
   --color-ghost: #b3c0b9;       /* placeholders, empty values */
   --color-line-strong: #cbd8d1; /* input outlines */
 
