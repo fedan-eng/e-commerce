@@ -16,25 +16,25 @@ export default function EditProductPage() {
       .then(data => { setProduct(data); setLoading(false); });
   }, [id]);
  
-  if (loading) return <div className="text-[#444] text-[13px]">Loading product...</div>;
-  if (!product || product.message) return <div className="text-[#e86a6a] text-[13px]">Product not found.</div>;
+  if (loading) return <div className="text-faint text-[13px]">Loading product...</div>;
+  if (!product || product.message) return <div className="text-[#c53030] text-[13px]">Product not found.</div>;
  
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin_console/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
-          ← BACK TO PRODUCTS
+        <Link href="/admin_console/products" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-pine no-underline bg-white border border-line rounded-full px-3.5 py-1.5 hover:bg-mint transition-colors">
+          ← Back to products
         </Link>
         <div className="mt-4 flex flex-wrap justify-between items-end gap-2.5">
           <div>
-            <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Products</div>
-            <h1 className="m-0 text-[24px] font-bold text-[#e8e8e8] tracking-tight">
-              Edit: <span className="text-[#888]">{product.name}</span>
+            <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">Products</div>
+            <h1 className="m-0 text-[28px] font-poppins font-bold text-pine leading-tight">
+              Edit: <span className="text-muted">{product.name}</span>
             </h1>
           </div>
           <a href={`/products/${id}`} target="_blank" rel="noreferrer"
-            className="text-[11px] text-[#fff] no-underline tracking-[0.1em] px-3 py-1.5 border border-[#222] rounded hover:border-[#444] hover:text-[#888] transition-all whitespace-nowrap">
-            VIEW LIVE ↗
+            className="text-[12px] font-semibold text-pine no-underline px-3.5 py-1.5 bg-mint rounded-full hover:bg-zest transition-colors whitespace-nowrap">
+            View live ↗
           </a>
         </div>
       </div>

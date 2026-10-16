@@ -93,15 +93,15 @@ export default function AdminProductsPage() {
   };
 
   const Pagination = ({ pad }) => totalPages > 1 ? (
-    <div className={`flex justify-between items-center ${pad ? "px-4 py-3 border-t border-[#1a1a1a]" : "mt-4"}`}>
-      <span className="text-[11px] text-[#444]">Page {page} / {totalPages}</span>
+    <div className={`flex justify-between items-center ${pad ? "px-4 py-3 border-t border-line" : "mt-4"}`}>
+      <span className="text-[11px] text-faint">Page {page} / {totalPages}</span>
       <div className="flex gap-2">
         <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page === 1}
-          className={`px-3 py-1.5 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === 1 ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
+          className={`px-3.5 py-1.5 bg-white border border-line rounded-full text-[12px] font-medium ${page === 1 ? "text-ghost cursor-default" : "text-pine cursor-pointer hover:border-pine hover:bg-mint"}`}>
           ← Prev
         </button>
         <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page === totalPages}
-          className={`px-3 py-1.5 bg-transparent border border-[#222] rounded text-[11px] font-mono ${page === totalPages ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}>
+          className={`px-3.5 py-1.5 bg-white border border-line rounded-full text-[12px] font-medium ${page === totalPages ? "text-ghost cursor-default" : "text-pine cursor-pointer hover:border-pine hover:bg-mint"}`}>
           Next →
         </button>
       </div>
@@ -112,19 +112,19 @@ export default function AdminProductsPage() {
     <div className="w-full max-w-full">
       {/* Header — stacks on mobile */}
       <div className="mb-6">
-        <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1">Management</div>
+        <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">Management</div>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h1 className="m-0 text-2xl font-bold text-[#e8e8e8] tracking-tight">
-            Products <span className="text-[#444] text-base font-normal">({total})</span>
+          <h1 className="m-0 text-[28px] font-poppins font-bold text-pine leading-tight">
+            Products <span className="text-faint text-base font-roboto font-medium">({total})</span>
           </h1>
           {/* Buttons — full width row on mobile */}
           <div className="flex gap-2 w-full sm:w-auto">
             <button onClick={openSortMode}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-transparent text-[#e8c46a] border border-[#e8c46a44] rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase cursor-pointer hover:bg-[#e8c46a0a] transition-colors font-mono">
+              className="flex-1 sm:flex-none h-10 px-4 bg-zest text-pine rounded-full text-[13px] font-semibold cursor-pointer hover:bg-pine hover:text-zest transition-colors">
               ⠿ Sort
             </button>
             <Link href="/admin_console/products/new"
-              className="flex-1 sm:flex-none text-center px-4 py-2.5 bg-[#e8c46a] text-[#0a0a0a] no-underline rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase hover:bg-[#d4b05e] transition-colors">
+              className="flex-1 sm:flex-none flex items-center justify-center h-10 px-4 bg-pine text-white no-underline rounded-full text-[13px] font-semibold hover:bg-pine-deep transition-colors">
               + Add Product
             </Link>
           </div>
@@ -135,65 +135,65 @@ export default function AdminProductsPage() {
       <div className="mb-4">
         <input type="text" placeholder="Search products…" value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="w-full sm:w-80 bg-[#111] border border-[#1e1e1e] rounded-lg px-4 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono"
+          className="w-full sm:w-80 h-11 bg-white border border-line-strong rounded-full px-5 text-ink text-[13px] outline-none focus:border-pine transition-colors"
         />
       </div>
 
       {loading ? (
-        <div className="py-12 text-[#444] text-[13px] text-center bg-[#111] border border-[#1e1e1e] rounded-xl">Loading products...</div>
+        <div className="py-12 flex flex-col items-center gap-3 text-faint text-[13px] bg-white border border-line rounded-3xl"><div className="w-7 h-7 rounded-full border-[3px] border-mint border-t-pine animate-spin" />Loading products…</div>
       ) : products.length === 0 ? (
-        <div className="py-12 text-[#444] text-[13px] text-center bg-[#111] border border-[#1e1e1e] rounded-xl">No products found.</div>
+        <div className="py-12 text-faint text-[13px] text-center bg-white border border-line rounded-3xl"><div className="text-3xl mb-2" aria-hidden>📦</div>No products found.</div>
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden md:block bg-[#111] border border-[#222] rounded-xl overflow-hidden">
+          <div className="hidden md:block bg-white border border-line rounded-3xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse min-w-[560px]">
                 <thead>
-                  <tr className="border-b border-[#1a1a1a]">
+                  <tr className="bg-sage">
                     {["Product","Category","Price","Stock","Rating","Actions"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase font-semibold whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-5 py-3 text-left text-[11px] tracking-[0.08em] text-faint uppercase font-semibold whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {products.map(p => (
-                    <tr key={p._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
+                    <tr key={p._id} className="border-b border-line hover:bg-[#fafcf9] transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {p.image && <Image src={p.image} alt="" width={36} height={36} className="w-9 h-9 rounded object-cover bg-[#1a1a1a] shrink-0" />}
+                          {p.image && <Image src={p.image} alt="" width={36} height={36} className="w-10 h-10 rounded-xl object-cover bg-mint shrink-0" />}
                           <div>
-                            <div className="text-[13px] text-[#e8e8e8] whitespace-nowrap">{p.name}</div>
-                            <div className="text-[11px] text-[#444] font-mono">{String(p._id).slice(-8)}</div>
+                            <div className="text-[13px] font-medium text-ink whitespace-nowrap">{p.name}</div>
+                            <div className="text-[11px] text-faint">{String(p._id).slice(-8)}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-[12px] text-[#666] capitalize whitespace-nowrap">{p.category || "—"}</td>
-                      <td className="px-5 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">₦{p.price?.toFixed(2)}</td>
+                      <td className="px-5 py-3.5 whitespace-nowrap">{p.category ? <span className="text-[11px] font-semibold text-pine bg-mint px-2.5 py-1 rounded-full capitalize">{p.category}</span> : <span className="text-ghost">—</span>}</td>
+                      <td className="px-5 py-3.5 text-[13px] font-semibold text-ink whitespace-nowrap">₦{p.price?.toFixed(2)}</td>
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className={`text-[10px] uppercase px-2 py-0.5 rounded border ${p.availability ? "text-[#6ae8a0] bg-[#6ae8a018] border-[#6ae8a033]" : "text-[#e86a6a] bg-[#e86a6a18] border-[#e86a6a33]"}`}>
+                        <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${p.availability ? "text-[#15803d] bg-[#e3f6e9] border-[#bfe5cc]" : "text-[#c53030] bg-[#fdecec] border-[#f3c4c4]"}`}>
                           {p.availability ? "In Stock" : "Out"}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-[#e8c46a]">{p.averageRating > 0 ? `★ ${p.averageRating.toFixed(1)}` : "—"}</td>
+                      <td className="px-5 py-3.5 text-[13px] text-ink font-medium whitespace-nowrap">{p.averageRating > 0 ? <><span className="text-star">★</span> {p.averageRating.toFixed(1)}</> : <span className="text-ghost">—</span>}</td>
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex gap-2">
-                          <Link href={`/admin_console/products/${p._id}`} className="text-[11px] text-[#6ab4e8] no-underline px-2.5 py-1 border border-[#6ab4e822] rounded hover:bg-[#6ab4e812] transition-colors">EDIT</Link>
+                          <Link href={`/admin_console/products/${p._id}`} className="text-[12px] font-semibold text-pine no-underline px-3.5 py-1.5 bg-mint rounded-full hover:bg-zest transition-colors">Edit</Link>
                           {confirmDelete === p._id ? (
                             <div className="flex gap-1">
                               <button onClick={() => deleteProduct(p._id)} disabled={deleting === p._id}
-                                className="text-[10px] text-[#e86a6a] bg-[#e86a6a18] border border-[#e86a6a44] rounded px-2 py-1 cursor-pointer font-mono">
+                                className="text-[12px] font-semibold text-white bg-[#c53030] rounded-full px-3 py-1.5 cursor-pointer hover:bg-[#a52828]">
                                 {deleting === p._id ? "…" : "Confirm"}
                               </button>
                               <button onClick={() => setConfirmDelete(null)}
-                                className="text-[10px] text-[#fff] bg-transparent border border-[#222] rounded px-2 py-1 cursor-pointer font-mono">
+                                className="text-[12px] font-medium text-muted bg-white border border-line rounded-full px-3 py-1.5 cursor-pointer hover:border-line-strong">
                                 Cancel
                               </button>
                             </div>
                           ) : (
                             <button onClick={() => setConfirmDelete(p._id)}
-                              className="text-[11px] text-[#666] bg-transparent border border-[#222] rounded px-2.5 py-1 cursor-pointer font-mono hover:border-[#444] transition-colors">
-                              DEL
+                              className="text-[12px] font-medium text-[#c53030] bg-white border border-line rounded-full px-3.5 py-1.5 cursor-pointer hover:bg-[#fdecec] hover:border-[#f3c4c4] transition-colors">
+                              Delete
                             </button>
                           )}
                         </div>
@@ -209,36 +209,36 @@ export default function AdminProductsPage() {
           {/* Mobile Cards */}
           <div className="md:hidden flex flex-col gap-2 w-full">
             {products.map(p => (
-              <div key={p._id} className="bg-[#111] border border-[#1a1a1a] rounded-xl p-3.5 flex items-center gap-3 hover:border-[#252525] transition-colors w-full">
-                {p.image && <Image src={p.image} alt="" width={48} height={48} className="w-12 h-12 rounded-lg object-cover bg-[#1a1a1a] shrink-0" />}
+              <div key={p._id} className="bg-white border border-line rounded-3xl p-3.5 flex items-center gap-3 hover:border-line transition-colors w-full">
+                {p.image && <Image src={p.image} alt="" width={48} height={48} className="w-12 h-12 rounded-xl object-cover bg-sage shrink-0" />}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] text-[#e8e8e8] truncate font-medium">{p.name}</div>
+                  <div className="text-[13px] text-ink truncate font-medium">{p.name}</div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-[11px] text-[#fff] capitalize">{p.category || "—"}</span>
-                    <span className="text-[12px] text-[#e8e8e8] font-semibold">₦{p.price?.toFixed(2)}</span>
-                    <span className={`text-[9px] uppercase px-1.5 py-px rounded border ${p.availability ? "text-[#6ae8a0] bg-[#6ae8a018] border-[#6ae8a033]" : "text-[#e86a6a] bg-[#e86a6a18] border-[#e86a6a33]"}`}>
+                    <span className="text-[11px] text-muted capitalize">{p.category || "—"}</span>
+                    <span className="text-[12px] text-ink font-semibold">₦{p.price?.toFixed(2)}</span>
+                    <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${p.availability ? "text-[#15803d] bg-[#e3f6e9] border-[#bfe5cc]" : "text-[#c53030] bg-[#fdecec] border-[#f3c4c4]"}`}>
                       {p.availability ? "In Stock" : "Out"}
                     </span>
                   </div>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   <Link href={`/admin_console/products/${p._id}`}
-                    className="text-[11px] text-[#6ab4e8] no-underline px-2.5 py-1.5 border border-[#6ab4e822] rounded hover:bg-[#6ab4e812] transition-colors">
-                    EDIT
+                    className="text-[12px] font-semibold text-pine no-underline px-3 py-1.5 bg-mint rounded-full hover:bg-zest transition-colors">
+                    Edit
                   </Link>
                   {confirmDelete === p._id ? (
                     <div className="flex gap-1">
                       <button onClick={() => deleteProduct(p._id)} disabled={deleting === p._id}
-                        className="text-[10px] text-[#e86a6a] bg-[#e86a6a18] border border-[#e86a6a44] rounded px-2 py-1.5 cursor-pointer font-mono">
+                        className="text-[12px] font-semibold text-white bg-[#c53030] rounded-full px-2.5 py-1.5 cursor-pointer">
                         {deleting === p._id ? "…" : "✓"}
                       </button>
                       <button onClick={() => setConfirmDelete(null)}
-                        className="text-[10px] text-[#fff] bg-transparent border border-[#222] rounded px-2 py-1.5 cursor-pointer font-mono">✕</button>
+                        className="text-[12px] text-muted bg-white border border-line rounded-full px-2.5 py-1.5 cursor-pointer">✕</button>
                     </div>
                   ) : (
                     <button onClick={() => setConfirmDelete(p._id)}
-                      className="text-[11px] text-[#666] bg-transparent border border-[#222] rounded px-2.5 py-1.5 cursor-pointer font-mono hover:border-[#444] transition-colors">
-                      DEL
+                      className="text-[12px] text-[#c53030] bg-white border border-line rounded-full px-3 py-1.5 cursor-pointer hover:bg-[#fdecec] transition-colors">
+                      Delete
                     </button>
                   )}
                 </div>
@@ -251,44 +251,44 @@ export default function AdminProductsPage() {
 
       {/* Sort Mode Panel */}
       {sortMode && (
-        <div className="mt-6 bg-[#111] border border-[#222] rounded-xl p-5">
+        <div className="mt-6 bg-white border border-line rounded-3xl p-5">
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-            <h2 className="m-0 text-sm font-bold text-[#e8e8e8]">Manage Display Order</h2>
+            <h2 className="m-0 text-[16px] font-poppins font-semibold text-pine">Manage display order ✨</h2>
             <button onClick={() => setSortMode(false)}
-              className="bg-transparent border border-[#222] text-[#666] rounded px-3 py-1 cursor-pointer text-[11px] font-mono hover:border-[#444] transition-colors">
+              className="bg-white border border-line text-muted rounded-full px-3.5 py-1.5 cursor-pointer text-[12px] font-medium hover:border-pine hover:text-pine transition-colors">
               Close
             </button>
           </div>
           <div className="mb-3">
             <button
               onClick={() => handleCategorySelect("__all__")}
-              className={`px-3.5 py-1.5 rounded text-[11px] cursor-pointer border transition-all font-mono
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer border transition-all
                 ${sortCategory === "__all__"
-                  ? "border-[#e8c46a] bg-[#e8c46a18] text-[#e8c46a] font-bold"
-                  : "border-[#222] bg-transparent text-[#666] hover:border-[#333]"}`}>
+                  ? "border-pine bg-pine text-zest"
+                  : "border-line bg-white text-muted hover:border-pine hover:text-pine"}`}>
               All Products
             </button>
           </div>
           <div className="mb-4">
-            <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-1.5">Categories</p>
+            <p className="text-[12px] font-medium text-faint mb-1.5">Categories</p>
             <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               <div className="flex gap-2 pb-2 w-max">
                 {CATEGORIES.filter(c => !c.startsWith("is")).map(cat => (
                   <button key={cat} onClick={() => handleCategorySelect(cat)}
-                    className={`shrink-0 px-3.5 py-1.5 rounded text-[11px] cursor-pointer border transition-all font-mono
-                      ${sortCategory === cat ? "border-[#e8c46a] bg-[#e8c46a18] text-[#e8c46a] font-bold" : "border-[#222] bg-transparent text-[#666] hover:border-[#333]"}`}>
+                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer border transition-all
+                      ${sortCategory === cat ? "border-pine bg-pine text-zest" : "border-line bg-white text-muted hover:border-pine hover:text-pine"}`}>
                     {cat}
                   </button>
                 ))}
               </div>
             </div>
-            <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-1.5 mt-3">Specials</p>
+            <p className="text-[12px] font-medium text-faint mb-1.5 mt-3">Specials</p>
             <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none" }}>
               <div className="flex gap-2 pb-1 w-max">
                 {CATEGORIES.filter(c => c.startsWith("is")).map(cat => (
                   <button key={cat} onClick={() => handleCategorySelect(cat)}
-                    className={`shrink-0 px-3.5 py-1.5 rounded text-[11px] cursor-pointer border transition-all font-mono
-                      ${sortCategory === cat ? "border-[#e8c46a] bg-[#e8c46a18] text-[#e8c46a] font-bold" : "border-[#222] bg-transparent text-[#666] hover:border-[#333]"}`}>
+                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer border transition-all
+                      ${sortCategory === cat ? "border-pine bg-pine text-zest" : "border-line bg-white text-muted hover:border-pine hover:text-pine"}`}>
                     {CATEGORY_LABELS[cat] || cat}
                   </button>
                 ))}
@@ -296,11 +296,11 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
-          {sortCategory && sortableProducts.length === 0 && <p className="text-[#444] text-[12px]">No products here.</p>}
+          {sortCategory && sortableProducts.length === 0 && <p className="text-faint text-[12px]">No products here.</p>}
 
           {sortableProducts.length > 0 && (
             <>
-              <p className="text-[10px] text-[#fff] uppercase tracking-[0.12em] mb-2">Drag to reorder</p>
+              <p className="text-[12px] font-medium text-faint mb-2">Drag to reorder</p>
               <div className="flex flex-col gap-1.5">
                 {sortableProducts.map((p, idx) => (
                   <div key={p._id} draggable
@@ -308,20 +308,20 @@ export default function AdminProductsPage() {
                     onDragOver={e => handleDragOver(e, p._id)}
                     onDrop={e => handleDrop(e, p._id)}
                     onDragLeave={() => setDragOverId(null)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-grab transition-all
-                      ${dragOverId === p._id ? "bg-[#1a1a1a] border border-[#e8c46a44]" : "bg-[#0d0d0d] border border-[#1a1a1a]"}`}>
-                    <span className="text-[#333] text-sm select-none shrink-0">⠿</span>
-                    <span className="text-[10px] text-[#444] w-5 shrink-0">{idx + 1}</span>
-                    {p.image && <Image src={p.image} alt="" width={28} height={28} className="w-7 h-7 object-cover rounded bg-[#1a1a1a] shrink-0" />}
-                    <span className="text-[12px] text-[#e8e8e8] flex-1 min-w-0 truncate">{p.name}</span>
-                    <span className="text-[11px] text-[#666] shrink-0 font-mono">₦{p.price?.toLocaleString()}</span>
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-grab transition-all
+                      ${dragOverId === p._id ? "bg-zest/40 border border-pine/40 scale-[1.01]" : "bg-canvas border border-line hover:bg-sage"}`}>
+                    <span className="text-ghost text-sm select-none shrink-0">⠿</span>
+                    <span className="text-[10px] text-faint w-5 shrink-0">{idx + 1}</span>
+                    {p.image && <Image src={p.image} alt="" width={28} height={28} className="w-7 h-7 object-cover rounded-lg bg-sage shrink-0" />}
+                    <span className="text-[12px] text-ink flex-1 min-w-0 truncate">{p.name}</span>
+                    <span className="text-[11px] text-faint shrink-0">₦{p.price?.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-4 flex justify-end">
                 <button onClick={handleSaveOrder} disabled={savingOrder}
-                  className={`px-5 py-2.5 border-none rounded-lg text-[11px] font-bold tracking-[0.1em] uppercase font-mono transition-all
-                    ${savingOrder ? "bg-[#333] text-[#666] cursor-default" : "bg-[#e8c46a] text-[#0a0a0a] cursor-pointer hover:bg-[#d4b05e]"}`}>
+                  className={`px-5 py-2.5 border-none rounded-full text-[13px] font-semibold transition-all
+                    ${savingOrder ? "bg-line text-faint cursor-default" : "bg-pine text-white cursor-pointer hover:bg-pine-deep"}`}>
                   {savingOrder ? "Saving..." : "Save Order"}
                 </button>
               </div>

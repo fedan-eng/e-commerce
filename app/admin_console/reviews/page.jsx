@@ -6,16 +6,16 @@ import Image from "next/image";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  pending:  { text: "text-[#e8c46a]", bg: "bg-[#e8c46a15]", border: "border-[#e8c46a33]", label: "Pending"  },
-  approved: { text: "text-[#6ae8a0]", bg: "bg-[#6ae8a015]", border: "border-[#6ae8a033]", label: "Approved" },
-  archived: { text: "text-[#666]",    bg: "bg-[#66666615]", border: "border-[#66666633]", label: "Archived" },
+  pending:  { text: "text-[#a16207]", bg: "bg-[#fef6dc]", border: "border-[#f3dc9a]", label: "Pending"  },
+  approved: { text: "text-[#15803d]", bg: "bg-[#e3f6e9]", border: "border-[#bfe5cc]", label: "Approved" },
+  archived: { text: "text-faint",    bg: "bg-sage", border: "border-line-strong", label: "Archived" },
 };
 
 // ─── Small reusable components ────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   return (
-    <span className={`inline-flex shrink-0 text-[9px] tracking-[0.1em] uppercase font-semibold border px-2 py-0.5 rounded ${cfg.text} ${cfg.bg} ${cfg.border}`}>
+    <span className={`inline-flex shrink-0 text-[10px] font-semibold capitalize border px-2 py-0.5 rounded-full ${cfg.text} ${cfg.bg} ${cfg.border}`}>
       {cfg.label}
     </span>
   );
@@ -23,18 +23,18 @@ const StatusBadge = ({ status }) => {
 
 const ActionBtn = ({ onClick, label, color, disabled, loading }) => {
   const colorMap = {
-    "#6ae8a0": "border-[#6ae8a044] text-[#6ae8a0] hover:bg-[#6ae8a012]",
-    "#e8c46a": "border-[#e8c46a44] text-[#e8c46a] hover:bg-[#e8c46a12]",
-    "#888":    "border-[#88888844] text-[#888]    hover:bg-[#88888812]",
-    "#e86a6a": "border-[#e86a6a44] text-[#e86a6a] hover:bg-[#e86a6a12]",
-    "#fff":    "border-[#fff55544] text-[#fff]    hover:bg-[#fff55512]",
+    "#15803d": "border-[#15803d] bg-[#15803d] text-white hover:bg-[#116a32]",
+    "#b7791f": "border-[#f3dc9a] text-[#a16207] hover:bg-[#fef6dc]",
+    "#7c8b84":    "border-line-strong text-muted    hover:bg-sage",
+    "#c53030": "border-[#f3c4c4] text-[#c53030] hover:bg-[#fdecec]",
+    "#0f472b":    "border-line-strong text-ink    hover:bg-sage",
   };
   return (
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className={`px-2.5 py-1 bg-transparent border rounded text-[10px] tracking-[0.06em] transition-all font-mono whitespace-nowrap
-        ${disabled || loading ? "border-[#1e1e1e] text-[#333] cursor-default" : colorMap[color] || "border-[#333] text-[#666]"}`}
+      className={`px-3.5 py-1.5 bg-white border rounded-full text-[12px] font-semibold transition-all whitespace-nowrap
+        ${disabled || loading ? "border-line text-ghost cursor-default" : colorMap[color] || "border-line-strong text-faint"}`}
     >
       {loading ? "…" : label}
     </button>
@@ -47,12 +47,12 @@ const StarIcon = ({ fill }) => (
   <svg viewBox="0 0 20 20" className="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id={`star-${fill}`}>
-        <stop offset={`${fill}%`} stopColor="#fb923c" />
-        <stop offset={`${fill}%`} stopColor="#374151" />
+        <stop offset={`${fill}%`} stopColor="#f5a524" />
+        <stop offset={`${fill}%`} stopColor="#d5ddd8" />
       </linearGradient>
     </defs>
     <path
-      fill={fill === 100 ? "#fb923c" : fill === 0 ? "#374151" : `url(#star-${fill})`}
+      fill={fill === 100 ? "#f5a524" : fill === 0 ? "#d5ddd8" : `url(#star-${fill})`}
       d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
     />
   </svg>
@@ -126,12 +126,12 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
 
   return (
     <div
-      className={`bg-[#111] border rounded-xl p-4 mb-2.5 w-full transition-all
-        ${editing ? "border-[#333]" : "border-[#1a1a1a] hover:border-[#252525]"}`}
+      className={`bg-white border rounded-3xl p-4 mb-2.5 w-full transition-all
+        ${editing ? "border-pine shadow-[0_0_0_4px_rgba(215,247,91,0.45)]" : "border-line hover:shadow-[0_14px_30px_-20px_rgba(15,71,43,0.45)]"}`}
     >
       {/* ── Top row: product thumb + name + user + badge + date ── */}
       <div className="flex items-start gap-2.5 mb-3 w-full min-w-0">
-        <div className="w-8 h-8 rounded-md overflow-hidden border border-[#222] shrink-0 bg-[#0a0a0a]">
+        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-mint">
           {review.product?.image ? (
             <Image
               src={review.product.image}
@@ -142,22 +142,22 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
               onError={e => { e.target.style.display = "none"; }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm text-[#333]">□</div>
+            <div className="w-full h-full flex items-center justify-center text-sm text-ghost">□</div>
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <Link
             href={`/products/${review.product?._id}`}
-            className="text-[12px] text-[#e8c46a] no-underline block truncate hover:underline leading-tight"
+            className="text-[13px] font-semibold text-pine no-underline block truncate hover:underline leading-tight"
           >
             {review.product?.name || "Unknown Product"}
           </Link>
-          <div className="text-[10px] text-[#fff] mt-0.5 truncate">
-            by <span className="text-[#777]">{userName}</span>
+          <div className="text-[11px] text-faint mt-0.5 truncate">
+            by <span className="text-ink font-medium">{userName}</span>
             {review.verified && (
-              <span className="ml-1.5 text-[#6ae8a0]" title="Bought and received this product">
-                · Verified purchase{review.color ? ` (${review.color})` : ""}
+              <span className="ml-1.5 text-[#15803d] font-medium" title="Bought and received this product">
+                · ✅ Verified purchase{review.color ? ` (${review.color})` : ""}
               </span>
             )}
           </div>
@@ -165,7 +165,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
 
         <div className="shrink-0 flex flex-col items-end gap-1">
           <StatusBadge status={status} />
-          <span className="text-[10px] text-[#444] whitespace-nowrap">
+          <span className="text-[10px] text-faint whitespace-nowrap">
             {new Date(review.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
           </span>
         </div>
@@ -175,7 +175,7 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       {rating !== null && (
         <div className="flex items-center gap-2 mb-3">
           {renderStars(rating)}
-          <span className="text-[10px] text-[#fff]">
+          <span className="text-[11px] font-semibold text-ink">
             {rating}/5 
           </span>
         </div>
@@ -189,22 +189,22 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
             onChange={e => setEditText(e.target.value)}
             rows={4}
             autoFocus
-            className="w-full bg-[#0d0d0d] border border-[#444] rounded-lg px-3 py-2.5 text-[#e8e8e8] text-[12px] leading-relaxed resize-y outline-none font-mono"
+            className="w-full bg-canvas border border-line-strong rounded-2xl px-3.5 py-2.5 text-ink text-[13px] leading-relaxed resize-y outline-none focus:border-pine focus:bg-white"
           />
-          {editError && <div className="text-[10px] text-[#e86a6a] mt-1">{editError}</div>}
+          {editError && <div className="text-[10px] text-[#c53030] mt-1">{editError}</div>}
           <div className="flex gap-1.5 mt-2">
             <button
               onClick={handleSave}
               disabled={savingEdit || !editText.trim()}
-              className={`px-4 py-1.5 rounded text-[10px] tracking-[0.1em] uppercase font-bold border-none cursor-pointer font-mono
-                ${savingEdit ? "bg-[#1a1a1a] text-[#fff]" : "bg-[#e8c46a] text-[#0a0a0a]"}`}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-none cursor-pointer
+                ${savingEdit ? "bg-sage text-ink" : "bg-pine text-white"}`}
             >
               {savingEdit ? "Saving…" : "Save"}
             </button>
             <button
               onClick={() => { setEditText(review.text); setEditing(false); setEditError(null); }}
               disabled={savingEdit}
-              className="px-4 py-1.5 bg-transparent border border-[#333] rounded text-[#666] text-[10px] uppercase cursor-pointer font-mono"
+              className="px-4 py-1.5 bg-white border border-line-strong rounded-full text-muted text-[13px] font-medium cursor-pointer hover:border-pine"
             >
               Cancel
             </button>
@@ -213,11 +213,11 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       ) : (
         <div
           onClick={() => setEditing(true)}
-          className="relative text-[12px] text-[#999] leading-relaxed px-3 py-2.5 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg mb-3 italic cursor-text
-            hover:border-[#333] hover:bg-[#111] transition-all w-full overflow-hidden"
+          className="relative text-[13px] text-muted leading-relaxed pl-3.5 pr-8 py-3 bg-sage rounded-2xl mb-3 italic cursor-text
+            hover:bg-zest/25 transition-all w-full overflow-hidden"
         >
           <span className="break-words">"{review.text}"</span>
-          <span className="absolute top-2 right-2 text-[8px] text-[#2a2a2a] tracking-[0.1em] uppercase not-italic">✎</span>
+          <span className="absolute top-2.5 right-3 text-[12px] text-faint not-italic">✎</span>
         </div>
       )}
 
@@ -225,29 +225,29 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
       {/* likes and dislikes are arrays of user ObjectIds; .length = vote count */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-[#6ae8a0]">▲</span>
-          <span className="text-[11px] text-[#fff]">{likeCount}</span>
-          <span className="text-[9px] text-[#3a3a3a] tracking-wide">helpful</span>
+          <span className="text-[13px]" aria-hidden>👍</span>
+          <span className="text-[12px] font-semibold text-ink">{likeCount}</span>
+          <span className="text-[11px] text-faint">helpful</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-[#e86a6a]">▼</span>
-          <span className="text-[11px] text-[#fff]">{dislikeCount}</span>
-          <span className="text-[9px] text-[#3a3a3a] tracking-wide">not helpful</span>
+          <span className="text-[13px]" aria-hidden>👎</span>
+          <span className="text-[12px] font-semibold text-ink">{dislikeCount}</span>
+          <span className="text-[11px] text-faint">not helpful</span>
         </div>
       </div>
 
       {/* ── Action buttons ── */}
       <div className="flex flex-wrap gap-1.5 items-center">
         {status !== "approved" && (
-          <ActionBtn onClick={() => changeStatus("approved")} label="Approve" color="#6ae8a0"
+          <ActionBtn onClick={() => changeStatus("approved")} label="Approve" color="#15803d"
             loading={actioning === "approved"} disabled={!!actioning || editing} />
         )}
         {status !== "pending" && (
-          <ActionBtn onClick={() => changeStatus("pending")}  label="Pending" color="#e8c46a"
+          <ActionBtn onClick={() => changeStatus("pending")}  label="Pending" color="#b7791f"
             loading={actioning === "pending"}  disabled={!!actioning || editing} />
         )}
         {status !== "archived" && (
-          <ActionBtn onClick={() => changeStatus("archived")} label="Archive" color="#888"
+          <ActionBtn onClick={() => changeStatus("archived")} label="Archive" color="#7c8b84"
             loading={actioning === "archived"} disabled={!!actioning || editing} />
         )}
 
@@ -255,12 +255,12 @@ const ReviewRow = ({ review, onStatusChange, onDelete, onEditText }) => {
 
         {confirmDelete ? (
           <div className="flex gap-1.5 items-center flex-wrap">
-            <span className="text-[10px] text-[#e86a6a]">Delete?</span>
-            <ActionBtn onClick={handleDelete}                  label="Yes" color="#e86a6a" loading={actioning === "delete"} />
-            <ActionBtn onClick={() => setConfirmDelete(false)} label="No"  color="#fff" />
+            <span className="text-[12px] font-medium text-[#c53030]">Delete?</span>
+            <ActionBtn onClick={handleDelete}                  label="Yes" color="#c53030" loading={actioning === "delete"} />
+            <ActionBtn onClick={() => setConfirmDelete(false)} label="No"  color="#0f472b" />
           </div>
         ) : (
-          <ActionBtn onClick={() => setConfirmDelete(true)} label="Delete" color="#e86a6a"
+          <ActionBtn onClick={() => setConfirmDelete(true)} label="Delete" color="#c53030"
             disabled={!!actioning || editing} />
         )}
       </div>
@@ -352,19 +352,19 @@ export default function AdminReviewsPage() {
 
   // ── Tab definitions ───────────────────────────────────────────────────────
   const TABS = [
-    { key: "all",      label: "All",      count: null,            activeClass: "border-[#e8e8e8] text-[#e8e8e8] bg-[#e8e8e812]" },
-    { key: "pending",  label: "Pending",  count: counts.pending,  activeClass: "border-[#e8c46a] text-[#e8c46a] bg-[#e8c46a12]" },
-    { key: "approved", label: "Approved", count: counts.approved, activeClass: "border-[#6ae8a0] text-[#6ae8a0] bg-[#6ae8a012]" },
-    { key: "archived", label: "Archived", count: counts.archived, activeClass: "border-[#666]    text-[#666]    bg-[#66666612]" },
+    { key: "all",      label: "All",      count: null,            activeClass: "border-pine text-white bg-pine" },
+    { key: "pending",  label: "Pending",  count: counts.pending,  activeClass: "border-[#f3dc9a] text-[#a16207] bg-[#fef6dc]" },
+    { key: "approved", label: "Approved", count: counts.approved, activeClass: "border-[#15803d] text-[#15803d] bg-[#e3f6e9]" },
+    { key: "archived", label: "Archived", count: counts.archived, activeClass: "border-line-strong    text-faint    bg-sage" },
   ];
 
   return (
     <div className="w-full max-w-full">
       {/* Header */}
       <div className="mb-5">
-        <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1">Management</div>
-        <h1 className="m-0 text-2xl font-bold text-[#e8e8e8] tracking-tight">
-          Reviews <span className="text-[#444] text-base font-normal">({total})</span>
+        <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">Management</div>
+        <h1 className="m-0 text-[28px] font-poppins font-bold text-pine leading-tight">
+          Reviews <span className="text-faint text-base font-roboto font-medium">({total})</span>
         </h1>
       </div>
 
@@ -374,7 +374,7 @@ export default function AdminReviewsPage() {
         placeholder="Search by comment, product or customer…"
         value={search}
         onChange={e => { setSearch(e.target.value); setPage(1); }}
-        className="w-full bg-[#111] border border-[#1e1e1e] rounded-lg px-4 py-2.5 text-[12px] text-[#ccc] placeholder-[#3a3a3a] outline-none font-mono mb-3"
+        className="w-full h-11 bg-white border border-line-strong rounded-full px-5 text-[13px] text-ink placeholder-ghost outline-none focus:border-pine transition-colors mb-3"
       />
 
       {/* Status tabs (horizontal scroll on mobile) */}
@@ -386,12 +386,12 @@ export default function AdminReviewsPage() {
               <button
                 key={tab.key}
                 onClick={() => { setStatusFilter(tab.key); setPage(1); }}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-[0.08em] uppercase cursor-pointer border transition-all font-mono
-                  ${isActive ? tab.activeClass : "border-[#222] text-[#fff] bg-transparent hover:border-[#333]"}`}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium cursor-pointer border transition-all
+                  ${isActive ? tab.activeClass : "border-line text-muted bg-white hover:border-pine hover:text-pine"}`}
               >
                 {tab.label}
                 {tab.count != null && (
-                  <span className={`text-[9px] px-1.5 py-px rounded-full font-bold ${isActive ? "bg-white/10" : "bg-[#1a1a1a] text-[#444]"}`}>
+                  <span className={`text-[9px] px-1.5 py-px rounded-full font-bold ${isActive ? "bg-white/25" : "bg-sage text-faint"}`}>
                     {tab.count}
                   </span>
                 )}
@@ -403,9 +403,10 @@ export default function AdminReviewsPage() {
 
       {/* Review list */}
       {loading ? (
-        <div className="py-12 text-[#444] text-[13px] text-center">Loading reviews…</div>
+        <div className="py-12 flex flex-col items-center gap-3 text-faint text-[13px]"><div className="w-7 h-7 rounded-full border-[3px] border-mint border-t-pine animate-spin" />Loading reviews…</div>
       ) : reviews.length === 0 ? (
-        <div className="py-12 text-[#444] text-[13px] text-center bg-[#111] border border-[#1a1a1a] rounded-xl">
+        <div className="py-12 text-faint text-[13px] text-center bg-white border border-line rounded-3xl">
+          <div className="text-3xl mb-2" aria-hidden>💬</div>
           No reviews found.
         </div>
       ) : (
@@ -423,21 +424,21 @@ export default function AdminReviewsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
-              <span className="text-[11px] text-[#444]">Page {page} / {totalPages}</span>
+              <span className="text-[11px] text-faint">Page {page} / {totalPages}</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className={`px-3 py-1.5 bg-transparent border border-[#222] rounded text-[11px] font-mono
-                    ${page === 1 ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}
+                  className={`px-3.5 py-1.5 bg-white border border-line rounded-full text-[12px] font-medium
+                    ${page === 1 ? "text-ghost cursor-default" : "text-pine cursor-pointer hover:border-pine hover:bg-mint"}`}
                 >
                   ← Prev
                 </button>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className={`px-3 py-1.5 bg-transparent border border-[#222] rounded text-[11px] font-mono
-                    ${page === totalPages ? "text-[#333] cursor-default" : "text-[#888] cursor-pointer hover:border-[#444]"}`}
+                  className={`px-3.5 py-1.5 bg-white border border-line rounded-full text-[12px] font-medium
+                    ${page === totalPages ? "text-ghost cursor-default" : "text-pine cursor-pointer hover:border-pine hover:bg-mint"}`}
                 >
                   Next →
                 </button>

@@ -26,8 +26,8 @@ function todayLocal() {
   return d.toISOString().slice(0, 16);
 }
 
-const inputCls = "w-full bg-[#111] border border-[#222] rounded-lg px-3 py-2 text-[13px] text-[#e8e8e8] placeholder:text-[#444] focus:outline-none focus:border-[#e8c46a66] transition-colors";
-const labelCls = "block text-[10px] tracking-[0.15em] uppercase text-[#666] mb-1.5";
+const inputCls = "w-full bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-[13px] text-ink placeholder:text-ghost focus:outline-none focus:border-pine focus:bg-white transition-colors";
+const labelCls = "block text-[12px] font-semibold text-muted mb-1.5";
 
 export default function SalesEntryPage() {
   const [products,   setProducts]   = useState([]);
@@ -126,21 +126,21 @@ export default function SalesEntryPage() {
   };
 
   return (
-    <div className="text-[#e8e8e8]">
-      <Toaster position="top-right" toastOptions={{ style: { background: "#1a1a1a", color: "#e8e8e8", border: "1px solid #2a2a2a", fontSize: 13 } }} />
+    <div className="text-ink">
+      <Toaster position="top-right" toastOptions={{ style: { background: "#0f472b", color: "#ffffff", borderRadius: 999, fontSize: 13 }, iconTheme: { primary: "#d7f75b", secondary: "#0f472b" } }} />
 
       {/* Header */}
       <div className="mb-6">
-        <div className="text-[9px] tracking-[0.25em] text-[#444] uppercase mb-1">Offline Sales</div>
-        <h1 className="text-[22px] font-bold tracking-tight">Sales Entry</h1>
-        <p className="text-[12px] text-[#666] mt-1">Record in-store, phone or WhatsApp sales. They count towards dashboard totals.</p>
+        <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">Offline Sales</div>
+        <h1 className="text-[28px] font-poppins font-bold text-pine leading-tight">Sales Entry</h1>
+        <p className="text-[12px] text-faint mt-1">Record in-store, phone or WhatsApp sales. They count towards dashboard totals.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-10">
         {/* ── Left: customer + items ── */}
         <div className="xl:col-span-2 space-y-5">
-          <section className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl p-5">
-            <h2 className="text-[11px] tracking-[0.2em] uppercase text-[#888] mb-4">Customer</h2>
+          <section className="bg-white border border-line rounded-3xl p-5">
+            <h2 className="text-[15px] font-poppins font-semibold text-pine mb-4">Customer</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className={labelCls}>First name *</label><input className={inputCls} value={form.firstName} onChange={set("firstName")} placeholder="e.g. Walk-in" /></div>
               <div><label className={labelCls}>Last name</label><input className={inputCls} value={form.lastName} onChange={set("lastName")} /></div>
@@ -151,20 +151,20 @@ export default function SalesEntryPage() {
             </div>
           </section>
 
-          <section className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl p-5">
-            <h2 className="text-[11px] tracking-[0.2em] uppercase text-[#888] mb-4">Items</h2>
+          <section className="bg-white border border-line rounded-3xl p-5">
+            <h2 className="text-[15px] font-poppins font-semibold text-pine mb-4">Items</h2>
 
             {/* Product search */}
             <div className="relative mb-4">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#444]" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
               <input className={`${inputCls} pl-9`} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search products to add…" />
               {matches.length > 0 && (
-                <div className="absolute z-20 left-0 right-0 mt-1 bg-[#141414] border border-[#2a2a2a] rounded-lg overflow-hidden shadow-xl">
+                <div className="absolute z-20 left-0 right-0 mt-1.5 bg-white border border-line rounded-2xl overflow-hidden shadow-[0_18px_40px_-16px_rgba(15,71,43,0.35)]">
                   {matches.map(p => (
                     <button type="button" key={p._id} onClick={() => addProduct(p)}
-                      className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-[12px] hover:bg-[#1c1c1c] transition-colors">
-                      <span className="truncate">{p.name} <span className="text-[#555]">· {p.category}</span></span>
-                      <span className="text-[#e8c46a] whitespace-nowrap">₦{fmt(p.price)}</span>
+                      className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left text-[13px] hover:bg-zest/30 transition-colors">
+                      <span className="truncate">{p.name} <span className="text-faint">· {p.category}</span></span>
+                      <span className="text-pine font-semibold whitespace-nowrap">₦{fmt(p.price)}</span>
                     </button>
                   ))}
                 </div>
@@ -172,12 +172,12 @@ export default function SalesEntryPage() {
             </div>
 
             {lines.length === 0 ? (
-              <div className="text-[12px] text-[#444] py-6 text-center border border-dashed border-[#222] rounded-lg">No items yet</div>
+              <div className="text-[13px] text-faint py-8 text-center border-2 border-dashed border-line rounded-2xl"><div className="text-2xl mb-1" aria-hidden>🛒</div>No items yet. Search above to add some.</div>
             ) : (
               <div className="space-y-2">
                 {lines.map((l, i) => (
-                  <div key={l.productId} className="grid grid-cols-12 gap-2 items-end bg-[#111] border border-[#1e1e1e] rounded-lg p-3">
-                    <div className="col-span-12 sm:col-span-4 text-[12px] truncate pb-2">{l.name}</div>
+                  <div key={l.productId} className="grid grid-cols-12 gap-2 items-end bg-sage rounded-2xl p-3">
+                    <div className="col-span-12 sm:col-span-4 text-[13px] font-medium truncate pb-2.5">{l.name}</div>
                     <div className="col-span-4 sm:col-span-2">
                       <label className={labelCls}>Qty</label>
                       <input className={inputCls} type="number" min="1" value={l.quantity} onChange={e => updateLine(i, "quantity", e.target.value)} />
@@ -193,11 +193,11 @@ export default function SalesEntryPage() {
                           <option value="">—</option>
                           {l.colors.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
-                      ) : <div className="text-[12px] text-[#444] py-2">—</div>}
+                      ) : <div className="text-[12px] text-faint py-2">—</div>}
                     </div>
                     <div className="col-span-2 sm:col-span-1 flex justify-end pb-1.5">
                       <button type="button" onClick={() => removeLine(i)} aria-label="Remove item"
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-[#666] hover:text-[#e86a6a] hover:bg-[#e86a6a14] transition-colors">
+                        className="w-8 h-8 flex items-center justify-center rounded-xl text-faint hover:text-[#c53030] hover:bg-[#fdecec] transition-colors">
                         <X size={14} />
                       </button>
                     </div>
@@ -209,8 +209,8 @@ export default function SalesEntryPage() {
         </div>
 
         {/* ── Right: payment + summary ── */}
-        <section className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl p-5 h-fit xl:sticky xl:top-8 space-y-4">
-          <h2 className="text-[11px] tracking-[0.2em] uppercase text-[#888]">Payment</h2>
+        <section className="bg-white border border-line rounded-3xl p-5 h-fit xl:sticky xl:top-8 space-y-4">
+          <h2 className="text-[15px] font-poppins font-semibold text-pine">Payment</h2>
           <div>
             <label className={labelCls}>Sale date</label>
             <input className={inputCls} type="datetime-local" max={todayLocal()} value={form.saleDate} onChange={set("saleDate")} />
@@ -230,14 +230,14 @@ export default function SalesEntryPage() {
             <textarea className={`${inputCls} resize-none`} rows={3} value={form.orderNote} onChange={set("orderNote")} />
           </div>
 
-          <div className="border-t border-[#1e1e1e] pt-4 space-y-1.5 text-[12px]">
-            <div className="flex justify-between text-[#888]"><span>Subtotal</span><span>₦{fmt(subTotal)}</span></div>
-            {discount > 0 && <div className="flex justify-between text-[#e86a6a]"><span>Discount</span><span>-₦{fmt(discount)}</span></div>}
-            <div className="flex justify-between text-[15px] font-bold text-[#e8e8e8] pt-1"><span>Total</span><span>₦{fmt(total)}</span></div>
+          <div className="border-t border-line pt-4 space-y-1.5 text-[12px]">
+            <div className="flex justify-between text-muted"><span>Subtotal</span><span>₦{fmt(subTotal)}</span></div>
+            {discount > 0 && <div className="flex justify-between text-[#c53030]"><span>Discount</span><span>-₦{fmt(discount)}</span></div>}
+            <div className="flex justify-between items-baseline pt-2"><span className="text-[14px] font-semibold text-ink">Total</span><span className="text-[22px] font-poppins font-bold text-pine">₦{fmt(total)}</span></div>
           </div>
 
           <button type="submit" disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-semibold bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#f0d07a] disabled:opacity-50 transition-colors">
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-full text-[14px] font-semibold bg-pine text-white hover:bg-pine-deep hover:shadow-[0_10px_24px_-10px_rgba(15,71,43,0.6)] disabled:opacity-50 transition-all">
             <Plus size={14} /> {submitting ? "Saving…" : "Record Sale"}
           </button>
         </section>
@@ -245,45 +245,45 @@ export default function SalesEntryPage() {
 
       {/* ── Recent manual sales ── */}
       <div className="flex items-end justify-between mb-3 gap-4 flex-wrap">
-        <h2 className="text-[11px] tracking-[0.2em] uppercase text-[#888]">Recorded Sales</h2>
-        <div className="text-[12px] text-[#666]">{salesTotal} sales · <span className="text-[#e8c46a]">₦{fmt(revenue)}</span></div>
+        <h2 className="text-[15px] font-poppins font-semibold text-pine">Recorded Sales</h2>
+        <div className="text-[12px] text-faint flex items-center gap-2">{salesTotal} sales <span className="text-pine font-semibold bg-zest px-2.5 py-0.5 rounded-full">₦{fmt(revenue)}</span></div>
       </div>
 
-      <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl overflow-x-auto">
+      <div className="bg-white border border-line rounded-3xl overflow-x-auto">
         <table className="w-full text-left min-w-[720px]">
           <thead>
-            <tr className="text-[10px] tracking-[0.15em] uppercase text-[#555] border-b border-[#1e1e1e]">
-              <th className="px-5 py-3 font-normal">Date</th>
-              <th className="px-5 py-3 font-normal">Customer</th>
-              <th className="px-5 py-3 font-normal">Items</th>
-              <th className="px-5 py-3 font-normal">Method</th>
-              <th className="px-5 py-3 font-normal">Total</th>
-              <th className="px-5 py-3 font-normal">By</th>
-              <th className="px-5 py-3 font-normal" />
+            <tr className="text-[11px] tracking-[0.08em] uppercase text-faint bg-sage">
+              <th className="px-5 py-3 font-semibold">Date</th>
+              <th className="px-5 py-3 font-semibold">Customer</th>
+              <th className="px-5 py-3 font-semibold">Items</th>
+              <th className="px-5 py-3 font-semibold">Method</th>
+              <th className="px-5 py-3 font-semibold">Total</th>
+              <th className="px-5 py-3 font-semibold">By</th>
+              <th className="px-5 py-3 font-semibold" />
             </tr>
           </thead>
           <tbody>
             {loadingSales ? (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-[12px] text-[#444]">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-[12px] text-faint">Loading…</td></tr>
             ) : sales.length === 0 ? (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-[12px] text-[#444]">No manual sales recorded yet</td></tr>
+              <tr><td colSpan={7} className="px-5 py-10 text-center text-[13px] text-faint"><div className="text-2xl mb-1" aria-hidden>🧾</div>No manual sales recorded yet</td></tr>
             ) : sales.map(s => (
-              <tr key={s._id} className="border-b border-[#161616] last:border-0 hover:bg-[#121212] transition-colors">
-                <td className="px-5 py-3 text-[12px] text-[#888] whitespace-nowrap">{new Date(s.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</td>
+              <tr key={s._id} className="border-b border-line last:border-0 hover:bg-[#fafcf9] transition-colors">
+                <td className="px-5 py-3 text-[12px] text-muted whitespace-nowrap">{new Date(s.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</td>
                 <td className="px-5 py-3 text-[12px]">
-                  <Link href={`/admin_console/orders/${s._id}`} className="text-[#e8e8e8] no-underline hover:text-[#e8c46a]">
+                  <Link href={`/admin_console/orders/${s._id}`} className="text-ink font-medium no-underline hover:text-pine">
                     {s.firstName} {s.lastName}
                   </Link>
                 </td>
-                <td className="px-5 py-3 text-[12px] text-[#888] max-w-[240px] truncate">
+                <td className="px-5 py-3 text-[12px] text-muted max-w-[240px] truncate">
                   {(s.items || []).map(it => `${it.name} ×${it.quantity}`).join(", ")}
                 </td>
-                <td className="px-5 py-3 text-[12px] text-[#888] capitalize">{PAYMENT_OPTIONS.find(o => o.value === s.paymentMethod)?.label || s.paymentMethod}</td>
-                <td className="px-5 py-3 text-[12px] text-[#e8c46a] whitespace-nowrap">₦{fmt(s.total)}</td>
-                <td className="px-5 py-3 text-[12px] text-[#666] whitespace-nowrap">{s.recordedBy ? `${s.recordedBy.firstName || ""} ${s.recordedBy.lastName || ""}`.trim() : "—"}</td>
+                <td className="px-5 py-3 text-[12px] text-muted capitalize">{PAYMENT_OPTIONS.find(o => o.value === s.paymentMethod)?.label || s.paymentMethod}</td>
+                <td className="px-5 py-3 text-[13px] font-semibold text-pine whitespace-nowrap">₦{fmt(s.total)}</td>
+                <td className="px-5 py-3 text-[12px] text-faint whitespace-nowrap">{s.recordedBy ? `${s.recordedBy.firstName || ""} ${s.recordedBy.lastName || ""}`.trim() : "—"}</td>
                 <td className="px-5 py-3 text-right">
                   <button onClick={() => handleDelete(s._id)} aria-label="Delete sale"
-                    className="w-8 h-8 inline-flex items-center justify-center rounded-lg text-[#555] hover:text-[#e86a6a] hover:bg-[#e86a6a14] transition-colors">
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-xl text-faint hover:text-[#c53030] hover:bg-[#fdecec] transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </td>
@@ -295,9 +295,9 @@ export default function SalesEntryPage() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 mt-4 text-[12px]">
-          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1.5 rounded-lg border border-[#222] text-[#888] disabled:opacity-30 hover:border-[#444]">Prev</button>
-          <span className="text-[#666]">{page} / {totalPages}</span>
-          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="px-3 py-1.5 rounded-lg border border-[#222] text-[#888] disabled:opacity-30 hover:border-[#444]">Next</button>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="px-3.5 py-1.5 rounded-full bg-white border border-line text-pine font-medium disabled:opacity-30 hover:border-pine hover:bg-mint">Prev</button>
+          <span className="text-faint">{page} / {totalPages}</span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="px-3.5 py-1.5 rounded-full bg-white border border-line text-pine font-medium disabled:opacity-30 hover:border-pine hover:bg-mint">Next</button>
         </div>
       )}
     </div>

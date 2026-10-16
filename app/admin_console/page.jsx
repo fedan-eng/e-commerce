@@ -4,20 +4,23 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 import Link from "next/link";
 import axios from "axios";
-import { Download } from "lucide-react";
+import { Download, ShoppingBag, TrendingUp, PackageCheck, Users, Wallet, MapPin, PieChart, Trophy, Star } from "lucide-react";
 import { toCSV, downloadCSV } from "@/lib/csv";
 
 const STATUS_COLORS = {
-  confirmed:  { text: "#e8c46a", bg: "#e8c46a18", border: "#e8c46a33" },
-  processed:  { text: "#6ab4e8", bg: "#6ab4e818", border: "#6ab4e833" },
-  shipped:    { text: "#a06ae8", bg: "#a06ae818", border: "#a06ae833" },
-  delivered:  { text: "#6ae8a0", bg: "#6ae8a018", border: "#6ae8a033" },
-  cancelled:  { text: "#e86a6a", bg: "#e86a6a18", border: "#e86a6a833" },
-  returned:   { text: "#e8946a", bg: "#e8946a18", border: "#e8946a33" },
+  confirmed:  { text: "#f5b82e" },
+  pending:    { text: "#f5b82e" },
+  processing: { text: "#5aa9e6" },
+  processed:  { text: "#5aa9e6" },
+  shipped:    { text: "#a78bfa" },
+  "in transit": { text: "#3b82f6" },
+  delivered:  { text: "#22a861" },
+  cancelled:  { text: "#ef5350" },
+  returned:   { text: "#f4a259" },
 };
 
-const CAT_COLORS  = ["#e8c46a","#6ae8a0","#6ab4e8","#a06ae8","#e86a6a","#e8946a","#5dcaa5","#e87ab4"];
-const STAT_ACCENTS = ["#e8c46a","#6ae8a0","#6ab4e8","#a06ae8","#e8946a"];
+const CAT_COLORS = ["#0f472b","#c5ea3c","#3fbf7f","#5aa9e6","#f4a259","#a78bfa","#f472b6","#94a3b8"];
+const TOOLTIP    = { backgroundColor: "#0f472b", titleColor: "#d7f75b", bodyColor: "#ffffff", padding: 10, cornerRadius: 12, displayColors: false };
 
 function fmt(n) {
   return Number(n).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -179,13 +182,21 @@ export default function AdminDashboard() {
       const i = index[chartMode === "daily" ? dayKey(d) : monthKey(d)];
       if (i !== undefined) data[i] += parseFloat(o.total || o.subTotal || 0);
     });
+    const ctx  = salesRef.current.getContext("2d");
+    const grad = ctx.createLinearGradient(0, 0, 0, salesRef.current.clientHeight || 220);
+    grad.addColorStop(0, "rgba(215,247,91,0.55)");
+    grad.addColorStop(1, "rgba(215,247,91,0)");
     salesInst.current = new Chart(salesRef.current, {
       type: "line",
-      data: { labels, datasets: [{ label: "Sales (₦)", data, borderColor: "#1cc978", backgroundColor: "rgba(28,201,120,0.08)", borderWidth: 1.5, pointBackgroundColor: "#1cc978", pointRadius: 3, tension: 0.4, fill: true }] },
+      data: { labels, datasets: [{ label: "Sales (₦)", data, borderColor: "#0f472b", backgroundColor: grad, borderWidth: 2.5, pointBackgroundColor: "#d7f75b", pointBorderColor: "#0f472b", pointBorderWidth: 2, pointRadius: 3.5, pointHoverRadius: 6, tension: 0.4, fill: true }] },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa", callbacks: { label: ctx => "₦" + fmt(ctx.raw) } } },
-        scales: { x: { grid: { color: "#1a1a1a" }, ticks: { color: "#fff", font: { size: 11 } } }, y: { grid: { color: "#1a1a1a" }, ticks: { color: "#fff", font: { size: 11 }, callback: v => "₦" + fmtK(v) } } },
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: false }, tooltip: { ...TOOLTIP, callbacks: { label: ctx => "₦" + fmt(ctx.raw) } } },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { color: "#6f8279", font: { size: 11 } } },
+          y: { grid: { color: "#edf2ee" }, border: { display: false }, ticks: { color: "#6f8279", font: { size: 11 }, callback: v => "₦" + fmtK(v) } },
+        },
       },
     });
   }
@@ -203,8 +214,8 @@ export default function AdminDashboard() {
     if (!entries.length) return;
     donutInst.current = new Chart(donutRef.current, {
       type: "doughnut",
-      data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map((_, i) => CAT_COLORS[i % CAT_COLORS.length]), borderWidth: 0, hoverOffset: 4 }] },
-      options: { responsive: false, cutout: "72%", plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa" } } },
+      data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map((_, i) => CAT_COLORS[i % CAT_COLORS.length]), borderColor: "#ffffff", borderWidth: 3, borderRadius: 6, hoverOffset: 6 }] },
+      options: { responsive: false, cutout: "70%", plugins: { legend: { display: false }, tooltip: TOOLTIP } },
     });
   }
 
@@ -215,11 +226,11 @@ export default function AdminDashboard() {
     filtered.forEach(o => { const s = (o.status || "unknown").toLowerCase(); map[s] = (map[s] || 0) + 1; });
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
     if (!entries.length) return;
-    const colors = entries.map(e => STATUS_COLORS[e[0]]?.text || "#888");
+    const colors = entries.map(e => STATUS_COLORS[e[0]]?.text || "#94a3b8");
     statusInst.current = new Chart(statusRef.current, {
       type: "doughnut",
-      data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
-      options: { responsive: false, cutout: "72%", plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1a1a1a", borderColor: "#2a2a2a", borderWidth: 1, titleColor: "#e8e8e8", bodyColor: "#aaa" } } },
+      data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: colors, borderColor: "#ffffff", borderWidth: 3, borderRadius: 6, hoverOffset: 6 }] },
+      options: { responsive: false, cutout: "70%", plugins: { legend: { display: false }, tooltip: TOOLTIP } },
     });
   }
 
@@ -231,11 +242,10 @@ export default function AdminDashboard() {
   const uniqueCustomers = totalCustomers;
 
   const statCards = [
-    { label: "Total Sales",      value: "₦" + fmt(totalSales),  accent: STAT_ACCENTS[0], sub: "from orders",    dir: "up"  },
-    { label: "Total Orders",     value: totalOrders,             accent: STAT_ACCENTS[1], sub: "orders placed",  dir: "neu" },
-    { label: "Avg. Order Value", value: "₦" + fmt(avgOrder),    accent: STAT_ACCENTS[2], sub: "per order",      dir: "up"  },
-    { label: "Delivered",        value: delivered,               accent: STAT_ACCENTS[3], sub: "completed",      dir: "up"  },
-    { label: "Customers",        value: uniqueCustomers,         accent: STAT_ACCENTS[4], sub: "unique emails",  dir: "neu" },
+    { label: "Total Orders",     value: totalOrders,          icon: ShoppingBag,  tint: "bg-mint",      sub: "orders placed" },
+    { label: "Avg. Order Value", value: "₦" + fmt(avgOrder), icon: TrendingUp,   tint: "bg-zest",      sub: "per order" },
+    { label: "Delivered",        value: delivered,            icon: PackageCheck, tint: "bg-[#e7f1fb]", sub: totalOrders ? `${Math.round((delivered / totalOrders) * 100)}% of orders` : "completed" },
+    { label: "Customers",        value: uniqueCustomers,      icon: Users,        tint: "bg-[#fdf0e6]", sub: "registered" },
   ];
 
   // ── Region data ────────────────────────────────────────────
@@ -243,7 +253,6 @@ export default function AdminDashboard() {
   filtered.forEach(o => { const r = o.region?.name || o.city || "Other"; regionMap[r] = (regionMap[r] || 0) + 1; });
   const regions  = Object.entries(regionMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const regMax   = regions[0]?.[1] || 1;
-  const regDotColors = ["#e8c46a","#6ae8a0","#6ab4e8","#a06ae8","#e8946a"];
 
   // ── Category legend ────────────────────────────────────────
   const catMap = {};
@@ -334,30 +343,26 @@ export default function AdminDashboard() {
   }
 
   // ─────────────────────────────────────────────────────────
+  const selectCls = "h-10 bg-white border border-line-strong text-ink text-[13px] font-medium px-3.5 rounded-full outline-none cursor-pointer hover:border-pine focus:border-pine transition-colors";
+
   return (
     <div className="w-full">
 
       {/* Header */}
-      <div className="mb-6 flex justify-between items-start flex-wrap gap-3">
+      <div className="mb-5 flex justify-between items-end flex-wrap gap-3">
         <div>
-          <div className="text-[10px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Overview</div>
-          <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">Dashboard</h1>
+          <h1 className="text-[28px] font-poppins font-bold text-pine leading-tight">Dashboard</h1>
+          <p className={`text-[13px] mt-0.5 ${rangeError ? "text-[#c53030]" : "text-faint"}`}>
+            {rangeError || (rangeLabel ? `Showing ${rangeLabel}` : "Here's how the store is doing")}
+          </p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
-          <select
-            value={filterSource}
-            onChange={e => setFilterSource(e.target.value)}
-            className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-3 py-1.5 rounded-md outline-none cursor-pointer"
-          >
+          <select value={filterSource} onChange={e => setFilterSource(e.target.value)} className={selectCls}>
             <option value="all">All Sales</option>
             <option value="online">Online</option>
             <option value="manual">Manual</option>
           </select>
-          <select
-            value={rangePreset}
-            onChange={e => setRangePreset(e.target.value)}
-            className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-3 py-1.5 rounded-md outline-none cursor-pointer"
-          >
+          <select value={rangePreset} onChange={e => setRangePreset(e.target.value)} className={selectCls}>
             {RANGE_PRESETS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
           {rangePreset === "custom" && (
@@ -365,27 +370,27 @@ export default function AdminDashboard() {
               <input
                 type="date" value={customFrom} max={customTo || dayKey(new Date())}
                 onChange={e => setCustomFrom(e.target.value)} aria-label="From date"
-                className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-2 py-1 rounded-md outline-none [color-scheme:dark]"
+                className={selectCls}
               />
-              <span className="text-[#555] text-[11px]">to</span>
+              <span className="text-faint text-[12px]">to</span>
               <input
                 type="date" value={customTo} min={customFrom || undefined} max={dayKey(new Date())}
                 onChange={e => setCustomTo(e.target.value)} aria-label="To date"
-                className="bg-[#111] border border-[#2a2a2a] text-[#aaa] text-[12px] px-2 py-1 rounded-md outline-none [color-scheme:dark]"
+                className={selectCls}
               />
             </div>
           )}
-          <div className="flex rounded-md overflow-hidden border border-[#2a2a2a]">
+          <div className="flex h-10 rounded-full overflow-hidden bg-pine">
             <button
               onClick={() => exportCSV("orders")} disabled={loading || !filtered.length || !!rangeError}
-              className="flex items-center gap-1.5 bg-[#111] text-[#e8c46a] text-[12px] px-3 py-1.5 cursor-pointer hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1.5 text-white text-[13px] font-semibold pl-4 pr-3 cursor-pointer hover:bg-pine-deep disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="One row per order"
             >
-              <Download size={13} /> Orders CSV
+              <Download size={14} /> Orders CSV
             </button>
             <button
               onClick={() => exportCSV("items")} disabled={loading || !filtered.length || !!rangeError}
-              className="bg-[#111] text-[#e8c46a] text-[12px] px-3 py-1.5 border-l border-[#2a2a2a] cursor-pointer hover:bg-[#1a1a1a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="text-zest text-[13px] font-semibold pl-3 pr-4 border-l border-white/15 cursor-pointer hover:bg-pine-deep disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="One row per product line"
             >
               Items CSV
@@ -393,186 +398,137 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-      {(rangeError || rangeLabel) && (
-        <div className={`-mt-3 mb-4 text-[11px] ${rangeError ? "text-[#e86a6a]" : "text-[#666]"}`}>
-          {rangeError || `Showing ${rangeLabel}`}
-        </div>
-      )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4">
-        {statCards.map(card => (
-          <div
-            key={card.label}
-            className="bg-[#111] border border-[#1e1e1e] rounded-lg p-3.5"
-            style={{ borderTopWidth: "2px", borderTopColor: card.accent }}
-          >
-            <div className="text-[10px] tracking-[0.12em] text-[#666] uppercase mb-2.5">{card.label}</div>
-            <div className="text-xl font-bold text-[#e8e8e8] leading-none">
-              {loading ? <span className="text-[#333]">—</span> : card.value}
-            </div>
-            <div className={`flex items-center gap-1 mt-2 text-[11px] ${card.dir === "up" ? "text-[#6ae8a0]" : "text-[#888]"}`}>
-              {card.dir === "up" && <span className="text-[10px]">↑</span>}
-              <span>{card.sub}</span>
-            </div>
+      <div className="grid grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr_1fr] gap-3 mb-3">
+        {/* Hero: total sales */}
+        <div className="col-span-2 lg:col-span-1 relative overflow-hidden rounded-3xl bg-pine p-5 text-white">
+          <div className="pointer-events-none absolute -right-8 -top-10 w-32 h-32 rounded-full bg-zest/20" />
+          <div className="pointer-events-none absolute right-10 -bottom-12 w-24 h-24 rounded-full bg-white/5" />
+          <div className="relative flex items-center gap-2 text-[12px] text-white/70 font-medium">
+            <span className="w-8 h-8 rounded-full bg-zest text-pine flex items-center justify-center"><Wallet size={15} /></span>
+            Total Sales
           </div>
-        ))}
+          <div className="relative mt-4 text-[26px] font-poppins font-bold text-zest leading-none break-all">
+            {loading ? <span className="text-white/30">—</span> : "₦" + fmt(totalSales)}
+          </div>
+          <div className="relative mt-2 text-[12px] text-white/60">
+            {filterSource === "all" ? "online + manual sales" : `${filterSource} sales only`}
+          </div>
+        </div>
+
+        {statCards.map(card => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="group bg-white border border-line rounded-3xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgba(15,71,43,0.45)]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[12px] text-faint font-medium">{card.label}</span>
+                <span className={`w-8 h-8 flex-shrink-0 rounded-full ${card.tint} text-pine flex items-center justify-center transition-transform duration-300 group-hover:rotate-12`}>
+                  <Icon size={15} />
+                </span>
+              </div>
+              <div className="mt-3 text-[20px] font-poppins font-bold text-ink leading-none break-all">
+                {loading ? <span className="text-ghost">—</span> : card.value}
+              </div>
+              <div className="mt-2 text-[12px] text-faint">{card.sub}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Sales Chart + Region */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3 mb-3">
-
-        {/* Sales Chart */}
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1a1a1a] flex justify-between items-center">
-            <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Sales</span>
-            <div className="flex bg-[#0a0a0a] border border-[#1e1e1e] rounded-md overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-3 mb-3">
+        <Card
+          title="Sales"
+          icon={TrendingUp}
+          right={
+            <div className="flex bg-sage rounded-full p-1">
               {["daily","monthly"].map(m => (
                 <button
                   key={m}
                   onClick={() => setChartMode(m)}
-                  className={`text-[11px] px-3 py-1.5 border-none cursor-pointer transition-all ${chartMode === m ? "bg-[#1e1e1e] text-[#e8e8e8]" : "bg-transparent text-[#fff]"}`}
+                  className={`text-[12px] font-semibold px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${chartMode === m ? "bg-pine text-zest shadow-sm" : "text-muted hover:text-pine"}`}
                 >
                   {m.charAt(0).toUpperCase() + m.slice(1)}
                 </button>
               ))}
             </div>
-          </div>
-          <div className="p-4 relative h-[220px]">
-            {loading
-              ? <div className="text-[#444] text-[13px] text-center pt-10">Loading…</div>
-              : <canvas ref={salesRef} aria-label="Sales over time" />
-            }
-          </div>
-        </div>
-
-        {/* Sales by Region */}
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1a1a1a]">
-            <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Sales by Region</span>
-          </div>
-          {loading
-            ? <div className="px-4 py-8 text-[#444] text-[13px] text-center">Loading…</div>
-            : <div>
-                {regions.length === 0
-                  ? <div className="px-4 py-8 text-[#444] text-[13px] text-center">No region data</div>
-                  : regions.map(([name, val], i) => (
-                      <div key={name} className="flex items-center justify-between px-4 py-2.5 border-b border-[#161616] last:border-0 text-[13px]">
-                        <div className="flex items-center gap-2 text-[#ccc]">
-                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: regDotColors[i % regDotColors.length] }} />
-                          {name}
-                        </div>
-                        <div className="flex-1 mx-3 h-[3px] bg-[#1e1e1e] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: Math.round((val / regMax) * 100) + "%", background: regDotColors[i % regDotColors.length] }} />
-                        </div>
-                        <span className="text-[#888] text-[12px]">{fmtK(val)}</span>
-                      </div>
-                    ))
-                }
-              </div>
           }
-        </div>
-      </div>
-
-      {/* Category + Status donuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-
-        {/* Sales by Category */}
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1a1a1a]">
-            <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Sales by Category</span>
+        >
+          <div className="px-4 pb-4 relative h-[240px]">
+            {loading ? <Spinner /> : <canvas ref={salesRef} aria-label="Sales over time" />}
           </div>
-          <div className="p-4 flex gap-5 items-center">
-            <div className="relative w-[130px] h-[130px] flex-shrink-0">
-              {loading
-                ? <div className="w-full h-full rounded-full border-4 border-[#1e1e1e]" />
-                : <canvas ref={donutRef} width={130} height={130} aria-label="Sales by category" />
-              }
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <div className="text-[18px] font-bold text-[#e8e8e8]">{fmtK(catTotal)}</div>
-                <div className="text-[10px] text-[#fff] uppercase tracking-[.08em] mt-0.5">Total</div>
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col gap-2">
-              {catEntries.slice(0, 6).map((e, i) => (
-                <div key={e[0]} className="flex items-center justify-between text-[12px] text-[#aaa]">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[i % CAT_COLORS.length] }} />
-                    <span>{e[0]}</span>
+        </Card>
+
+        <Card title="Orders by Region" icon={MapPin}>
+          {loading ? <Spinner /> : regions.length === 0 ? <Empty emoji="🗺️" text="No region data yet" /> : (
+            <div className="px-5 pb-5 space-y-3.5">
+              {regions.map(([name, val], i) => (
+                <div key={name}>
+                  <div className="flex items-center justify-between gap-2 text-[13px] mb-1.5">
+                    <span className="text-ink font-medium truncate">{name}</span>
+                    <span className="text-faint text-[12px] font-semibold">{fmtK(val)}</span>
                   </div>
-                  <span className="text-[#e8e8e8] font-medium">{fmtK(e[1])}</span>
+                  <div className="h-2.5 bg-sage rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${i === 0 ? "bg-pine" : i === 1 ? "bg-[#3fbf7f]" : "bg-zest"}`}
+                      style={{ width: Math.max(6, Math.round((val / regMax) * 100)) + "%" }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          )}
+        </Card>
+      </div>
 
-        {/* Order Status */}
-        <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1a1a1a]">
-            <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Order Status Breakdown</span>
-          </div>
-          <div className="p-4 flex gap-5 items-center">
-            <div className="relative w-[130px] h-[130px] flex-shrink-0">
-              {loading
-                ? <div className="w-full h-full rounded-full border-4 border-[#1e1e1e]" />
-                : <canvas ref={statusRef} width={130} height={130} aria-label="Order status breakdown" />
-              }
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                <div className="text-[18px] font-bold text-[#e8e8e8]">{statusTotal}</div>
-                <div className="text-[10px] text-[#fff] uppercase tracking-[.08em] mt-0.5">Orders</div>
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col gap-2">
-              {statusEntries.map(e => {
-                const col = STATUS_COLORS[e[0]]?.text || "#888";
-                return (
-                  <div key={e[0]} className="flex items-center justify-between text-[12px] text-[#aaa]">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: col }} />
-                      <span className="capitalize">{e[0]}</span>
-                    </div>
-                    <span className="text-[#e8e8e8] font-medium">{e[1]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+      {/* Category + Status donuts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <Card title="Units by Category" icon={PieChart}>
+          <Donut
+            canvasRef={donutRef} loading={loading} label="Units sold by category"
+            total={fmtK(catTotal)} unit="Units"
+            rows={catEntries.slice(0, 6).map((e, i) => ({ key: e[0], color: CAT_COLORS[i % CAT_COLORS.length], value: fmtK(e[1]) }))}
+          />
+        </Card>
+        <Card title="Order Status" icon={PieChart}>
+          <Donut
+            canvasRef={statusRef} loading={loading} label="Order status breakdown"
+            total={statusTotal} unit="Orders"
+            rows={statusEntries.map(e => ({ key: e[0], color: STATUS_COLORS[e[0]]?.text || "#94a3b8", value: e[1] }))}
+          />
+        </Card>
       </div>
 
       {/* Top Selling Products */}
-      <div className="bg-[#111] border border-[#1e1e1e] rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#1a1a1a]">
-          <span className="text-[11px] tracking-[0.1em] text-[#888] uppercase">Top Selling Products</span>
-        </div>
-        {loading ? (
-          <div className="px-4 py-10 text-[#444] text-[13px] text-center">Loading…</div>
-        ) : topProducts.length === 0 ? (
-          <div className="px-4 py-10 text-[#444] text-[13px] text-center">No product data in orders yet.</div>
-        ) : (
+      <Card title="Top Selling Products" icon={Trophy}>
+        {loading ? <Spinner /> : topProducts.length === 0 ? <Empty emoji="🛍️" text="No product data in orders yet." /> : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse" style={{ minWidth: 560 }}>
+            <table className="w-full border-collapse" style={{ minWidth: 600 }}>
               <thead>
-                <tr className="border-b border-[#1a1a1a]">
-                  {["SN","Product","Category","Unit Price","Qty","Total","Rating"].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase font-semibold whitespace-nowrap">{h}</th>
+                <tr className="bg-sage">
+                  {["#","Product","Category","Unit Price","Qty","Total","Rating"].map(h => (
+                    <th key={h} className="px-5 py-2.5 text-left text-[11px] tracking-[0.08em] text-faint uppercase font-semibold whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {topProducts.map((p, i) => (
-                  <tr key={i} className="border-b border-[#161616] hover:bg-[#131313] transition-colors last:border-0">
-                    <td className="px-4 py-2.5 text-[#fff] text-[13px]">{i + 1}</td>
-                    <td className="px-4 py-2.5 text-[#e8e8e8] text-[13px] max-w-[200px] truncate">{p.name}</td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-[11px] text-[#888] bg-[#1a1a1a] px-2 py-0.5 rounded">{p.category}</span>
+                  <tr key={i} className="border-b border-line last:border-0 hover:bg-[#fafcf9] transition-colors">
+                    <td className="px-5 py-3 text-[15px] w-12">
+                      {MEDALS[i] || <span className="text-faint text-[13px] font-semibold pl-1">{i + 1}</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-[#e8e8e8] text-[13px] whitespace-nowrap">₦{fmt(p.price)}</td>
-                    <td className="px-4 py-2.5 text-[#aaa] text-[13px]">{p.qty}</td>
-                    <td className="px-4 py-2.5 text-[#e8e8e8] text-[13px] font-semibold whitespace-nowrap">₦{fmt(p.total)}</td>
-                    <td className="px-4 py-2.5 text-[#e8c46a] text-[13px]">
-                      {p.rating ? "★ " + Number(p.rating).toFixed(1) : "—"}
+                    <td className="px-5 py-3 text-ink text-[13px] font-medium max-w-[220px] truncate">{p.name}</td>
+                    <td className="px-5 py-3">
+                      <span className="text-[11px] font-semibold text-pine bg-mint px-2.5 py-1 rounded-full whitespace-nowrap">{p.category}</span>
+                    </td>
+                    <td className="px-5 py-3 text-muted text-[13px] whitespace-nowrap">₦{fmt(p.price)}</td>
+                    <td className="px-5 py-3 text-ink text-[13px]">{p.qty}</td>
+                    <td className="px-5 py-3 text-pine text-[13px] font-bold whitespace-nowrap">₦{fmt(p.total)}</td>
+                    <td className="px-5 py-3 text-[13px] whitespace-nowrap">
+                      {p.rating
+                        ? <span className="inline-flex items-center gap-1 text-ink font-medium"><Star size={13} className="fill-star text-star" /> {Number(p.rating).toFixed(1)}</span>
+                        : <span className="text-ghost">—</span>}
                     </td>
                   </tr>
                 ))}
@@ -580,8 +536,72 @@ export default function AdminDashboard() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
+    </div>
+  );
+}
+
+// ── Presentational pieces (module level so canvases don't remount on re-render) ──
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+function Card({ title, icon: Icon, right, children }) {
+  return (
+    <div className="bg-white rounded-3xl border border-line overflow-hidden">
+      <div className="px-5 pt-4 pb-3 flex justify-between items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-full bg-sage text-pine flex items-center justify-center"><Icon size={15} /></span>
+          <span className="text-[15px] font-poppins font-semibold text-pine">{title}</span>
+        </div>
+        {right}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <div className="px-5 py-10 flex justify-center">
+      <div className="w-7 h-7 rounded-full border-[3px] border-mint border-t-pine animate-spin" />
+    </div>
+  );
+}
+
+function Empty({ emoji, text }) {
+  return (
+    <div className="px-5 py-10 text-center">
+      <div className="text-3xl mb-2" aria-hidden>{emoji}</div>
+      <div className="text-faint text-[13px]">{text}</div>
+    </div>
+  );
+}
+
+function Donut({ canvasRef, loading, label, total, unit, rows }) {
+  return (
+    <div className="px-5 pb-5 pt-1 flex gap-5 items-center">
+      <div className="relative w-[140px] h-[140px] flex-shrink-0">
+        {loading
+          ? <div className="w-full h-full rounded-full border-[14px] border-sage" />
+          : <canvas ref={canvasRef} width={140} height={140} aria-label={label} />
+        }
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+          <div className="text-[20px] font-poppins font-bold text-pine leading-none">{total}</div>
+          <div className="text-[11px] text-faint mt-1">{unit}</div>
+        </div>
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        {!loading && rows.length === 0 && <div className="text-faint text-[13px]">Nothing here yet 🌱</div>}
+        {rows.map(r => (
+          <div key={r.key} className="flex items-center justify-between gap-2 text-[13px] px-2.5 py-1.5 rounded-full hover:bg-sage transition-colors">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: r.color }} />
+              <span className="text-muted capitalize truncate">{r.key}</span>
+            </div>
+            <span className="text-ink font-semibold">{r.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

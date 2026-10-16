@@ -7,14 +7,14 @@ import { CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/cate
 
 const TAG_OPTIONS = ["", "hurry", "fast", "new", "discount"];
 const TAG_COLORS  = {
-  hurry:    { text: "text-[#e86a6a]", border: "border-[#e86a6a77]", bg: "bg-[#e86a6a18]" },
-  fast:     { text: "text-[#e8a06a]", border: "border-[#e8a06a77]", bg: "bg-[#e8a06a18]" },
-  new:      { text: "text-[#6ae8a0]", border: "border-[#6ae8a077]", bg: "bg-[#6ae8a018]" },
-  discount: { text: "text-[#6ab4e8]", border: "border-[#6ab4e877]", bg: "bg-[#6ab4e818]" },
-  "":       { text: "text-[#fff]",    border: "border-[#2a2a2a]",   bg: "bg-transparent" },
+  hurry:    { text: "text-[#c53030]", border: "border-[#f3c4c4]", bg: "bg-[#fdecec]" },
+  fast:     { text: "text-[#c2571a]", border: "border-[#f5d2b8]", bg: "bg-[#fdf0e6]" },
+  new:      { text: "text-[#15803d]", border: "border-[#bfe5cc]", bg: "bg-[#e3f6e9]" },
+  discount: { text: "text-[#1d6fb0]", border: "border-[#c3dbf1]", bg: "bg-[#e7f1fb]" },
+  "":       { text: "text-white",  border: "border-pine",   bg: "bg-pine" },
 };
 
-const INPUT_CLASS = "w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-md px-3.5 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono box-border";
+const INPUT_CLASS = "w-full bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-ink text-[13px] outline-none box-border placeholder-ghost focus:border-pine focus:bg-white transition-colors";
 
 function useDragSort(setter) {
   const from = useRef(null), to = useRef(null);
@@ -35,14 +35,14 @@ function useDragSort(setter) {
 }
 
 const Section = ({ title, children }) => (
-  <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-3.5">
-    <div className="text-[9px] tracking-[0.22em] text-[#fff] uppercase mb-5 font-semibold">{title}</div>
+  <div className="bg-white border border-line rounded-3xl p-6 mb-3.5">
+    <div className="text-[15px] font-poppins font-semibold text-pine mb-5">{title}</div>
     {children}
   </div>
 );
 
 const Label = ({ children }) => (
-  <div className="text-[9px] tracking-[0.18em] text-[#fff] uppercase mb-1.5 font-semibold">{children}</div>
+  <div className="text-[12px] font-semibold text-muted mb-1.5">{children}</div>
 );
 
 const Field = ({ label, children, className = "" }) => (
@@ -50,32 +50,32 @@ const Field = ({ label, children, className = "" }) => (
 );
 
 const Checkbox = ({ label, checked, onChange, accentClass }) => (
-  <label className={`flex items-center gap-2.5 cursor-pointer p-2 rounded-md border transition-all mb-1.5
-    ${checked ? `${accentClass.border} ${accentClass.bg}` : "border-[#1e1e1e] bg-transparent"}`}>
-    <div className={`w-[15px] h-[15px] border-[1.5px] rounded-sm flex items-center justify-center flex-shrink-0 transition-all
-      ${checked ? `${accentClass.checkBorder} ${accentClass.checkBg}` : "border-[#333] bg-transparent"}`}>
+  <label className={`flex items-center gap-2.5 cursor-pointer px-3 py-2.5 rounded-full border transition-all mb-1.5
+    ${checked ? `${accentClass.border} ${accentClass.bg}` : "border-line bg-transparent"}`}>
+    <div className={`w-[18px] h-[18px] border-[1.5px] rounded-md flex items-center justify-center flex-shrink-0 transition-all
+      ${checked ? `${accentClass.checkBorder} ${accentClass.checkBg}` : "border-line-strong bg-transparent"}`}>
       {checked && <span className={`text-[9px] font-black ${accentClass.checkText}`}>✓</span>}
     </div>
     <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
-    <span className={`text-[12px] tracking-[0.04em] ${checked ? "text-[#e8e8e8]" : "text-[#666]"}`}>{label}</span>
+    <span className={`text-[13px] font-medium ${checked ? "text-ink" : "text-muted"}`}>{label}</span>
   </label>
 );
 
 const AddBtn = ({ onClick, label }) => (
   <button type="button" onClick={onClick}
-    className="px-4 py-1.5 bg-transparent border border-dashed border-[#2a2a2a] rounded-md text-[#fff] text-[11px] tracking-[0.1em] cursor-pointer transition-all mt-1.5 font-mono hover:border-[#fff] hover:text-[#999]">
+    className="px-4 py-1.5 bg-transparent border border-dashed border-line rounded-full text-pine text-[13px] font-medium cursor-pointer transition-all mt-1.5 hover:border-pine hover:bg-mint">
     + {label}
   </button>
 );
 
 const IconBtn = ({ onClick, title, children, danger, disabled }) => (
   <button type="button" onClick={onClick} disabled={disabled} title={title}
-    className={`w-[26px] h-[26px] flex items-center justify-center bg-transparent border border-[#1e1e1e] rounded text-[11px] flex-shrink-0 transition-all font-mono
+    className={`w-[26px] h-[26px] flex items-center justify-center bg-white border border-line rounded-full text-[11px] flex-shrink-0 transition-all
       ${disabled
-        ? "text-[#252525] cursor-default"
+        ? "text-ghost cursor-default"
         : danger
-          ? "text-[#fff] cursor-pointer hover:border-[#e86a6a55] hover:text-[#e86a6a] hover:bg-[#e86a6a0a]"
-          : "text-[#fff] cursor-pointer hover:border-[#fff] hover:text-[#bbb] hover:bg-[#1a1a1a]"
+          ? "text-ink cursor-pointer hover:border-[#f3c4c4] hover:text-[#c53030] hover:bg-[#fdecec]"
+          : "text-ink cursor-pointer hover:border-pine hover:text-pine hover:bg-mint"
       }`}
   >{children}</button>
 );
@@ -84,26 +84,26 @@ const DragDots = () => (
   <div className="flex flex-col gap-[3px] p-1 cursor-grab flex-shrink-0 opacity-[0.22] hover:opacity-80 transition-opacity" title="Drag to reorder">
     {[0,1,2].map(r => (
       <div key={r} className="flex gap-[2.5px]">
-        <div className="w-[2.5px] h-[2.5px] rounded-full bg-[#aaa]" />
-        <div className="w-[2.5px] h-[2.5px] rounded-full bg-[#aaa]" />
+        <div className="w-[2.5px] h-[2.5px] rounded-full bg-ghost" />
+        <div className="w-[2.5px] h-[2.5px] rounded-full bg-ghost" />
       </div>
     ))}
   </div>
 );
 
 const Badge = ({ n }) => (
-  <div className="min-w-[20px] h-5 rounded bg-[#161616] border border-[#1e1e1e] flex items-center justify-center text-[9px] text-[#fff] font-bold flex-shrink-0 px-1">{n}</div>
+  <div className="min-w-[22px] h-[22px] rounded-full bg-zest flex items-center justify-center text-[10px] text-pine font-bold flex-shrink-0 px-1">{n}</div>
 );
 
 const Thumb = ({ url }) => (
-  <div className="w-[34px] h-[34px] rounded border border-[#1e1e1e] bg-[#0a0a0a] overflow-hidden flex-shrink-0 flex items-center justify-center">
+  <div className="w-[34px] h-[34px] rounded-lg border border-line bg-canvas overflow-hidden flex-shrink-0 flex items-center justify-center">
     {url ? <Image src={url} alt="" width={34} height={34} className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
-          : <span className="text-[12px] text-[#222]">□</span>}
+          : <span className="text-[12px] text-ghost">□</span>}
   </div>
 );
 
 const DragTip = () => (
-  <div className="text-[10px] text-[#2e2e2e] mb-2.5 flex items-center gap-1.5 tracking-[0.06em]">
+  <div className="text-[11px] text-faint mb-2.5 flex items-center gap-1.5">
     <span>⠿</span> Drag to reorder · ↑↓ for precise moves
   </div>
 );
@@ -116,8 +116,8 @@ const SortRow = ({ dragH, i, total, onUp, onDown, onRemove, children }) => {
       onDragEnter={() => { h.onDragEnter(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDragEnd={(e) => { h.onDragEnd(e); setOver(false); }}
-      className={`flex gap-1.5 items-center mb-1.5 px-1.5 py-1 rounded-lg border transition-all
-        ${over ? "border-[#fff] bg-[#161616]" : "border-transparent bg-transparent"}`}
+      className={`flex gap-1.5 items-center mb-1.5 px-1.5 py-1 rounded-xl border transition-all
+        ${over ? "border-pine bg-sage" : "border-transparent bg-transparent"}`}
     >
       <DragDots />
       <Badge n={i + 1} />
@@ -139,8 +139,8 @@ const ColorImageRow = ({ img, ii, total, onUpdate, onMoveUp, onMoveDown, onRemov
       onDragEnter={() => { ih.onDragEnter(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDragEnd={(e) => { ih.onDragEnd(e); setOver(false); }}
-      className={`flex gap-1.5 items-center mb-1.5 px-1 py-1 rounded-md border transition-all
-        ${over ? "border-[#fff] bg-[#1a1a1a]" : "border-transparent bg-transparent"}`}
+      className={`flex gap-1.5 items-center mb-1.5 px-1 py-1 rounded-xl border transition-all
+        ${over ? "border-pine bg-sage" : "border-transparent bg-transparent"}`}
     >
       <DragDots />
       <Badge n={ii + 1} />
@@ -164,12 +164,12 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
       onDragEnter={() => { ch.onDragEnter(); setCardOver(true); }}
       onDragLeave={() => setCardOver(false)}
       onDragEnd={(e) => { ch.onDragEnd(e); setCardOver(false); }}
-      className={`border rounded-lg p-4 mb-2.5 transition-all ${cardOver ? "bg-[#141414] border-[#fff]" : "bg-[#0c0c0c] border-[#1e1e1e]"}`}
+      className={`border rounded-2xl p-4 mb-2.5 transition-all ${cardOver ? "bg-zest/20 border-pine" : "bg-canvas border-line"}`}
     >
       <div className="flex justify-between items-center mb-3.5">
         <div className="flex items-center gap-2">
           <DragDots />
-          <span className="text-[9px] tracking-[0.18em] text-[#fff] uppercase font-semibold">
+          <span className="text-[12px] font-semibold text-muted">
             Variant {ci + 1}{color.name ? ` — ${color.name}` : ""}
           </span>
         </div>
@@ -186,11 +186,11 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
             className={INPUT_CLASS} />
         </div>
         <div className="mt-5 flex-shrink-0">
-          <div className="w-10 h-10 rounded-full border-2 border-[#2a2a2a] transition-all duration-300"
-            style={{ background: color.name || "#1e1e1e", boxShadow: color.name ? `0 0 14px ${color.name}55` : "none" }} />
+          <div className="w-10 h-10 rounded-full border-2 border-line transition-all duration-300"
+            style={{ background: color.name || "#f2f6f1", boxShadow: color.name ? `0 0 14px ${color.name}55` : "none" }} />
         </div>
       </div>
-      <div className="text-[9px] tracking-[0.18em] text-[#333] uppercase mb-2 font-semibold">Images</div>
+      <div className="text-[12px] font-semibold text-muted mb-2">Images</div>
       {color.images.map((img, ii) => (
         <ColorImageRow key={ii} img={img} ii={ii} total={color.images.length}
           onUpdate={val => onUpdateImage(ii, val)}
@@ -238,7 +238,7 @@ const SpecsFields = ({ fields, specs, onChange }) => {
   );
 };
 
-const SPEC_ACCENT = { border: "border-[#6ab4e844]", bg: "bg-[#6ab4e80a]", checkBorder: "border-[#6ab4e8]", checkBg: "bg-[#6ab4e822]", checkText: "text-[#6ab4e8]" };
+const SPEC_ACCENT = { border: "border-[#c3dbf1]", bg: "bg-[#e7f1fb]", checkBorder: "border-[#1d6fb0]", checkBg: "bg-[#e7f1fb]", checkText: "text-[#1d6fb0]" };
 
 // Only send the specs that belong to the selected category, with numbers parsed
 function buildSpecs(fields, specs) {
@@ -411,10 +411,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   };
 
   const CHECKBOX_ACCENTS = {
-    gold:  { border: "border-[#e8c46a44]", bg: "bg-[#e8c46a0a]", checkBorder: "border-[#e8c46a]", checkBg: "bg-[#e8c46a22]", checkText: "text-[#e8c46a]" },
-    amber: { border: "border-[#e8a06a44]", bg: "bg-[#e8a06a0a]", checkBorder: "border-[#e8a06a]", checkBg: "bg-[#e8a06a22]", checkText: "text-[#e8a06a]" },
-    green: { border: "border-[#6ae8a044]", bg: "bg-[#6ae8a00a]", checkBorder: "border-[#6ae8a0]", checkBg: "bg-[#6ae8a022]", checkText: "text-[#6ae8a0]" },
-    blue:  { border: "border-[#6ab4e844]", bg: "bg-[#6ab4e80a]", checkBorder: "border-[#6ab4e8]", checkBg: "bg-[#6ab4e822]", checkText: "text-[#6ab4e8]" },
+    gold:  { border: "border-pine/30", bg: "bg-zest/40", checkBorder: "border-pine", checkBg: "bg-pine", checkText: "text-zest" },
+    amber: { border: "border-[#f5d2b8]", bg: "bg-[#fdf0e6]", checkBorder: "border-[#c2571a]", checkBg: "bg-[#fdf0e6]", checkText: "text-[#c2571a]" },
+    green: { border: "border-[#bfe5cc]", bg: "bg-[#e3f6e9]", checkBorder: "border-[#15803d]", checkBg: "bg-[#e3f6e9]", checkText: "text-[#15803d]" },
+    blue:  { border: "border-[#c3dbf1]", bg: "bg-[#e7f1fb]", checkBorder: "border-[#1d6fb0]", checkBg: "bg-[#e7f1fb]", checkText: "text-[#1d6fb0]" },
   };
 
   return (
@@ -443,8 +443,8 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
               const c = TAG_COLORS[t];
               return (
                 <button key={t} type="button" onClick={() => setForm(p => ({ ...p, tag: t }))}
-                  className={`px-3.5 py-1.5 rounded-full cursor-pointer text-[11px] tracking-[0.1em] uppercase border transition-all font-mono
-                    ${active ? `${c.text} ${c.border} ${c.bg} font-bold` : "text-[#fff] border-[#1e1e1e] bg-transparent hover:text-[#666] hover:border-[#333]"}`}>
+                  className={`px-3.5 py-1.5 rounded-full cursor-pointer text-[13px] font-semibold border transition-all
+                    ${active ? `${c.text} ${c.border} ${c.bg} font-bold` : "text-muted border-line bg-white hover:text-pine hover:border-pine"}`}>
                   {t === "" ? "None" : t}
                 </button>
               );
@@ -456,15 +456,16 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
             <button
   type="button"
   onClick={generateDescription}
+  aria-label={form.description ? "Improve description with AI" : "Generate AI description"}
   disabled={generating || !form.name || !form.category}
   className={`
-    relative inline-flex items-center gap-2 px-4 h-[34px] rounded-md font-mono
-    text-[11px] font-bold tracking-[0.12em] uppercase transition-all duration-200
+    relative inline-flex items-center gap-2 px-4 h-9 rounded-full
+    text-[13px] font-semibold transition-all duration-200
     border overflow-hidden cursor-pointer
     disabled:opacity-35 disabled:cursor-not-allowed active:scale-[0.98]
     ${form.description
-      ? 'border-[#6ae8a055] text-[#6ae8a0] bg-[#001a0d] hover:border-[#6ae8a0aa] hover:bg-[#002a15]'
-      : 'border-[#e8c46a55] text-[#e8c46a] bg-[#1a1500] hover:border-[#e8c46aaa] hover:bg-[#211a00]'
+      ? 'border-[#bfe5cc] text-[#15803d] bg-[#e3f6e9] hover:bg-mint'
+      : 'border-pine text-zest bg-pine hover:bg-pine-deep'
     }
   `}
 >
@@ -494,12 +495,12 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       {/* Specs (drive the category page filters) */}
       <Section title="Specs / Filters">
         {specFields.length === 0 ? (
-          <div className="text-[12px] text-[#666]">
+          <div className="text-[12px] text-faint">
             {form.category ? "No filterable specs for this category yet." : "Pick a category to see its specs."}
           </div>
         ) : (
           <>
-            <div className="text-[11px] text-[#fff] mb-3.5">
+            <div className="text-[12px] text-faint mb-3.5">
               These power the filters on the {form.category} page. Leave blank if it doesn&apos;t apply.
             </div>
             <SpecsFields fields={specFields} specs={specs} onChange={setSpec} />
@@ -514,7 +515,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
             <input value={form.image} onChange={set("image")} placeholder="https://res.cloudinary.com/..." className={INPUT_CLASS} />
           </Field>
           {form.image && (
-            <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#1e1e1e] mt-[22px] flex-shrink-0">
+            <div className="w-14 h-14 rounded-xl overflow-hidden border border-line mt-[22px] flex-shrink-0">
               <Image src={form.image} alt="" width={56} height={56} className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
             </div>
           )}
@@ -526,7 +527,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Secondary Images */}
       <Section title="Secondary Images">
-        <div className="text-[11px] text-[#fff] mb-2.5">Gallery thumbnails shown on the product page.</div>
+        <div className="text-[12px] text-faint mb-2.5">Gallery thumbnails shown on the product page.</div>
         <DragTip />
         {secondaryImages.map((url, i) => (
           <SortRow key={i} dragH={secDrag} i={i} total={secondaryImages.length}
@@ -541,8 +542,8 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Color Variants */}
       <Section title="Color Variants">
-        <div className="text-[11px] text-[#fff] mb-2.5">Each color has a name and its own set of images. Drag cards to reorder.</div>
-        {colors.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No color variants yet.</div>}
+        <div className="text-[12px] text-faint mb-2.5">Each color has a name and its own set of images. Drag cards to reorder.</div>
+        {colors.length === 0 && <div className="text-[12px] text-ghost mb-2.5">No color variants yet.</div>}
         {colors.map((color, ci) => (
           <ColorCard key={ci} color={color} ci={ci} totalColors={colors.length}
             onNameChange={val => updateColorName(ci, val)}
@@ -559,7 +560,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Videos */}
       <Section title="Videos (optional)">
-        {videos.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No videos added.</div>}
+        {videos.length === 0 && <div className="text-[12px] text-ghost mb-2.5">No videos added.</div>}
         {videos.length > 1 && <DragTip />}
         {videos.map((url, i) => (
           <SortRow key={i} dragH={videoDrag} i={i} total={videos.length}
@@ -573,11 +574,11 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
       {/* Box Content */}
       <Section title="Box Contents (optional)">
-        <div className="text-[11px] text-[#fff] mb-2.5">
+        <div className="text-[12px] text-faint mb-2.5">
           What's included in the box — each item with quantity. The product itself is always shown first on the
           product page; add it here only to change its quantity or position.
         </div>
-        {boxContent.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No box items yet.</div>}
+        {boxContent.length === 0 && <div className="text-[12px] text-ghost mb-2.5">No box items yet.</div>}
         {boxContent.length > 1 && <DragTip />}
         {boxContent.map((b, i) => (
           <SortRow key={i} dragH={boxDrag} i={i} total={boxContent.length}
@@ -605,16 +606,16 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       </Section>
 
       {error && (
-        <div className="px-4 py-3 bg-[#e86a6a15] border border-[#e86a6a33] rounded-md text-[#e86a6a] text-[13px] mb-4">{error}</div>
+        <div className="px-4 py-3 bg-[#fdecec] border border-[#f3c4c4] rounded-xl text-[#c53030] text-[13px] mb-4">{error}</div>
       )}
 
       <button onClick={handleSubmit} disabled={saving || success}
-        className={`w-full py-3.5 border-none rounded-lg text-[11px] tracking-[0.18em] uppercase font-bold cursor-pointer transition-all font-mono
-          ${success  ? "bg-[#1a2e1a] text-[#6ae8a0] cursor-default"
-          : saving   ? "bg-[#141414] text-[#fff] cursor-default"
-          : "bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#d4b05e]"}`}
-        style={{ boxShadow: (!saving && !success) ? "0 0 24px #e8c46a22" : "none" }}>
-        {success ? "✓ Saved — Redirecting..." : saving ? "Saving..." : isEdit ? "Save Changes" : "Create Product"}
+        className={`w-full h-12 border-none rounded-full text-[13px] font-semibold cursor-pointer transition-all
+          ${success  ? "bg-mint text-[#15803d] cursor-default"
+          : saving   ? "bg-sage text-faint cursor-default"
+          : "bg-pine text-white hover:bg-pine-deep"}`}
+        style={{ boxShadow: (!saving && !success) ? "0 10px 24px -10px rgba(15,71,43,0.55)" : "none" }}>
+        {success ? "🎉 Saved! Redirecting…" : saving ? "Saving…" : isEdit ? "Save Changes" : "Create Product"}
       </button>
     </div>
   );

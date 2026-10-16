@@ -31,6 +31,16 @@
   --color-star-empty: #d5ddd8;
   --color-signal: #0bd46f;  /* in-stock dot, "Free" badge */
 
+  /* Admin console */
+  --color-pine: #0f472b;        /* primary: sidebar, buttons, headings */
+  --color-pine-deep: #0a3320;   /* primary hover */
+  --color-zest: #d7f75b;        /* the fun accent: active nav, highlights */
+  --color-canvas: #f5f8f4;      /* page background behind white cards */
+  --color-ink: #14261c;         /* main text */
+  --color-faint: #6f8279;       /* labels, table headers */
+  --color-ghost: #b3c0b9;       /* placeholders, empty values */
+  --color-line-strong: #cbd8d1; /* input outlines */
+
   /* SCREEN SIZES */ 
   --breakpoint-s: 500px;
   --breakpoint-xs: 400px;

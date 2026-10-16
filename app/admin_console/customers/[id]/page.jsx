@@ -5,10 +5,10 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 
 const STATUS_COLORS = {
-  confirmed:  "#e8c46a", pending:   "#e8c46a",
-  processing: "#6ab4e8", processed: "#6ab4e8",
-  shipped:    "#a06ae8", delivered: "#6ae8a0",
-  cancelled:  "#e86a6a",
+  confirmed:  "#b7791f", pending:   "#b7791f",
+  processing: "#1d6fb0", processed: "#1d6fb0",
+  shipped:    "#6d3fc8", delivered: "#15803d",
+  cancelled:  "#c53030",
 };
 
 const getTotal = (order) => {
@@ -60,8 +60,8 @@ export default function AdminCustomerDetailPage() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="text-[#444] text-[13px] pt-10">Loading customer...</div>;
-  if (!user)   return <div className="text-[#e86a6a] text-[13px] pt-10">Customer not found.</div>;
+  if (loading) return <div className="flex items-center gap-3 text-faint text-[13px] pt-10"><div className="w-6 h-6 rounded-full border-[3px] border-mint border-t-pine animate-spin" /> Loading customer…</div>;
+  if (!user)   return <div className="text-[#c53030] text-[13px] pt-10">Customer not found.</div>;
 
   const currentIsActive = user.isActive ?? true;
   const hasChanges      = role !== user.role || isActive !== currentIsActive;
@@ -70,9 +70,9 @@ export default function AdminCustomerDetailPage() {
   const totalSpent      = orders.reduce((acc, o) => acc + parseFloat(o.total || o.subTotal || 0), 0);
 
   const isAdmin    = user.role === "admin";
-  const avatarText = isAdmin ? "text-[#e8c46a]" : "text-[#6ab4e8]";
-  const avatarBg   = isAdmin ? "bg-[#e8c46a18]" : "bg-[#6ab4e818]";
-  const avatarBorder = isAdmin ? "border-[#e8c46a33]" : "border-[#6ab4e833]";
+  const avatarText = isAdmin ? "text-pine" : "text-[#1d6fb0]";
+  const avatarBg   = isAdmin ? "bg-zest/35" : "bg-[#e7f1fb]";
+  const avatarBorder = isAdmin ? "border-pine/25" : "border-[#c3dbf1]";
 
   const profileFields = [
     { label: "Email",            value: user.email },
@@ -90,20 +90,20 @@ export default function AdminCustomerDetailPage() {
     <div className="max-w-[960px]">
       {/* Header */}
       <div className="mb-8">
-        <Link href="/admin_console/customers" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
-          ← BACK TO CUSTOMERS
+        <Link href="/admin_console/customers" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-pine no-underline bg-white border border-line rounded-full px-3.5 py-1.5 hover:bg-mint transition-colors">
+          ← Back to customers
         </Link>
         <div className="mt-4 flex items-center gap-4">
-          <div className={`w-[52px] h-[52px] rounded-full border flex items-center justify-center text-lg font-bold flex-shrink-0 ${avatarText} ${avatarBg} ${avatarBorder}`}>
+          <div className={`w-[60px] h-[60px] rounded-2xl rotate-[-4deg] border flex items-center justify-center text-lg font-bold flex-shrink-0 ${avatarText} ${avatarBg} ${avatarBorder}`}>
             {initials}
           </div>
           <div>
-            <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1">Customer</div>
-            <h1 className="m-0 text-[24px] font-bold text-[#e8e8e8] tracking-tight flex items-center flex-wrap gap-3">
+            <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">Customer</div>
+            <h1 className="m-0 text-[28px] font-poppins font-bold text-pine leading-tight flex items-center flex-wrap gap-3">
               {fullName}
               {user.isActive === false && (
-                <span className="text-[11px] text-[#e86a6a] tracking-[0.1em] bg-[#e86a6a18] border border-[#e86a6a33] px-2 py-0.5 rounded uppercase align-middle">
-                  SUSPENDED
+                <span className="text-[11px] font-semibold text-[#c53030] bg-[#fdecec] border border-[#f3c4c4] px-2.5 py-0.5 rounded-full font-roboto align-middle">
+                  Suspended
                 </span>
               )}
             </h1>
@@ -119,39 +119,39 @@ export default function AdminCustomerDetailPage() {
           {/* Stats strip */}
           <div className="grid grid-cols-3 gap-3 mb-5">
             {[
-              { label: "Total Orders", value: orders.length },
-              { label: "Total Spent",  value: `₦${totalSpent.toLocaleString()}` },
-              { label: "Member Since", value: new Date(user.createdAt).toLocaleDateString() },
+              { label: "Total Orders", value: orders.length,                                   cls: "bg-white border border-line" },
+              { label: "Total Spent",  value: `₦${totalSpent.toLocaleString()}`,               cls: "bg-pine border border-pine [&>div:last-child]:text-zest [&>div:first-child]:text-white/70" },
+              { label: "Member Since", value: new Date(user.createdAt).toLocaleDateString(), cls: "bg-white border border-line" },
             ].map(s => (
-              <div key={s.label} className="bg-[#111] border border-[#222] rounded-lg p-4 md:p-5">
-                <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-2">{s.label}</div>
-                <div className="text-lg md:text-[20px] font-bold text-[#e8e8e8] leading-tight truncate">{s.value}</div>
+              <div key={s.label} className={`rounded-3xl p-4 md:p-5 ${s.cls}`}>
+                <div className="text-[15px] font-poppins font-semibold text-pine mb-2">{s.label}</div>
+                <div className="text-lg md:text-[20px] font-poppins font-bold text-ink leading-tight truncate">{s.value}</div>
               </div>
             ))}
           </div>
 
           {/* Profile Info */}
-          <div className="bg-[#111] border border-[#222] rounded-lg p-5 mb-5">
-            <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-4">Profile Info</div>
+          <div className="bg-white border border-line rounded-3xl p-5 mb-5">
+            <div className="text-[15px] font-poppins font-semibold text-pine mb-4">Profile Info</div>
             <div className="grid grid-cols-1 sm:grid-cols-2">
               {profileFields.map(f => (
-                <div key={f.label} className="py-2.5 border-b border-[#171717]">
-                  <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-1">{f.label}</div>
-                  <div className="text-[13px] text-[#888] break-all">{f.value}</div>
+                <div key={f.label} className="py-2.5 border-b border-line">
+                  <div className="text-[12px] font-medium text-faint mb-1">{f.label}</div>
+                  <div className="text-[13px] text-muted break-all">{f.value}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Current Cart */}
-          <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden mb-5">
-            <div className="px-5 py-4 border-b border-[#1a1a1a]">
+          <div className="bg-white border border-line rounded-3xl overflow-hidden mb-5">
+            <div className="px-5 py-4 border-b border-line">
               <div className="flex items-center justify-between">
-                <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase">
+                <div className="text-[15px] font-poppins font-semibold text-pine">
                   Current Cart ({user.cart?.items?.length || 0})
                 </div>
                 {user.cart?.updatedAt && (
-                  <div className="text-[10px] text-[#444]">
+                  <div className="text-[10px] text-faint">
                     Last updated: {new Date(user.cart.updatedAt).toLocaleDateString()} {new Date(user.cart.updatedAt).toLocaleTimeString()}
                   </div>
                 )}
@@ -159,16 +159,16 @@ export default function AdminCustomerDetailPage() {
             </div>
 
             {(!user.cart?.items || user.cart.items.length === 0) ? (
-              <div className="py-8 text-[#444] text-[13px] text-center">No items in cart.</div>
+              <div className="py-8 text-faint text-[13px] text-center"><div className="text-2xl mb-1" aria-hidden>🛒</div>No items in cart.</div>
             ) : (
               <>
                 {/* Desktop cart table */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full border-collapse min-w-[500px]">
                     <thead>
-                      <tr className="border-b border-[#1a1a1a]">
+                      <tr className="bg-sage">
                         {["Product","Price","Qty","Color","Total"].map(h => (
-                          <th key={h} className="px-5 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase whitespace-nowrap">{h}</th>
+                          <th key={h} className="px-5 py-2.5 text-left text-[11px] tracking-[0.08em] text-faint uppercase font-semibold whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -176,23 +176,23 @@ export default function AdminCustomerDetailPage() {
                       {user.cart.items.map((item, idx) => {
                         const itemTotal = (item.price || 0) * (item.quantity || 1);
                         return (
-                          <tr key={idx} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
+                          <tr key={idx} className="border-b border-line hover:bg-[#fafcf9] transition-colors">
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-3">
                                 {item.image && (
                                   <img 
                                     src={item.image} 
                                     alt={item.name}
-                                    className="w-10 h-10 object-cover rounded border border-[#222]"
+                                    className="w-10 h-10 object-cover rounded-lg border border-line"
                                   />
                                 )}
-                                <div className="text-[13px] text-[#e8e8e8]">{item.name || "—"}</div>
+                                <div className="text-[13px] text-ink">{item.name || "—"}</div>
                               </div>
                             </td>
-                            <td className="px-5 py-3 text-[13px] text-[#888] whitespace-nowrap">₦{(item.price || 0).toLocaleString()}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] whitespace-nowrap">{item.quantity || 1}</td>
-                            <td className="px-5 py-3 text-[12px] text-[#666] whitespace-nowrap">{item.color || "—"}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] font-semibold whitespace-nowrap">₦{itemTotal.toLocaleString()}</td>
+                            <td className="px-5 py-3 text-[13px] text-muted whitespace-nowrap">₦{(item.price || 0).toLocaleString()}</td>
+                            <td className="px-5 py-3 text-[13px] text-ink whitespace-nowrap">{item.quantity || 1}</td>
+                            <td className="px-5 py-3 text-[12px] text-faint whitespace-nowrap">{item.color || "—"}</td>
+                            <td className="px-5 py-3 text-[13px] text-ink font-semibold whitespace-nowrap">₦{itemTotal.toLocaleString()}</td>
                           </tr>
                         );
                       })}
@@ -201,29 +201,29 @@ export default function AdminCustomerDetailPage() {
                 </div>
 
                 {/* Mobile cart cards */}
-                <div className="sm:hidden flex flex-col divide-y divide-[#161616]">
+                <div className="sm:hidden flex flex-col divide-y divide-line">
                   {user.cart.items.map((item, idx) => {
                     const itemTotal = (item.price || 0) * (item.quantity || 1);
                     return (
-                      <div key={idx} className="px-4 py-3 hover:bg-[#141414] transition-colors">
+                      <div key={idx} className="px-4 py-3 hover:bg-[#fafcf9] transition-colors">
                         <div className="flex items-start gap-3 mb-2">
                           {item.image && (
                             <img 
                               src={item.image} 
                               alt={item.name}
-                              className="w-12 h-12 object-cover rounded border border-[#222] flex-shrink-0"
+                              className="w-12 h-12 object-cover rounded-lg border border-line flex-shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="text-[13px] text-[#e8e8e8] font-medium truncate">{item.name || "—"}</div>
-                            <div className="text-[11px] text-[#666] mt-0.5">{item.color || "—"}</div>
+                            <div className="text-[13px] text-ink font-medium truncate">{item.name || "—"}</div>
+                            <div className="text-[11px] text-faint mt-0.5">{item.color || "—"}</div>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="text-[11px] text-[#444]">
+                          <div className="text-[11px] text-faint">
                             Qty: {item.quantity || 1} × ₦{(item.price || 0).toLocaleString()}
                           </div>
-                          <div className="text-[13px] text-[#e8e8e8] font-semibold">₦{itemTotal.toLocaleString()}</div>
+                          <div className="text-[13px] text-ink font-semibold">₦{itemTotal.toLocaleString()}</div>
                         </div>
                       </div>
                     );
@@ -231,10 +231,10 @@ export default function AdminCustomerDetailPage() {
                 </div>
 
                 {/* Cart total */}
-                <div className="px-5 py-3 border-t border-[#1a1a1a] bg-[#0a0a0a]">
+                <div className="px-5 py-3 border-t border-line bg-canvas">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-[#444] uppercase tracking-[0.1em]">Cart Total</span>
-                    <span className="text-[16px] font-bold text-[#e8e8e8]">
+                    <span className="text-[12px] font-medium text-faint">Cart Total</span>
+                    <span className="text-[17px] font-poppins font-bold text-pine">
                       ₦{user.cart.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0).toLocaleString()}
                     </span>
                   </div>
@@ -244,46 +244,46 @@ export default function AdminCustomerDetailPage() {
           </div>
 
           {/* Order History */}
-          <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#1a1a1a]">
-              <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase">
+          <div className="bg-white border border-line rounded-3xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-line">
+              <div className="text-[15px] font-poppins font-semibold text-pine">
                 Order History ({orders.length})
               </div>
             </div>
 
             {orders.length === 0 ? (
-              <div className="py-8 text-[#444] text-[13px] text-center">No orders yet.</div>
+              <div className="py-8 text-faint text-[13px] text-center"><div className="text-2xl mb-1" aria-hidden>📭</div>No orders yet.</div>
             ) : (
               <>
                 {/* Desktop order table */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full border-collapse min-w-[420px]">
                     <thead>
-                      <tr className="border-b border-[#1a1a1a]">
+                      <tr className="bg-sage">
                         {["Order ID","Items","Total","Status","Date"].map(h => (
-                          <th key={h} className="px-5 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase whitespace-nowrap">{h}</th>
+                          <th key={h} className="px-5 py-2.5 text-left text-[11px] tracking-[0.08em] text-faint uppercase font-semibold whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {orders.map(order => {
-                        const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#888";
+                        const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#7c8b84";
                         return (
-                          <tr key={order._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
+                          <tr key={order._id} className="border-b border-line hover:bg-[#fafcf9] transition-colors">
                             <td className="px-5 py-3 whitespace-nowrap">
-                              <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                              <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] font-semibold text-pine no-underline hover:underline">
                                 #{String(order._id).slice(-8).toUpperCase()}
                               </Link>
                             </td>
-                            <td className="px-5 py-3 text-[13px] text-[#666]">{order.items?.length || 0}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] font-semibold whitespace-nowrap">₦{getTotal(order)}</td>
+                            <td className="px-5 py-3 text-[13px] text-faint">{order.items?.length || 0}</td>
+                            <td className="px-5 py-3 text-[13px] text-ink font-semibold whitespace-nowrap">₦{getTotal(order)}</td>
                             <td className="px-5 py-3 whitespace-nowrap">
-                              <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded border"
+                              <span className="text-[10px] font-semibold capitalize px-2 py-0.5 rounded-full border"
                                 style={{ color: sColor, background: sColor + "18", borderColor: sColor + "33" }}>
                                 {order.status}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-[12px] text-[#fff] whitespace-nowrap">
+                            <td className="px-5 py-3 text-[12px] text-ink whitespace-nowrap">
                               {new Date(order.createdAt).toLocaleDateString()}
                             </td>
                           </tr>
@@ -294,26 +294,26 @@ export default function AdminCustomerDetailPage() {
                 </div>
 
                 {/* Mobile order cards */}
-                <div className="sm:hidden flex flex-col divide-y divide-[#161616]">
+                <div className="sm:hidden flex flex-col divide-y divide-line">
                   {orders.map(order => {
-                    const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#888";
+                    const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#7c8b84";
                     return (
-                      <div key={order._id} className="px-4 py-3 hover:bg-[#141414] transition-colors">
+                      <div key={order._id} className="px-4 py-3 hover:bg-[#fafcf9] transition-colors">
                         <div className="flex justify-between items-start mb-1.5">
-                          <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
+                          <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] font-semibold text-pine no-underline hover:underline">
                             #{String(order._id).slice(-8).toUpperCase()}
                           </Link>
-                          <span className="text-[13px] text-[#e8e8e8] font-semibold">₦{getTotal(order)}</span>
+                          <span className="text-[13px] text-ink font-semibold">₦{getTotal(order)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded border"
+                            <span className="text-[10px] font-semibold capitalize px-2 py-0.5 rounded-full border"
                               style={{ color: sColor, background: sColor + "18", borderColor: sColor + "33" }}>
                               {order.status}
                             </span>
-                            <span className="text-[11px] text-[#444]">{order.items?.length || 0} item(s)</span>
+                            <span className="text-[11px] text-faint">{order.items?.length || 0} item(s)</span>
                           </div>
-                          <span className="text-[11px] text-[#fff]">{new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span className="text-[11px] text-ink">{new Date(order.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     );
@@ -326,21 +326,21 @@ export default function AdminCustomerDetailPage() {
 
         {/* Right: Actions Panel */}
         <div>
-          <div className="bg-[#111] border border-[#222] rounded-lg p-5 md:sticky md:top-5">
-            <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-5">Account Controls</div>
+          <div className="bg-white border border-line rounded-3xl p-5 md:sticky md:top-5">
+            <div className="text-[15px] font-poppins font-semibold text-pine mb-5">Account Controls</div>
 
             {/* Role */}
             <div className="mb-5">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2">Role</div>
+              <div className="text-[12px] font-medium text-faint mb-2">Role</div>
               <div className="flex gap-2">
                 {["user", "admin"].map(r => (
                   <button key={r} onClick={() => setRole(r)}
-                    className={`flex-1 py-2.5 rounded-md cursor-pointer text-[11px] tracking-[0.1em] uppercase border transition-all font-mono
+                    className={`flex-1 py-2.5 rounded-full cursor-pointer text-[13px] font-semibold border transition-all
                       ${role === r
                         ? r === "admin"
-                          ? "border-[#e8c46a] bg-[#e8c46a12] text-[#e8c46a] font-bold"
-                          : "border-[#6ab4e8] bg-[#6ab4e812] text-[#6ab4e8] font-bold"
-                        : "border-[#222] bg-transparent text-[#444] hover:border-[#333] hover:text-[#666]"
+                          ? "border-pine bg-zest/35 text-pine font-bold"
+                          : "border-[#1d6fb0] bg-[#e7f1fb] text-[#1d6fb0] font-bold"
+                        : "border-line bg-transparent text-faint hover:border-pine hover:text-pine"
                       }`}>
                     {r}
                   </button>
@@ -350,47 +350,47 @@ export default function AdminCustomerDetailPage() {
 
             {/* Account Status */}
             <div className="mb-6">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2">Account Status</div>
+              <div className="text-[12px] font-medium text-faint mb-2">Account Status</div>
               <button onClick={() => setIsActive(a => !a)}
-                className={`w-full py-2.5 rounded-md cursor-pointer text-[11px] tracking-[0.12em] uppercase font-semibold border transition-all font-mono
+                className={`w-full py-2.5 rounded-full cursor-pointer text-[13px] font-semibold border transition-all
                   ${isActive
-                    ? "border-[#6ae8a033] bg-[#6ae8a012] text-[#6ae8a0] hover:bg-[#6ae8a01a]"
-                    : "border-[#e86a6a33] bg-[#e86a6a12] text-[#e86a6a] hover:bg-[#e86a6a1a]"
+                    ? "border-[#bfe5cc] bg-[#e3f6e9] text-[#15803d] hover:bg-[#e3f6e9]"
+                    : "border-[#f3c4c4] bg-[#fdecec] text-[#c53030] hover:bg-[#fdecec]"
                   }`}>
-                {isActive ? "● Active — Click to Suspend" : "● Suspended — Click to Restore"}
+                {isActive ? "● Active · tap to suspend" : "● Suspended · tap to restore"}
               </button>
-              <div className={`text-[11px] mt-1.5 leading-relaxed ${isActive ? "text-[#333]" : "text-[#444]"}`}>
+              <div className={`text-[11px] mt-1.5 leading-relaxed ${isActive ? "text-ghost" : "text-faint"}`}>
                 {isActive ? "Customer can log in and place orders." : "Customer account is suspended."}
               </div>
             </div>
 
             {error && (
-              <div className="px-3 py-2.5 bg-[#e86a6a18] border border-[#e86a6a33] rounded-md text-[#e86a6a] text-[12px] mb-3">
+              <div className="px-3 py-2.5 bg-[#fdecec] border border-[#f3c4c4] rounded-xl text-[#c53030] text-[12px] mb-3">
                 {error}
               </div>
             )}
 
             <button onClick={saveChanges} disabled={saving || saved || !hasChanges}
-              className={`w-full py-3 border-none rounded-md text-[11px] tracking-[0.15em] uppercase font-bold transition-all font-mono
-                ${saved       ? "bg-[#1a2e1a] text-[#6ae8a0] cursor-default"
-                : saving      ? "bg-[#1a1a1a] text-[#444] cursor-default"
-                : hasChanges  ? "bg-[#e8c46a] text-[#0a0a0a] cursor-pointer hover:bg-[#d4b05e]"
-                : "bg-[#141414] text-[#333] cursor-default"
+              className={`w-full h-11 border-none rounded-full text-[13px] font-semibold transition-all
+                ${saved       ? "bg-mint text-[#15803d] cursor-default"
+                : saving      ? "bg-sage text-faint cursor-default"
+                : hasChanges  ? "bg-pine text-white cursor-pointer hover:bg-pine-deep"
+                : "bg-white text-ghost cursor-default"
                 }`}>
               {saved ? "✓ Saved" : saving ? "Saving..." : "Save Changes"}
             </button>
 
             {/* Quick Links */}
-            <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2.5">Quick Links</div>
+            <div className="mt-5 pt-4 border-t border-line">
+              <div className="text-[12px] font-medium text-faint mb-2.5">Quick Links</div>
               <a href={`mailto:${user.email}`}
-                className="block py-2 text-[12px] text-[#fff] no-underline border-b border-[#161616] transition-colors hover:text-[#888]">
-                ✉ Email customer
+                className="flex items-center gap-2 px-3.5 h-10 mb-2 rounded-full bg-sage text-[13px] font-medium text-pine no-underline transition-colors hover:bg-mint">
+                ✉️ Email customer
               </a>
               {orders.length > 0 && (
                 <Link href={`/admin_console/orders?search=${user._id}`}
-                  className="block pt-2 text-[12px] text-[#fff] no-underline transition-colors hover:text-[#888]">
-                  ◈ View all orders
+                  className="flex items-center gap-2 px-3.5 h-10 rounded-full bg-sage text-[13px] font-medium text-pine no-underline transition-colors hover:bg-mint">
+                  🧾 View all orders
                 </Link>
               )}
             </div>

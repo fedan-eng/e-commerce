@@ -9,46 +9,46 @@ import { Suspense } from "react";
 
 const STATUS_COLORS = {
   confirmed: {
-    text: "text-[#e8c46a]",
-    bg: "bg-[#e8c46a12]",
-    border: "border-[#e8c46a33]",
-    hex: "#e8c46a",
+    text: "text-[#a16207]",
+    bg: "bg-[#fef6dc]",
+    border: "border-[#f3dc9a]",
+    hex: "#b7791f",
   },
   processing: {
-    text: "text-[#6ab4e8]",
-    bg: "bg-[#6ab4e812]",
-    border: "border-[#6ab4e833]",
-    hex: "#6ab4e8",
+    text: "text-[#1d6fb0]",
+    bg: "bg-[#e7f1fb]",
+    border: "border-[#c3dbf1]",
+    hex: "#1d6fb0",
   },
   shipped: {
-    text: "text-[#a06ae8]",
-    bg: "bg-[#a06ae812]",
-    border: "border-[#a06ae833]",
-    hex: "#a06ae8",
+    text: "text-[#6d3fc8]",
+    bg: "bg-[#f0e9fc]",
+    border: "border-[#d9c9f5]",
+    hex: "#6d3fc8",
   },
   intransit: {
-    text: "text-[#3b82f6]",
-    bg: "bg-[#3b82f612]",
-    border: "border-[#3b82f633]",
-    hex: "#3b82f6",
+    text: "text-[#2563eb]",
+    bg: "bg-[#e8f0fe]",
+    border: "border-[#c5d7fb]",
+    hex: "#2563eb",
   },
   delivered: {
-    text: "text-[#6ae8a0]",
-    bg: "bg-[#6ae8a012]",
-    border: "border-[#6ae8a033]",
-    hex: "#6ae8a0",
+    text: "text-[#15803d]",
+    bg: "bg-[#e3f6e9]",
+    border: "border-[#bfe5cc]",
+    hex: "#15803d",
   },
   cancelled: {
-    text: "text-[#e86a6a]",
-    bg: "bg-[#e86a6a12]",
-    border: "border-[#e86a6a33]",
-    hex: "#e86a6a",
+    text: "text-[#c53030]",
+    bg: "bg-[#fdecec]",
+    border: "border-[#f3c4c4]",
+    hex: "#c53030",
   },
   pending: {
-    text: "text-[#e8c46a]",
-    bg: "bg-[#e8c46a12]",
-    border: "border-[#e8c46a33]",
-    hex: "#e8c46a",
+    text: "text-[#a16207]",
+    bg: "bg-[#fef6dc]",
+    border: "border-[#f3dc9a]",
+    hex: "#b7791f",
   },
 };
 
@@ -79,22 +79,22 @@ const DAYS_OPTIONS = [
 ];
 
 const STAT_CARDS = [
-  { label: "Total orders", key: "total", color: "#e8e8e8" },
-  { label: "Confirmed", key: "confirmed", color: "#e8c46a" },
-  { label: "Processing", key: "processing", color: "#6ab4e8" },
-  { label: "Shipped", key: "shipped", color: "#a06ae8" },
-  { label: "In Transit", key: "intransit", color: "#3b82f6" },
-  { label: "Delivered", key: "delivered", color: "#6ae8a0" },
-  { label: "Cancelled", key: "cancelled", color: "#e86a6a" },
+  { label: "Total orders", key: "total", color: "#0f472b" },
+  { label: "Confirmed", key: "confirmed", color: "#b7791f" },
+  { label: "Processing", key: "processing", color: "#1d6fb0" },
+  { label: "Shipped", key: "shipped", color: "#6d3fc8" },
+  { label: "In Transit", key: "intransit", color: "#2563eb" },
+  { label: "Delivered", key: "delivered", color: "#15803d" },
+  { label: "Cancelled", key: "cancelled", color: "#c53030" },
 ];
 
 function getStatusStyle(k) {
   return (
     STATUS_COLORS[k?.toLowerCase().replace(/\s/g, "")] || {
-      text: "text-[#888]",
-      bg: "bg-[#88888812]",
-      border: "border-[#88888833]",
-      hex: "#888",
+      text: "text-muted",
+      bg: "bg-sage",
+      border: "border-line-strong",
+      hex: "#7c8b84",
     }
   );
 }
@@ -103,7 +103,7 @@ function StatusBadge({ status }) {
   const ss = getStatusStyle(status?.toLowerCase());
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-[.08em] uppercase border ${ss.text} ${ss.bg} ${ss.border}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium border ${ss.text} ${ss.bg} ${ss.border}`}
     >
       {status}
     </span>
@@ -256,19 +256,19 @@ function AdminOrdersPage() {
 
   const Pagination = () =>
     totalPages > 1 ? (
-      <div className="flex justify-between items-center px-5 py-3 border-t border-[#1a1a1a]">
-        <span className="text-[11px] text-[#444] font-mono">
+      <div className="flex justify-between items-center px-5 py-3 border-t border-line">
+        <span className="text-[11px] text-faint">
           Page {page} of {totalPages} &middot; {total} orders
         </span>
         <div className="flex gap-1.5">
           <button
             onClick={() => changePage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
+            className={`px-3.5 py-1.5 border rounded-full text-[12px] font-medium transition-all
             ${
               page === 1
-                ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
-                : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
+                ? "border-line text-ghost cursor-default bg-transparent"
+                : "border-line text-pine cursor-pointer hover:border-pine hover:bg-mint bg-transparent"
             }`}
           >
             ← Prev
@@ -276,11 +276,11 @@ function AdminOrdersPage() {
           <button
             onClick={() => changePage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className={`px-3 py-1.5 border rounded text-[11px] font-mono transition-all
+            className={`px-3.5 py-1.5 border rounded-full text-[12px] font-medium transition-all
             ${
               page === totalPages
-                ? "border-[#1a1a1a] text-[#2a2a2a] cursor-default bg-transparent"
-                : "border-[#2a2a2a] text-[#666] cursor-pointer hover:border-[#444] hover:text-[#aaa] bg-transparent"
+                ? "border-line text-ghost cursor-default bg-transparent"
+                : "border-line text-pine cursor-pointer hover:border-pine hover:bg-mint bg-transparent"
             }`}
           >
             Next →
@@ -293,12 +293,12 @@ function AdminOrdersPage() {
     <div className="w-full max-w-full">
       {/* Page header */}
       <div className="mb-6">
-        <div className="text-[10px] tracking-[.2em] text-[#fff] uppercase mb-1">
+        <div className="inline-flex items-center text-[11px] font-semibold text-pine bg-zest px-2.5 py-0.5 rounded-full mb-2">
           Management
         </div>
-        <h1 className="text-2xl font-bold text-[#e8e8e8] tracking-tight">
+        <h1 className="text-[28px] font-poppins font-bold text-pine leading-tight">
           Orders
-          <span className="text-[#3a3a3a] text-base font-normal ml-2">
+          <span className="text-faint text-base font-roboto font-medium ml-2">
             ({total})
           </span>
         </h1>
@@ -309,12 +309,14 @@ function AdminOrdersPage() {
         {STAT_CARDS.map(({ label, key, color }) => (
           <div
             key={key}
-            className="bg-[#111] border border-[#1a1a1a] rounded-xl p-4"
+            className="relative overflow-hidden bg-white border border-line rounded-3xl p-4 transition-transform duration-200 hover:-translate-y-0.5"
           >
-            <div className="text-[10px] tracking-[.12em] text-[#444] uppercase mb-2">
+            <span className="absolute -right-3 -top-3 w-12 h-12 rounded-full opacity-15" style={{ background: color }} />
+            <div className="flex items-center gap-1.5 text-[12px] text-faint font-medium mb-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: color }} />
               {label}
             </div>
-            <div className="text-2xl font-bold" style={{ color }}>
+            <div className="text-2xl font-poppins font-bold" style={{ color }}>
               {stats[key] ?? "—"}
             </div>
           </div>
@@ -322,13 +324,13 @@ function AdminOrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111] border border-[#1a1a1a] rounded-xl p-4 mb-4">
+      <div className="bg-white border border-line rounded-3xl p-4 mb-4">
         <div className="flex flex-col gap-3">
           {/* Search row */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#444]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-faint"
                 width="13"
                 height="13"
                 viewBox="0 0 24 24"
@@ -346,12 +348,12 @@ function AdminOrdersPage() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitSearch()}
                 placeholder="Search by order ID, email or name…"
-                className="w-full bg-[#0d0d0d] border border-[#1e1e1e] rounded-lg pl-9 pr-9 py-2.5 text-[12px] text-[#ccc] placeholder-[#333] outline-none focus:border-[#2a2a2a] font-mono"
+                className="w-full h-11 bg-canvas border border-line rounded-full pl-10 pr-10 text-[13px] text-ink placeholder-ghost outline-none focus:border-pine focus:bg-white transition-colors"
               />
               {searchInput && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888]"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-faint hover:text-pine"
                 >
                   <svg
                     width="11"
@@ -370,7 +372,7 @@ function AdminOrdersPage() {
             </div>
             <button
               onClick={submitSearch}
-              className="shrink-0 bg-[#e8c46a] text-[#0a0a0a] rounded-lg px-5 py-2.5 text-[11px] font-bold font-mono tracking-[.1em] uppercase hover:bg-[#d4b05e] transition-colors cursor-pointer border-none"
+              className="shrink-0 h-11 bg-pine text-white rounded-full px-6 text-[13px] font-semibold hover:bg-pine-deep transition-colors cursor-pointer border-none"
             >
               Search
             </button>
@@ -381,13 +383,13 @@ function AdminOrdersPage() {
             <select
               value={days}
               onChange={(e) => handleDays(e.target.value)}
-              className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-lg px-3 py-2 text-[12px] text-[#888] outline-none cursor-pointer font-mono"
+              className="h-9 bg-white border border-line-strong rounded-full px-3.5 text-[12px] font-medium text-ink outline-none cursor-pointer hover:border-pine"
             >
               {DAYS_OPTIONS.map((o) => (
                 <option
                   key={o.value}
                   value={o.value}
-                  style={{ background: "#111" }}
+                  style={{ background: "#ffffff" }}
                 >
                   {o.label}
                 </option>
@@ -402,11 +404,11 @@ function AdminOrdersPage() {
                   <button
                     key={s}
                     onClick={() => handleStatus(s)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] tracking-[.08em] uppercase cursor-pointer border transition-all font-mono whitespace-nowrap
+                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer border transition-all whitespace-nowrap
                       ${
                         active
                           ? `${ss.text} ${ss.bg} ${ss.border}`
-                          : "text-[#fff] bg-transparent border-[#1e1e1e] hover:border-[#333] hover:text-[#777]"
+                          : "text-muted bg-transparent border-line hover:border-pine hover:text-pine"
                       }`}
                   >
                     {s}
@@ -418,15 +420,15 @@ function AdminOrdersPage() {
 
           {/* Active filter chips */}
           {(search || days) && (
-            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[#1a1a1a]">
+            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-line">
               {search && (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#e8c46a12] border border-[#e8c46a33] rounded-full text-[10px] text-[#e8c46a] font-mono">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-zest/35 border border-pine/25 rounded-full text-[11px] font-medium text-pine">
                   {search.length > 20
                     ? search.slice(0, 20) + "…"
                     : `"${search}"`}
                   <button
                     onClick={clearSearch}
-                    className="hover:text-white cursor-pointer"
+                    className="hover:text-pine-deep cursor-pointer"
                   >
                     <svg
                       width="9"
@@ -444,11 +446,11 @@ function AdminOrdersPage() {
                 </span>
               )}
               {days && (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#e8c46a12] border border-[#e8c46a33] rounded-full text-[10px] text-[#e8c46a] font-mono">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-zest/35 border border-pine/25 rounded-full text-[11px] font-medium text-pine">
                   {DAYS_OPTIONS.find((d) => d.value === days)?.label}
                   <button
                     onClick={() => handleDays("")}
-                    className="hover:text-white cursor-pointer"
+                    className="hover:text-pine-deep cursor-pointer"
                   >
                     <svg
                       width="9"
@@ -472,12 +474,14 @@ function AdminOrdersPage() {
 
       {/* Table / cards */}
       {loading ? (
-        <div className="py-16 text-center text-[#333] text-[13px] bg-[#111] border border-[#1a1a1a] rounded-xl">
+        <div className="py-16 flex flex-col items-center gap-3 text-faint text-[13px] bg-white border border-line rounded-3xl">
+          <div className="w-7 h-7 rounded-full border-[3px] border-mint border-t-pine animate-spin" />
           Loading orders…
         </div>
       ) : orders.length === 0 ? (
-        <div className="py-16 text-center bg-[#111] border border-[#1a1a1a] rounded-xl">
-          <div className="text-[#444] text-[13px] mb-2">No orders found</div>
+        <div className="py-16 text-center bg-white border border-line rounded-3xl">
+          <div className="text-3xl mb-2" aria-hidden>📭</div>
+          <div className="text-faint text-[13px] mb-2">No orders found</div>
           {(search || days || statusFilter !== "all") && (
             <button
               onClick={() => {
@@ -487,7 +491,7 @@ function AdminOrdersPage() {
                 setStatusFilter("all");
                 setPage(1);
               }}
-              className="text-[11px] text-[#fff] hover:text-[#888] underline underline-offset-2 font-mono bg-transparent border-none cursor-pointer"
+              className="text-[12px] font-semibold text-pine hover:text-pine-deep underline underline-offset-2 bg-transparent border-none cursor-pointer"
             >
               Clear all filters
             </button>
@@ -496,14 +500,14 @@ function AdminOrdersPage() {
       ) : (
         <>
           {/* ── Desktop table ── */}
-          <div className="hidden md:block bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden">
+          <div className="hidden md:block bg-white border border-line rounded-3xl overflow-hidden">
             <div className="overflow-x-auto">
               <table
                 className="w-full border-collapse"
                 style={{ minWidth: 700 }}
               >
                 <thead>
-                  <tr className="border-b border-[#1a1a1a]">
+                  <tr className="bg-sage">
                     {/* expand toggle col */}
                     <th className="w-10 px-4 py-3.5" />
                     {[
@@ -518,7 +522,7 @@ function AdminOrdersPage() {
                     ].map((h) => (
                       <th
                         key={h}
-                        className="px-4 py-3.5 text-left text-[10px] tracking-[.12em] text-[#3a3a3a] uppercase font-semibold whitespace-nowrap"
+                        className="px-4 py-3 text-left text-[11px] tracking-[.08em] text-faint uppercase font-semibold whitespace-nowrap"
                       >
                         {h}
                       </th>
@@ -534,11 +538,11 @@ function AdminOrdersPage() {
                       <>
                         <tr
                           key={order._id}
-                          className="border-b border-[#161616] hover:bg-[#141414] transition-colors cursor-pointer"
+                          className="border-b border-line hover:bg-[#fafcf9] transition-colors cursor-pointer"
                           onClick={() => toggleExpand(order._id)}
                         >
                           {/* chevron */}
-                          <td className="px-4 py-3.5 text-[#444]">
+                          <td className="px-4 py-3.5 text-faint">
                             <svg
                               width="12"
                               height="12"
@@ -557,10 +561,10 @@ function AdminOrdersPage() {
                               <polyline points="9 18 15 12 9 6" />
                             </svg>
                           </td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#444] font-mono">
+                          <td className="px-4 py-3.5 text-[12px] text-faint">
                             {idx + 1 + (page - 1) * 15}
                           </td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#666] whitespace-nowrap">
+                          <td className="px-4 py-3.5 text-[12px] text-faint whitespace-nowrap">
                             {new Date(order.createdAt).toLocaleDateString(
                               "en-GB",
                               {
@@ -576,7 +580,7 @@ function AdminOrdersPage() {
                           >
                             <Link
                               href={`/admin_console/orders/${order._id}`}
-                              className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline"
+                              className="text-[12px] font-semibold text-pine no-underline hover:underline"
                             >
                               Order #{String(order._id).slice(-8).toUpperCase()}
                             </Link>
@@ -588,18 +592,18 @@ function AdminOrdersPage() {
                             {order.email ? (
                               <a
                                 href={`mailto:${order.email}`}
-                                className="text-[12px] text-[#6ab4e8] no-underline hover:underline truncate block"
+                                className="text-[12px] text-[#1d6fb0] no-underline hover:underline truncate block"
                               >
                                 {order.email}
                               </a>
                             ) : (
-                              <span className="text-[12px] text-[#444]">—</span>
+                              <span className="text-[12px] text-faint">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-3.5 text-[12px] text-[#888]">
+                          <td className="px-4 py-3.5 text-[12px] text-muted">
                             {order.items?.length || 0}
                           </td>
-                          <td className="px-4 py-3.5 text-[13px] font-semibold text-[#e8e8e8] whitespace-nowrap">
+                          <td className="px-4 py-3.5 text-[13px] font-semibold text-ink whitespace-nowrap">
                             ₦{getTotal(order)}
                           </td>
                           <td
@@ -625,14 +629,14 @@ function AdminOrdersPage() {
                                 borderColor: ss.hex + "44",
                                 color: ss.hex,
                               }}
-                              className={`border rounded-lg px-2.5 py-1.5 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
+                              className={`border rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase cursor-pointer outline-none ${updating === order._id ? "opacity-50" : ""}`}
                             >
                               {ALL_ORDER_STATUSES.map((s) => (
                                 <option
                                   key={s}
                                   value={s}
                                   style={{
-                                    background: "#111",
+                                    background: "#ffffff",
                                     color: getStatusStyle(s.toLowerCase()).hex,
                                   }}
                                 >
@@ -647,7 +651,7 @@ function AdminOrdersPage() {
                           >
                             <Link
                               href={`/admin_console/orders/${order._id}`}
-                              className="text-[11px] text-[#fff] no-underline px-3 py-1.5 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#3a3a3a] transition-all whitespace-nowrap font-mono"
+                              className="text-[12px] font-semibold text-pine no-underline px-3.5 py-1.5 bg-mint rounded-full hover:bg-zest transition-colors whitespace-nowrap"
                             >
                               View details ↗
                             </Link>
@@ -658,16 +662,16 @@ function AdminOrdersPage() {
                         {isExp && order.items?.length > 0 && (
                           <tr
                             key={`${order._id}-exp`}
-                            className="border-b border-[#161616]"
+                            className="border-b border-line"
                           >
                             <td />
-                            <td colSpan={8} className="px-4 py-3 bg-[#0d0d0d]">
+                            <td colSpan={8} className="px-4 py-3 bg-[#fafcf9]">
                               <table
                                 className="w-full border-collapse"
                                 style={{ minWidth: 500 }}
                               >
                                 <thead>
-                                  <tr className="border-b border-[#1a1a1a]">
+                                  <tr className="border-b border-line">
                                     {[
                                       "SKU | ID",
                                       "Product",
@@ -679,7 +683,7 @@ function AdminOrdersPage() {
                                     ].map((h) => (
                                       <th
                                         key={h}
-                                        className="pb-2 pr-5 text-left text-[10px] tracking-[.1em] text-[#333] uppercase font-semibold whitespace-nowrap"
+                                        className="pb-2 pr-5 text-left text-[11px] tracking-[0.08em] text-faint uppercase font-semibold whitespace-nowrap"
                                       >
                                         {h}
                                       </th>
@@ -694,9 +698,9 @@ function AdminOrdersPage() {
                                     return (
                                       <tr
                                         key={i}
-                                        className="border-b border-[#161616] last:border-0"
+                                        className="border-b border-line last:border-0"
                                       >
-                                        <td className="pt-2.5 pr-5 text-[11px] text-[#444] font-mono whitespace-nowrap">
+                                        <td className="pt-2.5 pr-5 text-[11px] text-faint whitespace-nowrap">
                                           {item.sku || "—"}
                                         </td>
                                         <td className="pt-2.5 pr-5">
@@ -707,24 +711,24 @@ function AdminOrdersPage() {
                                                 alt=""
                                                 width={32}
                                                 height={32}
-                                                className="w-8 h-8 rounded object-cover bg-[#1a1a1a] shrink-0"
+                                                className="w-8 h-8 rounded-lg object-cover bg-sage shrink-0"
                                               />
                                             )}
-                                            <span className="text-[12px] text-[#ccc] truncate max-w-[160px]">
+                                            <span className="text-[12px] text-ink truncate max-w-[160px]">
                                               {item.name}
                                             </span>
                                           </div>
                                         </td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#fff] whitespace-nowrap">
+                                        <td className="pt-2.5 pr-5 text-[12px] text-ink whitespace-nowrap">
                                           {item.category || "—"}
                                         </td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888] whitespace-nowrap">
+                                        <td className="pt-2.5 pr-5 text-[12px] text-muted whitespace-nowrap">
                                           ₦
                                           {parseFloat(
                                             item.price,
                                           ).toLocaleString()}
                                         </td>
-                                        <td className="pt-2.5 pr-5 text-[12px] text-[#888]">
+                                        <td className="pt-2.5 pr-5 text-[12px] text-muted">
                                           {item.quantity}
                                         </td>
                                         <td className="pt-2.5 pr-5 whitespace-nowrap">
@@ -736,7 +740,7 @@ function AdminOrdersPage() {
                                           {item.productId && (
                                             <Link
                                               href={`/admin_console/products/${item.productId}`}
-                                              className="text-[10px] text-[#444] hover:text-[#888] no-underline font-mono border border-[#1e1e1e] rounded px-2 py-1 whitespace-nowrap hover:border-[#333] transition-all"
+                                              className="text-[11px] font-medium text-pine no-underline bg-white border border-line rounded-full px-2.5 py-1 whitespace-nowrap hover:border-pine transition-all"
                                             >
                                               View details ↗
                                             </Link>
@@ -767,41 +771,41 @@ function AdminOrdersPage() {
               return (
                 <div
                   key={order._id}
-                  className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden"
+                  className="bg-white border border-line rounded-3xl overflow-hidden"
                 >
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div>
                         <Link
                           href={`/admin_console/orders/${order._id}`}
-                          className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline"
+                          className="text-[12px] font-semibold text-pine no-underline hover:underline"
                         >
                           Order #{String(order._id).slice(-8).toUpperCase()}
                         </Link>
-                        <div className="text-[10px] text-[#444] mt-0.5 font-mono">
+                        <div className="text-[10px] text-faint mt-0.5">
                           {new Date(order.createdAt).toLocaleDateString(
                             "en-GB",
                             { day: "numeric", month: "short", year: "numeric" },
                           )}
                         </div>
                       </div>
-                      <span className="text-[15px] font-bold text-[#e8e8e8] shrink-0">
+                      <span className="text-[15px] font-bold text-ink shrink-0">
                         ₦{getTotal(order)}
                       </span>
                     </div>
 
                     {order.email && (
-                      <div className="text-[11px] text-[#6ab4e8] truncate mb-2">
+                      <div className="text-[11px] text-[#1d6fb0] truncate mb-2">
                         {order.email}
                       </div>
                     )}
 
-                    <div className="text-[11px] text-[#444] mb-3 font-mono">
+                    <div className="text-[11px] text-faint mb-3">
                       {order.items?.length || 0} item
                       {order.items?.length !== 1 ? "s" : ""}
                     </div>
 
-                    <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a]">
+                    <div className="flex items-center gap-2 pt-3 border-t border-line">
                       <select
                         value={
                           ALL_ORDER_STATUSES.find(
@@ -820,14 +824,14 @@ function AdminOrdersPage() {
                           borderColor: ss.hex + "44",
                           color: ss.hex,
                         }}
-                        className={`flex-1 min-w-0 border rounded-lg px-2.5 py-2 text-[11px] uppercase cursor-pointer outline-none font-mono ${updating === order._id ? "opacity-50" : ""}`}
+                        className={`flex-1 min-w-0 border rounded-full px-3 py-2 text-[11px] font-semibold uppercase cursor-pointer outline-none ${updating === order._id ? "opacity-50" : ""}`}
                       >
                         {ALL_ORDER_STATUSES.map((s) => (
                           <option
                             key={s}
                             value={s}
                             style={{
-                              background: "#111",
+                              background: "#ffffff",
                               color: getStatusStyle(s.toLowerCase()).hex,
                             }}
                           >
@@ -837,9 +841,9 @@ function AdminOrdersPage() {
                       </select>
                       <Link
                         href={`/admin_console/orders/${order._id}`}
-                        className="shrink-0 text-[11px] text-[#fff] no-underline px-3.5 py-2 border border-[#222] rounded-lg hover:text-[#e8e8e8] hover:border-[#444] transition-all font-mono"
+                        className="shrink-0 text-[12px] font-semibold text-pine no-underline px-4 py-2 bg-mint rounded-full hover:bg-zest transition-colors"
                       >
-                        VIEW →
+                        View →
                       </Link>
                     </div>
                   </div>
@@ -864,7 +868,7 @@ function AdminOrdersPage() {
 export default function Page() {
   return (
     <Suspense
-      fallback={<div className="text-[#333] p-10 text-[13px]">Loading…</div>}
+      fallback={<div className="text-ghost p-10 text-[13px]">Loading…</div>}
     >
       <AdminOrdersPage />
     </Suspense>
