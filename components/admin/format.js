@@ -27,6 +27,27 @@ export function timeAgo(date) {
   return new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
+// Phone numbers are stored without the leading 0 in places (e.g. 8012345678)
+export function localPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("234")) return "0" + digits.slice(3);
+  return digits.length === 10 ? "0" + digits : digits;
+}
+
+export function telLink(phone) {
+  const p = localPhone(phone);
+  return p ? `tel:${p}` : null;
+}
+
+// wa.me needs the international form: 0801… → 234801…
+export function whatsappLink(phone, text = "") {
+  const p = localPhone(phone);
+  if (!p) return null;
+  const intl = p.startsWith("0") ? "234" + p.slice(1) : p;
+  return `https://wa.me/${intl}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}
+
 export function initials(first, last, fallback = "?") {
   return ((first?.[0] || "") + (last?.[0] || "")).toUpperCase() || fallback.toUpperCase();
 }

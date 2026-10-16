@@ -34,6 +34,7 @@ export async function GET(req) {
     const limit  = parseInt(searchParams.get("limit")) || 20;
     const status = searchParams.get("status") || "";
     const search = (searchParams.get("search") || "").trim();
+    const source = searchParams.get("source") || "";
     const days   = parseInt(searchParams.get("days"))  || 0;
 
     const query = {};
@@ -43,6 +44,10 @@ export async function GET(req) {
       const normalizedStatus = normalizeStatusKey(status);
       query.status = { $regex: new RegExp(`^${normalizedStatus}$`, "i") };
     }
+
+    // Source filter - orders without a source are online orders
+    if (source === "manual") query.source = "manual";
+    else if (source === "online") query.source = { $ne: "manual" };
 
     // Days filter
     if (days > 0) {
