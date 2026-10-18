@@ -1,6 +1,11 @@
 // models/Order.js
 import mongoose from "mongoose";
 
+// Online checkout orders need delivery/contact details; manual (offline) sales don't
+function requiredIfOnline() {
+  return this.source !== "manual";
+}
+
 const orderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -9,12 +14,12 @@ const orderSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: requiredIfOnline,
   },
 
   address: {
     type: String,
-    required: true,
+    required: requiredIfOnline,
   },
 
   items: {
@@ -36,13 +41,13 @@ const orderSchema = new mongoose.Schema({
   },
 
   region: {
-    name: { type: String, required: true },
-    fee: { type: Number, required: true },
+    name: { type: String, required: requiredIfOnline },
+    fee: { type: Number, required: requiredIfOnline },
   },
 
   city: {
     type: String,
-    required: true,
+    required: requiredIfOnline,
   },
 
   orderNote: {
@@ -63,16 +68,16 @@ const orderSchema = new mongoose.Schema({
   deliveryType: {
     type: String,
     enum: ["Free", "Regular", "Express"],
-    required: true,
+    required: requiredIfOnline,
   },
 
   phone: {
     type: Number,
-    required: true,
+    required: requiredIfOnline,
   },
   paymentMethod: {
     type: String,
-    enum: ["paystack", "flutterwave"],
+    enum: ["paystack", "flutterwave", "cash", "transfer", "pos"],
     required: false,
   },
   paymentStatus: {
@@ -107,6 +112,17 @@ const orderSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  // "online" = storefront checkout, "manual" = entered by staff in the admin console
+  source: {
+    type: String,
+    enum: ["online", "manual"],
+    default: "online",
+  },
+  recordedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
   },
   followUpSent: {
     type: Boolean,
