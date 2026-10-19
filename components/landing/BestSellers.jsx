@@ -210,8 +210,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
                     <AddToCartButton
                       product={product.raw}
                       animated={false}
-                      style={theme?.ctaBg ? { backgroundColor: theme.ctaBg } : undefined}
-                      className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:!bg-black disabled:!bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
+                      className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
                       label={
                         <span className="flex items-center gap-2">
                           <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">

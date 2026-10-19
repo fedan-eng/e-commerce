@@ -14,8 +14,8 @@ function getBadge(p) {
   return null;
 }
 
-// cardBg / ctaBg: the category's image background and button colour (theme in lib/categories.js)
-export default function CategoryProductCard({ product, cardBg, ctaBg = "#004328" }) {
+// cardBg: the category's image background (theme.cardBg in lib/categories.js)
+export default function CategoryProductCard({ product, cardBg }) {
   const image = product.image || product.colors?.[0]?.images?.[0] || "/placeholder.png";
   const badge = getBadge(product);
   const href = `/products/${product._id}`;
@@ -68,8 +68,7 @@ export default function CategoryProductCard({ product, cardBg, ctaBg = "#004328"
             Add to Cart
           </span>
         }
-        style={{ backgroundColor: ctaBg }}
-        className="mt-3 flex w-full items-center justify-center rounded-full px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:opacity-85 disabled:cursor-not-allowed disabled:!bg-gray-400"
+        className="mt-3 flex w-full items-center justify-center rounded-full bg-[#004328] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
       />
     </div>
   );

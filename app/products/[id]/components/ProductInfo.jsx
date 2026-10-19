@@ -96,21 +96,21 @@ export default function ProductInfo({ product, selectedColor, onColorChange, onC
 
       <div className="mt-5 flex flex-wrap gap-3 sm:flex-nowrap">
         <QuantityStepper value={quantity} onChange={setQuantity} />
+        {inStock && (
+          <button
+            type="button"
+            onClick={() => onCheckout(quantity)}
+            className="order-last h-[52px] basis-full rounded-full border-2 border-forest px-8 text-[17px] font-medium text-forest transition-colors hover:bg-forest hover:text-white sm:order-none sm:basis-auto sm:flex-1"
+          >
+            Checkout now
+          </button>
+        )}
         <AddToCartButtonPDP
           product={product}
           selectedColor={selectedColor}
           quantity={quantity}
           className="flex-1 sm:flex-none sm:px-8"
         />
-        {inStock && (
-          <button
-            type="button"
-            onClick={() => onCheckout(quantity)}
-            className="h-[52px] basis-full rounded-full border-2 border-forest px-8 text-[17px] font-medium text-forest transition-colors hover:bg-forest hover:text-white sm:basis-auto sm:flex-1"
-          >
-            Checkout now
-          </button>
-        )}
       </div>
 
       <div className="mt-6">

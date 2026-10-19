@@ -10,7 +10,7 @@ import {
   Plug,
   Zap,
 } from "lucide-react";
-import { getCategoryByDbName, getSpecFields } from "@/lib/categories";
+import { getCategoryByDbName } from "@/lib/categories";
 
 export const DEFAULT_IMAGE_BG = "#cff6df";
 
@@ -90,27 +90,6 @@ export function getHighlights(product, max = 4) {
   const fromFeatures = (product.features || []).map((f) => ({ icon: CircleCheck, title: f, subtitle: "" }));
 
   return [...fromSpecs, ...fromTags, ...fromFeatures].slice(0, max);
-}
-
-// ─── Specifications table ─────────────────────────────────────────────────────
-
-function formatSpecValue(field, value) {
-  const labelFor = (id) => field.options?.find((o) => o.id === id)?.label || id;
-  if (Array.isArray(value)) return value.map(labelFor).join(", ");
-  if (field.kind === "number") return `${fmt(value)}${field.unit}`;
-  return labelFor(value);
-}
-
-export function getSpecRows(product) {
-  const specs = product.specs || {};
-  const rows = getSpecFields(product.category)
-    .filter((f) => specs[f.name] != null && specs[f.name] !== "" && specs[f.name]?.length !== 0)
-    .map((f) => ({ label: f.label, value: formatSpecValue(f, specs[f.name]) }));
-
-  const colours = (product.colors || []).map((c) => c.name).filter(Boolean);
-  if (colours.length) rows.push({ label: "Colours", value: colours.join(", ") });
-
-  return rows;
 }
 
 // ─── Reviews ──────────────────────────────────────────────────────────────────

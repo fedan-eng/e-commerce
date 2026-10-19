@@ -93,7 +93,6 @@ export default async function CategoryPage({ slug }) {
           title={category.reviewsTitle || `What customers say about our ${category.title}`}
           subtitle={`Real reviews from people using FIL ${category.title} every day.`}
           reviews={reviews}
-          theme={category.theme}
         />
       )}
       <CategoryFAQ category={category} />

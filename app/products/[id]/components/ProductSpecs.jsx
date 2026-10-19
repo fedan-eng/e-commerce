@@ -1,19 +1,6 @@
 import { Check } from "lucide-react";
 import { WHATSAPP_URL } from "@/lib/categories";
-import { Container, SectionHeading } from "./ui";
-
-function SpecTable({ rows }) {
-  return (
-    <dl className="mt-8 border-t-2 border-forest">
-      {rows.map(({ label, value }) => (
-        <div key={label} className="grid grid-cols-[minmax(0,46%)_1fr] gap-4 border-b border-line py-4 text-[15px] md:text-base">
-          <dt className="text-muted">{label}</dt>
-          <dd className="font-medium text-forest">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
+import ProductHighlights from "./ProductHighlights";
 
 function InTheBox({ items }) {
   return (
@@ -49,22 +36,19 @@ function getBoxItems(productName, boxContent) {
   return hasProduct ? listed : [{ item: productName, quantity: 1 }, ...listed];
 }
 
-export default function ProductSpecs({ productName, rows, boxContent = [] }) {
+// Sits under the gallery on desktop and after the buy box on mobile
+export default function ProductSpecs({ productName, highlights, boxContent = [] }) {
   const boxItems = getBoxItems(productName, boxContent);
 
   return (
-    <section className="py-14 md:py-20">
-      <Container className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_470px] lg:gap-20">
-        {rows.length > 0 && (
-          <div>
-            <SectionHeading title="Specifications" />
-            <SpecTable rows={rows} />
-          </div>
-        )}
-        <div className="lg:pt-0">
-          <InTheBox items={boxItems} />
+    <div className="flex flex-col gap-5">
+      {highlights.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-[22px] font-bold leading-tight tracking-tight text-forest">Specifications</h2>
+          <ProductHighlights highlights={highlights} />
         </div>
-      </Container>
-    </section>
+      )}
+      <InTheBox items={boxItems} />
+    </div>
   );
 }

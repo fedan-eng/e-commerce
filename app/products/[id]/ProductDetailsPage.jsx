@@ -6,11 +6,10 @@ import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
-import { getGalleryImages, getHighlights, getImageBg, getOverviewMedia, getSpecRows } from "./productUtils";
+import { getGalleryImages, getHighlights, getImageBg, getOverviewMedia } from "./productUtils";
 import { Container } from "./components/ui";
 import Breadcrumbs from "./components/Breadcrumbs";
 import ProductGallery from "./components/ProductGallery";
-import ProductHighlights from "./components/ProductHighlights";
 import ProductInfo from "./components/ProductInfo";
 import ServicesCard from "./components/ServicesCard";
 import DeliveryOptions from "./components/DeliveryOptions";
@@ -53,7 +52,6 @@ export default function ProductDetailsPage({ product }) {
   const galleryImages = useMemo(() => getGalleryImages(product, selectedColor), [product, selectedColor]);
   const highlights = useMemo(() => getHighlights(product), [product]);
   const overviewMedia = useMemo(() => getOverviewMedia(product), [product]);
-  const specRows = useMemo(() => getSpecRows(product), [product]);
   const imageBg = getImageBg(product);
 
   const openCheckout = (quantity) =>
@@ -82,9 +80,9 @@ export default function ProductDetailsPage({ product }) {
               onShare={() => setShareOpen(true)}
               onOpenImage={setLightboxSrc}
             />
-            {/* Highlights sit under the gallery on desktop, after the buy box on mobile */}
+            {/* Specs + In the box sit under the gallery on desktop, after the buy box on mobile */}
             <div className="hidden lg:block">
-              <ProductHighlights highlights={highlights} />
+              <ProductSpecs productName={product.name} highlights={highlights} boxContent={product.boxContent} />
             </div>
           </div>
 
@@ -96,16 +94,16 @@ export default function ProductDetailsPage({ product }) {
               onCheckout={openCheckout}
             />
             <div className="lg:hidden">
-              <ProductHighlights highlights={highlights} />
+              <ProductSpecs productName={product.name} highlights={highlights} boxContent={product.boxContent} />
             </div>
             <ServicesCard />
             <DeliveryOptions />
           </div>
         </div>
+        <div className="mt-14 border-t border-dashed border-line md:mt-20" />
       </Container>
 
       <ProductOverview productName={product.name} media={overviewMedia} onOpenImage={setLightboxSrc} />
-      <ProductSpecs productName={product.name} rows={specRows} boxContent={product.boxContent} />
       <ProductReviews product={product} user={user} />
       <RelatedProducts product={product} />
 
