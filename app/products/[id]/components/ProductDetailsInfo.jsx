@@ -118,11 +118,11 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
           product={product}
           selectedColor={selectedColor}
         />
-        <BuyNow
+        {/* <BuyNow
           className="flex-1 bg-white text-gray-900 font-medium py-3.5 px-6 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
           product={product}
           onBuyNow={onBuyNow}
-        />
+        /> */}
       </div>
 
       {/* Services & Benefits */}
