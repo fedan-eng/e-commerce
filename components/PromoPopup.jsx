@@ -6,9 +6,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronDown, Check, Copy } from "lucide-react";
-import { Playfair_Display } from "next/font/google";
+import { Instrument_Serif } from "next/font/google";
 
-const playfair = Playfair_Display({
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["italic"],
@@ -34,7 +34,7 @@ const COUNTRIES = [
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function TenOff({ className = "" }) {
-  return <span className={`${playfair.className} italic font-normal tracking-tight text-ink ${className}`}>10% Off</span>;
+  return <span className={`${instrumentSerif.className} italic font-normal tracking-[-0.047em] text-ink ${className}`}>10% Off</span>;
 }
 
 export default function PromoPopup() {
@@ -193,7 +193,7 @@ export default function PromoPopup() {
                   >
                     <h2 className="font-poppins text-forest">
                       <span className="block text-[26px] font-bold leading-none sm:text-[30px]">Want</span>
-                      <TenOff className="-mt-1 block text-[72px] leading-[1.05] sm:text-[88px]" />
+                      <TenOff className="-mt-1 block text-[84px] leading-none sm:text-[112px]" />
                       <span className="block pl-[22%] text-[22px] font-bold leading-tight sm:text-[26px]">Your First Order?</span>
                     </h2>
 
@@ -227,7 +227,7 @@ export default function PromoPopup() {
                   >
                     <h2 className="mb-5 flex items-baseline gap-2 font-poppins">
                       <span className="text-[26px] font-bold text-forest sm:text-[30px]">Claim</span>
-                      <TenOff className="text-[52px] leading-none sm:text-[60px]" />
+                      <TenOff className="text-[60px] leading-none sm:text-[76px]" />
                     </h2>
 
                     <input
