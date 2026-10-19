@@ -4,7 +4,7 @@ import Link from 'next/link';
 const Banner = () => {
   return (
     <section className="w-full bg-[#00E575] py-12 md:py-16 overflow-hidden">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-6 lg:px-8">
 
         {/* Headline */}
         <h2 className="text-[36px] sm:text-[48px] md:text-[56px] leading-[1.05] font-bold text-[#0A321B] tracking-tight mb-6 md:mb-8">
@@ -12,7 +12,7 @@ const Banner = () => {
         </h2>
 
         {/* Battery: shell + nub sit side by side, so nothing overflows the container */}
-        <div className="flex items-center w-[90%] mb-6 md:mb-8" aria-hidden="true">
+        <div className="flex items-center w-full mb-6 md:mb-8" aria-hidden="true">
           {/* Outlined shell */}
           <div className="flex-1 h-[44px] sm:h-[50px] md:h-[56px] rounded-full border-[3px] md:border-[4px] border-[#0A321B] p-[4px] md:p-[5px]">
             {/* Filled charge bar */}

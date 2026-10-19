@@ -96,6 +96,7 @@ const categories = [
     btnBg: 'bg-white/10',
     btnIcon: 'text-white',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Sockets.png',
+    bleed: 'full',
   },
   {
     id: 7,

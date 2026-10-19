@@ -175,7 +175,7 @@ export default function Creators() {
         {/* Header Section */}
         <div className="mb-10">
           <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold tracking-tight mb-2">
-            See FIL in action.
+            Your Faves Fave
           </h2>
           <p className="text-gray-300 text-[15px] sm:text-base max-w-2xl leading-relaxed mb-6">
             Demos, creator reviews and behind-the-scenes from our team.<br className="hidden sm:block"/>
