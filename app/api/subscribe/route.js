@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/mailer";
-import mailchimp from "@mailchimp/mailchimp_marketing";
-
-// Configure Mailchimp
-mailchimp.setConfig({
-  apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX,
-});
+import { subscribeContact } from "@/lib/brevo";
 
 export async function POST(req) {
   try {
-    const { email: rawEmail, phone: rawPhone, smsOptIn, source } = await req.json();
+    const { email: rawEmail, phone: rawPhone, smsOptIn } = await req.json();
     const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -24,39 +18,13 @@ export async function POST(req) {
     const phone =
       typeof rawPhone === "string" && /^\+\d{8,16}$/.test(rawPhone) ? rawPhone : null;
 
-    // Add subscriber to Mailchimp
-    try {
-      const member = {
-        email_address: email,
-        status: "subscribed",
-        tags: [
-          "website_signup",
-          ...(source === "promo_popup" ? ["promo_popup"] : []),
-          ...(phone && smsOptIn === true ? ["sms_opt_in"] : []),
-        ],
-      };
-      try {
-        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
-          ...member,
-          ...(phone ? { merge_fields: { PHONE: phone } } : {}),
-        });
-      } catch (err) {
-        // Audiences without a PHONE merge field reject it; still subscribe the email
-        if (!phone || err.status !== 400 || err.response?.body?.title === "Member Exists") throw err;
-        console.warn("Subscribe: retrying without PHONE merge field", err.response?.body?.detail);
-        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, member);
-      }
-    } catch (mailchimpError) {
-      if (
-        mailchimpError.status === 400 &&
-        mailchimpError.response?.body?.title === "Member Exists"
-      ) {
-        return NextResponse.json(
-          { message: "You're already subscribed!" },
-          { status: 400 }
-        );
-      }
-      throw mailchimpError;
+    // Add subscriber to the Brevo newsletter list
+    const { status } = await subscribeContact({ email, phone, smsOptIn: smsOptIn === true });
+    if (status === "exists") {
+      return NextResponse.json(
+        { message: "You're already subscribed!" },
+        { status: 400 }
+      );
     }
 
     const newsletterEmailHtml = `
