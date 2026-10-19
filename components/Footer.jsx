@@ -11,8 +11,6 @@ import { SOCIALS } from "@/lib/socials";
 const SOCIAL_ICONS = { TikTok: FaTiktok, Instagram: FaInstagram, Facebook: FaFacebookF };
 import FloatingActions from "@/components/FloatingActions";
 
-const sliderImages = ["/budgirl.png", "/budgirl.png", "/budgirl.png"];
-
 const Footer = () => {
   const pathname = usePathname();
 
@@ -27,17 +25,7 @@ const Footer = () => {
   const CART_SIZE = 110;
   const CART_MARGIN = 24;
 
-  // ✅ State & Refs
-  const [isOverlayOpen, setIsOverlayOpen] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem("fil_promo_seen");
-  });
-  
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  
-  // Cart FAB State
+  // ✅ Cart FAB State
   const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
   const [cartIsDragging, setCartIsDragging] = useState(false);
   const [cartPressed, setCartPressed] = useState(false);
@@ -50,9 +38,6 @@ const Footer = () => {
     startElemX: 0, startElemY: 180,
     dragged: false,
   });
-
-  const slideIntervalRef = useRef(null);
-  const autoOpenTimerRef = useRef(null);
 
   // Get Cart items
   const cartItems = useSelector((state) => state.cart?.items || []);
@@ -87,31 +72,6 @@ const Footer = () => {
     const interval = setInterval(checkMenuOpen, 100);
     return () => clearInterval(interval);
   }, []);
-
-  // ✅ Promo Overlay Logic
-  useEffect(() => {
-    if (pathname === "/" && !localStorage.getItem("fil_promo_seen")) {
-      autoOpenTimerRef.current = setTimeout(() => setIsOverlayOpen(true), 120000);
-    }
-    return () => clearTimeout(autoOpenTimerRef.current);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!isOverlayOpen) {
-      if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
-      return;
-    }
-    slideIntervalRef.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 3000);
-    return () => clearInterval(slideIntervalRef.current);
-  }, [isOverlayOpen]);
-
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && setIsOverlayOpen(false);
-    if (isOverlayOpen) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isOverlayOpen]);
 
   if (noNavigationMenu) return null;
 
@@ -161,32 +121,6 @@ const Footer = () => {
     doCartSnap(cartPos.x, cartPos.y);
   };
 
-  // ✅ Subscriber Handlers
-  const handleSubscribe = async () => {
-    if (!email.trim()) return alert("Enter a valid email");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      alert(data.message);
-      setEmail("");
-      closeOverlay();
-    } catch (error) {
-      alert("Failed to subscribe. Try again!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const closeOverlay = () => {
-    localStorage.setItem("fil_promo_seen", "true");
-    setIsOverlayOpen(false);
-  };
-
   return (
     <>
       <style>{`
@@ -231,37 +165,6 @@ const Footer = () => {
           line-height: 1.25; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.01em; position: relative; z-index: 4; margin-top: 1px;
         }
       `}</style>
-
-      {/* ✅ DISCOUNT OVERLAY POPUP */}
-      {isOverlayOpen && (
-        <div className="z-[1000] fixed inset-0 flex justify-center items-center">
-          <div className="absolute inset-0 bg-black opacity-70" onClick={closeOverlay} />
-          <div className="z-10 relative flex bg-white mx-2 p-2 rounded-md w-full max-w-[745px] h-[409px] overflow-hidden">
-            <button onClick={closeOverlay} className="top-6 right-6 absolute flex justify-center items-center rounded-full w-6 h-6 cursor-pointer">✕</button>
-            <div className="max-sm:hidden relative flex flex-col justify-center items-center bg-gray-100 min-w-[290px]">
-              <div className="relative p-2 rounded-md w-full h-full overflow-hidden">
-                <Image src={sliderImages[currentSlide]} alt={`slide-${currentSlide}`} fill className="object-center object-cover" />
-              </div>
-              <div className="bottom-2 left-1/2 absolute flex gap-2 mt-4 -translate-x-1/2">
-                {sliderImages.map((_, index) => (
-                  <button key={index} onClick={() => setCurrentSlide(index)} className={`transition-all duration-200 focus:outline-none ${index === currentSlide ? "bg-[#00E575] w-5 h-1 rounded-md" : "bg-[#fafafa] w-[10px] h-1 rounded-md"}`} />
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col justify-center p-6 w-full">
-              <h2 className="mb-2 font-oswald font-medium text-[32px]">First Order? Grab 10% OFF! 🎁</h2>
-              <p className="mb-6 text-[#3e3e3e] text-sm">Join today and enjoy exclusive offers delivered straight to your inbox! Use promo code <span className="font-medium">WELCOME10</span> to get <span className="font-medium"> 10% off</span> your first order.</p>
-              <div className="w-full">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your Email Address" className="bg-[#f7f7f7] p-3 rounded-md outline-0 w-full placeholder-text-[#3e3e3e] text-sm" />
-                <div className="mb-6 mt-2">
-                  <p className="text-[10px]">By entering your email, you consent to receiving weekly promotions and exclusive FIL emails. You can unsubscribe at any time.</p>
-                </div>
-                <button onClick={handleSubscribe} disabled={loading} className="block bg-[#00E575] text-[#0A321B] px-[18px] py-3 rounded-md w-full font-bold text-sm hover:bg-[#0A321B] hover:text-white transition-colors">{loading ? "Submitting..." : "GET 10% OFF"}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ✅ DRAGGABLE CART FAB */}
       {hasMounted && !isMobileMenuOpen && !shouldHideCartFab && (

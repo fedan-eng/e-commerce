@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PromoPopup from "@/components/PromoPopup";
 
 export default function ConditionalShell({ children }) {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export default function ConditionalShell({ children }) {
       {children}
        </div>
       <Footer />
+      <PromoPopup />
     </>
   );
 }

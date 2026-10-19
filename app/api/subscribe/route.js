@@ -10,22 +10,42 @@ mailchimp.setConfig({
 
 export async function POST(req) {
   try {
-    const { email } = await req.json();
+    const { email: rawEmail, phone: rawPhone, smsOptIn, source } = await req.json();
+    const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
 
-    if (!email) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
-        { message: "Email is required" },
+        { message: "Please enter a valid email address" },
         { status: 400 }
       );
     }
 
+    // Optional phone in E.164 form (e.g. +2348137678990), sent by the promo popup
+    const phone =
+      typeof rawPhone === "string" && /^\+\d{8,16}$/.test(rawPhone) ? rawPhone : null;
+
     // Add subscriber to Mailchimp
     try {
-      await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+      const member = {
         email_address: email,
         status: "subscribed",
-        tags: ["website_signup"],
-      });
+        tags: [
+          "website_signup",
+          ...(source === "promo_popup" ? ["promo_popup"] : []),
+          ...(phone && smsOptIn === true ? ["sms_opt_in"] : []),
+        ],
+      };
+      try {
+        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+          ...member,
+          ...(phone ? { merge_fields: { PHONE: phone } } : {}),
+        });
+      } catch (err) {
+        // Audiences without a PHONE merge field reject it; still subscribe the email
+        if (!phone || err.status !== 400 || err.response?.body?.title === "Member Exists") throw err;
+        console.warn("Subscribe: retrying without PHONE merge field", err.response?.body?.detail);
+        await mailchimp.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, member);
+      }
     } catch (mailchimpError) {
       if (
         mailchimpError.status === 400 &&
