@@ -81,7 +81,7 @@ export default async function CategoryPage({ slug }) {
       <CategoryHero category={category} />
       <TrustBar />
       {/* Same "What everyone's carrying" section as the homepage, scoped to this category */}
-      <BestSellers category={category.dbCategory} title={category.featuredTitle} />
+      <BestSellers category={category.dbCategory} title={category.featuredTitle} theme={category.theme} />
       {/* useSearchParams inside CategoryShop needs a Suspense boundary for static rendering */}
       <Suspense fallback={null}>
         <CategoryShop category={category} products={listProducts} />
@@ -93,6 +93,7 @@ export default async function CategoryPage({ slug }) {
           title={category.reviewsTitle || `What customers say about our ${category.title}`}
           subtitle={`Real reviews from people using FIL ${category.title} every day.`}
           reviews={reviews}
+          theme={category.theme}
         />
       )}
       <CategoryFAQ category={category} />

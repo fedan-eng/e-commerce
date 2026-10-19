@@ -75,7 +75,7 @@ const categories = [
   },
   {
     id: 5,
-    title: 'Fans',
+    title: 'Fans and Others',
     href: '/products/lifestyle',
     subtitle: 'Rechargeable cool for hot nights and no light.',
     bg: 'bg-[#B0DDFF]',
@@ -83,7 +83,7 @@ const categories = [
     textSub: 'text-[#004328]/70',
     btnBg: 'bg-white/50',
     btnIcon: 'text-black',
-    image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/bfaa0d7e92484ec783dc80fcb299da8f5a08211d.png',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Fans.png',
   },
   {
     id: 6,
@@ -95,9 +95,19 @@ const categories = [
     textSub: 'text-[#A5C3B2]',
     btnBg: 'bg-white/10',
     btnIcon: 'text-white',
-    image: 'https://pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev/products/d1b4692616e16fe21028d967cfa20bb6b85d07fc.png',
-    // Current asset's cable runs to the right. Switch to 'left' if you use the design's asset.
-    bleed: 'right',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Sockets.png',
+  },
+  {
+    id: 7,
+    title: 'Power Stations',
+    href: '/products/power-banks',
+    subtitle: 'Whole-home backup for the long outages.',
+    bg: 'bg-[#DCFF8A]',
+    textTitle: 'text-[#004328]',
+    textSub: 'text-[#004328]/70',
+    btnBg: 'bg-white/50',
+    btnIcon: 'text-black',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Storm.png',
   },
 ];
 
@@ -167,7 +177,7 @@ const NeedsPower = () => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-6">
           <div>
             <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#004328] tracking-tight">
-              What needs Power today?
+              Shop by Category
             </h2>
             <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
               Swipe through our categories and pick where to start.

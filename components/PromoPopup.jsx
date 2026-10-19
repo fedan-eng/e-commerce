@@ -158,7 +158,7 @@ export default function PromoPopup() {
             {/* Image panel */}
             <div className="relative h-[200px] bg-[#a6ecc8] md:h-auto md:min-h-[460px]">
               <Image
-                src="/promotion.png"
+                src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/promotion.png"
                 alt="Woman holding a FIL 30,000mAh power bank"
                 fill
                 priority

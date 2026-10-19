@@ -40,7 +40,9 @@ function mapProductToDisplay(product) {
 
 // Used on the homepage (all categories) and on the category pages,
 // where `category` is the stored Product.category value, e.g. "Power Bank".
-export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying" }) {
+// Category pages also pass `theme` (lib/categories.js): every card takes the category colour,
+// and the top product moves into the wide card on the right with the "In 50+ people's cart" tag.
+export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying", theme = null }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,24 +140,33 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
             {products.map((product, index) => {
-              const isFeatured = index === 0;
-              const bgColor = cardBackgrounds[index % cardBackgrounds.length];
+              // Only a 3-up row has room for a wide card; with fewer, every card stays narrow
+              const isFeatured = index === 0 && (!theme || products.length >= 3);
+              const showCartTag = theme && index === 0;
+              const bgColor = theme ? '' : cardBackgrounds[index % cardBackgrounds.length];
               const href = `/products/${product.slug || product._id}`;
 
               return (
                 <div
                   key={product._id}
-                  className={`${isFeatured ? 'lg:col-span-2' : 'lg:col-span-1'} flex flex-col min-w-0 group`}
+                  className={`${isFeatured ? 'lg:col-span-2' : 'lg:col-span-1'} ${isFeatured && theme ? 'lg:order-last' : ''} flex flex-col min-w-0 group`}
                 >
                   {/* Image card */}
                   <Link
                     href={href}
                     data-product-id={product._id}
                     className={`relative ${bgColor} rounded-[28px] overflow-hidden aspect-[4/3] md:aspect-auto md:h-[360px] mb-4 block`}
+                    style={theme ? { backgroundColor: theme.cardBg } : undefined}
                   >
                     {product.badge && (
                       <span className="absolute top-5 left-5 z-10 bg-white text-[#0A321B] px-3.5 py-1.5 text-[11px] font-bold rounded-full shadow-sm">
                         {product.badge}
+                      </span>
+                    )}
+
+                    {showCartTag && (
+                      <span className="absolute top-5 right-5 z-10 bg-white text-[#0A321B] px-3.5 py-1.5 text-[11px] font-bold rounded-full shadow-sm">
+                        In 50+ people’s cart
                       </span>
                     )}
 
@@ -199,7 +210,8 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
                     <AddToCartButton
                       product={product.raw}
                       animated={false}
-                      className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
+                      style={theme?.ctaBg ? { backgroundColor: theme.ctaBg } : undefined}
+                      className="mt-5 w-fit min-w-[230px] flex items-center justify-center bg-[#004328] hover:!bg-black disabled:!bg-gray-400 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-3 px-6 rounded-full transition-colors duration-200"
                       label={
                         <span className="flex items-center gap-2">
                           <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">

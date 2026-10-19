@@ -3,7 +3,8 @@ import { SOCIAL_URLS } from "@/lib/socials";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
 import BestSellers from "@/components/landing/BestSellers";
-import Reviews from "@/components/landing/Reviews";
+import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
+import Anniversary from "@/components/landing/Anniversary";
 import Creators from "@/components/landing/Creators";
 // import FeaturedBlog from "@/components/landing/FeaturedBlog";
 import Marquee from "@/components/landing/Marquee";
@@ -196,12 +197,13 @@ const page = () => {
       <Hero1 />
       <Marquee/>
       <Hero2 />
+      <Anniversary/>
       <NeedsPower/>
       <BestSellers/>
+      <WhatsAppReviews/>
       <VideoAnimation/>
       <Creators/>
       <MadeFor/>
-      <Reviews/>
       {/* <FeaturedBlog/> */}
       <Banner/>
     </div>

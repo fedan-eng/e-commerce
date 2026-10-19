@@ -20,8 +20,8 @@ function FilterCheckbox({ label, checked, onChange }) {
   );
 }
 
-function FilterGroup({ filter, draft, onToggle }) {
-  const [open, setOpen] = useState(true);
+function FilterGroup({ filter, draft, onToggle, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
   const values = draft[filter.key] || [];
 
   return (
@@ -81,8 +81,9 @@ export default function FilterSidebar({ filters, selected, onApply, applyLabel =
         </button>
       </div>
 
-      {filters.map((f) => (
-        <FilterGroup key={f.key} filter={f} draft={draft} onToggle={toggle} />
+      {/* First three groups start open; the rest stay shut until tapped */}
+      {filters.map((f, i) => (
+        <FilterGroup key={f.key} filter={f} draft={draft} onToggle={toggle} defaultOpen={i < 3} />
       ))}
 
       <div className="mt-6 flex gap-3">

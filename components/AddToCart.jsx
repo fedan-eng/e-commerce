@@ -10,7 +10,7 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
-const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart", animated = true }) => {
+const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart", animated = true, style }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null); // fly target
@@ -89,6 +89,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
         type="button"
         onClick={handleAddToCart}
         disabled={!isAvailable}
+        style={style}
         className={`cursor-pointer ${className}`}
       >
         {isAvailable ? label : "Out of Stock"}
@@ -109,6 +110,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
           ? { scale: [1, 1.05, 1], transition: { duration: 0.25 } }
           : {}
       }
+      style={style}
       className={`relative overflow-hidden cursor-pointer ${className}`}
     >
       {/* Shimmer */}

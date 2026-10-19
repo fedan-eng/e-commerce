@@ -50,12 +50,14 @@ const defaultReviews = [
 ];
 
 // Homepage: <Reviews /> uses the defaults below.
-// Category pages pass their own title/subtitle and real reviews:
+// Category pages pass their own title/subtitle, real reviews and their theme
+// (lib/categories.js) so the cards take the category colour:
 //   reviews = [{ id, text, author, city, product }]
 export default function Reviews({
   title = 'FIL fans have spoken.',
   subtitle = 'Real reviews from people using FIL every day.',
   reviews = defaultReviews,
+  theme = null,
 }) {
   const scrollRef = useRef(null);
 
@@ -121,7 +123,8 @@ export default function Reviews({
           {reviews.map((review, i) => (
             <div
               key={review.id}
-              className="flex-none w-[280px] sm:w-[320px] md:w-[340px] bg-white rounded-[28px] p-6 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300"
+              className={`flex-none w-[280px] sm:w-[320px] md:w-[340px] rounded-[28px] p-6 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300 ${theme ? 'border' : 'bg-white'}`}
+              style={theme ? { backgroundColor: theme.cardBg, borderColor: `${theme.chipBorder}40` } : undefined}
             >
               {/* Top: Colored Quote Badge */}
               <div>
@@ -136,7 +139,7 @@ export default function Reviews({
               </div>
 
               {/* Bottom: Customer Info & Product */}
-              <div className="pt-4 border-t border-gray-100">
+              <div className={`pt-4 border-t ${theme ? 'border-black/10' : 'border-gray-100'}`}>
                 <h3 className="text-[14px] font-bold text-[#0A321B]">
                   {review.author}{review.city && <>, <span className="font-normal text-gray-500">{review.city}</span></>}
                 </h3>
