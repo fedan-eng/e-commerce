@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Container, SectionHeading } from "./ui";
 
 // Bento rhythm on desktop (3 columns), repeating every 7 tiles:
@@ -22,13 +21,18 @@ function Tile({ item, wide, onOpenImage }) {
   }
 
   return (
-    <button type="button" onClick={() => onOpenImage(item.src)} aria-label="View full image" className={`${shape} group cursor-zoom-in`}>
-      <Image
+    <button
+      type="button"
+      onClick={() => onOpenImage(item.src)}
+      aria-label="View full image"
+      className={`${shape} group flex cursor-zoom-in items-center justify-center`}
+    >
+      {/* Natural size, centred — only scaled down when larger than the tile, never stretched or cropped */}
+      <img
         src={item.src}
         alt=""
-        fill
-        sizes={wide ? "(min-width: 1024px) 820px, 100vw" : "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"}
-        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        loading="lazy"
+        className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
       />
     </button>
   );
