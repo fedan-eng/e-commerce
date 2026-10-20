@@ -106,4 +106,7 @@ wishlist: {
   { timestamps: true }
 );
 
+// "In 50+ people's cart" counts (app/api/products/cart-counts)
+userSchema.index({ "cart.items._id": 1, "cart.updatedAt": -1 });
+
 export default mongoose.models.User || mongoose.model("User", userSchema);

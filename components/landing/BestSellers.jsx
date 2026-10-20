@@ -41,12 +41,27 @@ function mapProductToDisplay(product) {
 // Used on the homepage (all categories) and on the category pages,
 // where `category` is the stored Product.category value, e.g. "Power Bank".
 // Category pages also pass `theme` (lib/categories.js): every card takes the category colour,
-// and the top product moves into the wide card on the right with the "In 50+ people's cart" tag.
+// and the top product moves into the wide card on the right.
+// The top product gets an "In 50+ people's cart" tag when enough real carts hold it.
 export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying", theme = null }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cartTag, setCartTag] = useState(null); // e.g. "50+", for the top product
+
+  // Real count from signed-in carts; no tag when it's under 10 or the lookup fails
+  const loadCartTag = async (id) => {
+    setCartTag(null);
+    if (!id) return;
+    try {
+      const res = await fetch(`/api/products/cart-counts?ids=${id}`);
+      const { counts } = await res.json();
+      setCartTag(counts?.[id] || null);
+    } catch {
+      // decoration only
+    }
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,7 +80,9 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
         if (!res.ok) throw new Error('Failed to fetch products');
 
         const data = await res.json();
-        setProducts((data.products || []).map(mapProductToDisplay));
+        const list = (data.products || []).map(mapProductToDisplay);
+        setProducts(list);
+        loadCartTag(list[0]?._id);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
@@ -142,7 +159,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
             {products.map((product, index) => {
               // Only a 3-up row has room for a wide card; with fewer, every card stays narrow
               const isFeatured = index === 0 && (!theme || products.length >= 3);
-              const showCartTag = theme && index === 0;
+              const showCartTag = index === 0 && cartTag;
               const bgColor = theme ? '' : cardBackgrounds[index % cardBackgrounds.length];
               const href = `/products/${product.slug || product._id}`;
 
@@ -166,7 +183,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
 
                     {showCartTag && (
                       <span className="absolute top-5 right-5 z-10 bg-white text-[#0A321B] px-3.5 py-1.5 text-[11px] font-bold rounded-full shadow-sm">
-                        In 50+ people’s cart
+                        In {cartTag} people’s cart
                       </span>
                     )}
 
