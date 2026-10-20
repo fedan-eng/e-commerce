@@ -19,11 +19,13 @@ const Hero1 = () => {
       <div className="relative z-10 flex flex-col items-center text-center">
         
         <h1 className="text-white text-3xl sm:text-4xl md:text-4xl font-bold mb-2 tracking-wide">
-          Fall Savings Start Now
+          Providing Tools to Power your Story.
         </h1>
 
-        <p className="text-gray-200 text-sm sm:text-base mb-6 md:mb-8 font-medium">
-          Save up to 50% on select FIL favorites.
+        <p className="text-gray-200 text-sm sm:text-base mb-6 md:mb-8 font-medium max-w-[640px] leading-relaxed">
+          Nigeria’s first phone accessories company, built on over 30 years of industry experience.
+          <br className="hidden sm:inline" />{' '}
+          Power banks, earbuds and chargers for creators and everyday go-getters.
         </p>
 
         <a

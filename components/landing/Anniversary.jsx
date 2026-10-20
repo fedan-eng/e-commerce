@@ -9,12 +9,12 @@ const Anniversary = () => {
         <div className="relative rounded-[28px] bg-[#D4FBE4] px-6 py-10 sm:px-10 md:px-14 md:py-14">
 
           {/* Badge breaking out of the top-left corner */}
-          <div className="absolute -top-[52px] -left-1 w-[80px] h-[80px] sm:-top-[64px] sm:-left-[34px] sm:w-[104px] sm:h-[104px] drop-shadow-lg">
+          <div className="absolute -top-[64px] -left-1 w-[100px] h-[100px] sm:-top-[80px] sm:-left-[18px] sm:w-[128px] sm:h-[128px] lg:-top-[88px] lg:-left-[28px] lg:w-[144px] lg:h-[144px] drop-shadow-lg">
             <Image
               src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/30Badge.png"
               alt="30+ years of industry experience"
               fill
-              sizes="104px"
+              sizes="144px"
               className="object-contain"
             />
           </div>
