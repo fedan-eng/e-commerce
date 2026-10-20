@@ -32,7 +32,7 @@ const Banner = () => {
 
           <p className="text-[#0A321B] text-[14px] sm:text-[15px] leading-[1.45] font-bold max-w-[400px]">
             Find the power bank, earbuds or fan that fits your day.<br className="hidden sm:block" />
-            {' '}Pay when it arrives.
+            Pay when it arrives.
           </p>
 
           <div className="flex items-center gap-3">
