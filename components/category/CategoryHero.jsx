@@ -1,7 +1,8 @@
 // components/category/CategoryHero.jsx
 // Desktop: the title and intro sit on a solid left panel (category.heroBg), and the hero image
 // fills the right side, fading into that panel so the product art never runs under the text.
-// Mobile: the image is the whole background with a white wash behind the text.
+// Mobile: the phone-sized image (category.heroImageMobile) is the whole background,
+// with a white wash behind the text.
 import Image from "next/image";
 
 export default function CategoryHero({ category }) {
@@ -12,13 +13,26 @@ export default function CategoryHero({ category }) {
       className="relative isolate flex min-h-[300px] items-center overflow-hidden sm:min-h-[340px] lg:min-h-[400px]"
       style={{ backgroundColor: panel }}
     >
-      <div className="absolute inset-y-0 right-0 -z-20 w-full md:w-[55%] lg:w-[60%]">
+      {/* Phones */}
+      <div className="absolute inset-0 -z-20 md:hidden">
+        <Image
+          src={category.heroImageMobile || category.heroImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-right"
+        />
+      </div>
+
+      {/* Tablet and up */}
+      <div className="absolute inset-y-0 right-0 -z-20 hidden md:block md:w-[55%] lg:w-[60%]">
         <Image
           src={category.heroImage}
           alt=""
           fill
           priority
-          sizes="(min-width: 1024px) 60vw, (min-width: 768px) 55vw, 100vw"
+          sizes="(min-width: 1024px) 60vw, 55vw"
           className="object-cover object-right"
         />
         {/* Blends the image's left edge into the panel */}
