@@ -6,8 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeFromCart, updateQuantity, updateColor } from "@/store/features/cartSlice";
 import { EmptyCart } from "@/components/cart/CartParts";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
-import ProfileCompletionModal from "@/components/checkout/ProfileCompletionModal";
-import { markProfilePromptCompleted } from "@/components/ProfileCompletionChecker";
 import CartLineItem from "./components/CartLineItem";
 import OrderSummary from "./components/OrderSummary";
 import useCartColorOptions from "./useCartColorOptions";
@@ -30,11 +28,11 @@ function trackBeginCheckout(items, value) {
 export default function CartPage() {
   const dispatch = useDispatch();
   const items = useSelector((s) => s.cart.items);
-  const { isAuthenticated, needsProfileCompletion } = useSelector((s) => s.auth);
+  const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
   const colorsById = useCartColorOptions(items);
 
   const [mounted, setMounted] = useState(false); // cart lives in the browser; avoid a hydration flash
-  const [modal, setModal] = useState(null); // null | "profile" | "checkout"
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -52,8 +50,8 @@ export default function CartPage() {
 
   const startCheckout = () => {
     trackBeginCheckout(items, subTotal);
-    // New Google sign-ins add their details first, then carry on to checkout
-    setModal(isAuthenticated && needsProfileCompletion ? "profile" : "checkout");
+    // Checkout's own Contact and Delivery steps collect missing details and save them to the account
+    setCheckoutOpen(true);
   };
 
   if (!mounted) return null;
@@ -95,16 +93,7 @@ export default function CartPage() {
         </>
       )}
 
-      {modal === "profile" && (
-        <ProfileCompletionModal
-          onClose={() => setModal(null)}
-          onComplete={() => {
-            markProfilePromptCompleted();
-            setModal("checkout");
-          }}
-        />
-      )}
-      {modal === "checkout" && <CheckoutModal onClose={() => setModal(null)} />}
+      {checkoutOpen && <CheckoutModal onClose={() => setCheckoutOpen(false)} />}
     </div>
   );
 }
