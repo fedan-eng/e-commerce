@@ -12,9 +12,9 @@ import { formatAmount } from "@/lib/utils";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { ProductImage } from "@/components/ProductImage";
-import { CATEGORIES } from "@/lib/categories";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
-const categories = Object.values(CATEGORIES);
+const categories = STORE_CATEGORIES;
 
 const TOP_SUGGESTIONS = [
   { name: "FIL Bolt Pro 32,500 mAh Power Bank", href: "/products/691b041af0ddc5e1e75e1ed0" },

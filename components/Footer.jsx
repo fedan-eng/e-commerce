@@ -196,7 +196,8 @@ const Footer = () => {
               <Image src="/fillogo-white.webp" alt="Fil Store Logo" width={65} height={28} className="brightness-200 contrast-100" />
               <p className="text-white/80 text-[14px] leading-relaxed">
                 Everyday tech for real Nigerian days.<br />
-                Power banks, audio, chargers, cables, sockets and fans.
+                {/* Extensions hidden — no stock. Was: "Power banks, audio, chargers, cables, sockets and fans." */}
+                Power banks, audio, chargers, cables and fans.
               </p>
               <div className="flex items-center gap-5 mt-2">
                 {SOCIALS.map(({ name, url }) => {
@@ -220,7 +221,9 @@ const Footer = () => {
                 <li><Link href="/products?categories=Chargers" className="text-white/70 hover:text-white text-[14px] transition-colors">Charging</Link></li>
                 <li><Link href="/products?categories=Cables" className="text-white/70 hover:text-white text-[14px] transition-colors">Cables</Link></li>
                 <li><Link href="/products?categories=Lifestyle" className="text-white/70 hover:text-white text-[14px] transition-colors">Fans</Link></li>
+                {/* Extensions hidden — no stock
                 <li><Link href="/products?categories=Extensions" className="text-white/70 hover:text-white text-[14px] transition-colors">Sockets</Link></li>
+                */}
               </ul>
             </div>
 

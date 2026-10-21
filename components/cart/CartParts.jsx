@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus, Trash2, Check, Truck, ShoppingBag, ArrowRight } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
-import { CATEGORIES } from "@/lib/categories";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
 export function CartHeader({ totalItems, onClose }) {
   return (
@@ -169,7 +169,7 @@ export function EmptyCart({ onClose }) {
       <p className="mt-1 text-[13px] text-[#5B6B61]">Find something that keeps you powered.</p>
 
       <div className="mt-6 grid w-full grid-cols-2 gap-2">
-        {Object.values(CATEGORIES).map((c) => (
+        {STORE_CATEGORIES.map((c) => (
           <Link
             key={c.slug}
             href={`/products/${c.slug}`}

@@ -18,12 +18,12 @@ import { toggleCart }  from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import CartSidebar     from "@/components/cart/CartSidebar";
 import CartBottomSheet from "@/components/cart/CartBottomSheet";
-import { CATEGORIES } from "@/lib/categories";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
-const MOBILE_CATEGORIES = Object.values(CATEGORIES);
+const MOBILE_CATEGORIES = STORE_CATEGORIES;
 
 const NAV_LINKS = [
-  { label: "Best Selling", href: "/products?specials=isBestseller" },
+  { label: "Power Banks",  href: "/products/power-banks" },
   { label: "Contact us",   href: "/contact" },
   { label: "Blogs",        href: "/blog" },
 ];

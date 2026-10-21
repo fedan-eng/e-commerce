@@ -6,10 +6,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { STORE_CATEGORIES } from "@/lib/categories";
 import { useHoverMenu } from "@/hooks/useHoverMenu";
 
-const categories = Object.values(CATEGORIES);
+const categories = STORE_CATEGORIES;
 
 export default function ProductMenu() {
   const { open, bind } = useHoverMenu();

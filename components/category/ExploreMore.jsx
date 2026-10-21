@@ -2,10 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
 export default function ExploreMore({ currentSlug }) {
-  const others = Object.values(CATEGORIES).filter((c) => c.slug !== currentSlug);
+  const others = STORE_CATEGORIES.filter((c) => c.slug !== currentSlug);
 
   return (
     <section className="bg-[#F3F7F2] py-12 md:py-16">

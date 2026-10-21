@@ -31,7 +31,7 @@ export default async function sitemap() {
     { name: 'Wearables', url: 'Wearables' },
     { name: 'Chargers', url: 'Chargers' },
     { name: 'Lifestyle', url: 'Lifestyle' },
-    { name: 'Extensions', url: 'Extensions' }
+    // { name: 'Extensions', url: 'Extensions' } — hidden, no stock
   ];
 
   const categoryPages = categories.map((cat) => ({

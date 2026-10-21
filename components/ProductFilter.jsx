@@ -154,7 +154,7 @@ export default function ProductFilter() {
         title: "Categories",
         content: (
           <div className="mb-4">
-            {["Power Bank", "Wearables", "Chargers", "Lifestyle", "Extensions"].map((cat) => (
+            {["Power Bank", "Wearables", "Chargers", "Lifestyle" /* , "Extensions" — hidden, no stock */].map((cat) => (
               <label key={cat} className="flex items-center gap-2 py-2 text-xs cursor-pointer">
                 <input
                   type="checkbox"
