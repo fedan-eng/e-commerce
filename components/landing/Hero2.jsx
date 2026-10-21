@@ -29,7 +29,7 @@ const Hero2 = () => {
         </h1>
 
         <a
-          href="/products"
+          href="/products/691b18d96ab12366ceef60dc"
           className="bg-white hover:bg-gray-200 text-black font-semibold text-xs sm:text-sm py-2.5 px-7 rounded-full transition-all duration-300 shadow-lg hover:scale-105"
         >
           Shop Now

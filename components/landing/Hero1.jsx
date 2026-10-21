@@ -29,7 +29,7 @@ const Hero1 = () => {
         </p>
 
         <a
-          href="/products"
+          href="/products/power-banks"
           className="bg-[#2ab34a] hover:bg-[#23963e] text-white font-semibold py-2.5 px-8 rounded-full transition-colors duration-300 ease-in-out text-sm md:text-base shadow-lg"
         >
           Shop Now
