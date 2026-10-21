@@ -1,7 +1,7 @@
 //api/auth/me
 export const dynamic = "force-dynamic";
 import { connectDB } from "@/lib/db";
-import User from "@/models/User";
+import User, { PRIVATE_USER_FIELDS } from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -42,7 +42,13 @@ export async function GET(req) {
     const userId = decodedToken.id;
 
     // Fetch the user from the database using the ID
-    const user = await User.findById(userId).select("-password");
+    // Never send password hashes or reset/verification secrets to the browser
+    const doc = await User.findById(userId).select(PRIVATE_USER_FIELDS.replace("-password ", ""));
+    let user = null;
+    if (doc) {
+      const { password, ...rest } = doc.toObject();
+      user = { ...rest, hasPassword: Boolean(password) }; // Google-only accounts have none
+    }
 
     if (!user) {
       return new Response(JSON.stringify({ message: "User not found" }), {

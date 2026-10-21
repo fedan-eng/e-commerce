@@ -27,6 +27,11 @@ export async function PUT(req) {
         status: 400,
       });
     }
+    if (String(newPassword).length < 8) {
+      return new Response(JSON.stringify({ message: "Your new password needs at least 8 characters" }), {
+        status: 400,
+      });
+    }
 
     // 🔑 Authenticate user
     const userId = await authenticate(req);
@@ -35,6 +40,13 @@ export async function PUT(req) {
       return new Response(JSON.stringify({ message: "User not found" }), {
         status: 404,
       });
+    }
+
+    if (!user.password) {
+      return new Response(
+        JSON.stringify({ message: "You sign in with Google. Use \"Forgot password\" to add a password." }),
+        { status: 400 }
+      );
     }
 
     // ❌ Check if current password matches
@@ -49,6 +61,7 @@ export async function PUT(req) {
     // 🔒 Hash and update password
     const hashedPassword = bcrypt.hashSync(newPassword, 10);
     user.password = hashedPassword;
+    user.passwordIsGenerated = false;
     await user.save();
 
     const emailHtml = `

@@ -1,90 +1,60 @@
 "use client";
+// components/VerifyEmailContent.jsx — where the "Verify my email" link lands. The API verifies
+// the token, signs the shopper in and redirects; we then load that page fresh.
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Loading from "@/components/Loading";
-import ImageSlider from "@/components/ImageSlider"; 
-import { FaArrowLeft } from "react-icons/fa";
-import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import AuthShell from "@/components/auth/AuthShell";
 
 const VerifyEmailContent = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState("loading");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      const token = searchParams.get("token");
-      const callback = searchParams.get("callback");
+    const token = searchParams.get("token");
+    const callback = searchParams.get("callback");
+    if (!token) {
+      setError("This link is missing its verification code.");
+      return;
+    }
 
-      if (!token) {
-        setStatus("error");
-        setMessage("No verification token found in URL.");
-        return;
-      }
+    const apiUrl = `/api/auth/verify-email?token=${encodeURIComponent(token)}${
+      callback ? `&callback=${encodeURIComponent(callback)}` : ""
+    }`;
 
-      try {
-        const apiUrl = callback 
-          ? `/api/auth/verify-email?token=${token}&callback=${encodeURIComponent(callback)}`
-          : `/api/auth/verify-email?token=${token}`;
-        
-        const response = await fetch(apiUrl);
-        
+    fetch(apiUrl)
+      .then((response) => {
         if (response.redirected) {
-          // The API handles redirects. On success it has just signed them in, so load the
-          // page fresh to pick up the new session.
+          // On success the API has just signed them in, so load the page fresh to pick up the session
           const redirectUrl = new URL(response.url);
           window.location.replace(redirectUrl.pathname + redirectUrl.search);
           return;
         }
+        setError("We couldn't verify your email. Please try again.");
+      })
+      .catch(() => setError("Something went wrong. Please try again."));
+  }, [searchParams]);
 
-        setStatus("error");
-        setMessage("Verification failed. Please try again.");
-      } catch (error) {
-        setStatus("error");
-        setMessage("An error occurred. Please try again.");
-      }
-    };
-
-    verifyEmail();
-  }, [searchParams, router]);
+  if (error) {
+    return (
+      <AuthShell eyebrow="Verify email" title="That didn't work" subtitle={error}>
+        <Link
+          href="/login"
+          className="flex h-[52px] w-full items-center justify-center rounded-full bg-forest text-[15px] font-semibold text-white transition-colors hover:bg-black"
+        >
+          Sign in with an email code
+        </Link>
+      </AuthShell>
+    );
+  }
 
   return (
-    <div className="relative flex justify-between max-lg:justify-center items-center h-screen overflow-hidden b">
-      <div className="max-lg:hidden flex justify-center bg-white">
-        <ImageSlider />
+    <AuthShell eyebrow="Verify email" title="Verifying your email…" subtitle="Hang on a second, we're signing you in.">
+      <div className="flex justify-center py-6 text-forest">
+        <Loader2 size={32} className="animate-spin" />
       </div>
-
-      <div className="flex flex-col justify-center bg-[#fafafa] lg:ml-3 px-4 md:px-10 py-4 sm:py-10 max-lg:rounded-md w-[90%] sm:w-[80%] md:w-[70%] lg:w-full lg:max-w-[448px] lg:min-h-screen">
-        <div className="flex items-center gap-1 mb-6">
-          <FaArrowLeft onClick={() => router.push("/login")} className="cursor-pointer" />
-          <p className="font-medium text-sm cursor-pointer" onClick={() => router.push("/login")}>Back to Login</p>
-        </div>
-
-        <div className="flex gap-6 mb-3">
-          <h2 className="py-2 border-filgreen border-b-[2px] font-oswald font-medium text-filgreen text-xl sm:text-3xl">
-            Verifying Email
-          </h2>
-        </div>
-
-        {status === "loading" && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loading />
-            <p className="mt-4 text-sm text-[#666]">Verifying your email...</p>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <p className="text-sm text-red-700">{message}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="max-lg:hidden mt-[300px]">
-        <Image src="/head.svg" alt="" width={145} height={125} />
-      </div>
-    </div>
+    </AuthShell>
   );
 };
 

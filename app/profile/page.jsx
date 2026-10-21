@@ -1,122 +1,136 @@
 "use client";
-
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-
-import ProfileForm from "@/components/ProfileForm";
-import ChangePasswordForm from "@/components/ChangePasswordForm";
-import OrderSheet from "@/components/OrderSheet";
-import Wishlist from "@/components/Wishlist";
-
-import { MdOutlineManageAccounts } from "react-icons/md";
-import { GoShieldLock } from "react-icons/go";
-import { AiOutlineShop } from "react-icons/ai";
-import { CiHeart } from "react-icons/ci";
-import { IoIosArrowForward } from "react-icons/io";
-import { useSelector } from "react-redux";
+// app/profile/page.jsx — the account area: details, orders, wishlist and password.
+// The tab lives in ?tab= so links like /profile?tab=My%20Orders open the right one.
+import { Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSelector } from "react-redux";
+import { Heart, Lock, LogOut, Package, UserRound } from "lucide-react";
+import Loading from "@/components/Loading";
+import LogoutButton from "@/components/LogoutButton";
+import DetailsForm from "@/components/profile/DetailsForm";
+import PasswordForm from "@/components/profile/PasswordForm";
+import OrdersTab from "@/components/profile/orders/OrdersTab";
+import WishlistTab from "@/components/profile/WishlistTab";
 
-const links = [
-  { name: "General Information", icon: <MdOutlineManageAccounts size={24} /> },
-  { name: "Change Password", icon: <GoShieldLock size={24} /> },
-  { name: "My Orders", icon: <AiOutlineShop size={24} /> },
-  { name: "Wishlist", icon: <CiHeart size={24} /> },
+// Keys match the ?tab= values the navbar and profile menu already link to
+const TABS = [
+  { key: "General Information", label: "My details", icon: UserRound, Content: DetailsForm },
+  { key: "My Orders", label: "My orders", icon: Package, Content: OrdersTab },
+  { key: "Wishlist", label: "Wishlist", icon: Heart, Content: WishlistTab },
+  { key: "Change Password", label: "Password", icon: Lock, Content: PasswordForm },
 ];
 
-
-// Small child component that uses useSearchParams
 function ProfileContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const user = useSelector((s) => s.auth.user);
+  const wishlistCount = useSelector((s) => s.wishlist.items.length);
 
-  const tab = searchParams.get("tab") || "General Information";
+  const active = TABS.find((t) => t.key === searchParams.get("tab")) || TABS[0];
+  const { Content } = active;
+  const initial = (user?.firstName?.[0] || user?.email?.[0] || "F").toUpperCase();
 
-  const [activeLink, setActiveLink] = useState(tab);
-
-  useEffect(() => {
-    setActiveLink(tab);
-  }, [tab]);
-
-  const renderContent = () => {
-    switch (activeLink) {
-      case "General Information":
-        return <ProfileForm />;
-      case "Change Password":
-        return <ChangePasswordForm />;
-      case "My Orders":
-        return <OrderSheet />;
-      case "Wishlist":
-        return <Wishlist />;
-      default:
-        return <ProfileForm />;
-    }
-  };
+  const select = (key) => router.replace(`/profile?tab=${encodeURIComponent(key)}`, { scroll: false });
 
   return (
-    <div className="mx-auto mt-4 w-full max-w-[1140px]">
-      <h3 className="md:hidden mb-3 font-oswald font-medium text-4xl text-center">
-        My Profile
-      </h3>
-      <div className="flex justify-center gap-2 side:gap-4 mx-2">
-        <div>
-          <h3 className="max-md:hidden mb-[18px] font-oswald font-medium text-4xl">
-            My Profile
-          </h3>
-          <div className="max-md:hidden bg-[#fafafa] p-1 xxs:p-2 sm:p-4 rounded-md w-fit md:w-[230px] lg:w-[273px] :">
-            {links.map((link) => (
-              <div
-                key={link.name}
-                className={`flex cursor-pointer items-center gap-2 py-2 rounded-md transition-colors ${
-                  activeLink === link.name
-                    ? "text-filgreen"
-                    : "hover:text-filgreen"
-                }`}
-                onClick={() => setActiveLink(link.name)}
-              >
-                <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-2">
-                    <span>{link.icon}</span>
-                    <span className="max-md:hidden text-sm">{link.name}</span>
-                  </div>
-                  <span className="max-md:hidden">
-                    <IoIosArrowForward />
-                  </span>
-                </div>
-              </div>
-            ))}
+    <main className="font-roboto">
+      <div className="mx-auto w-full max-w-[1280px] px-4 pb-20 pt-8 sm:px-6 md:pt-12">
+        {/* ── Header ── */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-forest text-xl font-bold text-white">
+              {initial}
+            </span>
+            <div className="min-w-0">
+              <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
+                My account
+              </span>
+              <h1 className="mt-1.5 text-[26px] font-bold leading-tight tracking-tight text-forest md:text-[34px]">
+                Hi, {user?.firstName || "there"}
+              </h1>
+              <p className="break-all text-sm text-muted">{user?.email}</p>
+            </div>
           </div>
+          <LogoutButton className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-forest transition-colors hover:border-filred hover:bg-[#fde8e8] hover:text-filred">
+            <LogOut size={16} /> Log out
+          </LogoutButton>
         </div>
 
-        {/* The content rendering area */}
-        <div className="flex-1">
-          {renderContent()}
+        <div className="mt-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10">
+          {/* ── Tabs: a scrolling row on mobile, a list on desktop ── */}
+          <nav aria-label="Account" className="-mx-4 overflow-x-auto px-4 lg:sticky lg:top-24 lg:mx-0 lg:overflow-visible lg:px-0">
+            <ul className="flex gap-2 lg:flex-col lg:gap-1 lg:rounded-[24px] lg:bg-sage lg:p-2">
+              {TABS.map(({ key, label, icon: Icon }) => {
+                const isActive = key === active.key;
+                return (
+                  <li key={key} className="shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => select(key)}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex w-full items-center gap-3 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors lg:rounded-2xl lg:py-3 ${
+                        isActive ? "bg-forest text-white" : "bg-sage text-forest hover:bg-mint lg:bg-transparent lg:hover:bg-white"
+                      }`}
+                    >
+                      <Icon size={17} />
+                      {label}
+                      {key === "Wishlist" && wishlistCount > 0 && (
+                        <span
+                          className={`ml-auto rounded-full px-2 text-xs ${isActive ? "bg-white/20 text-white" : "bg-white text-forest"}`}
+                        >
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
 
-          <div className="hidden bottom-4 left-1/2 z-50 max-md:fixed max-md:flex justify-center items-center gap-4 bg-[#bebcbc] shadow-lg p-2 py-4 rounded-md w-fit -translate-x-1/2 transform">
-            {links.map((link) => (
-              <div
-                key={link.name}
-                className={`cursor-pointer flex items-center gap-2 rounded-md transition-colors ${
-                  activeLink === link.name
-                    ? "text-filgreen"
-                    : "hover:text-filgreen"
-                }`}
-                onClick={() => setActiveLink(link.name)}
-              >
-                <span>{link.icon}</span>
-              </div>
-            ))}
+          <div className="min-w-0">
+            <Content />
           </div>
         </div>
       </div>
-    </div>
+    </main>
+  );
+}
+
+function SignedOut() {
+  return (
+    <main className="flex min-h-[60vh] items-center justify-center px-4 py-12 font-roboto">
+      <div className="w-full max-w-md rounded-[28px] bg-sage p-8 text-center">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-forest">
+          <UserRound size={24} />
+        </span>
+        <h1 className="mt-5 text-[26px] font-bold tracking-tight text-forest">Your FIL account</h1>
+        <p className="mt-2 text-[15px] text-muted">Sign in to see your orders, saved items and details.</p>
+        <div className="mt-7 flex flex-col gap-3">
+          <Link
+            href="/login?callbackUrl=/profile"
+            className="flex h-12 items-center justify-center rounded-full bg-forest text-[15px] font-semibold text-white transition-colors hover:bg-black"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/register?callbackUrl=/profile"
+            className="flex h-12 items-center justify-center rounded-full border border-line bg-white text-[15px] font-semibold text-forest transition-colors hover:border-forest"
+          >
+            Create an account
+          </Link>
+        </div>
+      </div>
+    </main>
   );
 }
 
 export default function ProfilePage() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, authChecked } = useSelector((s) => s.auth);
 
-  return (
-    <Suspense fallback={<div>Loading profile...</div>}>
-      {isAuthenticated ? <ProfileContent /> : <div className="h-120 flex flex-row justify-center items-center" ><Link className=" bg-filgreen px-5 py-3 text-white  text-2xl rounded-md hover:bg-filgreen/80 font-oswald " href="/login">Login to view profile</Link></div>}
-    </Suspense>
-  );
+  // Wait for the first account check so signed-in shoppers don't see "Sign in" flash
+  if (!authChecked && !isAuthenticated) return <Loading />;
+
+  return <Suspense fallback={<Loading />}>{isAuthenticated ? <ProfileContent /> : <SignedOut />}</Suspense>;
 }

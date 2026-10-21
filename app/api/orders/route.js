@@ -21,9 +21,15 @@ export async function GET(req) {
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
 
-    const orders = await Order.find({ userId: user.id }).sort({
-      createdAt: -1,
-    });
+    if (!user?.id) {
+      return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+    }
+
+    // Their account's orders, plus any placed as a guest with the same (verified) email
+    const owner = user.email ? { $or: [{ userId: user.id }, { email: user.email }] } : { userId: user.id };
+    const orders = await Order.find(owner)
+      .collation({ locale: "en", strength: 2 })
+      .sort({ createdAt: -1 });
 
     // Flatten and group items
     const allItems = [];

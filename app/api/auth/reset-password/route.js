@@ -258,6 +258,7 @@ export async function PATCH(req) {
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
   user.password = hashedPassword;
+  user.passwordIsGenerated = false;
   user.resetPasswordCode = undefined;
   user.resetPasswordExpiry = undefined;
   user.resetPasswordToken = undefined;
@@ -406,6 +407,7 @@ export async function PUT(req) {
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
   user.password = hashedPassword;
+  user.passwordIsGenerated = false;
   user.resetPasswordCode = undefined;
   user.resetPasswordExpiry = undefined;
   user.resetPasswordToken = undefined;

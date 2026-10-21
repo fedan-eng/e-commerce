@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ChevronDown, Mail } from "lucide-react";
 import toast from "react-hot-toast";
-import { fetchUser } from "@/store/features/authSlice";
+import CodeForm from "@/components/auth/CodeForm";
 import { Instrument_Serif } from "next/font/google";
 
 const instrumentSerif = Instrument_Serif({
@@ -22,7 +22,7 @@ const SEEN_KEY = "fil_promo_seen";
 const OPEN_DELAY_MS = 5000;
 
 // Pages where a popup would get in the way of finishing a task
-const HIDDEN_PATHS = ["/cart", "/checkout", "/login", "/register", "/verify", "/reset-password", "/review", "/verify-email"];
+const HIDDEN_PATHS = ["/cart", "/checkout", "/login", "/register", "/reset-password", "/review", "/verify-email"];
 
 const COUNTRIES = [
   { code: "NG", dial: "+234", flag: "🇳🇬" },
@@ -41,22 +41,17 @@ function TenOff({ className = "" }) {
 
 export default function PromoPopup() {
   const pathname = usePathname();
-  const dispatch = useDispatch();
   const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
-  const cartItems = useSelector((s) => s.cart.items);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState("ask"); // ask → form → code
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState(COUNTRIES[0]);
   const [phone, setPhone] = useState("");
   const [smsOptIn, setSmsOptIn] = useState(false);
-  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [hasAccount, setHasAccount] = useState(false);
   const emailRef = useRef(null);
-  const codeRef = useRef(null);
 
   // Signed-in shoppers already have an account, so there's nothing to sign up for
   const hidden = isAuthenticated || HIDDEN_PATHS.some((p) => pathname.startsWith(p));
@@ -86,7 +81,6 @@ export default function PromoPopup() {
 
   useEffect(() => {
     if (step === "form") emailRef.current?.focus();
-    if (step === "code") codeRef.current?.focus();
   }, [step]);
 
   const close = () => {
@@ -135,59 +129,7 @@ export default function PromoPopup() {
       try {
         localStorage.setItem(SEEN_KEY, "true");
       } catch {}
-      setCode("");
       setStep("code");
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setError("");
-    setResending(true);
-    try {
-      const { ok, data } = await requestCode();
-      if (ok) toast.success("New code sent. Check your email.");
-      else setError(data.message || "Couldn't send a new code. Try again!");
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setResending(false);
-    }
-  };
-
-  // Right code → signed in, the WELCOME10 email is sent, and the profile prompt takes over
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (!/^\d{6}$/.test(code)) return setError("Enter the 6-digit code from your email.");
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), code }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.message || "Something went wrong. Try again!");
-        return;
-      }
-
-      // Keep what's in their cart, the same as signing in does
-      if (cartItems.length > 0) {
-        await fetch("/api/cart/merge", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ visitorCart: cartItems }),
-        }).catch(() => {});
-      }
-      await dispatch(fetchUser());
-      setOpen(false);
-      toast.success("You're signed in! Your WELCOME10 code is on its way to your inbox.", { duration: 6000 });
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -375,10 +317,8 @@ export default function PromoPopup() {
                 )}
 
                 {step === "code" && (
-                  <motion.form
+                  <motion.div
                     key="code"
-                    onSubmit={handleVerify}
-                    noValidate
                     className="flex flex-1 flex-col justify-center"
                     initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -389,61 +329,25 @@ export default function PromoPopup() {
                       <Mail size={22} />
                     </span>
                     <h2 className="mt-4 font-poppins text-[28px] font-bold leading-tight text-forest">Check your inbox!</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">
+                    <p className="mb-5 mt-2 text-sm leading-relaxed text-muted">
                       We&apos;ve created your FIL account and sent a 6-digit code to{" "}
                       <strong className="break-all text-ink">{email.trim()}</strong>. Enter it to get your{" "}
                       <strong className="text-ink">10% off</strong> code.
                     </p>
-
-                    <input
-                      ref={codeRef}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="000000"
-                      aria-label="6-digit code"
-                      className="mt-5 h-14 w-full rounded-xl border border-line px-4 text-center font-mono text-2xl tracking-[0.5em] text-ink outline-none transition-colors placeholder:text-faint/60 focus:border-forest"
+                    <CodeForm
+                      email={email.trim()}
+                      requestCode={requestCode}
+                      submitLabel="Verify & sign in"
+                      onChangeEmail={() => {
+                        setError("");
+                        setStep("form");
+                      }}
+                      onVerified={() => {
+                        setOpen(false);
+                        toast.success("You're signed in! Your WELCOME10 code is on its way to your inbox.", { duration: 6000 });
+                      }}
                     />
-
-                    {error && (
-                      <p role="alert" className="mt-3 text-[13px] font-medium text-filred">
-                        {error}
-                      </p>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="mt-5 h-12 w-full rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-70"
-                    >
-                      {loading ? "Verifying…" : "Verify & sign in"}
-                    </button>
-                    <p className="mt-4 text-center text-[13px] text-muted">
-                      Didn&apos;t get it? Check spam, or{" "}
-                      <button
-                        type="button"
-                        onClick={handleResend}
-                        disabled={resending}
-                        className="font-semibold text-forest underline underline-offset-2 disabled:opacity-60"
-                      >
-                        {resending ? "sending…" : "resend the code"}
-                      </button>
-                      {" · "}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setError("");
-                          setStep("form");
-                        }}
-                        className="font-semibold text-forest underline underline-offset-2"
-                      >
-                        change email
-                      </button>
-                    </p>
-                  </motion.form>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>

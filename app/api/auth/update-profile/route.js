@@ -1,6 +1,6 @@
 //api/auth/update-profile
 import { connectDB } from "@/lib/db";
-import User from "@/models/User";
+import User, { PRIVATE_USER_FIELDS } from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 import { parse } from "cookie";
 
@@ -37,9 +37,7 @@ export async function PUT(req) {
   const body = await req.json().catch(() => ({}));
   const updates = pickEditable(body || {});
 
-  const user = await User.findByIdAndUpdate(userData.id, { $set: updates }, { new: true }).select(
-    "-password"
-  );
+  const user = await User.findByIdAndUpdate(userData.id, { $set: updates }, { new: true }).select(PRIVATE_USER_FIELDS);
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,

@@ -85,6 +85,7 @@ const initialState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  authChecked: false, // true once the first /api/auth/me answer is in
   error: null,
   updateMessage: null,
   needsProfileCompletion: false,
@@ -114,12 +115,14 @@ const authSlice = createSlice({
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.authChecked = true;
         state.user = action.payload;
         state.isAuthenticated = true; // only reaches here if user is real
         state.needsProfileCompletion = !hasCompleteProfile(action.payload);
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.isLoading = false;
+        state.authChecked = true;
         state.user = null;
         state.isAuthenticated = false;
         state.error = action.payload;

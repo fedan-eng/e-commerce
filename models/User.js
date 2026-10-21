@@ -115,4 +115,9 @@ wishlist: {
 // "In 50+ people's cart" counts (app/api/products/cart-counts)
 userSchema.index({ "cart.items._id": 1, "cart.updatedAt": -1 });
 
+// Never sent to the browser (see /api/auth/me and /api/auth/update-profile)
+export const PRIVATE_USER_FIELDS =
+  "-password -verificationToken -verificationTokenExpiry -verificationCode -verificationCodeExpiry " +
+  "-verificationCodeAttempts -resetPasswordCode -resetPasswordExpiry -resetPasswordToken -resetPasswordTokenExpiry";
+
 export default mongoose.models.User || mongoose.model("User", userSchema);

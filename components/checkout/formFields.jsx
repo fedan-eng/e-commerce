@@ -2,7 +2,7 @@
 import { ChevronDown } from "lucide-react";
 import RegionSelect from "@/components/RegionSelect";
 
-const inputClass = (error) =>
+export const inputClass = (error) =>
   `w-full rounded-2xl border bg-sage px-4 py-3.5 text-[15px] text-forest outline-none transition-colors placeholder:text-muted/60 focus:border-forest focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
     error ? "border-red-400" : "border-transparent"
   }`;

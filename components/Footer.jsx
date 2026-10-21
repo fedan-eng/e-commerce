@@ -13,7 +13,7 @@ import FloatingActions from "@/components/FloatingActions";
 const Footer = () => {
   const pathname = usePathname();
 
-  const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
+  const staticPaths = ["/register", "/login", "/verify-email", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
   if (noNavigationMenu) return null;
