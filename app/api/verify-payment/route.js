@@ -1,5 +1,6 @@
 // app/api/verify-payment/route.js
 import axios from "axios";
+import { IS_PREVIEW } from "@/lib/analytics/env";
 import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
@@ -10,6 +11,11 @@ import crypto from "crypto";
 // Helper function to send GA event via Measurement Protocol
 async function sendGAEventViaMeasurementProtocol(order, gaClientId, clientIdSource) {
   try {
+    if (IS_PREVIEW) {
+      console.log('[GA Verify] Preview deployment, skipping GA event');
+      return false;
+    }
+
     const measurementId = process.env.NEXT_PUBLIC_GA_ID;
     const apiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET;
 

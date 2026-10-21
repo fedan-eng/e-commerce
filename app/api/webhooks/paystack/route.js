@@ -1,5 +1,6 @@
 // app/api/webhook/route.js
 import { NextResponse } from "next/server";
+import { IS_PREVIEW } from "@/lib/analytics/env";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
@@ -9,6 +10,11 @@ import { sendEmail } from "@/lib/mailer";
 // Helper function to send GA event via Measurement Protocol
 async function sendGAEventViaMeasurementProtocol(order, gaClientId, clientIdSource) {
   try {
+    if (IS_PREVIEW) {
+      console.log('[GA] Preview deployment, skipping GA event');
+      return false;
+    }
+
     const measurementId = process.env.NEXT_PUBLIC_GA_ID;
     const apiSecret = process.env.GA_MEASUREMENT_PROTOCOL_SECRET;
 
@@ -101,6 +107,8 @@ export async function POST(req) {
   const data = event.data;
   const meta = data.metadata;
   const reference = data.reference;
+  // Paystack test-mode payments (e.g. from a preview deployment) never go to GA
+  const isTestPayment = data.domain === "test";
 
   console.log('[Webhook] Full metadata received:', JSON.stringify(meta, null, 2));
   console.log('[Webhook] Metadata keys:', Object.keys(meta || {}));
@@ -119,7 +127,7 @@ export async function POST(req) {
     console.log(`Webhook: order already exists for ${reference}, checking GA status`);
 
     // If order exists but GA hasn't been fired yet, try firing it now
-    if (!existing.gaFired && existing.gaClientId) {
+    if (!existing.gaFired && existing.gaClientId && !isTestPayment) {
       console.log('[Webhook] Order exists but GA not fired, attempting now');
       const gaSuccess = await sendGAEventViaMeasurementProtocol(existing, existing.gaClientId, 'existing_order');
 
@@ -221,7 +229,7 @@ export async function POST(req) {
   }
 
   // ── 5.5 Fire GA event via Measurement Protocol (with idempotency check) ──
-  if (!order.gaFired && orderData.gaClientId) {
+  if (!order.gaFired && orderData.gaClientId && !isTestPayment) {
     console.log('[Webhook] Attempting to fire GA event for order:', order._id);
     const gaSuccess = await sendGAEventViaMeasurementProtocol(order, orderData.gaClientId, clientIdSource);
 
