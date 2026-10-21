@@ -335,7 +335,7 @@ function buildAbandonedCartEmail(user) {
                             <tr>
                               <td style="font-size:18px; line-height:1; vertical-align:top; padding-right:10px; padding-top:2px;">&#128274;</td>
                               <td style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; color:#1f5c3a; line-height:20px; vertical-align:top;">
-                                <strong style="color:#1f5c3a;">Secure checkout</strong> via Paystack &amp; Flutterwave
+                                <strong style="color:#1f5c3a;">Secure checkout</strong> via Paystack
                               </td>
                             </tr>
                           </table>
@@ -481,7 +481,7 @@ https://filstore.com.ng/cart
 WHY SHOP WITH FIL?
 ==========================================
 * Fast delivery — Lagos (1-3 days) & Nigeria-wide (5-7 days)
-* Secure checkout via Paystack & Flutterwave
+* Secure checkout via Paystack
 * 7-day returns on all products
 
 Have a question? Contact us:

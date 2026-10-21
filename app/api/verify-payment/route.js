@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { countOrderSales } from "@/lib/soldCount";
+import { countPromoUse } from "@/lib/promo";
 import { verifyToken } from "@/lib/auth";
 import crypto from "crypto";
 
@@ -108,7 +109,7 @@ export async function POST(req) {
 
     let verificationData;
     let orderData;
-    let clientIdSource = 'unknown'; // Initialize for both payment providers
+    let clientIdSource = 'unknown';
 
     // ── PAYSTACK ──────────────────────────────────────────────────────────────
     if (provider === "paystack") {
@@ -170,117 +171,6 @@ export async function POST(req) {
         paymentReference: reference,
         paymentStatus: "paid",
       };
-
-    // ── FLUTTERWAVE ───────────────────────────────────────────────────────────
-    } else if (provider === "flutterwave") {
-      const res = await axios.get(
-        `https://api.flutterwave.com/v3/transactions/${reference}/verify`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
-          },
-        }
-      );
-
-      if (res.data.status !== "success") {
-        return Response.json(
-          {
-            verified: false,
-            message: res.data.message || "Transaction verification failed",
-            provider: "flutterwave",
-          },
-          { status: 400 }
-        );
-      }
-
-      const flutterwaveData = res.data.data;
-
-      const isVerified =
-        flutterwaveData.status === "successful" &&
-        flutterwaveData.currency === "NGN" &&
-        flutterwaveData.amount >= flutterwaveData.charged_amount;
-
-      verificationData = {
-        verified: isVerified,
-        provider: "flutterwave",
-        amount: flutterwaveData.amount,
-        reference: flutterwaveData.tx_ref,
-        transactionId: flutterwaveData.id,
-      };
-
-      if (!flutterwaveData.meta || Object.keys(flutterwaveData.meta).length === 0) {
-        return Response.json(
-          {
-            verified: false,
-            message: "Order metadata missing. Please contact support.",
-            provider: "flutterwave",
-          },
-          { status: 400 }
-        );
-      }
-
-      let parsedCartItems = [];
-      let parsedRegion = {};
-
-      try {
-        if (flutterwaveData.meta.cartItems) {
-          const raw =
-            typeof flutterwaveData.meta.cartItems === "string"
-              ? JSON.parse(flutterwaveData.meta.cartItems)
-              : flutterwaveData.meta.cartItems;
-          parsedCartItems = raw.map((item) => ({
-            ...item,
-            price: Number(item.price) || 0,
-            quantity: Number(item.quantity) || 1,
-          }));
-        }
-        if (flutterwaveData.meta.region) {
-          parsedRegion =
-            typeof flutterwaveData.meta.region === "string"
-              ? JSON.parse(flutterwaveData.meta.region)
-              : flutterwaveData.meta.region;
-        }
-      } catch (e) {
-        console.error("Error parsing meta data:", e);
-      }
-
-      orderData = {
-        firstName:
-          flutterwaveData.meta.firstName ||
-          flutterwaveData.customer?.name?.split(" ")[0] ||
-          "",
-        lastName:
-          flutterwaveData.meta.lastName ||
-          flutterwaveData.customer?.name?.split(" ").slice(1).join(" ") ||
-          "",
-        email:
-          flutterwaveData.meta.email || flutterwaveData.customer?.email || "",
-        phone:
-          flutterwaveData.meta.phone ||
-          flutterwaveData.customer?.phone_number ||
-          "",
-        addPhone: flutterwaveData.meta.addPhone || "",
-        region: parsedRegion,
-        city: flutterwaveData.meta.city || "",
-        deliveryType: flutterwaveData.meta.deliveryType || "Regular",
-        address: flutterwaveData.meta.address || "",
-        orderNote: flutterwaveData.meta.orderNote || "",
-        gaClientId: flutterwaveData.meta.gaClientId || null, // Include GA client_id if available
-        cartItems: parsedCartItems,
-        subTotal: Number(flutterwaveData.meta.subTotal) || 0,
-        discount: Number(flutterwaveData.meta.discount) || 0,
-        promoCode: flutterwaveData.meta.promoCode || null,
-        deliveryFee: Number(flutterwaveData.meta.deliveryFee) || 0,
-        total: Number(flutterwaveData.amount) || 0,
-        paymentMethod: "flutterwave",
-        paymentReference: flutterwaveData.tx_ref || reference,
-        paymentStatus: "paid",
-      };
-
-      // Update clientIdSource for Flutterwave
-      clientIdSource = flutterwaveData.meta.clientIdSource || 'flutterwave';
-      console.log('[Verify Payment] Flutterwave - Client ID source:', clientIdSource);
-      console.log('[Verify Payment] Flutterwave - GA client_id:', orderData.gaClientId);
 
     } else {
       return Response.json(
@@ -354,6 +244,7 @@ export async function POST(req) {
       console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
 
       await countOrderSales(order._id);
+      await countPromoUse(order.promoCode);
 
       // ── Fire GA event via Measurement Protocol (backup case) ──
       if (orderData.gaClientId && !order.gaFired) {

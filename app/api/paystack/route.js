@@ -1,6 +1,9 @@
 // app/api/paystack/route.js
 import axios from "axios";
 import { NextResponse } from "next/server";
+import { connectDB } from "@/lib/db";
+import { sessionUserId, validatePromo } from "@/lib/promo";
+import { deliveryFeeFor, priceCart } from "@/lib/pricing";
 
 const isValidEmail = (email) => {
   if (!email || typeof email !== "string") return false;
@@ -24,9 +27,7 @@ export async function POST(req) {
     const {
       cartItems: modalCartItems,
       deliveryInfo,
-      discount = 0,
       promoCode,
-      userId,
       items: simpleItems,
       email: simpleEmail,
       address: simpleAddress,
@@ -38,7 +39,8 @@ export async function POST(req) {
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
 
     const finalCartItems = modalCartItems || simpleItems || [];
-    const finalUserId = userId || null;
+    // Who is buying comes from the session cookie, not the request body
+    const finalUserId = await sessionUserId();
 
     // Log GA client_id for debugging (Vercel logs)
     console.log('[Paystack API] Received gaClientId:', gaClientId);
@@ -59,18 +61,13 @@ export async function POST(req) {
         );
       }
 
-      if (!Array.isArray(finalCartItems) || finalCartItems.length === 0) {
-        return NextResponse.json(
-          { message: "Cart is empty" },
-          { status: 400 }
-        );
+      // Prices come from the database, not the cart the browser sent
+      await connectDB();
+      const priced = await priceCart(finalCartItems);
+      if (priced.error) {
+        return NextResponse.json({ message: priced.error }, { status: 400 });
       }
-
-      // Calculate total for simple checkout
-      const subTotal = finalCartItems.reduce(
-        (acc, item) => acc + Number(item.price) * Number(item.quantity),
-        0
-      );
+      const { subTotal } = priced;
       const total = subTotal; // No delivery fee for simple checkout
 
       if (total <= 0) {
@@ -88,7 +85,7 @@ export async function POST(req) {
           amount: Math.round(total * 100),
           currency: "NGN",
           metadata: {
-            cartItems: finalCartItems,
+            cartItems: priced.items,
             userId: finalUserId,
             subTotal,
             discount: 0,
@@ -151,27 +148,33 @@ export async function POST(req) {
       );
     }
 
-    if (!Array.isArray(finalCartItems) || finalCartItems.length === 0) {
-      return NextResponse.json(
-        { message: "Cart is empty" },
-        { status: 400 }
-      );
+    // Prices, delivery fee and discount are all worked out here from the database;
+    // the amounts in the browser's cart are ignored
+    await connectDB();
+    const priced = await priceCart(finalCartItems);
+    if (priced.error) {
+      return NextResponse.json({ message: priced.error }, { status: 400 });
+    }
+    const { subTotal } = priced;
+
+    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal);
+    if (delivery.error) {
+      return NextResponse.json({ message: delivery.error }, { status: 400 });
+    }
+    const deliveryFee = delivery.fee;
+
+    let discount = 0;
+    let appliedPromo = null;
+    if (promoCode) {
+      const promo = await validatePromo({ code: promoCode, userId: finalUserId, cartValue: subTotal });
+      if (!promo.valid) {
+        return NextResponse.json({ message: promo.message }, { status: promo.status });
+      }
+      discount = promo.amount;
+      appliedPromo = promo.code;
     }
 
-    // Calculate total server-side (don't trust client)
-    const subTotal = finalCartItems.reduce(
-      (acc, item) => acc + Number(item.price) * Number(item.quantity),
-      0
-    );
-
-    const deliveryFee =
-      deliveryInfo.deliveryType === "Free"
-        ? 0
-        : deliveryInfo.deliveryType === "Express"
-        ? (deliveryInfo.region?.fee || 0) * 2
-        : deliveryInfo.region?.fee || 0;
-
-    const total = Math.max(0, subTotal - Number(discount) + deliveryFee);
+    const total = Math.max(0, subTotal - discount + deliveryFee);
 
     if (total <= 0) {
       return NextResponse.json(
@@ -188,13 +191,14 @@ export async function POST(req) {
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
         metadata: {
-          cartItems: finalCartItems, 
+          cartItems: priced.items,
           deliveryInfo: {
             ...deliveryInfo,
+            region: delivery.region,
             email,
             phone: String(deliveryInfo.phone).replace(/\D/g, ""),
           },
-          promoCode,
+          promoCode: appliedPromo,
           subTotal,
           discount,
           deliveryFee,

@@ -32,8 +32,6 @@ export default function VerifyPaymentPage() {
   const hasVerified = useRef(false);
 
   const paystackRef = searchParams.get("reference");
-  const flutterwaveRef = searchParams.get("transaction_id");
-  const flutterwaveStatus = searchParams.get("status");
 
   // ── Tracking ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -64,17 +62,6 @@ export default function VerifyPaymentPage() {
     if (paystackRef) {
       reference = paystackRef;
       provider = "paystack";
-    } else if (flutterwaveRef) {
-      reference = flutterwaveRef;
-      provider = "flutterwave";
-      if (
-        flutterwaveStatus !== "successful" &&
-        flutterwaveStatus !== "completed"
-      ) {
-        setError("Payment was not successful. Please try again.");
-        setLoading(false);
-        return;
-      }
     } else {
       setError("No payment reference found.");
       setLoading(false);
@@ -119,7 +106,7 @@ export default function VerifyPaymentPage() {
     };
 
     verify();
-  }, [paystackRef, flutterwaveRef, flutterwaveStatus, dispatch]);
+  }, [paystackRef, dispatch]);
 
   // ── ✅ FIXED PDF receipt ──────────────────────────────────────────────────
   // Helper: load image as base64 so jsPDF can embed it reliably

@@ -77,6 +77,12 @@ const userSchema = new mongoose.Schema(
     resetPasswordTokenExpiry: { type: Date },
     verificationToken: { type: String },
     verificationTokenExpiry: { type: Date },
+    // 6-digit email code (stored hashed) — the in-page alternative to the verification link
+    verificationCode: { type: String },
+    verificationCodeExpiry: { type: Date },
+    verificationCodeAttempts: { type: Number, default: 0 },
+    // Accounts made from the promo popup start with a password we generated and emailed
+    passwordIsGenerated: { type: Boolean, default: false },
     cart: {
   items: [
     {

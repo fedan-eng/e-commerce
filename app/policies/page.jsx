@@ -24,7 +24,7 @@ const sections = [
       },
       {
         heading: "Orders & Payments",
-        body: "When you place an order, you are making an offer to purchase. We accept payments via Paystack and Flutterwave. All transactions are processed securely. Your order is confirmed only upon successful payment processing. Fedan Investment Limited is not liable for failed transactions due to insufficient funds, network errors, or payment gateway issues beyond our control.",
+        body: "When you place an order, you are making an offer to purchase. We accept payments via Paystack. All transactions are processed securely. Your order is confirmed only upon successful payment processing. Fedan Investment Limited is not liable for failed transactions due to insufficient funds, network errors, or payment gateway issues beyond our control.",
       },
       {
         heading: "Pricing & Taxes",
@@ -59,7 +59,7 @@ const sections = [
       },
       {
         heading: "Data Sharing",
-        body: "We may share your information with trusted third-party service providers such as payment processors (Paystack, Flutterwave), logistics partners, and email service providers solely to facilitate our services. These parties are contractually obligated to keep your data confidential and use it only for the specified purpose.",
+        body: "We may share your information with trusted third-party service providers such as payment processors (Paystack), logistics partners, and email service providers solely to facilitate our services. These parties are contractually obligated to keep your data confidential and use it only for the specified purpose.",
       },
       {
         heading: "Cookies",

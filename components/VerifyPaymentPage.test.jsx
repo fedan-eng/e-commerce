@@ -97,16 +97,12 @@ const mockTrackEvent = vi.fn()
  */
 function setupMocks({
   paystackRef = null,
-  flutterwaveRef = null,
-  flutterwaveStatus = null,
   axiosResponse = { data: { verified: true, orderData: mockOrderDetails } },
   selectorUser = null,
   selectorCartItems = [],
 } = {}) {
   const getMock = vi.fn((key) => {
     if (key === 'reference') return paystackRef
-    if (key === 'transaction_id') return flutterwaveRef
-    if (key === 'status') return flutterwaveStatus
     return null
   })
 
@@ -153,7 +149,7 @@ describe('VerifyPaymentPage', () => {
 
   describe('No Payment Reference', () => {
     test('shows error when no reference is in URL', async () => {
-      setupMocks() // no paystackRef or flutterwaveRef
+      setupMocks() // no paystackRef
 
       render(<VerifyPaymentPage />)
 
@@ -232,70 +228,6 @@ describe('VerifyPaymentPage', () => {
         // Multiple elements show the reference — assert at least one exists
         const refElements = screen.getAllByText(/ref_abc123/i)
         expect(refElements.length).toBeGreaterThan(0)
-      })
-    })
-  })
-
-  // ── Flutterwave Flow ──────────────────────────────────────────────────────
-
-  describe('Flutterwave Payment Flow', () => {
-    test('calls verify-payment with flutterwave provider when transaction_id is present', async () => {
-      setupMocks({
-        flutterwaveRef: 'fw_txn_789',
-        flutterwaveStatus: 'successful',
-      })
-
-      render(<VerifyPaymentPage />)
-
-      await waitFor(() => {
-        expect(axios.post).toHaveBeenCalledWith('/api/verify-payment', {
-          reference: 'fw_txn_789',
-          provider: 'flutterwave',
-        })
-      })
-    })
-
-    test('also accepts "completed" as a valid flutterwave status', async () => {
-      setupMocks({
-        flutterwaveRef: 'fw_txn_completed',
-        flutterwaveStatus: 'completed',
-      })
-
-      render(<VerifyPaymentPage />)
-
-      await waitFor(() => {
-        expect(axios.post).toHaveBeenCalledWith('/api/verify-payment', {
-          reference: 'fw_txn_completed',
-          provider: 'flutterwave',
-        })
-      })
-    })
-
-    test('shows error when flutterwave status is "failed" without calling API', async () => {
-      setupMocks({
-        flutterwaveRef: 'fw_txn_fail',
-        flutterwaveStatus: 'failed',
-      })
-
-      render(<VerifyPaymentPage />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/Payment was not successful/i)).toBeInTheDocument()
-      })
-
-      expect(axios.post).not.toHaveBeenCalled()
-    })
-
-    test('shows error when flutterwave status is "cancelled"', async () => {
-      setupMocks({
-        flutterwaveRef: 'fw_txn_cancel',
-        flutterwaveStatus: 'cancelled',
-      })
-
-      render(<VerifyPaymentPage />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/Payment was not successful/i)).toBeInTheDocument()
       })
     })
   })

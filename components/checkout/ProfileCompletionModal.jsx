@@ -1,6 +1,6 @@
 "use client";
 // components/checkout/ProfileCompletionModal.jsx — asks new (e.g. Google sign-in) users for
-// the details checkout needs: last name, phone and delivery address.
+// the details checkout needs: name, phone and delivery address.
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Check } from "lucide-react";
@@ -21,7 +21,7 @@ export default function ProfileCompletionModal({ onClose, onComplete }) {
     const v = cleanValues(form.values);
     try {
       await dispatch(
-        updateUser({ lastName: v.lastName, phone: v.phone, region: v.region, city: v.city, address: v.address })
+        updateUser({ firstName: v.firstName, lastName: v.lastName, phone: v.phone, region: v.region, city: v.city, address: v.address })
       ).unwrap();
       toast.success("You're all set!");
       onComplete?.();
@@ -60,6 +60,7 @@ export default function ProfileCompletionModal({ onClose, onComplete }) {
       labelledBy="profile-title"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField form={form} name="firstName" label="First name" required autoComplete="given-name" placeholder="Ada" maxLength={50} />
         <TextField form={form} name="lastName" label="Last name" required autoComplete="family-name" placeholder="Koleola" maxLength={50} />
         <TextField form={form} name="phone" label="Phone number" required type="tel" inputMode="tel" autoComplete="tel" placeholder="080 000 0000" maxLength={15} />
         <RegionField form={form} />

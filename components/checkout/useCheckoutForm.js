@@ -61,7 +61,7 @@ const RULES = {
 
 export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "addPhone"];
 export const DELIVERY_FIELDS = ["region", "city", "address"];
-export const PROFILE_FIELDS = ["lastName", "phone", "region", "city", "address"];
+export const PROFILE_FIELDS = ["firstName", "lastName", "phone", "region", "city", "address"];
 
 // Trimmed, digits-only values ready for the API
 export function cleanValues(values) {
@@ -82,6 +82,7 @@ export default function useCheckoutForm() {
   const { user, isAuthenticated } = useSelector((s) => s.auth);
   const [values, setValues] = useState(INITIAL);
   const [errors, setErrors] = useState({});
+  const [fromAccount, setFromAccount] = useState(false); // prefilled from the signed-in account
   const prefilled = useRef(false);
 
   // Prefill once from the account, or from details a guest saved last time.
@@ -101,6 +102,7 @@ export default function useCheckoutForm() {
     }
     if (!source) return;
     prefilled.current = true;
+    setFromAccount(source === user);
     setValues((prev) => {
       const next = { ...prev };
       PREFILL_FIELDS.forEach((f) => {
@@ -138,7 +140,10 @@ export default function useCheckoutForm() {
     [values]
   );
 
+  // Like validate, but quiet: no errors shown
+  const isComplete = useCallback((fields) => fields.every((f) => !RULES[f]?.(values[f])), [values]);
+
   const clearErrors = useCallback(() => setErrors({}), []);
 
-  return { values, errors, onChange, setValue, validate, clearErrors, user };
+  return { values, errors, onChange, setValue, validate, isComplete, clearErrors, user, fromAccount };
 }

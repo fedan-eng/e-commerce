@@ -31,10 +31,10 @@ const VerifyEmailContent = () => {
         const response = await fetch(apiUrl);
         
         if (response.redirected) {
-          // The API handles redirects, so we follow it using router.push
+          // The API handles redirects. On success it has just signed them in, so load the
+          // page fresh to pick up the new session.
           const redirectUrl = new URL(response.url);
-          const pathname = redirectUrl.pathname + redirectUrl.search;
-          router.push(pathname);
+          window.location.replace(redirectUrl.pathname + redirectUrl.search);
           return;
         }
 

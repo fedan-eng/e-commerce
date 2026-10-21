@@ -63,6 +63,13 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
+    // Today's prices from /api/cart/prices: { [productId]: price }
+    updatePrices: (state, action) => {
+      state.items.forEach((item) => {
+        const price = action.payload[item._id];
+        if (typeof price === "number") item.price = price;
+      });
+    },
     // ── Replaces the entire cart with items from DB ─────────────────────────
     // Called on login — overwrites localStorage cart with the user's real cart.
     setCartFromDB: (state, action) => {
@@ -77,6 +84,7 @@ export const {
   updateQuantity,
   updateColor,
   clearCart,
+  updatePrices,
   setCartFromDB, // 👈 export it
 } = cartSlice.actions;
 
@@ -98,6 +106,7 @@ export const cartSyncMiddleware = (store) => (next) => (action) => {
     "cart/updateQuantity",
     "cart/updateColor",
     "cart/clearCart",
+    "cart/updatePrices",
     // ⚠️ cart/setCartFromDB is intentionally NOT here
     // We don't want to re-sync back to DB when we just loaded FROM the DB
   ];

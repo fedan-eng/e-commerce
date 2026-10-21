@@ -1,11 +1,12 @@
 "use client";
 // components/checkout/CheckoutModal.jsx — Contact → Delivery → Review, then Paystack.
 // Pass `buyNowItem` to check out a single product instead of the cart.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateUser } from "@/store/features/authSlice";
+import { updatePrices } from "@/store/features/cartSlice";
 import { formatAmount } from "@/lib/utils";
 import { isValidEmail, isValidPhone } from "@/lib/sanitize";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
@@ -34,8 +35,51 @@ const accountUpdateFor = (step, v) =>
 export default function CheckoutModal({ onClose, buyNowItem }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((s) => s.cart.items);
+  const [buyNowPrice, setBuyNowPrice] = useState(null); // today's price, once checked
   // Memoised: a fresh [buyNowItem] array every render would reset the promo code forever
-  const items = useMemo(() => (buyNowItem ? [buyNowItem] : cartItemsFromStore), [buyNowItem, cartItemsFromStore]);
+  const items = useMemo(
+    () => (buyNowItem ? [{ ...buyNowItem, price: buyNowPrice ?? buyNowItem.price }] : cartItemsFromStore),
+    [buyNowItem, buyNowPrice, cartItemsFromStore]
+  );
+
+  // Payment is charged at today's prices (lib/pricing.js), so show those before anyone pays.
+  // Checked once when checkout opens.
+  const itemsAtOpen = useRef(items);
+  useEffect(() => {
+    const opened = itemsAtOpen.current;
+    if (opened.length === 0) return;
+    let cancelled = false;
+
+    fetch("/api/cart/prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: opened.map((item) => item._id) }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.prices) return;
+        const { prices } = data;
+
+        const unavailable = opened.filter((item) => !prices[item._id]?.available);
+        if (unavailable.length > 0) {
+          toast.error(`${unavailable.map((i) => i.name).join(", ")} is no longer available. Please remove it from your cart.`, { duration: 6000 });
+        }
+
+        const changed = opened.filter((item) => prices[item._id] && prices[item._id].price !== item.price);
+        if (changed.length === 0) return;
+        if (buyNowItem) setBuyNowPrice(prices[buyNowItem._id].price);
+        else dispatch(updatePrices(Object.fromEntries(changed.map((item) => [item._id, prices[item._id].price]))));
+        toast(
+          `Price updated: ${changed.map((i) => `${i.name} is now ${formatAmount(prices[i._id].price)}`).join(", ")}`,
+          { icon: "ℹ️", duration: 6000 }
+        );
+      })
+      .catch(() => {}); // the payment step checks prices anyway
+
+    return () => {
+      cancelled = true;
+    };
+  }, [buyNowItem, dispatch]);
 
   const form = useCheckoutForm();
   const { values, user } = form;
@@ -64,6 +108,16 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   useEffect(() => {
     if (values.deliveryType === "Free" && !isFreeDeliveryAvailable(subTotal)) setValue("deliveryType", "Regular");
   }, [subTotal, values.deliveryType, setValue]);
+
+  // Signed-in shoppers whose details are all saved start on Review; Back still lets them edit.
+  // Checked once, right after the prefill, so typing on step 1 never jumps ahead.
+  const { fromAccount, isComplete } = form;
+  const skipChecked = useRef(false);
+  useEffect(() => {
+    if (!fromAccount || skipChecked.current) return;
+    skipChecked.current = true;
+    if (isComplete([...CONTACT_FIELDS, ...DELIVERY_FIELDS])) setStep(3);
+  }, [fromAccount, isComplete]);
 
   const goTo = (target) => {
     form.clearErrors();
