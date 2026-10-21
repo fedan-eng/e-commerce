@@ -11,7 +11,7 @@ const profileLinks = [
   { name: "My profile", link: "/profile", icon: User },
   { name: "My orders", link: "/profile?tab=My%20Orders", icon: Package },
   { name: "Wishlist", link: "/profile?tab=Wishlist", icon: Heart },
-  { name: "Track an order", link: "/contact", icon: Truck },
+  { name: "Track an order", link: "/contact#track", icon: Truck },
 ];
 
 const ROW = "flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[13px] font-medium text-[#0A321B] transition-colors hover:bg-[#F3F7F2]";

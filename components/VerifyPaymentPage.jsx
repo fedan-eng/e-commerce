@@ -10,7 +10,6 @@ import { clearCart } from "@/store/features/cartSlice";
 import axios from "axios";
 import Loading from "@/components/Loading";
 import Link from "next/link";
-import TextSlider from "@/components/TextSlider";
 import FeedbackForm from "@/components/FeedbackForm";
 import jsPDF from "jspdf"; 
 import autoTable from "jspdf-autotable";
@@ -690,10 +689,6 @@ doc.save(`FIL-Receipt-${paymentRef}.pdf`);
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-12 overflow-hidden">
-        <TextSlider />
       </div>
     </div>
   );

@@ -71,7 +71,7 @@ const Footer = () => {
             <div>
               <h3 className="font-semibold text-white text-[15px] mb-5">Help</h3>
               <ul className="flex flex-col gap-3.5">
-                <li><Link href="/contact" className="text-white/70 hover:text-white text-[14px] transition-colors">Track your order</Link></li>
+                <li><Link href="/contact#track" className="text-white/70 hover:text-white text-[14px] transition-colors">Track your order</Link></li>
                 <li><Link href="/policies" className="text-white/70 hover:text-white text-[14px] transition-colors">Delivery and payment</Link></li>
                 <li><Link href="/policies" className="text-white/70 hover:text-white text-[14px] transition-colors">Returns and warranty</Link></li>
                 <li><Link href="/faq" className="text-white/70 hover:text-white text-[14px] transition-colors">FAQs</Link></li>

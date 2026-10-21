@@ -40,10 +40,6 @@ vi.mock('@/components/FeedbackForm', () => ({
   default: () => <div data-testid="feedback-form" />,
 }))
 
-vi.mock('@/components/TextSlider', () => ({
-  default: () => <div data-testid="text-slider" />,
-}))
-
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }) => <a href={href} {...props}>{children}</a>,
 }))
