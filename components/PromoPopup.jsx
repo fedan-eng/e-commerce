@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ChevronDown, Check, Copy } from "lucide-react";
+import { X, ChevronDown, Mail } from "lucide-react";
 import { Instrument_Serif } from "next/font/google";
 
 const instrumentSerif = Instrument_Serif({
@@ -17,7 +17,6 @@ const instrumentSerif = Instrument_Serif({
 
 const SEEN_KEY = "fil_promo_seen";
 const OPEN_DELAY_MS = 5000;
-const PROMO_CODE = "WELCOME10";
 
 // Pages where a popup would get in the way of finishing a task
 const HIDDEN_PATHS = ["/cart", "/checkout", "/login", "/register", "/verify", "/reset-password", "/review", "/verify-email"];
@@ -47,7 +46,6 @@ export default function PromoPopup() {
   const [smsOptIn, setSmsOptIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
   const emailRef = useRef(null);
 
   const hidden = HIDDEN_PATHS.some((p) => pathname.startsWith(p));
@@ -122,14 +120,6 @@ export default function PromoPopup() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(PROMO_CODE);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
   };
 
   if (hidden) return null;
@@ -315,32 +305,28 @@ export default function PromoPopup() {
                     transition={{ duration: 0.2 }}
                   >
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mint text-forest">
-                      <Check size={24} />
+                      <Mail size={22} />
                     </span>
-                    <h2 className="mt-4 font-poppins text-[28px] font-bold leading-tight text-forest">You&apos;re in!</h2>
+                    <h2 className="mt-4 font-poppins text-[28px] font-bold leading-tight text-forest">Check your inbox!</h2>
                     <p className="mt-2 text-sm leading-relaxed text-muted">
-                      Here&apos;s your <strong className="text-ink">10% off</strong> code. We&apos;ve also sent it to your
-                      inbox. Sign in to your FIL account and apply it at checkout.
+                      Your <strong className="text-ink">10% off</strong> code is on its way to{" "}
+                      <strong className="break-all text-ink">{email.trim()}</strong>. Create a free FIL account to use
+                      it at checkout.
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={copyCode}
-                      className="mt-5 flex h-14 w-full items-center justify-between rounded-xl border-2 border-dashed border-forest/30 bg-sage px-5 font-mono text-xl font-bold tracking-[0.2em] text-forest transition-colors hover:bg-mint"
+                    <Link
+                      href="/register"
+                      onClick={close}
+                      className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black"
                     >
-                      {PROMO_CODE}
-                      <span className="flex items-center gap-1.5 font-roboto text-xs font-semibold tracking-normal">
-                        {copied ? <Check size={14} /> : <Copy size={14} />}
-                        {copied ? "Copied" : "Copy"}
-                      </span>
-                    </button>
-
+                      Create my account
+                    </Link>
                     <button
                       type="button"
                       onClick={close}
-                      className="mt-4 h-12 w-full rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black"
+                      className="mx-auto mt-3 text-sm text-ink underline underline-offset-2 hover:text-forest"
                     >
-                      Start shopping
+                      Keep shopping
                     </button>
                   </motion.div>
                 )}

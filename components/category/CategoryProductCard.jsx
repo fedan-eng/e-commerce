@@ -65,7 +65,7 @@ export default function CategoryProductCard({ product, cardBg }) {
             <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
               <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
             </span>
-            Add to Cart
+            Buy Now
           </span>
         }
         className="mt-3 flex w-full items-center justify-center rounded-full bg-[#004328] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"

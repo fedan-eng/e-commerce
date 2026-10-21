@@ -92,7 +92,7 @@ const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, class
         </>
       ) : (
         <>
-          Add to Cart
+          Buy Now
           <ArrowRight size={19} strokeWidth={2.25} className="transition-transform group-hover:translate-x-0.5" />
         </>
       )}

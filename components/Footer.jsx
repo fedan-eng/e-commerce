@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6";
 import { SOCIALS } from "@/lib/socials";
 
@@ -17,169 +16,10 @@ const Footer = () => {
   const staticPaths = ["/register", "/login", "/verify", "/reset-password"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
-  // Pages where cart FAB should not be visible
-  const noCartFabPaths = ["/cart", "/checkout", "/admin_console"];
-  const shouldHideCartFab = noCartFabPaths.some((path) => pathname.startsWith(path));
-
-  // ✅ Size Constants for Cart FAB
-  const CART_SIZE = 110;
-  const CART_MARGIN = 24;
-
-  // ✅ Cart FAB State
-  const [cartPos, setCartPos] = useState({ x: 0, y: 180 });
-  const [cartIsDragging, setCartIsDragging] = useState(false);
-  const [cartPressed, setCartPressed] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const cartRef = useRef(null);
-  const cartDragState = useRef({
-    startMouseX: 0, startMouseY: 0,
-    startElemX: 0, startElemY: 180,
-    dragged: false,
-  });
-
-  // Get Cart items
-  const cartItems = useSelector((state) => state.cart?.items || []);
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  // ✅ Initial Mount & Resize Handling
-  useEffect(() => {
-    setHasMounted(true);
-    const initialX = window.innerWidth - CART_SIZE - CART_MARGIN;
-    setCartPos({ x: initialX, y: 180 });
-    cartDragState.current.startElemX = initialX;
-
-    const handleResize = () => {
-      setCartPos((prev) => {
-        const maxX = window.innerWidth - CART_SIZE - CART_MARGIN;
-        const maxY = window.innerHeight - CART_SIZE - 60;
-        return {
-          x: Math.min(Math.max(prev.x, CART_MARGIN), maxX),
-          y: Math.min(Math.max(prev.y, 60), maxY),
-        };
-      });
-    };
-    
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // ✅ Check for mobile menu to hide FAB
-  useEffect(() => {
-    const checkMenuOpen = () => setIsMobileMenuOpen(document.body.style.overflow === "hidden");
-    checkMenuOpen();
-    const interval = setInterval(checkMenuOpen, 100);
-    return () => clearInterval(interval);
-  }, []);
-
   if (noNavigationMenu) return null;
-
-  // ✅ Cart Drag Logic
-  const clampCartY = (y) => {
-    const maxY = window.innerHeight - CART_SIZE - 60;
-    return Math.min(Math.max(y, 60), maxY);
-  };
-
-  const doCartSnap = (currentX, currentY) => {
-    const centerX = currentX + CART_SIZE / 2;
-    const nearLeft = centerX < window.innerWidth / 2;
-    setCartPos({
-      x: nearLeft ? CART_MARGIN : window.innerWidth - CART_SIZE - CART_MARGIN,
-      y: clampCartY(currentY),
-    });
-  };
-
-  const onCartPointerDown = (e) => {
-    e.preventDefault();
-    cartDragState.current = {
-      startMouseX: e.clientX, startMouseY: e.clientY,
-      startElemX: cartPos.x, startElemY: cartPos.y,
-      dragged: false,
-    };
-    setCartIsDragging(true);
-    setCartPressed(true);
-    cartRef.current?.setPointerCapture(e.pointerId);
-  };
-
-  const onCartPointerMove = (e) => {
-    if (!cartIsDragging) return;
-    const dx = e.clientX - cartDragState.current.startMouseX;
-    const dy = e.clientY - cartDragState.current.startMouseY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) cartDragState.current.dragged = true;
-    setCartPos({
-      x: cartDragState.current.startElemX + dx,
-      y: clampCartY(cartDragState.current.startElemY + dy),
-    });
-  };
-
-  const onCartPointerUp = () => {
-    if (!cartIsDragging) return;
-    setCartIsDragging(false);
-    setCartPressed(false);
-    if (!cartDragState.current.dragged) window.location.href = "/cart";
-    doCartSnap(cartPos.x, cartPos.y);
-  };
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Arial+Rounded+MT+Bold&display=swap');
-        .checkout-fab {
-          position: relative; width: 110px; height: 110px; border-radius: 50%;
-          background: radial-gradient(circle at 38% 35%, #a8e04a 0%, #7dc520 40%, #5a9a10 100%);
-          box-shadow: 0 6px 18px rgba(80, 140, 10, 0.55), inset 0 2px 6px rgba(255,255,255,0.35), inset 0 -4px 8px rgba(0,0,0,0.18);
-          border: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 2px; padding: 0; overflow: hidden; transition: transform 0.1s ease, box-shadow 0.1s ease;
-          -webkit-tap-highlight-color: transparent; outline: none;
-        }
-        .checkout-fab:active, .checkout-fab.pressed {
-          transform: scale(0.93);
-          box-shadow: 0 3px 10px rgba(80, 140, 10, 0.45), inset 0 2px 6px rgba(255,255,255,0.25), inset 0 -2px 5px rgba(0,0,0,0.22);
-        }
-        .checkout-fab::before {
-          content: ''; position: absolute; top: 8px; left: 20px; width: 68px; height: 32px; border-radius: 50%;
-          background: radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.0) 80%);
-          pointer-events: none; z-index: 2;
-        }
-        .flash {
-          position: absolute; top: -60%; left: -60%; width: 60px; height: 220%;
-          background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
-          transform: rotate(30deg) translateX(-100%); pointer-events: none; z-index: 3;
-          animation: diagonal-flash 10s ease-in-out infinite;
-        }
-        @keyframes diagonal-flash {
-          0% { transform: rotate(30deg) translateX(-100%); opacity: 0; }
-          2% { opacity: 1; }
-          6% { transform: rotate(30deg) translateX(320%); opacity: 0; }
-          100% { transform: rotate(30deg) translateX(320%); opacity: 0; }
-        }
-        .checkout-badge {
-          position: absolute; top: 2px; right: 2px; width: 26px; height: 26px; border-radius: 50%;
-          background: #1a1a1a; color: #fff; font-size: 12px; font-weight: 700; font-family: Arial, sans-serif;
-          display: flex; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; line-height: 1; pointer-events: none;
-        }
-        .cart-icon-container { position: relative; z-index: 4; }
-        .checkout-label {
-          font-family: Arial, Helvetica, sans-serif; font-weight: 800; font-size: 11.5px; color: #fff; text-align: center;
-          line-height: 1.25; text-shadow: 0 1px 2px rgba(0,0,0,0.25); letter-spacing: 0.01em; position: relative; z-index: 4; margin-top: 1px;
-        }
-      `}</style>
-
-      {/* ✅ DRAGGABLE CART FAB */}
-      {hasMounted && !isMobileMenuOpen && !shouldHideCartFab && (
-        <div ref={cartRef} onPointerDown={onCartPointerDown} onPointerMove={onCartPointerMove} onPointerUp={onCartPointerUp} onPointerLeave={() => setCartPressed(false)} style={{ position: "fixed", left: cartPos.x, top: cartPos.y, zIndex: 999, touchAction: "none", userSelect: "none", width: CART_SIZE, height: CART_SIZE }}>
-          {totalItems > 0 && <span className="checkout-badge">{totalItems > 99 ? "99+" : totalItems}</span>}
-          <button className={`checkout-fab${cartPressed ? " pressed" : ""}`} style={{ width: "100%", height: "100%" }}>
-            <div className="flash" />
-            <div className="cart-icon-container">
-              <svg width="34" height="30" viewBox="0 0 34 30" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2H2" /><path d="M4 2l2.5 13h17l2.5-10H8" /><circle cx="10" cy="27" r="2.2" fill="white" /><circle cx="21" cy="27" r="2.2" fill="white" /></svg>
-            </div>
-            <span className="checkout-label">Check Out<br />Now!</span>
-          </button>
-        </div>
-      )}
-
       {/* ✅ NEW REDESIGNED PIXEL-PERFECT FOOTER */}
       <footer className="bg-[#082C17] pt-16 pb-8 md:pt-20 text-white relative">
         

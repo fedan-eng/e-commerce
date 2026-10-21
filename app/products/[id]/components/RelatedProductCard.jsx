@@ -55,7 +55,7 @@ export default function RelatedProductCard({ product, bg }) {
         animated={false}
         label={
           <span className="flex items-center justify-center gap-2">
-            <CirclePlus size={18} /> Add to Cart
+            <CirclePlus size={18} /> Buy Now
           </span>
         }
         className="mt-3 flex h-12 w-full items-center justify-center rounded-full bg-forest px-4 text-[15px] font-medium text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400 md:text-[17px]"

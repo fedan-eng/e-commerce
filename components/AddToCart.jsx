@@ -10,7 +10,7 @@ import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 
-const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Add to cart", animated = true }) => {
+const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Buy Now", animated = true }) => {
   const dispatch       = useDispatch();
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null); // fly target

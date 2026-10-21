@@ -19,7 +19,7 @@ export default function ProductMenu() {
   return (
     <li className="relative" {...bind}>
       <Link
-        href="/products"
+        href="/products/power-banks"
         aria-haspopup="true"
         aria-expanded={open}
         className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 font-medium text-[#0A321B] transition-colors ${
@@ -84,7 +84,7 @@ export default function ProductMenu() {
                 {/* Sixth cell: everything */}
                 <li>
                   <Link
-                    href="/products"
+                    href="/products/power-banks"
                     className="group/all flex h-full items-center justify-between gap-3 rounded-[16px] bg-[#004328] p-4 text-white transition-colors hover:bg-[#0A321B]"
                   >
                     <span>

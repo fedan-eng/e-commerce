@@ -599,7 +599,7 @@ doc.save(`FIL-Receipt-${paymentRef}.pdf`);
                 Track Order
               </Link>
               <Link
-                href="/products"
+                href="/products/power-banks"
                 className="px-6 sm:px-8 py-3 border border-[#d9d9d9] hover:bg-gray-50 rounded-md font-medium text-dark text-sm transition-colors text-center w-full sm:w-auto"
               >
                 Continue Shopping

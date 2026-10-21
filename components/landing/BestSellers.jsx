@@ -233,7 +233,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
                           <span className="bg-white rounded-full w-4 h-4 flex items-center justify-center">
                             <Plus size={11} strokeWidth={3.5} className="text-[#0A321B]" />
                           </span>
-                          Add to Cart
+                          Buy Now
                         </span>
                       }
                     />

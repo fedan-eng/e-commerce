@@ -42,7 +42,7 @@ export default async function ReviewPage({ params }) {
         {error ? (
           <Message icon={CircleAlert} title="We can't open this review">
             <p>{error}</p>
-            <Link href="/products" className="mt-5 inline-block font-semibold text-forest underline underline-offset-2">
+            <Link href="/products/power-banks" className="mt-5 inline-block font-semibold text-forest underline underline-offset-2">
               Browse products
             </Link>
           </Message>

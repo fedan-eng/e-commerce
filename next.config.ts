@@ -84,6 +84,12 @@ const nextConfig: NextConfig = {
         destination: "https://filstore.com.ng/:path*",
         permanent: true,
       },
+      // Products list page has been taken down
+      {
+        source: "/products",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
 
