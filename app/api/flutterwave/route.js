@@ -1,11 +1,14 @@
 // app/api/flutterwave/route.js
 import axios from "axios";
+import { connectDB } from "@/lib/db";
+import { sessionUserId, validatePromo } from "@/lib/promo";
+import { deliveryFeeFor, priceCart } from "@/lib/pricing";
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { cartItems, deliveryInfo, discount, promoCode } = body;
+    const { cartItems: requestedItems, deliveryInfo, promoCode } = body;
 
     const {
       firstName,
@@ -28,8 +31,8 @@ export async function POST(req) {
       !city ||
       !deliveryType ||
       !address ||
-      !cartItems ||
-      cartItems.length === 0
+      !requestedItems ||
+      requestedItems.length === 0
     ) {
       return Response.json(
         { message: "Missing required information" },
@@ -37,22 +40,24 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Always recompute on backend
-    const subTotal = cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    // ✅ Always recompute on backend: prices, delivery fee and discount from the database
+    await connectDB();
+    const priced = await priceCart(requestedItems);
+    if (priced.error) return Response.json({ message: priced.error }, { status: 400 });
+    const { items: cartItems, subTotal } = priced;
 
-    let deliveryFee = 0;
-    if (deliveryType === "Free") {
-      deliveryFee = 0;
-    } else if (deliveryType === "Express") {
-      deliveryFee = (region?.fee || 0) * 2;
-    } else {
-      deliveryFee = region?.fee || 0;
+    const delivery = await deliveryFeeFor(deliveryType, region?.name, subTotal);
+    if (delivery.error) return Response.json({ message: delivery.error }, { status: 400 });
+    const deliveryFee = delivery.fee;
+
+    let safeDiscount = 0;
+    let appliedPromo = null;
+    if (promoCode) {
+      const promo = await validatePromo({ code: promoCode, userId: await sessionUserId(), cartValue: subTotal });
+      if (!promo.valid) return Response.json({ message: promo.message }, { status: promo.status });
+      safeDiscount = promo.amount;
+      appliedPromo = promo.code;
     }
-
-    const safeDiscount = discount || 0;
    const rawTotal = subTotal - safeDiscount + deliveryFee;
     const total = Math.max(0, rawTotal); // Ensure total is not negative
 
@@ -86,7 +91,7 @@ export async function POST(req) {
         email: email,
         phone: phone,
         addPhone: addPhone || "",
-        region: JSON.stringify(region),
+        region: JSON.stringify(delivery.region),
         city: city,
         deliveryType: deliveryType,
         address: address,
@@ -95,7 +100,7 @@ export async function POST(req) {
         discount: safeDiscount.toString(),
         deliveryFee: deliveryFee.toString(),
         total: total.toString(),
-        promoCode: promoCode || null,
+        promoCode: appliedPromo,
       },
     };
     console.log("📦 Flutterwave Payload Meta:", payload.meta);

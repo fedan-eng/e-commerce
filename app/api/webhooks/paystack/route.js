@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
+import { countPromoUse } from "@/lib/promo";
 import { sendEmail } from "@/lib/mailer";
 
 // Helper function to send GA event via Measurement Protocol
@@ -211,6 +212,7 @@ export async function POST(req) {
     });
 
     console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId:`, orderData.gaClientId);
+    await countPromoUse(order.promoCode);
   } catch (err) {
     console.error("Webhook: order save failed", err);
     // Return 200 so Paystack doesn't keep retrying

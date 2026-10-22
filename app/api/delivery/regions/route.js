@@ -1,6 +1,7 @@
 // app/api/delivery/regions/route.js
 import { connectDB } from "@/lib/db";
 import DeliveryRegion from "@/models/DeliveryRegion";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -15,8 +16,13 @@ export async function GET() {
   }
 }
 
-// SEED or ADD regions
+// SEED or ADD regions (admins only: fees here are what checkout charges)
 export async function POST(req) {
+  const session = verifyToken(req.cookies.get("token")?.value || "");
+  if (session?.role !== "admin") {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  }
+
   try {
     await connectDB();
     const body = await req.json();
