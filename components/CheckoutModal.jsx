@@ -1,9 +1,10 @@
 // components/CheckoutModal.jsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "@/store/features/authSlice";
+import { updatePrices } from "@/store/features/cartSlice";
 import { formatAmount } from "@/lib/utils";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 import { useCookieConsent } from "@/context/CookieConsentContext";
@@ -140,7 +141,10 @@ const initialForm = {
 export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = false, onProfileComplete }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((state) => state.cart.items);
-  const cartItems = buyNowItem ? [buyNowItem] : cartItemsFromStore;
+  const [buyNowPrice, setBuyNowPrice] = useState(null); // today's price, once checked
+  const cartItems = buyNowItem
+    ? [{ ...buyNowItem, price: buyNowPrice ?? buyNowItem.price }]
+    : cartItemsFromStore;
   const user = useSelector((state) => state.auth.user);
   const { preferences, status } = useCookieConsent();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -155,6 +159,46 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
   const [promoCode, setPromoCode] = useState(null);
   const [promoResetKey, setPromoResetKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [priceNotice, setPriceNotice] = useState(null); // { changed: string[], unavailable: string[] }
+
+  // Prices may have changed since the item went into the cart, so fetch today's prices
+  // once when checkout opens and show those before anyone pays.
+  const itemsAtOpen = useRef(cartItems);
+  useEffect(() => {
+    const opened = itemsAtOpen.current;
+    if (opened.length === 0) return;
+    let cancelled = false;
+
+    fetch("/api/cart/prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: opened.map((item) => item._id) }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.prices) return;
+        const { prices } = data;
+
+        const unavailable = opened.filter((item) => !prices[item._id]?.available).map((item) => item.name);
+        const changed = opened.filter((item) => prices[item._id] && prices[item._id].price !== item.price);
+
+        if (changed.length > 0) {
+          if (buyNowItem) setBuyNowPrice(prices[buyNowItem._id].price);
+          else dispatch(updatePrices(Object.fromEntries(changed.map((item) => [item._id, prices[item._id].price]))));
+        }
+        if (changed.length > 0 || unavailable.length > 0) {
+          setPriceNotice({
+            changed: changed.map((item) => `${item.name} is now ${formatAmount(prices[item._id].price)}`),
+            unavailable,
+          });
+        }
+      })
+      .catch(() => {}); // checkout carries on with the prices it has
+
+    return () => {
+      cancelled = true;
+    };
+  }, [buyNowItem, dispatch]);
 
   useEffect(() => {
     if (user && isAuthenticated) {
@@ -624,6 +668,22 @@ export default function CheckoutModal({ onClose, buyNowItem, isNewGoogleUser = f
 
         {/* ── STEP CONTENT ── */}
         <div className="px-4 sm:px-8 py-6">
+
+          {priceNotice && (
+            <div className="mb-5 rounded-md border border-[#f0d58c] bg-[#fff8e1] px-4 py-3 text-sm text-[#5c4400]">
+              {priceNotice.changed.length > 0 && (
+                <p>
+                  <span className="font-semibold">Price updated:</span> {priceNotice.changed.join(", ")}.
+                </p>
+              )}
+              {priceNotice.unavailable.length > 0 && (
+                <p className={priceNotice.changed.length > 0 ? "mt-1" : ""}>
+                  <span className="font-semibold">No longer available:</span> {priceNotice.unavailable.join(", ")}.
+                  Please remove {priceNotice.unavailable.length === 1 ? "it" : "them"} from your cart.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* ════════════════════════════
                NEW GOOGLE USER — SIMPLIFIED DETAILS FORM
