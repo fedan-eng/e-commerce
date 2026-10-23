@@ -6,15 +6,15 @@ import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
-import { getGalleryImages, getHighlights, getImageBg, getOverviewMedia } from "./productUtils";
+import { getGalleryImages, getHighlights, getImageBg } from "./productUtils";
 import { Container } from "./components/ui";
 import Breadcrumbs from "./components/Breadcrumbs";
 import ProductGallery from "./components/ProductGallery";
-import ProductInfo from "./components/ProductInfo";
+import ProductInfo, { StockStatus } from "./components/ProductInfo";
 import ServicesCard from "./components/ServicesCard";
 import DeliveryOptions from "./components/DeliveryOptions";
-import ProductOverview from "./components/ProductOverview";
-import ProductSpecs from "./components/ProductSpecs";
+// import ProductOverview from "./components/ProductOverview";
+import { InTheBox } from "./components/ProductSpecs";
 import ProductReviews from "./components/reviews/ProductReviews";
 import RelatedProducts from "./components/RelatedProducts";
 import ShareModal from "./components/ShareModal";
@@ -51,7 +51,6 @@ export default function ProductDetailsPage({ product }) {
 
   const galleryImages = useMemo(() => getGalleryImages(product, selectedColor), [product, selectedColor]);
   const highlights = useMemo(() => getHighlights(product), [product]);
-  const overviewMedia = useMemo(() => getOverviewMedia(product), [product]);
   const imageBg = getImageBg(product);
 
   const openCheckout = (quantity) =>
@@ -80,30 +79,33 @@ export default function ProductDetailsPage({ product }) {
               onShare={() => setShareOpen(true)}
               onOpenImage={setLightboxSrc}
             />
-            {/* Specs + In the box sit under the gallery on desktop, after the buy box on mobile */}
+            {/* In the box sits under the gallery on desktop, after the buy box on mobile */}
             <div className="hidden lg:block">
-              <ProductSpecs productName={product.name} highlights={highlights} boxContent={product.boxContent} />
+              <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
             <ProductInfo
               product={product}
+              highlights={highlights}
               selectedColor={selectedColor}
               onColorChange={setSelectedColor}
               onCheckout={openCheckout}
             />
             <div className="lg:hidden">
-              <ProductSpecs productName={product.name} highlights={highlights} boxContent={product.boxContent} />
+              <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
-            <ServicesCard />
             <DeliveryOptions />
+            <StockStatus inStock={product.availability !== false} />
+            <ServicesCard />
           </div>
         </div>
         <div className="mt-14 border-t border-dashed border-line md:mt-20" />
       </Container>
 
-      <ProductOverview productName={product.name} media={overviewMedia} onOpenImage={setLightboxSrc} />
+      {/* Overview images taken down for now — to restore, render
+          <ProductOverview productName={product.name} media={getOverviewMedia(product)} onOpenImage={setLightboxSrc} /> */}
       <ProductReviews product={product} user={user} />
       <RelatedProducts product={product} />
 

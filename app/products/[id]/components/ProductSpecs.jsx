@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { WHATSAPP_URL } from "@/lib/categories";
 import ProductHighlights from "./ProductHighlights";
 
-function InTheBox({ items }) {
+function BoxCard({ items }) {
   return (
     <div className="rounded-[26px] bg-mint p-6 md:p-7">
       <h3 className="text-lg font-semibold text-forest">In the box</h3>
@@ -36,19 +36,18 @@ function getBoxItems(productName, boxContent) {
   return hasProduct ? listed : [{ item: productName, quantity: 1 }, ...listed];
 }
 
-// Sits under the gallery on desktop and after the buy box on mobile
-export default function ProductSpecs({ productName, highlights, boxContent = [] }) {
-  const boxItems = getBoxItems(productName, boxContent);
-
+// Right column, between the price and the colour picker
+export function Specifications({ highlights }) {
+  if (highlights.length === 0) return null;
   return (
-    <div className="flex flex-col gap-5">
-      {highlights.length > 0 && (
-        <div>
-          <h2 className="mb-4 text-[22px] font-bold leading-tight tracking-tight text-forest">Specifications</h2>
-          <ProductHighlights highlights={highlights} />
-        </div>
-      )}
-      <InTheBox items={boxItems} />
+    <div>
+      <h2 className="text-[20px] font-medium leading-tight text-forest">Specifications</h2>
+      <ProductHighlights highlights={highlights} />
     </div>
   );
+}
+
+// Under the gallery on desktop, after the buy box on mobile
+export function InTheBox({ productName, boxContent = [] }) {
+  return <BoxCard items={getBoxItems(productName, boxContent)} />;
 }

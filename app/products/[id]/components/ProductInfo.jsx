@@ -8,6 +8,7 @@ import { Pill, StarRating } from "./ui";
 import ColorPicker from "./ColorPicker";
 import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
+import { Specifications } from "./ProductSpecs";
 
 function Badges({ product, discount }) {
   const badges = [
@@ -60,7 +61,8 @@ function PriceLine({ product, discount }) {
   );
 }
 
-function StockStatus({ inStock }) {
+// Rendered by the page, between the delivery and services cards
+export function StockStatus({ inStock }) {
   return (
     <p className="flex items-center gap-2 text-[15px] text-muted">
       <span className={`h-3 w-3 rounded-full ring-4 ${inStock ? "bg-signal ring-mint" : "bg-red-500 ring-red-100"}`} />
@@ -69,7 +71,7 @@ function StockStatus({ inStock }) {
   );
 }
 
-export default function ProductInfo({ product, selectedColor, onColorChange, onCheckout }) {
+export default function ProductInfo({ product, highlights, selectedColor, onColorChange, onCheckout }) {
   const [quantity, setQuantity] = useState(1);
   const discount = getDiscount(product);
   const inStock = product.availability !== false;
@@ -90,6 +92,12 @@ export default function ProductInfo({ product, selectedColor, onColorChange, onC
         </div>
       )}
 
+      {highlights.length > 0 && (
+        <div className="mt-7">
+          <Specifications highlights={highlights} />
+        </div>
+      )}
+
       <div className="mt-6">
         <ColorPicker colors={product.colors} selected={selectedColor} onChange={onColorChange} />
       </div>
@@ -100,7 +108,7 @@ export default function ProductInfo({ product, selectedColor, onColorChange, onC
           <button
             type="button"
             onClick={() => onCheckout(quantity)}
-            className="order-last h-[52px] basis-full rounded-full border-2 border-forest px-8 text-[17px] font-medium text-forest transition-colors hover:bg-forest hover:text-white sm:order-none sm:basis-auto sm:flex-1"
+            className="order-last h-[52px] basis-full rounded-full bg-forest px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#002a19] sm:order-none sm:basis-auto sm:flex-1"
           >
             Checkout now
           </button>
@@ -111,10 +119,6 @@ export default function ProductInfo({ product, selectedColor, onColorChange, onC
           quantity={quantity}
           className="flex-1 sm:flex-none sm:px-8"
         />
-      </div>
-
-      <div className="mt-6">
-        <StockStatus inStock={inStock} />
       </div>
     </div>
   );
