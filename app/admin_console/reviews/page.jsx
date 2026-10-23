@@ -1,6 +1,6 @@
 // app/admin_console/reviews/page.jsx
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Check, Clock, Archive, Trash2, Pencil, ThumbsUp, ThumbsDown, BadgeCheck, MessageSquare, Package } from "lucide-react";
@@ -188,25 +188,33 @@ export default function AdminReviewsPage() {
   const [selected,     setSelected]     = useState({});
   const [bulkBusy,     setBulkBusy]     = useState(false);
 
+  const latestRequest = useRef(0);
+
   const fetchReviews = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     try {
       const params = new URLSearchParams({ page, limit: PAGE_SIZE });
       if (search)                 params.append("search", search);
       if (statusFilter !== "all") params.append("status", statusFilter);
-      const data = await fetch(`/api/admin/reviews?${params}`).then(r => r.json());
-      setReviews(data.reviews || []);
+      // no-store: never show a copy the browser cached earlier
+      const res  = await fetch(`/api/admin/reviews?${params}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data.reviews)) throw new Error(data.message);
+      // A slower response for a tab/search the admin already left must not overwrite the current one
+      if (requestId !== latestRequest.current) return;
+      setReviews(data.reviews);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch {
-      toast.error("Couldn't load reviews");
+      if (requestId === latestRequest.current) toast.error("Couldn't load reviews. Please refresh.");
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }, [page, search, statusFilter]);
 
   const fetchCounts = useCallback(async () => {
-    const count = s => fetch(`/api/admin/reviews?status=${s}&limit=1`).then(r => r.json()).then(d => d.total || 0).catch(() => 0);
+    const count = s => fetch(`/api/admin/reviews?status=${s}&limit=1`, { cache: "no-store" }).then(r => r.json()).then(d => d.total || 0).catch(() => 0);
     const [pending, approved, archived] = await Promise.all([count("pending"), count("approved"), count("archived")]);
     setCounts({ pending, approved, archived });
   }, []);
