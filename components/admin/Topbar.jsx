@@ -19,6 +19,7 @@ function crumbsFor(pathname) {
     case "products":  return sub ? ["Products", sub === "new" ? "New product" : "Edit product", "/admin_console/products"] : ["Catalogue", "Products"];
     case "customers": return sub ? ["Customers", "Customer details", "/admin_console/customers"] : ["People", "Customers"];
     case "reviews":   return ["People", "Reviews"];
+    case "whatsapp-reviews": return ["People", "WhatsApp reviews"];
     default:          return ["Overview", "Dashboard"];
   }
 }

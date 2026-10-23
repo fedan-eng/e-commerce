@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, ReceiptText, Package, Users, Star, Store, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ReceiptText, Package, Users, Star, MessageCircle, Store, LogOut } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import { useAdmin } from "./AdminContext";
 import { cx } from "./ui";
@@ -17,6 +17,7 @@ const GROUPS = [
   { label: "People",    items: [
     { href: "/admin_console/customers", label: "Customers", icon: Users },
     { href: "/admin_console/reviews",   label: "Reviews",   icon: Star, badge: "pendingReviews" },
+    { href: "/admin_console/whatsapp-reviews", label: "WhatsApp reviews", icon: MessageCircle },
   ] },
 ];
 

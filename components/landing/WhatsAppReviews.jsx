@@ -4,25 +4,45 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 
-// Homepage only. Category pages keep using <Reviews />.
-const SCREENSHOTS = [
+// Fallback for the homepage until the admin adds screenshots (Admin → WhatsApp reviews)
+const SAMPLE_SCREENSHOTS = [
   'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW1.png',
   'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW2.png',
   'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW3.png',
 ];
+// Only three samples — repeat them so the carousel has room to scroll
+const SAMPLE_CHATS = Array.from({ length: SAMPLE_SCREENSHOTS.length * 3 }, (_, i) => ({
+  id: `sample-${i}`,
+  src: SAMPLE_SCREENSHOTS[i % SAMPLE_SCREENSHOTS.length],
+}));
 
 // Bubble colours, cycled across the cards
 const BUBBLES = ['#D1FADF', '#DCEEFF', '#E4DEFF'];
 
-// Only three chats for now — repeat them so the carousel has room to scroll
-const REPEAT = 3;
-const chats = Array.from({ length: SCREENSHOTS.length * REPEAT }, (_, i) => ({
-  id: i,
-  src: SCREENSHOTS[i % SCREENSHOTS.length],
-  bubble: BUBBLES[i % BUBBLES.length],
-}));
+// Admin links can point at any host; only optimise the ones next.config allows
+const OPTIMISED_HOSTS = [
+  'pub-2808252d92f04792b5072c00044ff5b2.r2.dev',
+  'pub-2793ec977eaa425a9595b78bd8c10d2b.r2.dev',
+  'res.cloudinary.com',
+];
+const canOptimise = (src) => {
+  try {
+    return OPTIMISED_HOSTS.includes(new URL(src).hostname);
+  } catch {
+    return false;
+  }
+};
 
-export default function WhatsAppReviews() {
+// chats = [{ id, src }] from lib/whatsappReviews (empty → homepage samples)
+// variant "home": intro + controls beside the cards; "category": title row above them
+export default function WhatsAppReviews({
+  chats: items = [],
+  variant = 'home',
+  title = 'What our customers are saying',
+  subtitle = 'Real chats from WhatsApp. Names hidden for privacy.',
+}) {
+  const chats = (items.length ? items : SAMPLE_CHATS).map((chat, i) => ({ ...chat, bubble: BUBBLES[i % BUBBLES.length] }));
+  const isCategory = variant === 'category';
   const scrollRef = useRef(null);
   // thumb: visible share of the track (%), progress: 0 → 1 across the scroll range
   const [bar, setBar] = useState({ thumb: 33, progress: 0 });
@@ -41,7 +61,7 @@ export default function WhatsAppReviews() {
     updateBar();
     window.addEventListener('resize', updateBar);
     return () => window.removeEventListener('resize', updateBar);
-  }, []);
+  }, [chats.length]);
 
   const scroll = (direction) => {
     scrollRef.current?.scrollBy({
@@ -60,6 +80,26 @@ export default function WhatsAppReviews() {
         : 'border-[#004328] text-[#004328] hover:bg-[#004328] hover:text-white'
     }`;
 
+  const arrows = (
+    <>
+      <button onClick={() => scroll('left')} className={arrowClass(atStart)} aria-label="Previous chats">
+        <ArrowLeft className="w-5 h-5" strokeWidth={2} />
+      </button>
+      {/* Progress (homepage only) */}
+      {!isCategory && (
+        <div className="relative flex-1 max-w-[110px] h-[2px] bg-gray-300 rounded-full">
+          <div
+            className="absolute inset-y-0 bg-[#004328] rounded-full transition-[left] duration-150"
+            style={{ width: `${bar.thumb}%`, left: `${bar.progress * (100 - bar.thumb)}%` }}
+          />
+        </div>
+      )}
+      <button onClick={() => scroll('right')} className={arrowClass(atEnd)} aria-label="Next chats">
+        <ArrowRight className="w-5 h-5" strokeWidth={2} />
+      </button>
+    </>
+  );
+
   return (
     <section className="w-full bg-[#F1F5F2] py-16 md:py-24 overflow-hidden">
       <style>{`
@@ -67,36 +107,30 @@ export default function WhatsAppReviews() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-12">
+      <div
+        className={`max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col ${
+          isCategory ? 'gap-8 sm:gap-10' : 'lg:flex-row lg:items-center gap-10 lg:gap-12'
+        }`}
+      >
 
-        {/* Intro + controls */}
-        <div className="lg:w-[240px] shrink-0">
-          <Quote className="w-12 h-12 text-[#1FA34A] fill-[#1FA34A] rotate-180 mb-4" strokeWidth={0} />
-          <h2 className="text-[32px] sm:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">
-            What our customers are saying
-          </h2>
-          <p className="text-gray-500 mt-4 text-[14px] sm:text-[15px] leading-relaxed">
-            Real chats from WhatsApp. Names hidden for privacy.
-          </p>
-
-          <div className="flex items-center gap-3 mt-8">
-            <button onClick={() => scroll('left')} className={arrowClass(atStart)} aria-label="Previous chats">
-              <ArrowLeft className="w-5 h-5" strokeWidth={2} />
-            </button>
-
-            {/* Progress */}
-            <div className="relative flex-1 max-w-[110px] h-[2px] bg-gray-300 rounded-full">
-              <div
-                className="absolute inset-y-0 bg-[#004328] rounded-full transition-[left] duration-150"
-                style={{ width: `${bar.thumb}%`, left: `${bar.progress * (100 - bar.thumb)}%` }}
-              />
+        {isCategory ? (
+          /* Title row with the arrows on the right */
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">{title}</h2>
+              <p className="text-gray-500 mt-2 text-[15px] sm:text-base">{subtitle}</p>
             </div>
-
-            <button onClick={() => scroll('right')} className={arrowClass(atEnd)} aria-label="Next chats">
-              <ArrowRight className="w-5 h-5" strokeWidth={2} />
-            </button>
+            <div className="flex items-center gap-3 self-start sm:self-auto">{arrows}</div>
           </div>
-        </div>
+        ) : (
+          /* Intro + controls */
+          <div className="lg:w-[240px] shrink-0">
+            <Quote className="w-12 h-12 text-[#1FA34A] fill-[#1FA34A] rotate-180 mb-4" strokeWidth={0} />
+            <h2 className="text-[32px] sm:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">{title}</h2>
+            <p className="text-gray-500 mt-4 text-[14px] sm:text-[15px] leading-relaxed">{subtitle}</p>
+            <div className="flex items-center gap-3 mt-8">{arrows}</div>
+          </div>
+        )}
 
         {/* Chat bubbles */}
         <div
@@ -113,6 +147,7 @@ export default function WhatsAppReviews() {
                     alt="WhatsApp chat with a FIL customer"
                     fill
                     sizes="250px"
+                    unoptimized={!canOptimise(chat.src)}
                     className="object-cover object-top"
                   />
                 </div>

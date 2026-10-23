@@ -12,6 +12,10 @@ import NeedsPower from "@/components/landing/NeedsPower";
 import VideoAnimation from "@/components/landing/VideoAnimation";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
+import { getWhatsAppReviews } from "@/lib/whatsappReviews";
+
+// Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
+export const revalidate = 3600;
 
 export const metadata = {
   title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
@@ -59,7 +63,9 @@ export const metadata = {
   },
 };
 
-const page = () => {
+const page = async () => {
+  const reviewChats = await getWhatsAppReviews("home");
+
   const baseUrl = "https://www.filstore.com.ng";
 
   // 1. Homepage & Searchbox Schema (The "Konga" Look)
@@ -197,13 +203,13 @@ const page = () => {
       <Hero1 />
       <Marquee/>
       <Hero2 />
-      <Anniversary/>
       <NeedsPower/>
       <BestSellers/>
-      <WhatsAppReviews/>
+      <WhatsAppReviews chats={reviewChats}/>
       <VideoAnimation/>
-      <Creators/>
       <MadeFor/>
+      <Anniversary/>
+      <Creators/>
       {/* <FeaturedBlog/> */}
       <Banner/>
     </div>

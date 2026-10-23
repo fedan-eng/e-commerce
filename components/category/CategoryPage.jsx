@@ -12,6 +12,8 @@ import BestSellers from "@/components/landing/BestSellers";
 import CategoryShop from "./CategoryShop";
 import VideoAnimation from "@/components/landing/VideoAnimation";
 import Reviews from "@/components/landing/Reviews";
+import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
+import { getWhatsAppReviews } from "@/lib/whatsappReviews";
 import CategoryFAQ from "./CategoryFAQ";
 import ExploreMore from "./ExploreMore";
 
@@ -71,10 +73,14 @@ export default async function CategoryPage({ slug }) {
   const category = getCategory(slug);
   if (!category) notFound();
 
-  const products = await getCategoryProducts(category.dbCategory);
+  const [products, chats] = await Promise.all([
+    getCategoryProducts(category.dbCategory),
+    getWhatsAppReviews(slug), // managed in Admin → WhatsApp reviews
+  ]);
   const reviews = collectReviews(products);
   // Comments aren't needed on the client once reviews are extracted
   const listProducts = products.map(({ comments, ...p }) => p);
+  const reviewsTitle = category.reviewsTitle || `What customers say about our ${category.title}`;
 
   return (
     <main>
@@ -88,9 +94,17 @@ export default async function CategoryPage({ slug }) {
       </Suspense>
       {/* Shared with the homepage — empty tabs show the "Video of Products" placeholder */}
       <VideoAnimation tabs={collectVideoTabs(listProducts)} />
-      {reviews.length > 0 && (
+      {/* WhatsApp screenshots first; written reviews only while a category has none */}
+      {chats.length > 0 ? (
+        <WhatsAppReviews
+          variant="category"
+          chats={chats}
+          title={reviewsTitle}
+          subtitle={`Real reviews from people using FIL ${category.title} every day.`}
+        />
+      ) : reviews.length > 0 && (
         <Reviews
-          title={category.reviewsTitle || `What customers say about our ${category.title}`}
+          title={reviewsTitle}
           subtitle={`Real reviews from people using FIL ${category.title} every day.`}
           reviews={reviews}
         />
