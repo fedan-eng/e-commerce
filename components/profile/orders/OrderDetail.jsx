@@ -10,18 +10,8 @@ import { formatAmount } from "@/lib/utils";
 import StatusPill from "./StatusPill";
 import ReturnForm from "./ReturnForm";
 import SupportForm from "./SupportForm";
-
-const RETURN_DAYS = 7;
-
-// Last day for returns: 7 days after delivery (or after the latest status change)
-function returnDeadline(statusHistory) {
-  if (!Array.isArray(statusHistory) || statusHistory.length === 0) return null;
-  const entry = statusHistory.find((h) => h.status === "Delivered") || statusHistory[statusHistory.length - 1];
-  if (!entry?.date) return null;
-  const d = new Date(entry.date);
-  d.setDate(d.getDate() + RETURN_DAYS);
-  return d.toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" });
-}
+import { RETURN_DAYS, getReturnDeadline, formatReturnDate } from "@/lib/returns";
+import { normalizeStatusKey } from "@/lib/orderStatus";
 
 export default function OrderDetail({ order, onBack }) {
   const [tab, setTab] = useState("details"); // details | track
@@ -36,7 +26,10 @@ export default function OrderDetail({ order, onBack }) {
   }
 
   const regionName = order.region?.name || order.region || "";
-  const deadline = returnDeadline(order.statusHistory);
+  const deadline = getReturnDeadline(order);
+  const returnOpen = Boolean(deadline) && new Date() <= deadline;
+  // Not delivered yet (and not cancelled/returned): the window starts on delivery
+  const awaitingDelivery = !deadline && !["cancelled", "returned"].includes(normalizeStatusKey(order.status));
   const rows = [
     { label: "Subtotal", value: formatAmount(order.subTotal ?? 0) },
     { label: "Delivery", value: Number(order.deliveryFee) > 0 ? formatAmount(order.deliveryFee) : "Free" },
@@ -102,16 +95,18 @@ export default function OrderDetail({ order, onBack }) {
                     animated={false}
                     className="h-10 flex-1 rounded-full bg-forest px-4 text-[13px] font-semibold text-white transition-colors hover:bg-black sm:flex-none"
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReturningItem(item);
-                      setView("return");
-                    }}
-                    className="h-10 flex-1 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-forest transition-colors hover:border-forest sm:flex-none"
-                  >
-                    Return
-                  </button>
+                  {returnOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReturningItem(item);
+                        setView("return");
+                      }}
+                      className="h-10 flex-1 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-forest transition-colors hover:border-forest sm:flex-none"
+                    >
+                      Return
+                    </button>
+                  )}
                 </div>
               </li>
             ))}
@@ -130,10 +125,14 @@ export default function OrderDetail({ order, onBack }) {
             </div>
           </dl>
 
-          {deadline && (
-            <p className="mt-6 flex items-start gap-2.5 rounded-2xl bg-mint px-4 py-3 text-sm text-forest">
+          {(deadline || awaitingDelivery) && (
+            <p className={`mt-6 flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm ${returnOpen ? "bg-mint text-forest" : "bg-sage text-muted"}`}>
               <Info size={17} className="mt-0.5 shrink-0" />
-              Returns are accepted within {RETURN_DAYS} days. For this order, the window closes on {deadline}.
+              {returnOpen
+                ? `Returns are accepted within ${RETURN_DAYS} days of delivery. For this order, the window closes on ${formatReturnDate(deadline)}.`
+                : deadline
+                  ? `The return window for this order closed on ${formatReturnDate(deadline)}. Need help? Contact support below.`
+                  : `You can return items within ${RETURN_DAYS} days of delivery.`}
             </p>
           )}
 
