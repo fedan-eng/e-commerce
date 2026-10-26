@@ -9,7 +9,7 @@ function VoteButton({ active, label, onClick, children }) {
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
-      className={`flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition-colors ${
+      className={`flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-full border px-3 text-[13px] font-semibold transition-colors ${
         active ? "border-white bg-white text-forest" : "border-white/30 text-white hover:border-white"
       }`}
     >
@@ -25,7 +25,7 @@ export default function ReviewCard({ review, onVote }) {
   const details = [review.verified && "Verified buyer", review.color && `Colour: ${review.color[0].toUpperCase()}${review.color.slice(1)}`].filter(Boolean).join(" · ");
 
   return (
-    <article className="rounded-[20px] bg-forest p-5 sm:rounded-[24px] sm:p-7">
+    <article className="flex w-[85%] max-w-[380px] shrink-0 snap-start flex-col rounded-[20px] bg-forest p-5 sm:w-[380px] sm:rounded-[24px] sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <StarRating value={review.rating ?? 5} size={15} />
         <time dateTime={review.createdAt} className="shrink-0 text-[13px] text-white/60 sm:text-sm">
@@ -34,9 +34,9 @@ export default function ReviewCard({ review, onVote }) {
       </div>
 
       {review.title && <h4 className="mt-3 text-base font-semibold text-white sm:text-lg">{review.title}</h4>}
-      <p className="mt-2 max-w-[640px] whitespace-pre-line text-[14px] italic leading-relaxed text-white/80 sm:text-base">{review.text}</p>
+      <p title={review.text} className="mt-2 line-clamp-5 whitespace-pre-line text-[14px] italic leading-relaxed text-white/80 sm:text-[15px]">{review.text}</p>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-mint text-forest">
             <User size={16} />

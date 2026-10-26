@@ -1,73 +1,22 @@
-import { Star } from "lucide-react";
 import { StarRating } from "../ui";
 
-const RADIUS = 54;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-function ScoreRing({ value }) {
+// App Store-style summary: big score on the left, stars + rating count beside it
+export default function RatingSummary({ average, total, action }) {
   return (
-    <div className="relative h-[84px] w-[84px] shrink-0 sm:h-[100px] sm:w-[100px]">
-      <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-        <defs>
-          <linearGradient id="score-ring" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#0bd46f" />
-            <stop offset="100%" stopColor="#9be8c0" />
-          </linearGradient>
-        </defs>
-        <circle cx="64" cy="64" r={RADIUS} fill="none" strokeWidth="10" className="stroke-sage" />
-        <circle
-          cx="64"
-          cy="64"
-          r={RADIUS}
-          fill="none"
-          strokeWidth="10"
-          strokeLinecap="round"
-          stroke="url(#score-ring)"
-          strokeDasharray={CIRCUMFERENCE}
-          strokeDashoffset={CIRCUMFERENCE * (1 - value / 5)}
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[24px] font-bold text-forest sm:text-[28px]">
-        {value.toFixed(1)}
-      </span>
-    </div>
-  );
-}
-
-function Bars({ breakdown, total }) {
-  return (
-    <ul className="flex w-full flex-col gap-2.5">
-      {[5, 4, 3, 2, 1].map((star) => {
-        const count = breakdown[star];
-        const pct = total ? (count / total) * 100 : 0;
-        return (
-          <li key={star} className="flex items-center gap-3 text-[13px] text-muted">
-            <span className="flex w-7 shrink-0 items-center gap-1 font-medium text-forest">
-              {star} <Star size={11} strokeWidth={0} className="fill-star" />
-            </span>
-            <span className="h-2 flex-1 overflow-hidden rounded-full bg-sage">
-              <span className="block h-full rounded-full bg-forest" style={{ width: `${Math.max(pct, count ? 3 : 0)}%` }} />
-            </span>
-            <span className="w-10 shrink-0 text-right">{count.toLocaleString()}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-export default function RatingSummary({ average, total, breakdown, action }) {
-  return (
-    <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-14">
-      <div className="flex items-center gap-5 md:pl-5">
-        <ScoreRing value={average} />
-        <div>
-          <StarRating value={average} size={14} />
-          <p className="mt-2 text-sm text-muted">Based on {total.toLocaleString()} review{total === 1 ? "" : "s"}</p>
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="flex items-end gap-8 sm:gap-14">
+        <div className="leading-none">
+          <p className="text-[44px] font-bold tracking-tight text-forest sm:text-[56px]">{average.toFixed(1)}</p>
+          <p className="mt-1 text-[12px] font-medium text-muted sm:text-[13px]">out of 5</p>
+        </div>
+        <div className="pb-1">
+          <StarRating value={average} size={14} gap="gap-0.5" />
+          <p className="mt-1.5 text-[12px] text-muted sm:text-[13px]">
+            {total.toLocaleString()} rating{total === 1 ? "" : "s"}
+          </p>
         </div>
       </div>
-      <Bars breakdown={breakdown} total={total} />
-      <div className="md:pr-10">{action}</div>
+      {action}
     </div>
   );
 }

@@ -99,12 +99,3 @@ export const countOf = (v) => (typeof v === "number" ? v : v?.length ?? 0);
 export const formatReviewDate = (date) =>
   new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-// { 5: n, 4: n, ... } from any list of items with a numeric rating key
-export function ratingBreakdown(items, getRating) {
-  const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  items.forEach((item) => {
-    const r = Math.round(getRating(item));
-    if (counts[r] != null) counts[r] += 1;
-  });
-  return counts;
-}
