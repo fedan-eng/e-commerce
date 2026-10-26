@@ -79,9 +79,12 @@ export async function GET(req) {
         const oid = new mongoose.Types.ObjectId(search);
         conditions.push({ _id: oid });
         conditions.push({ userId: oid });
-      } else if (search.length >= 8) {
-        // Try to match by short ID (last 8 characters)
-        conditions.push({ _id: { $regex: escapedSearch + "$", $options: "i" } });
+      } else if (/^[0-9a-f]{8,23}$/i.test(search)) {
+        // Short ID (last 8+ characters). _id is an ObjectId, so a plain $regex on it
+        // throws a CastError — compare against its string form instead.
+        conditions.push({
+          $expr: { $regexMatch: { input: { $toString: "$_id" }, regex: escapedSearch + "$", options: "i" } },
+        });
       }
 
       // Partial text fallback for email / name
