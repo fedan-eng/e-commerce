@@ -3,6 +3,7 @@ import axios from "axios";
 import { sendEmail } from "@/lib/mailer";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
+import { countPromoUse } from "@/lib/promo";
 import { verifyToken } from "@/lib/auth";
 import crypto from "crypto";
 
@@ -345,6 +346,7 @@ export async function POST(req) {
       });
 
       console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
+      await countPromoUse(order.promoCode);
 
       // ── Fire GA event via Measurement Protocol (backup case) ──
       if (orderData.gaClientId && !order.gaFired) {
