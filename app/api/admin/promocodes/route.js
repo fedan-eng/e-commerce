@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import PromoCode from "@/models/PromoCode";
 import { EMPTY_STATS, parsePromoBody, promoStats, toClient } from "@/lib/promoCodes";
+import { creatorAnalytics } from "@/lib/creatorStats";
 
 export const dynamic = "force-dynamic";
 
@@ -23,13 +24,24 @@ export async function GET(req) {
   const to = dateParam(searchParams.get("to"));
 
   await connectDB();
-  const [codes, stats] = await Promise.all([
-    PromoCode.find().sort({ createdAt: -1, _id: -1 }).lean(),
+  const codes = await PromoCode.find().sort({ createdAt: -1, _id: -1 }).lean();
+  const creatorCodes = codes.filter((c) => c.type === "creator").map((c) => c.code.toUpperCase());
+  const [stats, credited] = await Promise.all([
     promoStats({ from, to }),
+    creatorAnalytics({ codes: creatorCodes, from, to }),
   ]);
 
+  // Creator rows count every order credited to them, including link orders where nothing was typed
+  const statsFor = (c) => {
+    const code = c.code.toUpperCase();
+    if (c.type !== "creator") return stats[code] || EMPTY_STATS;
+    const { orders, cancelled, sales, customers, lastOrder } = credited.byCode[code];
+    // Discount stays what this code itself took off (a link order may have used another code)
+    return { ...EMPTY_STATS, orders, cancelled, sales, customers, discount: stats[code]?.discount || 0, lastUsed: lastOrder };
+  };
+
   return NextResponse.json(
-    { codes: codes.map((c) => ({ ...toClient(c), stats: stats[c.code.toUpperCase()] || EMPTY_STATS })) },
+    { codes: codes.map((c) => ({ ...toClient(c), stats: statsFor(c) })) },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

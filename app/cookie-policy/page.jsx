@@ -40,14 +40,14 @@ When you visit Filstore, cookies may be stored in your browser. Each cookie cont
         locked: true,
         content:
           'These cookies are essential for Filstore to function. They enable core features like your shopping cart, account login, and secure checkout. Without these cookies, the services you have asked for cannot be provided. You cannot opt out of these cookies.',
-        examples: ['Session ID (keeps you logged in)', 'Cart token (preserves your cart items)', 'CSRF token (protects against security attacks)'],
+        examples: ['Session ID (keeps you logged in)', 'Cart token (preserves your cart items)', 'CSRF token (protects against security attacks)', 'fil_ref (the creator code from a link you opened, so its discount applies at checkout, expires 30 days)'],
       },
       {
         title: 'Analytics cookies',
         badge: 'Optional',
         content:
           'These cookies help us understand how visitors interact with Filstore. We use Google Analytics to collect anonymous data about pages visited, time spent on site, and how users navigate. This helps us identify what is working well and what needs improvement.',
-        examples: ['_ga (Google Analytics visitor ID, expires 2 years)', '_ga_XXXXXX (Google Analytics session, expires 2 years)'],
+        examples: ['_ga (Google Analytics visitor ID, expires 2 years)', '_ga_XXXXXX (Google Analytics session, expires 2 years)', 'fil_vid (random ID, stored in your browser, that counts each visit from a creator link once a day)'],
       },
       {
         title: 'Marketing cookies',

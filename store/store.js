@@ -7,6 +7,7 @@ import wishlistReducer from "./features/wishlistSlice";
 import recentlyViewedReducer from "./features/recentlyViewedSlice";
 import { cartSyncMiddleware } from "./features/cartSlice";
 import { wishlistSyncMiddleware } from "./features/wishlistSlice";
+import { referralCartMiddleware } from "@/lib/referral";
 
 // Load wishlist from localStorage
 const loadWishlist = () => {
@@ -62,7 +63,7 @@ export const store = configureStore({
   },
 
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(cartSyncMiddleware, wishlistSyncMiddleware),
+    getDefaultMiddleware().concat(cartSyncMiddleware, wishlistSyncMiddleware, referralCartMiddleware),
 });
 
 store.subscribe(() => {

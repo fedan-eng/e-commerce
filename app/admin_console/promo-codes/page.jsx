@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
-  Plus, Pencil, Trash2, Power, TicketPercent, CalendarDays, ChevronDown, ShoppingBag, Wallet, HandCoins, BadgePercent,
+  Plus, Pencil, Trash2, Power, Copy, TicketPercent, CalendarDays, ChevronDown, ShoppingBag, Wallet, HandCoins, BadgePercent,
 } from "lucide-react";
 import {
   PageHeader, Card, CardHeader, Button, IconButton, Tabs, Field, Switch, EmptyState, Skeleton, StatusBadge,
@@ -53,6 +53,15 @@ async function send(url, method, body) {
 const pad2 = n => String(n).padStart(2, "0");
 const toDateInput = d => (d ? `${new Date(d).getFullYear()}-${pad2(new Date(d).getMonth() + 1)}-${pad2(new Date(d).getDate())}` : "");
 const fmtDate = d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+async function copyLink(code) {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}/?ref=${code}`);
+    toast.success(`${code} link copied`);
+  } catch {
+    toast.error("Couldn't copy the link");
+  }
+}
+
 const commissionOf = c => (c.type === "creator" ? (c.stats.sales * c.commissionPercent) / 100 : 0);
 
 function statusOf(c) {
@@ -101,7 +110,7 @@ function PromoForm({ initial, onCancel, onSaved }) {
       <CardHeader
         title={isEdit ? `Edit ${initial.code}` : "New promo code"}
         description={isCreator
-          ? "Give the creator this code to share. Every order that uses it is counted under their name."
+          ? "Give the creator this code, or their link (filstore.com.ng/?ref=CODE), which fills the code in for shoppers. Orders through either count under their name."
           : "Shoppers type this code at checkout to get the discount."}
       />
       <form onSubmit={submit} className="flex flex-col gap-5 border-t border-edge px-5 py-5">
@@ -374,6 +383,11 @@ export default function PromoCodesPage() {
                       </td>
                       <td className={TD}><StatusBadge status={status.key}>{status.label}</StatusBadge></td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
+                        {c.type === "creator" && (
+                          <IconButton label={`Copy ${c.code} link`} onClick={() => copyLink(c.code)} className="h-8 w-8">
+                            <Copy size={15} aria-hidden />
+                          </IconButton>
+                        )}
                         <IconButton label={c.active ? "Switch off" : "Switch on"} onClick={() => toggle(c)} className="h-8 w-8">
                           <Power size={15} aria-hidden />
                         </IconButton>

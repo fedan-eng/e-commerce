@@ -65,6 +65,9 @@ const orderSchema = new mongoose.Schema({
 
   promoCode: { type: String, default: null },
 
+  // Creator code from the shopper's ?ref= link (lib/referral.js), credited when no creator code was typed
+  referralCode: { type: String, default: null },
+
   deliveryType: {
     type: String,
     enum: ["Free", "Regular", "Express"],

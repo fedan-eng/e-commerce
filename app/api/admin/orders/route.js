@@ -90,8 +90,9 @@ export async function GET(req) {
       // Partial text fallback for email / name
       conditions.push({ email:      { $regex: escapedSearch, $options: "i" } });
       conditions.push({ firstName:  { $regex: escapedSearch, $options: "i" } });
-      // Exact promo code, so the promo codes page can link to a code's orders
-      conditions.push({ promoCode:  { $regex: `^${escapedSearch}$`, $options: "i" } });
+      // Exact promo / creator code, so the promo codes and creators pages can link to a code's orders
+      conditions.push({ promoCode:    { $regex: `^${escapedSearch}$`, $options: "i" } });
+      conditions.push({ referralCode: { $regex: `^${escapedSearch}$`, $options: "i" } });
 
       query.$or = conditions;
     }

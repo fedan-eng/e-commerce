@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CircleCheck, Tag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
+import { getReferral } from "@/lib/referral";
 
 export default function PromoCodeInput({ subTotal, onApply, userId }) {
   const [code, setCode] = useState("");
@@ -12,8 +13,18 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
   const [discount, setDiscount] = useState(0);
   const [requiresLogin, setRequiresLogin] = useState(false);
 
-  const handleApply = async () => {
-    if (!code.trim()) {
+  // A creator's link (?ref=) fills their code in and applies it straight away
+  useEffect(() => {
+    const ref = getReferral();
+    if (ref) {
+      setCode(ref);
+      handleApply(ref);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleApply = async (value = code) => {
+    if (!value.trim()) {
       setError("Please enter a promo code");
       return;
     }
@@ -27,7 +38,7 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          code,
+          code: value,
           cartValue: subTotal,
           userId: userId || null,
         }),
@@ -48,7 +59,7 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
 
       const discountAmount = (subTotal * data.discount) / 100;
       setDiscount(discountAmount);
-      onApply({ promoCode: code.toUpperCase(), amount: discountAmount });
+      onApply({ promoCode: value.toUpperCase(), amount: discountAmount });
     } catch (err) {
       setError("Something went wrong, try again.");
     } finally {
@@ -77,7 +88,7 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
         </div>
         <button
           type="button"
-          onClick={handleApply}
+          onClick={() => handleApply()}
           disabled={loading}
           className="h-12 shrink-0 rounded-full bg-mint px-6 text-[15px] font-semibold text-forest transition-colors hover:bg-[#b9f0d0] disabled:opacity-50"
         >
