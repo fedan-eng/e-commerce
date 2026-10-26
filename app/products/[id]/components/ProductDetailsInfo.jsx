@@ -17,7 +17,7 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
   ];
 
   const deliveryOptions = [
-    {text: "Regular Delivery: 2–3 Days (Lagos), 3–5 Days (Interstate)"},
+    {text: "Regular Delivery: 2–3 Days (Lagos), 5-7 Days (Interstate)"},
     {text: "Express Delivery (Within 24 hours, for orders placed before 10am)"},
   ];
 
@@ -177,7 +177,7 @@ function ProductDetailsInfo({ product, selectedColor, onColorChange, onBuyNow })
               <Info className="w-4 h-4 text-gray-600 cursor-pointer" />
               <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-80 p-3 shadow-2xl bg-white text-black text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                 Delivery within Lagos is 2-3 working days and outside Lagos
-                is 3-5 working days.
+                is 5-7 working days.
               </div>
             </div>
           </div>
