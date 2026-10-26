@@ -66,7 +66,7 @@ export default function ProductDetailsPage({ product }) {
   return (
     <div className="bg-white text-forest">
       {/* ── Hero: gallery + buy box ── */}
-      <Container className="pb-14 pt-5 md:pb-20 md:pt-8">
+      <Container className="pb-14 pt-5 md:pb-10 md:pt-8">
         <Breadcrumbs items={getBreadcrumbs(product)} />
 
         <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] lg:gap-16">
