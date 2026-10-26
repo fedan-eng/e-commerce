@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, ReceiptText, Package, Users, Star, MessageCircle, Store, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, ReceiptText, TicketPercent, Package, Users, Star, MessageCircle, Store, LogOut } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import { useAdmin } from "./AdminContext";
 import { cx } from "./ui";
@@ -12,6 +12,7 @@ const GROUPS = [
   { label: "Sales",     items: [
     { href: "/admin_console/orders", label: "Orders",      icon: ShoppingBag, badge: "confirmedOrders" },
     { href: "/admin_console/sales",  label: "Sales entry", icon: ReceiptText },
+    { href: "/admin_console/promo-codes", label: "Promo codes", icon: TicketPercent },
   ] },
   { label: "Catalogue", items: [{ href: "/admin_console/products", label: "Products", icon: Package }] },
   { label: "People",    items: [
