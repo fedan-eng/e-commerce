@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import Pagination from "@/components/category/Pagination";
-import { formatReviewDate, ratingBreakdown } from "../../productUtils";
+import { ratingBreakdown } from "../../productUtils";
 import { Container, SectionHeading } from "../ui";
 import useProductReviews from "./useProductReviews";
 import RatingSummary from "./RatingSummary";
@@ -15,24 +14,6 @@ import ReviewForm from "./ReviewForm";
 const PAGE_SIZE = 6;
 
 const newestFirst = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
-
-// Consecutive reviews from the same day share one date chip, like a chat
-function groupByDay(reviews) {
-  const groups = [];
-  reviews.forEach((r) => {
-    const day = formatReviewDate(r.createdAt);
-    if (groups.at(-1)?.day === day) groups.at(-1).items.push(r);
-    else groups.push({ day, items: [r] });
-  });
-  return groups;
-}
-
-// WhatsApp's beige chat wallpaper with a faint dot pattern
-const CHAT_WALLPAPER = {
-  backgroundColor: "#efeae2",
-  backgroundImage: "radial-gradient(rgba(84,101,111,0.08) 1px, transparent 1px)",
-  backgroundSize: "14px 14px",
-};
 
 export default function ProductReviews({ product, user }) {
   const { reviews, loading, vote, submit } = useProductReviews(product._id);
@@ -98,41 +79,20 @@ export default function ProductReviews({ product, user }) {
           </div>
         )}
 
-        <div
-          ref={listRef}
-          className="mt-8 scroll-mt-24 overflow-hidden rounded-[20px] border border-line md:mt-12 md:rounded-[24px]"
-        >
-          {/* Chat header */}
-          <div className="flex items-center gap-3 bg-[#008069] px-4 py-2.5 text-white sm:py-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white sm:h-10 sm:w-10">
-              <Image src="/fillogo.png" alt="" width={28} height={12} className="h-auto w-[26px]" />
-            </span>
-            <div className="min-w-0 leading-tight">
-              <p className="truncate text-[15px] font-semibold sm:text-base">{product.name} reviews</p>
-              <p className="mt-0.5 text-[12px] text-white/80">
-                {loading ? "loading…" : `${visible.length.toLocaleString()} customer${visible.length === 1 ? "" : "s"}`}
-              </p>
-            </div>
-          </div>
+        <div ref={listRef} className="mt-8 scroll-mt-24 md:mt-12">
+          <p className="pb-2 text-[15px] font-semibold text-forest sm:text-base">
+            {loading ? "Loading reviews…" : `Showing ${visible.length.toLocaleString()} review${visible.length === 1 ? "" : "s"}`}
+          </p>
 
-          <div className="px-3 pb-6 pt-3 sm:px-6 sm:pb-8" style={CHAT_WALLPAPER}>
-            {!loading && pageItems.length === 0 ? (
-              <p className="mx-auto my-10 w-fit max-w-[90%] rounded-lg bg-[#fff3c4] px-3 py-2 text-center text-[12.5px] text-[#54656f] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)]">
-                No reviews yet. Be the first to share yours.
-              </p>
-            ) : (
-              groupByDay(pageItems).map(({ day, items }) => (
-                <div key={day + items[0]._id} className="pt-2">
-                  <p className="mx-auto mb-1 mt-2 w-fit rounded-lg bg-white/95 px-3 py-1 text-[11.5px] font-medium uppercase tracking-wide text-[#54656f] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)]">
-                    {day}
-                  </p>
-                  {items.map((review) => (
-                    <ReviewCard key={review._id} review={review} onVote={handleVote} />
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
+          {!loading && pageItems.length === 0 ? (
+            <p className="py-12 text-center text-muted">No reviews yet. Be the first to share yours.</p>
+          ) : (
+            <div className="flex flex-col gap-4 sm:gap-5">
+              {pageItems.map((review) => (
+                <ReviewCard key={review._id} review={review} onVote={handleVote} />
+              ))}
+            </div>
+          )}
         </div>
 
         <Pagination page={page} totalPages={totalPages} onChange={changePage} className="mt-6 md:mt-8" />
