@@ -495,6 +495,8 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      <CartsCard />
+
       {/* Top products + latest orders */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
@@ -620,6 +622,94 @@ function NeedsAttention({ alerts }) {
           </div>
         );
       })}
+    </Card>
+  );
+}
+
+// What's sitting in signed-in shoppers' carts right now. Not tied to the date range.
+const CART_ACTIVE = "#7fbf9b";
+const CART_ABANDONED = "#0f472b";
+const CART_ROWS = 8;
+
+function CartsCard() {
+  const [data, setData] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    axios.get("/api/admin/carts")
+      .then(({ data }) => setData(data))
+      .catch(() => setFailed(true));
+  }, []);
+
+  const rows = data?.products.slice(0, CART_ROWS) || [];
+  const max = rows[0]?.carts || 1;
+  const s = data?.summary;
+  const stats = s && [
+    { label: "Carts with items", value: s.carts.toLocaleString() },
+    { label: "Abandoned (48h+)", value: s.abandonedCarts.toLocaleString() },
+    { label: "Units in carts", value: compact(s.units) },
+    { label: "Value in carts", value: moneyShort(s.value) },
+  ];
+
+  return (
+    <Card>
+      <CardHeader
+        title="Products left in carts"
+        description="Signed-in shoppers' carts right now. Abandoned means not touched for 48 hours."
+        action={<Button variant="ghost" size="sm" href="/admin_console/customers">View customers</Button>}
+      />
+      {failed ? (
+        <EmptyState icon={ShoppingCart} title="Couldn't load carts" description="Refresh the page to try again." />
+      ) : !data ? <BarsSkeleton /> : rows.length === 0 ? (
+        <EmptyState icon={ShoppingCart} title="No items in carts" description="Products show up here when shoppers add them to their cart." />
+      ) : (
+        <div className="px-5 pb-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {stats.map(st => (
+              <div key={st.label} className="rounded-lg bg-[#fafbfa] px-3 py-2.5">
+                <span className="block text-xs text-faint">{st.label}</span>
+                <span className="mt-0.5 block font-poppins text-lg font-semibold text-ink">{st.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-4 text-xs text-sub" aria-hidden>
+            <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CART_ABANDONED }} />Abandoned</span>
+            <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CART_ACTIVE }} />Active</span>
+          </div>
+
+          <ul className="mt-3 flex flex-col gap-3.5">
+            {rows.map(p => {
+              const active = p.carts - p.abandoned;
+              const summary = `${p.carts} cart${p.carts === 1 ? "" : "s"} · ${p.abandoned} abandoned · ${p.units} unit${p.units === 1 ? "" : "s"} · ${money(p.value)}`;
+              return (
+                <li key={p.id} title={`${p.name}: ${summary}`}>
+                  <div className="mb-1.5 flex items-center gap-3 text-[13px]">
+                    {p.image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={p.image} alt="" className="h-7 w-7 shrink-0 rounded-md bg-hover object-cover" />
+                      : <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-pine-tint text-[10px] font-semibold text-pine">{initials(...(p.name || "?").split(" "))}</span>}
+                    <span className="min-w-0 flex-1 truncate text-ink">{p.name || "Unknown product"}</span>
+                    <span className="shrink-0 text-sub">
+                      <b className="font-semibold text-ink">{p.carts}</b> cart{p.carts === 1 ? "" : "s"}
+                      <span className="hidden sm:inline"> · {p.abandoned} abandoned · {money(p.value)}</span>
+                    </span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-[#f1f3f2]" role="img" aria-label={`${p.name}: ${summary}`}>
+                    <div className="flex h-full gap-[2px]" style={{ width: `${Math.max(4, (p.carts / max) * 100)}%` }}>
+                      {p.abandoned > 0 && <div className="h-full rounded-full" style={{ flex: p.abandoned, background: CART_ABANDONED }} />}
+                      {active > 0 && <div className="h-full rounded-full" style={{ flex: active, background: CART_ACTIVE }} />}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {data.products.length > CART_ROWS && (
+            <p className="mt-4 text-xs text-faint">Top {CART_ROWS} of {data.products.length} products in carts</p>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
