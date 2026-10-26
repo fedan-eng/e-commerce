@@ -24,7 +24,7 @@ export default function OrderSummary({ subTotal, itemCount, isAuthenticated, onC
 
       <div className="mt-4 flex items-baseline justify-between border-t border-line pt-4">
         <span className="text-base font-semibold text-forest">Total</span>
-        <span className="text-[26px] font-bold tracking-tight text-forest">{formatAmount(subTotal)}</span>
+        <span className="text-[22px] sm:text-[26px] font-bold tracking-tight text-forest">{formatAmount(subTotal)}</span>
       </div>
 
       <button

@@ -164,7 +164,7 @@ export default function Creators() {
   const activeFullscreenItem = items.find(i => i.id === activeFullscreenId) || items[0];
 
   return (
-    <section className="w-full bg-[#082C17] py-16 md:py-24 overflow-hidden text-white font-sans">
+    <section className="w-full bg-[#082C17] py-10 md:py-24 overflow-hidden text-white font-sans">
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -173,23 +173,23 @@ export default function Creators() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="mb-10">
-          <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold tracking-tight mb-2">
+        <div className="mb-6 sm:mb-10">
+          <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold tracking-tight mb-1 sm:mb-2">
             Your Faves Fave
           </h2>
-          <p className="text-gray-300 text-[15px] sm:text-base max-w-2xl leading-relaxed mb-6">
+          <p className="text-gray-300 text-[13px] sm:text-base max-w-2xl leading-relaxed mb-4 sm:mb-6">
             Demos, creator reviews and behind-the-scenes from our team.<br className="hidden sm:block"/>
             Real people using real gear, no studio magic.
           </p>
 
           <div className="flex items-end justify-between gap-4">
             {/* Filters */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               {['Instagram', 'TikTok'].map((platform) => (
                 <button
                   key={platform}
                   onClick={() => setActiveFilter(platform)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium border transition-colors duration-200 ${
+                  className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[13px] sm:text-sm font-medium border transition-colors duration-200 ${
                     activeFilter === platform 
                       ? 'border-white text-white' 
                       : 'border-white/30 text-white/70 hover:border-white/60 hover:text-white'
@@ -204,13 +204,13 @@ export default function Creators() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => scroll('left')}
-                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
               >
                 <ChevronLeft size={18} strokeWidth={2} className="text-white" />
               </button>
               <button
                 onClick={() => scroll('right')}
-                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
               >
                 <ChevronRight size={18} strokeWidth={2} className="text-white" />
               </button>
@@ -221,7 +221,7 @@ export default function Creators() {
         {/* Carousel Container */}
         <div 
           ref={scrollContainerRef}
-          className="flex gap-4 sm:gap-6  overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
+          className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
           {items.map((item) => {
             const isPlaying = playingId === item.id;
@@ -230,10 +230,10 @@ export default function Creators() {
             return (
               <div
                 key={item.id}
-                className={`relative flex-shrink-0 snap-start rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group ${
+                className={`relative flex-shrink-0 snap-start rounded-[20px] sm:rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group ${
                   isCampaign 
                     ? "w-[85vw] sm:w-[600px] lg:w-[700px] aspect-[4/3] sm:aspect-[16/9]" 
-                    : "w-[260px] sm:w-[280px] aspect-[9/16]"
+                    : "w-[42vw] max-w-[220px] sm:max-w-none sm:w-[280px] aspect-[9/16]"
                 }`}
                 onClick={() => handlePlayClick(item)}
               >
@@ -255,12 +255,12 @@ export default function Creators() {
                 </video>
 
                 {/* Overlays & Badges */}
-                <div className="absolute inset-0 flex flex-col justify-between p-6 pointer-events-none">
+                <div className="absolute inset-0 flex flex-col justify-between p-3 sm:p-6 pointer-events-none">
                   
                   {/* Top: Badge & Controls */}
                   <div className="flex justify-between items-start w-full">
                     {/* Badge */}
-                    <span className={`px-3 py-1.5 rounded-full text-[12px] font-bold text-gray-900 leading-none ${
+                    <span className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-[12px] font-bold text-gray-900 leading-none ${
                       isCampaign ? "bg-white" : item.badgeColor
                     }`}>
                       {item.badge}
@@ -270,7 +270,7 @@ export default function Creators() {
                     {isPlaying && (
                       <button
                         onClick={(e) => openFullscreen(item, e)}
-                        className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors pointer-events-auto"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors pointer-events-auto"
                       >
                         <Maximize2 size={18} className="text-white" />
                       </button>
@@ -290,17 +290,17 @@ export default function Creators() {
                   <div className="flex items-end justify-between w-full relative z-10 pointer-events-auto">
                     
                     {/* Text Data */}
-                    <div className="flex flex-col gap-1 pr-4">
-                      <h3 className={`font-bold leading-tight ${isCampaign ? "text-xl sm:text-2xl" : "text-[18px]"}`}>
+                    <div className="flex flex-col gap-0.5 sm:gap-1 pr-2 sm:pr-4 min-w-0">
+                      <h3 className={`font-bold leading-tight ${isCampaign ? "text-lg sm:text-2xl" : "text-[14px] sm:text-[18px]"}`}>
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p className="text-white/80 text-[13px] leading-snug">
+                        <p className="text-white/80 text-[11px] sm:text-[13px] leading-snug line-clamp-2 sm:line-clamp-none">
                           {item.description}
                         </p>
                       )}
                       {item.handle && (
-                        <p className="text-white/60 text-[12px] mt-1">
+                        <p className="text-white/60 text-[10.5px] sm:text-[12px] mt-0.5 sm:mt-1 truncate">
                           {item.handle}
                         </p>
                       )}
@@ -316,15 +316,15 @@ export default function Creators() {
                       {isPlaying && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setIsMuted((m) => !m); }}
-                          className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors"
                         >
                           {isMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
                         </button>
                       )}
                       
                       {!isCampaign && !isPlaying && (
-                        <div className="w-10 h-10 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 self-end pointer-events-none">
-                          <Play size={20} className="text-[#082C17] fill-[#082C17] ml-1" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 self-end pointer-events-none">
+                          <Play size={16} className="text-[#082C17] fill-[#082C17] ml-0.5 sm:ml-1" />
                         </div>
                       )}
                     </div>

@@ -139,7 +139,7 @@ export default function VerifyPaymentPage() {
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-filred">
             <X size={30} />
           </span>
-          <h1 className="mt-5 text-[26px] font-bold tracking-tight text-forest">We couldn&apos;t confirm your payment</h1>
+          <h1 className="mt-5 text-[22px] sm:text-[26px] font-bold tracking-tight text-forest">We couldn&apos;t confirm your payment</h1>
           <p className="mt-2 text-[15px] text-muted">{error || "No order details available."}</p>
           <p className="mt-2 text-sm text-muted">If money left your account, don&apos;t pay again. Contact us and we&apos;ll sort it out.</p>
 
@@ -201,7 +201,7 @@ export default function VerifyPaymentPage() {
         <span className="mt-5 inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
           Order confirmed
         </span>
-        <h1 className="mt-3 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">
+        <h1 className="mt-3 text-[24px] font-bold tracking-tight text-forest sm:text-[30px] md:text-[40px]">
           Thank you, {orderDetails.firstName}!
         </h1>
         <p className="mt-1 max-w-xl text-[15px] text-muted">

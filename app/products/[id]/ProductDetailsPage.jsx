@@ -70,7 +70,7 @@ export default function ProductDetailsPage({ product }) {
         <Breadcrumbs items={getBreadcrumbs(product)} />
 
         <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] lg:gap-16">
-          <div className="flex min-w-0 flex-col gap-8 lg:gap-12">
+          <div className="flex min-w-0 flex-col gap-6 lg:gap-12">
             <ProductGallery
               key={selectedColor?._id || "all"}
               product={product}

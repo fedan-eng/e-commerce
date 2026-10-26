@@ -101,7 +101,7 @@ export default function WhatsAppReviews({
   );
 
   return (
-    <section className="w-full bg-[#F1F5F2] py-16 md:py-24 overflow-hidden">
+    <section className="w-full bg-[#F1F5F2] py-10 md:py-24 overflow-hidden">
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -109,26 +109,26 @@ export default function WhatsAppReviews({
 
       <div
         className={`max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col ${
-          isCategory ? 'gap-8 sm:gap-10' : 'lg:flex-row lg:items-center gap-10 lg:gap-12'
+          isCategory ? 'gap-5 sm:gap-10' : 'lg:flex-row lg:items-center gap-5 sm:gap-10 lg:gap-12'
         }`}
       >
 
         {isCategory ? (
           /* Title row with the arrows on the right */
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
             <div>
-              <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">{title}</h2>
-              <p className="text-gray-500 mt-2 text-[15px] sm:text-base">{subtitle}</p>
+              <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">{title}</h2>
+              <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">{subtitle}</p>
             </div>
             <div className="flex items-center gap-3 self-start sm:self-auto">{arrows}</div>
           </div>
         ) : (
           /* Intro + controls */
           <div className="lg:w-[240px] shrink-0">
-            <Quote className="w-12 h-12 text-[#1FA34A] fill-[#1FA34A] rotate-180 mb-4" strokeWidth={0} />
-            <h2 className="text-[32px] sm:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">{title}</h2>
-            <p className="text-gray-500 mt-4 text-[14px] sm:text-[15px] leading-relaxed">{subtitle}</p>
-            <div className="flex items-center gap-3 mt-8">{arrows}</div>
+            <Quote className="w-9 h-9 sm:w-12 sm:h-12 text-[#1FA34A] fill-[#1FA34A] rotate-180 mb-3 sm:mb-4" strokeWidth={0} />
+            <h2 className="text-[24px] sm:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">{title}</h2>
+            <p className="text-gray-500 mt-2 sm:mt-4 text-[13px] sm:text-[15px] leading-relaxed">{subtitle}</p>
+            <div className="flex items-center gap-3 mt-5 sm:mt-8">{arrows}</div>
           </div>
         )}
 
@@ -136,17 +136,17 @@ export default function WhatsAppReviews({
         <div
           ref={scrollRef}
           onScroll={updateBar}
-          className="flex-1 min-w-0 flex gap-5 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-10 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
+          className="flex-1 min-w-0 flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-7 sm:pb-10 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
           {chats.map((chat) => (
-            <div key={chat.id} className="relative flex-none w-[230px] sm:w-[250px] snap-start">
-              <div className="rounded-[24px] p-2.5" style={{ backgroundColor: chat.bubble }}>
-                <div className="relative aspect-[5/6] rounded-[16px] overflow-hidden bg-[#0B141A]">
+            <div key={chat.id} className="relative flex-none w-[40vw] max-w-[210px] sm:max-w-none sm:w-[250px] snap-start">
+              <div className="rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2.5" style={{ backgroundColor: chat.bubble }}>
+                <div className="relative aspect-[5/6] rounded-[12px] sm:rounded-[16px] overflow-hidden bg-[#0B141A]">
                   <Image
                     src={chat.src}
                     alt="WhatsApp chat with a FIL customer"
                     fill
-                    sizes="250px"
+                    sizes="(max-width: 640px) 40vw, 250px"
                     unoptimized={!canOptimise(chat.src)}
                     className="object-cover object-top"
                   />
@@ -156,7 +156,7 @@ export default function WhatsAppReviews({
               {/* Bubble tail */}
               <div
                 aria-hidden
-                className="absolute left-7 -bottom-[26px] w-7 h-7"
+                className="absolute left-5 -bottom-[18px] w-5 h-5 sm:left-7 sm:-bottom-[26px] sm:w-7 sm:h-7"
                 style={{ backgroundColor: chat.bubble, clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
               />
             </div>

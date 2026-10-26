@@ -22,7 +22,7 @@ const Anniversary = () => {
 
             {/* Story */}
             <div className="flex-1 max-w-[520px]">
-              <h2 className="text-[26px] sm:text-[32px] lg:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">
+              <h2 className="text-[22px] sm:text-[32px] lg:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">
                 Nigeria’s first phone accessories company.
               </h2>
               <p className="text-[14px] sm:text-[16px] leading-relaxed text-[#004328]/80 mt-3">

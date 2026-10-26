@@ -49,15 +49,15 @@ const moments = [
 
 const MadeFor = () => {
   return (
-    <section className="w-full bg-white py-16 md:py-24 overflow-hidden">
+    <section className="w-full bg-white py-10 md:py-24 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="mb-12 md:mb-16">
-          <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight mb-2">
+        <div className="mb-6 md:mb-16">
+          <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight mb-1 sm:mb-2">
             Made for the whole day.
           </h2>
-          <p className="text-gray-500 text-[15px] sm:text-base">
+          <p className="text-gray-500 text-[13px] sm:text-base">
             From the first bus to the last call, here's where FIL shows up.
           </p>
         </div>

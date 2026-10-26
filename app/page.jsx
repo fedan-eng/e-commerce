@@ -9,7 +9,7 @@ import Creators from "@/components/landing/Creators";
 // import FeaturedBlog from "@/components/landing/FeaturedBlog";
 import Marquee from "@/components/landing/Marquee";
 import NeedsPower from "@/components/landing/NeedsPower";
-import VideoAnimation from "@/components/landing/VideoAnimation";
+// import VideoAnimation from "@/components/landing/VideoAnimation";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
@@ -206,7 +206,7 @@ const page = async () => {
       <NeedsPower/>
       <BestSellers/>
       <WhatsAppReviews chats={reviewChats}/>
-      <VideoAnimation/>
+      {/* <VideoAnimation/> */}
       <MadeFor/>
       <Anniversary/>
       <Creators/>

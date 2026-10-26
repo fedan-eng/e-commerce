@@ -80,7 +80,7 @@ export default function CodeForm({ email, requestCode, onVerified, onChangeEmail
         }}
         placeholder="000000"
         aria-invalid={Boolean(error)}
-        className={`h-14 w-full rounded-2xl border bg-sage px-4 text-center font-mono text-2xl tracking-[0.5em] text-forest outline-none transition-colors placeholder:text-muted/40 focus:border-forest focus:bg-white ${
+        className={`h-12 w-full rounded-2xl border bg-sage px-2 text-center font-mono text-xl tracking-[0.3em] sm:h-14 sm:px-4 sm:text-2xl sm:tracking-[0.5em] text-forest outline-none transition-colors placeholder:text-muted/40 focus:border-forest focus:bg-white ${
           error ? "border-red-400" : "border-transparent"
         }`}
       />

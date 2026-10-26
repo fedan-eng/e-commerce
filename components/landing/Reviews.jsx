@@ -71,7 +71,7 @@ export default function Reviews({
   };
 
   return (
-    <section className="w-full bg-[#F1F5F2] py-16 md:py-24 overflow-hidden">
+    <section className="w-full bg-[#F1F5F2] py-10 md:py-24 overflow-hidden">
       <style>{`
         .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -85,12 +85,12 @@ export default function Reviews({
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-12 gap-4 sm:gap-6">
           <div>
-            <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
+            <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
               {title}
             </h2>
-            <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
+            <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">
               {subtitle}
             </p>
           </div>
@@ -117,31 +117,31 @@ export default function Reviews({
         {/* Carousel Container */}
         <div 
           ref={scrollRef}
-          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-6 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
+          className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-6 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
           {reviews.map((review, i) => (
             <div
               key={review.id}
-              className="flex-none w-[280px] sm:w-[320px] md:w-[340px] bg-[#D9F7E7] border border-[#4CB97A]/25 rounded-[28px] p-6 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300"
+              className="flex-none w-[64vw] max-w-[260px] sm:max-w-none sm:w-[320px] md:w-[340px] bg-[#D9F7E7] border border-[#4CB97A]/25 rounded-[20px] sm:rounded-[28px] p-4 sm:p-7 flex flex-col justify-between snap-start shadow-xs hover:shadow-md transition-shadow duration-300"
             >
               {/* Top: Colored Quote Badge */}
               <div>
-                <div className={`w-12 h-12 rounded-full ${review.quoteBg || QUOTE_BGS[i % QUOTE_BGS.length]} flex items-center justify-center mb-6`}>
-                  <Quote className="w-5 h-5 text-[#0A321B] fill-[#0A321B] rotate-180" />
+                <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full ${review.quoteBg || QUOTE_BGS[i % QUOTE_BGS.length]} flex items-center justify-center mb-3 sm:mb-6`}>
+                  <Quote className="w-4 h-4 sm:w-5 sm:h-5 text-[#0A321B] fill-[#0A321B] rotate-180" />
                 </div>
 
                 {/* Review Text */}
-                <p className="text-[14px] sm:text-[15px] text-gray-600 italic leading-relaxed font-normal mb-8">
+                <p className="text-[13px] sm:text-[15px] text-gray-600 italic leading-relaxed font-normal mb-5 sm:mb-8 line-clamp-6 sm:line-clamp-none">
                   "{review.text}"
                 </p>
               </div>
 
               {/* Bottom: Customer Info & Product */}
-              <div className="pt-4 border-t border-black/10">
-                <h3 className="text-[14px] font-bold text-[#0A321B]">
+              <div className="pt-3 sm:pt-4 border-t border-black/10">
+                <h3 className="text-[13px] sm:text-[14px] font-bold text-[#0A321B]">
                   {review.author}{review.city && <>, <span className="font-normal text-gray-500">{review.city}</span></>}
                 </h3>
-                <p className="text-[12px] text-gray-500 mt-1">
+                <p className="text-[11px] sm:text-[12px] text-gray-500 mt-1">
                   Bought <span className="underline underline-offset-2 decoration-gray-300">{review.product}</span>
                 </p>
               </div>

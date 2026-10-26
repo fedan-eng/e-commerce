@@ -19,7 +19,7 @@ export default function BlogPageClient({ featured, posts, total }) {
     <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
       {/* Page header */}
       <div className="text-center max-w-xl mx-auto">
-  <h1 className="text-4xl md:text-5xl font-extrabold text-zinc-900 leading-tight">
+  <h1 className="text-3xl md:text-5xl font-extrabold text-zinc-900 leading-tight">
     Tech <span className="text-green-500">Gist</span> That
     <br />
     Actually <span className="text-green-500">Helps.</span>

@@ -10,7 +10,7 @@ export default function ExploreMore({ currentSlug }) {
   return (
     <section className="bg-[#F3F7F2] py-12 md:py-16">
       <div className="mx-auto max-w-[1440px] px-4 md:px-16">
-        <h2 className="text-[28px] font-bold tracking-tight text-[#0A321B] sm:text-[36px]">
+        <h2 className="text-[22px] font-bold tracking-tight text-[#0A321B] sm:text-[36px]">
           Explore more from FIL
         </h2>
         <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">

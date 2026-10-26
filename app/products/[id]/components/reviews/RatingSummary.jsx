@@ -6,7 +6,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function ScoreRing({ value }) {
   return (
-    <div className="relative h-[100px] w-[100px] shrink-0">
+    <div className="relative h-[84px] w-[84px] shrink-0 sm:h-[100px] sm:w-[100px]">
       <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
         <defs>
           <linearGradient id="score-ring" x1="0" y1="0" x2="1" y2="1">
@@ -27,7 +27,7 @@ function ScoreRing({ value }) {
           strokeDashoffset={CIRCUMFERENCE * (1 - value / 5)}
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[28px] font-bold text-forest">
+      <span className="absolute inset-0 flex items-center justify-center text-[24px] font-bold text-forest sm:text-[28px]">
         {value.toFixed(1)}
       </span>
     </div>
@@ -58,7 +58,7 @@ function Bars({ breakdown, total }) {
 
 export default function RatingSummary({ average, total, breakdown, action }) {
   return (
-    <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-14">
+    <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-14">
       <div className="flex items-center gap-5 md:pl-5">
         <ScoreRing value={average} />
         <div>

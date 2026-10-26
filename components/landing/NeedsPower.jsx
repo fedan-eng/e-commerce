@@ -12,14 +12,15 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
   - 'right'  → cut-out runs off the right edge
 */
 // Every image starts at IMAGE_TOP — just under the title/subtitle.
-// Nudge this one value to move all card images up or down.
-const IMAGE_TOP = 'top-[27%]';
+// Nudge these values to move all card images up or down (phone cards are narrower,
+// so the text wraps more and the image starts lower).
+const IMAGE_TOP = 'top-[36%] sm:top-[27%]';
 
 const bleedPosition = {
   full: `inset-x-0 ${IMAGE_TOP} bottom-0`,
   bottom: `left-1/2 -translate-x-1/2 ${IMAGE_TOP} -bottom-[8%]`,
-  left: `-left-[14%] ${IMAGE_TOP} bottom-5`,
-  right: `-right-[14%] ${IMAGE_TOP} bottom-5`,
+  left: `-left-[14%] ${IMAGE_TOP} bottom-3 sm:bottom-5`,
+  right: `-right-[14%] ${IMAGE_TOP} bottom-3 sm:bottom-5`,
 };
 
 const categories = [
@@ -92,7 +93,7 @@ const CategoryImage = ({ cat }) => {
   // Contained (default)
   if (!cat.bleed) {
     return (
-      <div className={`absolute ${IMAGE_TOP} bottom-0 left-0 right-0 px-4 pb-4 flex items-start justify-center pointer-events-none`}>
+      <div className={`absolute ${IMAGE_TOP} bottom-0 left-0 right-0 px-2.5 pb-2.5 sm:px-4 sm:pb-4 flex items-start justify-center pointer-events-none`}>
         <img
           src={cat.image}
           alt={cat.title}
@@ -140,7 +141,7 @@ const NeedsPower = () => {
   };
 
   return (
-    <section className="w-full bg-white py-12 md:py-20 overflow-hidden">
+    <section className="w-full bg-white py-10 md:py-20 overflow-hidden">
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -149,12 +150,12 @@ const NeedsPower = () => {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-10 gap-6">
           <div>
-            <h2 className="text-[32px] sm:text-[40px] leading-tight font-bold text-[#004328] tracking-tight">
+            <h2 className="text-[24px] sm:text-[40px] leading-tight font-bold text-[#004328] tracking-tight">
               Shop by Category
             </h2>
-            <p className="text-gray-500 mt-2 text-[15px] sm:text-base">
+            <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">
               Swipe through our categories and pick where to start.
             </p>
           </div>
@@ -180,28 +181,28 @@ const NeedsPower = () => {
         {/* Carousel */}
         <div 
           ref={scrollRef}
-          className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
+          className="flex gap-3 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={cat.href}
               aria-label={`Shop ${cat.title}`}
-              className={`flex-none w-[280px] sm:w-[300px] h-[410px] rounded-[28px] ${cat.bg} p-5 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
+              className={`flex-none w-[42vw] max-w-[200px] sm:max-w-none sm:w-[300px] h-[58vw] max-h-[276px] sm:max-h-none sm:h-[410px] rounded-[20px] sm:rounded-[28px] ${cat.bg} p-3 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
             >
               {/* Text stays above any bleeding image */}
-              <div className="relative z-10 pr-10">
-                <h3 className={`text-[20px] sm:text-[22px] font-bold ${cat.textTitle} mb-1.5 leading-tight`}>
+              <div className="relative z-10 pr-7 sm:pr-10">
+                <h3 className={`text-[15px] sm:text-[22px] font-bold ${cat.textTitle} mb-1 sm:mb-1.5 leading-tight`}>
                   {cat.title}
                 </h3>
-                <p className={`text-[13px] sm:text-[14px] leading-[1.35] ${cat.textSub} font-medium`}>
+                <p className={`text-[11px] sm:text-[14px] leading-[1.3] sm:leading-[1.35] ${cat.textSub} font-medium line-clamp-3`}>
                   {cat.subtitle}
                 </p>
               </div>
 
               {/* Arrow button */}
-              <div className={`absolute top-5 right-5 sm:top-6 sm:right-6 w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-full flex items-center justify-center ${cat.btnBg} z-10 transition-transform group-hover:scale-110`}>
-                <ArrowUpRight className={`w-4 h-4 ${cat.btnIcon}`} strokeWidth={2.5} />
+              <div className={`absolute top-3 right-3 sm:top-6 sm:right-6 w-6 h-6 sm:w-[34px] sm:h-[34px] rounded-full flex items-center justify-center ${cat.btnBg} z-10 transition-transform group-hover:scale-110`}>
+                <ArrowUpRight className={`w-3 h-3 sm:w-4 sm:h-4 ${cat.btnIcon}`} strokeWidth={2.5} />
               </div>
 
               <CategoryImage cat={cat} />

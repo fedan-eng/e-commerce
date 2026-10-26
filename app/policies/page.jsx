@@ -174,7 +174,7 @@ export default function PolicyPage() {
       <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
         Legal
       </span>
-      <h1 className="mt-4 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">Policies &amp; terms</h1>
+      <h1 className="mt-4 text-[24px] font-bold tracking-tight text-forest sm:text-[30px] md:text-[40px]">Policies &amp; terms</h1>
       <p className="mt-1 max-w-xl text-[15px] text-muted">
         How we operate, protect your data and get your orders to you. Questions? We&apos;re a message away.
       </p>

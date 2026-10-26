@@ -18,7 +18,7 @@ const Hero1 = () => {
       {/* Text & Button Overlay */}
       <div className="relative z-10 flex flex-col items-center text-center">
         
-        <h1 className="text-white text-3xl sm:text-4xl md:text-4xl font-bold mb-2 tracking-wide">
+        <h1 className="text-white text-2xl sm:text-4xl md:text-4xl font-bold mb-2 tracking-wide">
           Providing Tools to Power your Story.
         </h1>
 

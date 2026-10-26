@@ -71,7 +71,7 @@ export default function ContactPage() {
         <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
           Support
         </span>
-        <h1 className="mt-4 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">We&apos;re here to help</h1>
+        <h1 className="mt-4 text-[24px] font-bold tracking-tight text-forest sm:text-[30px] md:text-[40px]">We&apos;re here to help</h1>
         <p className="mt-1 max-w-xl text-[15px] text-muted">
           Questions about a product, an order or a return? Reach us the way that suits you and a real person will reply.
         </p>
@@ -98,7 +98,7 @@ export default function ContactPage() {
         </div>
 
         {/* ── Form + side column ── */}
-        <div className="mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
+        <div className="mt-8 md:mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
           <ContactForm />
 
           <aside className="flex flex-col gap-6 lg:sticky lg:top-24">

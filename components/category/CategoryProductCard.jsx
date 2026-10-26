@@ -24,7 +24,7 @@ export default function CategoryProductCard({ product, cardBg }) {
     <div className="group flex min-w-0 flex-col">
       <Link
         href={href}
-        className="relative block aspect-square overflow-hidden rounded-[24px] sm:rounded-[28px]"
+        className="relative block aspect-square overflow-hidden rounded-[20px] sm:rounded-[28px]"
         style={{ backgroundColor: cardBg }}
       >
         {badge && (
@@ -37,7 +37,7 @@ export default function CategoryProductCard({ product, cardBg }) {
           alt={product.name}
           fill
           sizes="(min-width: 1024px) 25vw, 50vw"
-          className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+          className="object-contain p-4 transition sm:p-6-transform duration-500 group-hover:scale-105"
         />
       </Link>
 
@@ -45,13 +45,13 @@ export default function CategoryProductCard({ product, cardBg }) {
       <Link
         href={href}
         title={product.name}
-        className="mt-3 min-w-0 truncate text-[13px] text-[#3A3A3A] sm:text-sm"
+        className="mt-2.5 min-w-0 truncate text-[13px] sm:mt-3 text-[#3A3A3A] sm:text-sm"
       >
         {product.name}
       </Link>
 
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-[15px] font-bold text-[#0A321B]">{formatPrice(product.price)}</span>
+        <span className="text-[14px] font-bold text-[#0A321B] sm:text-[15px]">{formatPrice(product.price)}</span>
         {product.originalPrice > product.price && (
           <span className="text-[11px] text-gray-400 line-through">{formatPrice(product.originalPrice)}</span>
         )}
@@ -68,7 +68,7 @@ export default function CategoryProductCard({ product, cardBg }) {
             Buy Now
           </span>
         }
-        className="mt-3 flex w-full items-center justify-center rounded-full bg-[#004328] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="mt-2.5 flex w-full items-center justify-center rounded-full bg-[#004328] px-3 py-2.5 text-[12px] sm:mt-3 sm:px-4 sm:py-3 sm:text-[13px] font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
       />
     </div>
   );

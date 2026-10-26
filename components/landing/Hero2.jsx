@@ -23,7 +23,7 @@ const Hero2 = () => {
           FIL MagFlex Power Bank
         </span>
 
-        <h1 className="text-white text-3xl sm:text-4xl md:text-4xl  font-bold leading-tight sm:leading-tight md:leading-tight mb-6 tracking-tight">
+        <h1 className="text-white text-2xl sm:text-4xl md:text-4xl  font-bold leading-tight sm:leading-tight md:leading-tight mb-6 tracking-tight">
           The World's Fastest and Coolest <br className="hidden sm:inline" />
           Wireless Power Bank
         </h1>

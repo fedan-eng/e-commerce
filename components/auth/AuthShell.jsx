@@ -66,7 +66,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-4 text-[30px] font-bold leading-tight tracking-tight text-forest md:text-[34px]">{title}</h1>
+          <h1 className="mt-4 text-[24px] font-bold leading-tight tracking-tight text-forest sm:text-[30px] md:text-[34px]">{title}</h1>
           {subtitle && <p className="mt-2 text-[15px] leading-relaxed text-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
           {footer && <div className="mt-8 text-center text-sm text-muted">{footer}</div>}

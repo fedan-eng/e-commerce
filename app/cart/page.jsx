@@ -65,7 +65,7 @@ export default function CartPage() {
       ) : (
         <>
           <div className="flex items-baseline gap-3">
-            <h1 className="text-[30px] font-bold tracking-tight text-forest md:text-[40px]">Your cart</h1>
+            <h1 className="text-[24px] font-bold tracking-tight text-forest sm:text-[30px] md:text-[40px]">Your cart</h1>
             <span className="rounded-full bg-mint px-3 py-1 text-sm font-semibold text-forest">
               {itemCount} {itemCount === 1 ? "item" : "items"}
             </span>

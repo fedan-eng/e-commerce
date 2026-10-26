@@ -50,10 +50,10 @@ function RatingLine({ product }) {
 function PriceLine({ product, discount }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="text-[30px] font-bold leading-none text-forest md:text-[34px]">{formatAmount(product.price)}</span>
+      <span className="text-[24px] font-bold leading-none text-forest sm:text-[30px] md:text-[34px]">{formatAmount(product.price)}</span>
       {discount && (
         <>
-          <span className="text-base text-muted line-through">{formatAmount(product.originalPrice)}</span>
+          <span className="text-sm text-muted line-through sm:text-base">{formatAmount(product.originalPrice)}</span>
           <Pill tone="mint">You save {formatAmount(discount.amount)}</Pill>
         </>
       )}
@@ -64,7 +64,7 @@ function PriceLine({ product, discount }) {
 // Rendered by the page, between the delivery and services cards
 export function StockStatus({ inStock }) {
   return (
-    <p className="flex items-center gap-2 text-[15px] text-muted">
+    <p className="flex items-center gap-2 text-[13px] text-muted sm:text-[15px]">
       <span className={`h-3 w-3 rounded-full ring-4 ${inStock ? "bg-signal ring-mint" : "bg-red-500 ring-red-100"}`} />
       {inStock ? "In stock, ships from Lagos" : "Out of stock"}
     </p>
@@ -78,22 +78,22 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
 
   return (
     <div className="flex min-w-0 flex-col">
-      <div className="flex flex-col gap-4 border-b border-line pb-6">
+      <div className="flex flex-col gap-3 border-b border-line pb-5 sm:gap-4 sm:pb-6">
         <Badges product={product} discount={discount} />
-        <h1 className="text-[28px] font-bold leading-[1.15] tracking-tight text-forest md:text-[36px]">{product.name}</h1>
+        <h1 className="text-[22px] font-bold leading-[1.2] tracking-tight text-forest sm:text-[28px] md:text-[36px]">{product.name}</h1>
         <RatingLine product={product} />
         <PriceLine product={product} discount={discount} />
       </div>
 
       {product.description && (
-        <div className="mt-7">
-          <h2 className="text-[15px] font-semibold text-forest">Description</h2>
-          <ExpandableText text={product.description} className="mt-2 text-base leading-[1.65] text-muted" />
+        <div className="mt-5 sm:mt-7">
+          <h2 className="text-[14px] sm:text-[15px] font-semibold text-forest">Description</h2>
+          <ExpandableText text={product.description} className="mt-2 text-[14px] leading-[1.6] text-muted sm:text-base sm:leading-[1.65]" />
         </div>
       )}
 
       {highlights.length > 0 && (
-        <div className="mt-7">
+        <div className="mt-5 sm:mt-7">
           <Specifications highlights={highlights} />
         </div>
       )}
@@ -108,7 +108,7 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
           <button
             type="button"
             onClick={() => onCheckout(quantity)}
-            className="order-last h-[52px] basis-full rounded-full bg-forest px-8 text-[17px] font-medium text-white transition-colors hover:bg-[#002a19] sm:order-none sm:basis-auto sm:flex-1"
+            className="order-last h-12 basis-full rounded-full bg-forest px-8 text-[15px] font-medium sm:h-[52px] sm:text-[17px] text-white transition-colors hover:bg-[#002a19] sm:order-none sm:basis-auto sm:flex-1"
           >
             Checkout now
           </button>

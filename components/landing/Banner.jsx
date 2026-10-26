@@ -7,7 +7,7 @@ const Banner = () => {
       <div className="max-w-[1400px] mx-auto px-6 sm:px-6 lg:px-8">
 
         {/* Headline */}
-        <h2 className="text-[36px] sm:text-[48px] md:text-[56px] leading-[1.05] font-bold text-[#0A321B] tracking-tight mb-6 md:mb-8">
+        <h2 className="text-[28px] sm:text-[48px] md:text-[56px] leading-[1.05] font-bold text-[#0A321B] tracking-tight mb-6 md:mb-8">
           Stay on.
         </h2>
 

@@ -181,7 +181,7 @@ export default function CookiePolicyPage() {
       <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
         Legal
       </span>
-      <h1 className="mt-4 text-[30px] font-bold tracking-tight text-forest md:text-[40px]">Cookie policy</h1>
+      <h1 className="mt-4 text-[24px] font-bold tracking-tight text-forest sm:text-[30px] md:text-[40px]">Cookie policy</h1>
       <p className="mt-1 max-w-xl text-[15px] leading-relaxed text-muted">
         How Filstore uses cookies and similar technologies when you visit filstore.com.ng. Please read it alongside
         our{' '}

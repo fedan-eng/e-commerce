@@ -8,8 +8,8 @@ export function Container({ className = "", children }) {
 export function SectionHeading({ title, subtitle, className = "" }) {
   return (
     <div className={className}>
-      <h2 className="text-[28px] font-bold leading-tight tracking-tight text-forest md:text-[36px]">{title}</h2>
-      {subtitle && <p className="mt-1 text-[15px] text-muted md:text-base">{subtitle}</p>}
+      <h2 className="text-[22px] font-bold leading-tight tracking-tight text-forest sm:text-[28px] md:text-[36px]">{title}</h2>
+      {subtitle && <p className="mt-1 text-[13px] text-muted sm:text-[15px] md:text-base">{subtitle}</p>}
     </div>
   );
 }

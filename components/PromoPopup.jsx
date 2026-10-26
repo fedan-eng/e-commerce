@@ -143,7 +143,7 @@ export default function PromoPopup() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 font-roboto"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 font-roboto sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -154,33 +154,33 @@ export default function PromoPopup() {
             role="dialog"
             aria-modal="true"
             aria-label="Get 10% off your first order"
-            className="relative grid max-h-[calc(100dvh-2rem)] w-full max-w-[760px] overflow-y-auto rounded-[28px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:grid-cols-[44%_56%] md:overflow-hidden"
+            className="relative grid max-h-[calc(100dvh-1.5rem)] w-full max-w-[760px] grid-cols-[38%_62%] overflow-y-auto rounded-[20px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[28px] md:grid-cols-[44%_56%] md:overflow-hidden"
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
           >
             {/* Image panel */}
-            <div className="relative h-[200px] bg-[#a6ecc8] md:h-auto md:min-h-[460px]">
+            <div className="relative bg-[#a6ecc8] md:min-h-[460px]">
               <Image
                 src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/promotion.png"
                 alt="Woman holding a FIL 30,000mAh power bank"
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, 340px"
-                className="object-cover object-[center_22%] md:object-left-bottom"
+                sizes="(max-width: 768px) 40vw, 340px"
+                className="object-cover object-bottom md:object-left-bottom"
               />
             </div>
 
             {/* Content panel */}
-            <div className="relative flex flex-col px-6 pb-7 pt-6 sm:px-9">
-              <div className="mb-4 flex items-center justify-between">
-                <Image src="/fillogo.png" alt="FIL" width={52} height={22} className="h-auto w-[52px]" />
+            <div className="relative flex min-w-0 flex-col px-4 pb-5 pt-4 sm:px-9 sm:pb-7 sm:pt-6">
+              <div className="mb-3 flex items-center justify-between sm:mb-4">
+                <Image src="/fillogo.png" alt="FIL" width={52} height={22} className="h-auto w-[42px] sm:w-[52px]" />
                 <button
                   type="button"
                   onClick={close}
                   aria-label="Close"
-                  className="-mr-2 flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-sage"
+                  className="-mr-2 flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sage"
                 >
                   <X size={18} />
                 </button>
@@ -197,22 +197,22 @@ export default function PromoPopup() {
                     transition={{ duration: 0.2 }}
                   >
                     <h2 className="font-poppins text-forest">
-                      <span className="block text-[26px] font-bold leading-none sm:text-[30px]">Want</span>
-                      <TenOff className="-mt-1 block text-[84px] leading-none sm:text-[112px]" />
-                      <span className="block pl-[22%] text-[22px] font-bold leading-tight sm:text-[26px]">Your First Order?</span>
+                      <span className="block text-[18px] font-bold leading-none sm:text-[24px] md:text-[30px]">Want</span>
+                      <TenOff className="-mt-1 block text-[50px] leading-none sm:text-[80px] md:text-[112px]" />
+                      <span className="block pl-[18%] text-[14px] font-bold leading-tight sm:pl-[22%] sm:text-[20px] md:text-[26px]">Your First Order?</span>
                     </h2>
 
                     <button
                       type="button"
                       onClick={() => setStep("form")}
-                      className="mt-8 h-12 w-full rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black"
+                      className="mt-5 h-10 w-full rounded-full bg-forest text-[13px] font-semibold sm:mt-8 sm:h-12 sm:text-sm text-white transition-colors hover:bg-black"
                     >
                       Yes, Please!
                     </button>
                     <button
                       type="button"
                       onClick={close}
-                      className="mx-auto mt-3 text-sm text-ink underline underline-offset-2 hover:text-forest"
+                      className="mx-auto mt-2.5 text-xs text-ink underline sm:mt-3 sm:text-sm underline-offset-2 hover:text-forest"
                     >
                       No, I&apos;ll pay full price
                     </button>
@@ -230,9 +230,9 @@ export default function PromoPopup() {
                     exit={{ opacity: 0, x: -16 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <h2 className="mb-5 flex items-baseline gap-2 font-poppins">
-                      <span className="text-[26px] font-bold text-forest sm:text-[30px]">Claim</span>
-                      <TenOff className="text-[60px] leading-none sm:text-[76px]" />
+                    <h2 className="mb-3 flex items-baseline gap-1.5 font-poppins sm:mb-5 sm:gap-2">
+                      <span className="text-[18px] font-bold text-forest sm:text-[26px] md:text-[30px]">Claim</span>
+                      <TenOff className="text-[38px] leading-none sm:text-[60px] md:text-[76px]" />
                     </h2>
 
                     <input
@@ -243,14 +243,14 @@ export default function PromoPopup() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email"
                       aria-label="Email address"
-                      className="h-12 w-full rounded-xl border border-line px-4 text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-forest"
+                      className="h-10 w-full rounded-xl border border-line px-3 text-sm sm:h-12 sm:px-4 text-ink outline-none transition-colors placeholder:text-faint focus:border-forest"
                     />
 
-                    <div className="mt-3 flex gap-2">
-                      <label className="relative flex h-12 shrink-0 items-center rounded-xl border border-line pl-3 pr-8 text-sm text-ink focus-within:border-forest">
+                    <div className="mt-2 flex gap-1.5 sm:mt-3 sm:gap-2">
+                      <label className="relative flex h-10 shrink-0 items-center rounded-xl border border-line pl-2 pr-6 text-[13px] sm:h-12 sm:pl-3 sm:pr-8 sm:text-sm text-ink focus-within:border-forest">
                         <span aria-hidden>{country.flag}</span>
-                        <span className="ml-1.5">{country.dial}</span>
-                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 text-faint" />
+                        <span className="ml-1 sm:ml-1.5">{country.dial}</span>
+                        <ChevronDown size={14} className="pointer-events-none absolute right-1.5 text-faint sm:right-2.5" />
                         <select
                           aria-label="Country code"
                           value={country.code}
@@ -272,11 +272,11 @@ export default function PromoPopup() {
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="813 767 8990"
                         aria-label="Phone number"
-                        className="h-12 min-w-0 flex-1 rounded-xl border border-line px-4 text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-forest"
+                        className="h-10 min-w-0 flex-1 rounded-xl border border-line px-3 text-sm sm:h-12 sm:px-4 text-ink outline-none transition-colors placeholder:text-faint focus:border-forest"
                       />
                     </div>
 
-                    <label className="mt-4 flex cursor-pointer items-start gap-2.5">
+                    <label className="mt-3 flex cursor-pointer items-start gap-2 sm:mt-4 sm:gap-2.5">
                       <input
                         type="checkbox"
                         checked={smsOptIn}
@@ -284,8 +284,8 @@ export default function PromoPopup() {
                         className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded accent-forest"
                       />
                       <span>
-                        <span className="block text-[13px] font-semibold text-ink">Receive offers via text message</span>
-                        <span className="mt-1 block text-[10.5px] leading-relaxed text-faint">
+                        <span className="block text-[12px] font-semibold leading-snug text-ink sm:text-[13px]">Receive offers via text message</span>
+                        <span className="mt-1 block text-[9.5px] leading-snug text-faint sm:text-[10.5px] sm:leading-relaxed">
                           Text me with news and offers! By checking this box you consent to receive texts from FIL,
                           including texts sent by autodialer. Consent is not a condition of purchase. Message &amp; data
                           rates may apply. Message frequency varies. Text STOP to unsubscribe or HELP for help.{" "}
@@ -296,7 +296,7 @@ export default function PromoPopup() {
                     </label>
 
                     {error && (
-                      <p role="alert" className="mt-3 text-[13px] font-medium text-filred">
+                      <p role="alert" className="mt-3 text-[12px] font-medium text-filred sm:text-[13px]">
                         {error}{" "}
                         {hasAccount && (
                           <Link href="/login" onClick={close} className="font-semibold text-forest underline underline-offset-2">
@@ -309,7 +309,7 @@ export default function PromoPopup() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="mt-5 h-12 w-full rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-70"
+                      className="mt-4 h-10 w-full rounded-full bg-forest text-[13px] font-semibold text-white transition-colors hover:bg-black sm:mt-5 sm:h-12 sm:text-sm disabled:cursor-wait disabled:opacity-70"
                     >
                       {loading ? "Submitting…" : "Submit"}
                     </button>
@@ -325,11 +325,11 @@ export default function PromoPopup() {
                     exit={{ opacity: 0, x: -16 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mint text-forest">
-                      <Mail size={22} />
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-mint text-forest sm:h-12 sm:w-12">
+                      <Mail size={20} />
                     </span>
-                    <h2 className="mt-4 font-poppins text-[28px] font-bold leading-tight text-forest">Check your inbox!</h2>
-                    <p className="mb-5 mt-2 text-sm leading-relaxed text-muted">
+                    <h2 className="mt-3 font-poppins text-[20px] font-bold leading-tight text-forest sm:mt-4 sm:text-[28px]">Check your inbox!</h2>
+                    <p className="mb-4 mt-2 text-[12px] leading-relaxed text-muted sm:mb-5 sm:text-sm">
                       We&apos;ve created your FIL account and sent a 6-digit code to{" "}
                       <strong className="break-all text-ink">{email.trim()}</strong>. Enter it to get your{" "}
                       <strong className="text-ink">10% off</strong> code.

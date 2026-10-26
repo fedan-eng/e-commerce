@@ -8,10 +8,10 @@ export default function CategoryFAQ({ category }) {
   const [open, setOpen] = useState(null);
 
   return (
-    <section className="mx-auto grid max-w-[1440px] gap-10 px-4 py-12 md:grid-cols-[1fr_2fr] md:px-16">
+    <section className="mx-auto grid max-w-[1440px] gap-6 px-4 py-10 md:gap-10 md:py-12 md:grid-cols-[1fr_2fr] md:px-16">
       {/* TODO: design */}
       <div>
-        <h2 className="text-3xl font-semibold">{category.faqTitle}</h2>
+        <h2 className="text-2xl font-semibold md:text-3xl">{category.faqTitle}</h2>
         <p className="mt-2 text-sm text-gray-600">Quick answers before you buy.</p>
 
         <div className="mt-6 rounded-3xl bg-[#F3F7F2] p-6">

@@ -10,7 +10,7 @@ import CategoryHero from "./CategoryHero";
 import TrustBar from "./TrustBar";
 import BestSellers from "@/components/landing/BestSellers";
 import CategoryShop from "./CategoryShop";
-import VideoAnimation from "@/components/landing/VideoAnimation";
+// import VideoAnimation from "@/components/landing/VideoAnimation";
 import Reviews from "@/components/landing/Reviews";
 import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
@@ -63,11 +63,11 @@ function collectReviews(products) {
 }
 
 // One tab per product that has a video, in the shape <VideoAnimation /> expects
-function collectVideoTabs(products) {
-  return products
-    .map((p) => ({ id: p._id, label: p.name, src: (p.videos || []).find(Boolean) }))
-    .filter((t) => t.src);
-}
+// function collectVideoTabs(products) {
+//   return products
+//     .map((p) => ({ id: p._id, label: p.name, src: (p.videos || []).find(Boolean) }))
+//     .filter((t) => t.src);
+// }
 
 export default async function CategoryPage({ slug }) {
   const category = getCategory(slug);
@@ -92,8 +92,8 @@ export default async function CategoryPage({ slug }) {
       <Suspense fallback={null}>
         <CategoryShop category={category} products={listProducts} />
       </Suspense>
-      {/* Shared with the homepage — empty tabs show the "Video of Products" placeholder */}
-      <VideoAnimation tabs={collectVideoTabs(listProducts)} />
+      {/* Video section taken down for now — shared with the homepage
+      <VideoAnimation tabs={collectVideoTabs(listProducts)} /> */}
       {/* WhatsApp screenshots first; written reviews only while a category has none */}
       {chats.length > 0 ? (
         <WhatsAppReviews

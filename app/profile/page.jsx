@@ -46,7 +46,7 @@ function ProfileContent() {
               <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-semibold uppercase tracking-wider text-forest">
                 My account
               </span>
-              <h1 className="mt-1.5 text-[26px] font-bold leading-tight tracking-tight text-forest md:text-[34px]">
+              <h1 className="mt-1.5 text-[22px] sm:text-[26px] font-bold leading-tight tracking-tight text-forest md:text-[34px]">
                 Hi, {user?.firstName || "there"}
               </h1>
               <p className="break-all text-sm text-muted">{user?.email}</p>
@@ -105,7 +105,7 @@ function SignedOut() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-forest">
           <UserRound size={24} />
         </span>
-        <h1 className="mt-5 text-[26px] font-bold tracking-tight text-forest">Your FIL account</h1>
+        <h1 className="mt-5 text-[22px] sm:text-[26px] font-bold tracking-tight text-forest">Your FIL account</h1>
         <p className="mt-2 text-[15px] text-muted">Sign in to see your orders, saved items and details.</p>
         <div className="mt-7 flex flex-col gap-3">
           <Link
