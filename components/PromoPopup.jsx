@@ -154,14 +154,16 @@ export default function PromoPopup() {
             role="dialog"
             aria-modal="true"
             aria-label="Get 10% off your first order"
-            className="relative grid max-h-[calc(100dvh-1.5rem)] w-full max-w-[760px] grid-cols-[38%_62%] overflow-y-auto rounded-[20px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[28px] md:grid-cols-[44%_56%] md:overflow-hidden"
+            className={`relative grid max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto ${
+              step === "ask" ? "max-w-[760px] grid-cols-[38%_62%]" : "max-w-[420px] grid-cols-1"
+            } rounded-[20px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[28px] md:max-w-[760px] md:grid-cols-[44%_56%] md:overflow-hidden`}
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
           >
-            {/* Image panel */}
-            <div className="relative bg-[#a6ecc8] md:min-h-[460px]">
+            {/* Image panel: on phones only the first step has room for it beside the text */}
+            <div className={`relative bg-[#a6ecc8] md:block md:min-h-[460px] ${step === "ask" ? "" : "hidden"}`}>
               <Image
                 src="https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/promotion.png"
                 alt="Woman holding a FIL 30,000mAh power bank"
@@ -231,8 +233,8 @@ export default function PromoPopup() {
                     transition={{ duration: 0.2 }}
                   >
                     <h2 className="mb-3 flex items-baseline gap-1.5 font-poppins sm:mb-5 sm:gap-2">
-                      <span className="text-[18px] font-bold text-forest sm:text-[26px] md:text-[30px]">Claim</span>
-                      <TenOff className="text-[38px] leading-none sm:text-[60px] md:text-[76px]" />
+                      <span className="text-[24px] font-bold text-forest sm:text-[26px] md:text-[30px]">Claim</span>
+                      <TenOff className="text-[56px] leading-none sm:text-[60px] md:text-[76px]" />
                     </h2>
 
                     <input
