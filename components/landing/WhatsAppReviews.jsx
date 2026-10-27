@@ -8,7 +8,6 @@ import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 const SAMPLE_SCREENSHOTS = [
   'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW1.png',
   'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW2.png',
-  'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/ReviewW3.png',
 ];
 // Only three samples — repeat them so the carousel has room to scroll
 const SAMPLE_CHATS = Array.from({ length: SAMPLE_SCREENSHOTS.length * 3 }, (_, i) => ({
