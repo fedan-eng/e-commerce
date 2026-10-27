@@ -42,7 +42,7 @@ function mapProductToDisplay(product) {
 // where `category` is the stored Product.category value, e.g. "Power Bank".
 // Category pages also pass `theme` (lib/categories.js): every card takes the category colour,
 // and the top product moves into the wide card on the right.
-// The top product gets an "In 50+ people's cart" tag when enough real carts hold it.
+// Bestseller cards get an "In 50+ people's cart" tag when enough real carts hold them.
 // Pages can pass `initialProducts` (the "All" tab, loaded on the server) so the section
 // renders with the page instead of fetching after hydration.
 export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying", theme = null, initialProducts = null }) {
@@ -51,16 +51,17 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
   const [loading, setLoading] = useState(!initialProducts);
   const usedInitial = useRef(false);
   const [error, setError] = useState(null);
-  const [cartTag, setCartTag] = useState(null); // e.g. "50+", for the top product
+  const [cartTags, setCartTags] = useState({}); // { [productId]: "50+" }, for bestsellers
 
-  // Real count from signed-in carts; no tag when it's under 10 or the lookup fails
-  const loadCartTag = async (id) => {
-    setCartTag(null);
-    if (!id) return;
+  // Real counts from signed-in carts; no tag when it's under 10 or the lookup fails
+  const loadCartTags = async (list) => {
+    setCartTags({});
+    const ids = list.filter((p) => p.raw.isBestseller).map((p) => p._id);
+    if (!ids.length) return;
     try {
-      const res = await fetch(`/api/products/cart-counts?ids=${id}`);
+      const res = await fetch(`/api/products/cart-counts?ids=${ids.join(',')}`);
       const { counts } = await res.json();
-      setCartTag(counts?.[id] || null);
+      setCartTags(counts || {});
     } catch {
       // decoration only
     }
@@ -70,7 +71,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
     // First render of the "All" tab already has the server's products
     if (initialProducts && !usedInitial.current && activeFilter === 'All') {
       usedInitial.current = true;
-      loadCartTag(products[0]?._id);
+      loadCartTags(products);
       return;
     }
 
@@ -92,7 +93,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
         const data = await res.json();
         const list = (data.products || []).map(mapProductToDisplay);
         setProducts(list);
-        loadCartTag(list[0]?._id);
+        loadCartTags(list);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
@@ -169,7 +170,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
             {products.map((product, index) => {
               // Only a 3-up row has room for a wide card; with fewer, every card stays narrow
               const isFeatured = index === 0 && (!theme || products.length >= 3);
-              const showCartTag = index === 0 && cartTag;
+              const cartTag = product.raw.isBestseller && cartTags[product._id];
               const bgColor = theme ? '' : cardBackgrounds[index % cardBackgrounds.length];
               const href = `/products/${product.slug || product._id}`;
 
@@ -191,8 +192,9 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
                       </span>
                     )}
 
-                    {showCartTag && (
-                      <span className="absolute top-2.5 right-2.5 sm:top-5 sm:right-5 z-10 bg-white text-[#0A321B] px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-[11px] font-bold rounded-full shadow-sm">
+                    {/* Narrow phone cards can't fit both pills on one line, so the tag drops under the badge */}
+                    {cartTag && (
+                      <span className={`absolute ${isFeatured ? 'top-2.5 right-2.5' : 'top-9 left-2.5'} sm:top-5 sm:left-auto sm:right-5 z-10 bg-white text-[#0A321B] px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-[10px] sm:text-[11px] font-bold rounded-full shadow-sm`}>
                         In {cartTag} people’s cart
                       </span>
                     )}
