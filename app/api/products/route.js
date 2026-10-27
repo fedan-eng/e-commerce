@@ -1,9 +1,7 @@
 //api/products/route.js
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-
-// Public listing: never expose reviews (pending ones included) or who rated what
-const PUBLIC_FIELDS = "-comments -ratings";
+import { PUBLIC_FIELDS, findByManualOrder } from "@/lib/products";
 
 export async function GET(req) {
   await connectDB();
@@ -112,27 +110,17 @@ export async function GET(req) {
   const sortKey        = customSortKey || singleCategory || singleSpecial || (!hasFilters && sortBy === "default" ? "__all__" : null);
   const useCustomSort  = sortKey && (sortBy === "default" || isCustomSortKey);
 
-  const totalCount = await Product.countDocuments(query);
-
-  let products;
-
-  if (useCustomSort) {
-    // Fetch all matches, sort in JS by sortOrder map value
-    const allMatches = await Product.find(query).select(PUBLIC_FIELDS).lean();
-    allMatches.sort((a, b) => {
-      const aOrder = a.sortOrder?.[sortKey] ?? 9999;
-      const bOrder = b.sortOrder?.[sortKey] ?? 9999;
-      return aOrder - bOrder;
-    });
-    products = allMatches.slice(skip, skip + limit);
-  } else {
-    products = await Product.find(query)
-      .select(PUBLIC_FIELDS)
-      .sort(sortOptions[sortBy] || { createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-  }
+  const [totalCount, products] = await Promise.all([
+    Product.countDocuments(query),
+    useCustomSort
+      ? findByManualOrder(query, sortKey, { skip, limit })
+      : Product.find(query)
+          .select(PUBLIC_FIELDS)
+          .sort(sortOptions[sortBy] || { createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+  ]);
 
   return Response.json({
     products,

@@ -13,6 +13,7 @@ import NeedsPower from "@/components/landing/NeedsPower";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
+import { getFeaturedProducts } from "@/lib/products";
 
 // Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
 export const revalidate = 3600;
@@ -64,7 +65,10 @@ export const metadata = {
 };
 
 const page = async () => {
-  const reviewChats = await getWhatsAppReviews("home");
+  const [reviewChats, featuredProducts] = await Promise.all([
+    getWhatsAppReviews("home"),
+    getFeaturedProducts(),
+  ]);
 
   const baseUrl = "https://www.filstore.com.ng";
 
@@ -204,7 +208,7 @@ const page = async () => {
       <Marquee/>
       <Hero2 />
       <NeedsPower/>
-      <BestSellers/>
+      <BestSellers initialProducts={featuredProducts}/>
       <WhatsAppReviews chats={reviewChats}/>
       {/* <VideoAnimation/> */}
       <MadeFor/>

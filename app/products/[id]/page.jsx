@@ -9,6 +9,13 @@ import ProductDetailsPage from "./ProductDetailsPage";
 // paid orders call revalidateProduct() so changes show up straight away.
 export const revalidate = 3600;
 
+// Without this Next renders every visit on demand (a DB query per view) and ignores
+// `revalidate`. An empty list builds nothing up front: each product page is
+// generated on its first visit, then served from the cache.
+export function generateStaticParams() {
+  return [];
+}
+
 // Read straight from the database (no HTTP hop to the live site). Reviews are left
 // out: the page loads approved ones from /api/products/[id]/comments, and pending
 // ones must never reach the browser. cache() shares one query between

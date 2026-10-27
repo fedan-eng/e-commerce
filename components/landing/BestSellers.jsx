@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import AddToCartButton from '@/components/AddToCart';
@@ -43,10 +43,13 @@ function mapProductToDisplay(product) {
 // Category pages also pass `theme` (lib/categories.js): every card takes the category colour,
 // and the top product moves into the wide card on the right.
 // The top product gets an "In 50+ people's cart" tag when enough real carts hold it.
-export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying", theme = null }) {
+// Pages can pass `initialProducts` (the "All" tab, loaded on the server) so the section
+// renders with the page instead of fetching after hydration.
+export default function BestSellers({ category = null, limit = 3, title = "What everyone’s carrying", theme = null, initialProducts = null }) {
   const [activeFilter, setActiveFilter] = useState('All');
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(() => (initialProducts || []).map(mapProductToDisplay));
+  const [loading, setLoading] = useState(!initialProducts);
+  const usedInitial = useRef(false);
   const [error, setError] = useState(null);
   const [cartTag, setCartTag] = useState(null); // e.g. "50+", for the top product
 
@@ -64,6 +67,13 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
   };
 
   useEffect(() => {
+    // First render of the "All" tab already has the server's products
+    if (initialProducts && !usedInitial.current && activeFilter === 'All') {
+      usedInitial.current = true;
+      loadCartTag(products[0]?._id);
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
         setLoading(true);
