@@ -129,6 +129,15 @@ const nextConfig: NextConfig = {
 
   // Enable compression
   compress: true,
+
+  // Keep visited pages in the browser's router cache, so going back to one
+  // shows it straight away instead of its loading skeleton
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 300,
+    },
+  },
 };
 
 export default nextConfig;

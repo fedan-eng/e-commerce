@@ -50,11 +50,12 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
   const [products, setProducts] = useState(() => (initialProducts || []).map(mapProductToDisplay));
   const [loading, setLoading] = useState(!initialProducts);
   const usedInitial = useRef(false);
+  const loaded = useRef({}); // { [filter]: { products, cartTags } }, so revisiting a tab skips the skeleton
   const [error, setError] = useState(null);
   const [cartTags, setCartTags] = useState({}); // { [productId]: "50+" }, for bestsellers
 
   // Real counts from signed-in carts; no tag when it's under 10 or the lookup fails
-  const loadCartTags = async (list) => {
+  const loadCartTags = async (list, filter) => {
     setCartTags({});
     const ids = list.filter((p) => p.raw.isBestseller).map((p) => p._id);
     if (!ids.length) return;
@@ -62,6 +63,7 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
       const res = await fetch(`/api/products/cart-counts?ids=${ids.join(',')}`);
       const { counts } = await res.json();
       setCartTags(counts || {});
+      if (loaded.current[filter]) loaded.current[filter].cartTags = counts || {};
     } catch {
       // decoration only
     }
@@ -71,7 +73,16 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
     // First render of the "All" tab already has the server's products
     if (initialProducts && !usedInitial.current && activeFilter === 'All') {
       usedInitial.current = true;
-      loadCartTags(products);
+      loaded.current.All = { products };
+      loadCartTags(products, 'All');
+      return;
+    }
+
+    const cached = loaded.current[activeFilter];
+    if (cached) {
+      setProducts(cached.products);
+      setCartTags(cached.cartTags || {});
+      setError(null);
       return;
     }
 
@@ -93,7 +104,8 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
         const data = await res.json();
         const list = (data.products || []).map(mapProductToDisplay);
         setProducts(list);
-        loadCartTags(list);
+        loaded.current[activeFilter] = { products: list };
+        loadCartTags(list, activeFilter);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
