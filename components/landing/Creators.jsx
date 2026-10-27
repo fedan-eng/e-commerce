@@ -238,6 +238,16 @@ export default function Creators() {
                 }`}
                 onClick={() => handlePlayClick(item)}
               >
+                {/* The campaign film is portrait, so it sits whole in the wide card over a blurred copy of its poster */}
+                {isCampaign && item.poster && (
+                  <img
+                    src={item.poster}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60"
+                  />
+                )}
+
                 {/* Video Element */}
                 <video
                   ref={(el) => {
@@ -250,7 +260,7 @@ export default function Creators() {
                   muted={isMuted}
                   playsInline
                   loop
-                  className={`w-full h-full object-cover transition-opacity duration-300 ${!isPlaying && isCampaign && !item.poster ? 'opacity-0' : 'opacity-100'}`}
+                  className={`relative w-full h-full transition-opacity duration-300 ${isCampaign ? 'object-contain' : 'object-cover'} ${!isPlaying && isCampaign && !item.poster ? 'opacity-0' : 'opacity-100'}`}
                 >
                   <source src={item.img} type="video/mp4" />
                 </video>
