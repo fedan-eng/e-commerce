@@ -129,7 +129,7 @@ const sections = [
       },
       {
         heading: "Delivery Timelines",
-        body: "Standard delivery within Lagos typically takes 1–3 business days. Delivery to other states may take 3–7 business days depending on the destination. These are estimates and not guarantees; unforeseen circumstances may cause delays.",
+        body: "Standard delivery within Lagos typically takes 1–3 business days. Delivery to other states may take 5–7 business days depending on the destination. These are estimates and not guarantees; unforeseen circumstances may cause delays.",
       },
       {
         heading: "Shipping Fees",

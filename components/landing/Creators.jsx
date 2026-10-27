@@ -13,7 +13,7 @@ const items = [
     title: "Light can go. You stay on.",
     duration: "1:20",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/magflex.mp4",
-    poster: "", // Leaving blank to show the dark green background initially as per screenshot
+    poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
     previewStart: 0,
   },
   {
@@ -87,7 +87,7 @@ function applyIOSInlineAttributes(el) {
 }
 
 export default function Creators() {
-  const [activeFilter, setActiveFilter] = useState('Instagram');
+  // const [activeFilter, setActiveFilter] = useState('Instagram');
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -183,15 +183,15 @@ export default function Creators() {
           </p>
 
           <div className="flex items-end justify-between gap-4">
-            {/* Filters */}
+            {/* Instagram / TikTok filters — hidden until videos are tagged by platform
             <div className="flex gap-2 sm:gap-3">
               {['Instagram', 'TikTok'].map((platform) => (
                 <button
                   key={platform}
                   onClick={() => setActiveFilter(platform)}
                   className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[13px] sm:text-sm font-medium border transition-colors duration-200 ${
-                    activeFilter === platform 
-                      ? 'border-white text-white' 
+                    activeFilter === platform
+                      ? 'border-white text-white'
                       : 'border-white/30 text-white/70 hover:border-white/60 hover:text-white'
                   }`}
                 >
@@ -199,9 +199,10 @@ export default function Creators() {
                 </button>
               ))}
             </div>
+            */}
 
             {/* Navigation Arrows */}
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => scroll('left')}
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"

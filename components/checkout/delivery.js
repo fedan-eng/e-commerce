@@ -4,7 +4,7 @@ import { MapPin, Package, Zap } from "lucide-react";
 export const FREE_DELIVERY_MIN_SUBTOTAL = 10000;
 
 export const DELIVERY_OPTIONS = [
-  { id: "Regular", icon: Package, title: "Regular delivery", detail: "2–3 working days in Lagos, 3–5 interstate" },
+  { id: "Regular", icon: Package, title: "Regular delivery", detail: "2–3 working days in Lagos, 5–7 interstate" },
   { id: "Express", icon: Zap, title: "Express delivery", detail: "Within 24 hours for orders placed before 10am. Lagos only" },
   { id: "Free", icon: MapPin, title: "Free Thursday delivery", detail: "Every Thursday, 5–7 working days. Lagos only" },
 ];
