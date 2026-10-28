@@ -1,3 +1,3 @@
-import { ProductPageSkeleton } from "@/components/PageSkeletons";
+import RouteLoader from "@/components/RouteLoader";
 
-export default ProductPageSkeleton;
+export default RouteLoader;

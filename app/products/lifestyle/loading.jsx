@@ -1,3 +1,3 @@
-import { CategoryPageSkeleton } from "@/components/PageSkeletons";
+import RouteLoader from "@/components/RouteLoader";
 
-export default CategoryPageSkeleton;
+export default RouteLoader;
