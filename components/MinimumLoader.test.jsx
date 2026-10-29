@@ -15,6 +15,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   pathname = "/";
   window.history.replaceState(null, "", "/");
+  sessionStorage.clear();
 });
 afterEach(() => vi.useRealTimers());
 
@@ -28,7 +29,7 @@ describe("MinimumLoader", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("shows the line for the page being opened, from the click, for 3 seconds", async () => {
+  it("shows the line for the page being opened, from the click, for 1 second", async () => {
     const { rerender } = render(<><MinimumLoader /><a href="/products/power-banks">Power banks</a></>);
     await advance(3500);
 
@@ -38,9 +39,18 @@ describe("MinimumLoader", () => {
     // The page arrives quickly; the loader stays anyway
     pathname = "/products/power-banks";
     rerender(<><MinimumLoader /><a href="/products/power-banks">Power banks</a></>);
-    await advance(1000);
+    await advance(800);
     expect(screen.getByRole("status")).toBeInTheDocument();
-    await advance(2400);
+    await advance(600);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("is 1 second on a refresh later in the same visit", async () => {
+    sessionStorage.setItem("fil_loader_seen", "1");
+    render(<MinimumLoader />);
+    await advance(800);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    await advance(600);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
@@ -58,7 +68,7 @@ describe("MinimumLoader", () => {
     pathname = "/profile";
     rerender(<MinimumLoader />);
     expect(screen.getByRole("status")).toHaveTextContent(/your profile/i);
-    await advance(3400);
+    await advance(1400);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
