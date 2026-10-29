@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Chart, registerables } from "chart.js";
 import {
   CalendarDays, ChevronDown, Copy, Users, ShoppingBag, HandCoins, Wallet, Megaphone, Link2, TicketPercent, ShieldCheck,
+  MousePointerClick, ShoppingCart,
 } from "lucide-react";
 import {
   Card, CardHeader, Button, Dropdown, MenuItem, StatCard, StatusBadge, EmptyState, Skeleton, Spinner, TH, TD, cx,
@@ -221,6 +222,56 @@ function OrdersList({ orders }) {
   );
 }
 
+const fmtPct = (a, b) => {
+  if (!b) return null;
+  const v = (a / b) * 100;
+  return `${v >= 10 ? v.toFixed(0) : v.toFixed(1)}%`;
+};
+
+// Opened the link → added to cart → ordered, each step as a share of the one before
+function LinkFunnel({ link, summary }) {
+  const steps = [
+    { label: "Opened your link", value: link.visitors, icon: MousePointerClick, sub: `${plural(link.visits, "visit")} in total` },
+    { label: "Added to cart",    value: link.carts,    icon: ShoppingCart },
+    { label: "Ordered",          value: summary.linkCustomers, icon: ShoppingBag, sub: plural(summary.linkOrders, "order") },
+  ];
+  const top = Math.max(steps[0].value, 1);
+  const typed = summary.orders - summary.linkOrders;
+
+  return (
+    <div className="flex flex-col gap-4 px-5 pb-5">
+      <ol className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-3">
+        {steps.map((s, i) => {
+          const Icon = s.icon;
+          const rate = i > 0 ? fmtPct(s.value, steps[i - 1].value) : null;
+          return (
+            <li key={s.label} className="rounded-xl bg-[#f6f8f7] p-4">
+              <div className="flex items-center gap-2 text-[13px] text-sub">
+                <Icon size={15} className="shrink-0 text-pine" aria-hidden /> {s.label}
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="font-poppins text-2xl font-semibold text-ink">{s.value.toLocaleString()}</span>
+                <span className="text-xs text-faint">{s.value === 1 ? "person" : "people"}</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                <div className="h-full rounded-full bg-pine" style={{ width: `${s.value ? Math.max(3, (s.value / top) * 100) : 0}%` }} />
+              </div>
+              <div className="mt-1.5 text-xs text-faint">
+                {rate ? `${rate} of the step before` : s.sub}
+                {rate && s.sub && ` · ${s.sub}`}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="m-0 text-xs leading-relaxed text-faint">
+        People counts each person once for the whole period. Visits counts them once a day, however many times they open it.
+        {typed > 0 && ` Plus ${plural(typed, "order")} from people who typed your code without using the link, so they don't show as visits.`}
+      </p>
+    </div>
+  );
+}
+
 function Blocked({ title, description, action }) {
   return (
     <div className="mx-auto max-w-[560px] px-4 py-16">
@@ -301,7 +352,7 @@ export default function CreatorDashboard() {
 
   if (!data) return <div className="flex justify-center py-24"><Spinner /></div>;
 
-  const { creator, summary, balance, orders, products, payouts, asAdmin } = data;
+  const { creator, summary, balance, orders, products, payouts, asAdmin, link } = data;
 
   if (!creator.codes.length) {
     return (
@@ -356,6 +407,14 @@ export default function CreatorDashboard() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {stats.map(s => <StatCard key={s.label} {...s} loading={loading} />)}
       </div>
+
+      <Card>
+        <CardHeader
+          title="Your link"
+          description={`From opening your link to ordering · ${rangeLabel.toLowerCase()}${link.visitors ? ` · ${fmtPct(summary.linkCustomers, link.visitors)} of visitors ordered` : ""}`}
+        />
+        {loading ? <div className="px-5 pb-5"><Skeleton className="h-28 w-full" /></div> : <LinkFunnel link={link} summary={summary} />}
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card>
