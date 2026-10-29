@@ -6,7 +6,7 @@ import { ChevronDown, Info, ShoppingBag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import { RegionField, TextAreaField, TextField } from "./formFields";
-import { DELIVERY_OPTIONS, deliveryFeeFor, isFreeDeliveryAvailable } from "./delivery";
+import { DELIVERY_OPTIONS, deliveryFeeFor, freeDeliveryBlock } from "./delivery";
 
 // ─── Step 1 ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,9 @@ export function ContactStep({ form, emailLocked }) {
 
 // ─── Step 2 ───────────────────────────────────────────────────────────────────
 
-function DeliveryOption({ option, selected, disabled, fee, regionChosen, onSelect }) {
+// blocked: why this option can't be picked (shown instead of its details), or null
+function DeliveryOption({ option, selected, blocked, fee, regionChosen, onSelect }) {
+  const disabled = Boolean(blocked);
   const { icon: Icon, title, detail, id } = option;
   const price = id === "Free" ? "Free" : regionChosen ? formatAmount(fee) : "—";
 
@@ -72,7 +74,7 @@ function DeliveryOption({ option, selected, disabled, fee, regionChosen, onSelec
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] font-semibold text-forest">{title}</span>
         <span className="mt-0.5 block text-[13px] leading-snug text-muted">
-          {disabled ? "Available on orders of ₦10,000 or more" : detail}
+          {blocked || detail}
         </span>
       </span>
       <span className={`shrink-0 text-[15px] font-semibold ${id === "Free" ? "text-[#0b9a52]" : "text-forest"}`}>{price}</span>
@@ -80,7 +82,7 @@ function DeliveryOption({ option, selected, disabled, fee, regionChosen, onSelec
   );
 }
 
-export function DeliveryStep({ form, subTotal }) {
+export function DeliveryStep({ form, subTotal, promoCode }) {
   const [noteOpen, setNoteOpen] = useState(Boolean(form.values.orderNote));
   const { region, deliveryType } = form.values;
 
@@ -117,7 +119,7 @@ export function DeliveryStep({ form, subTotal }) {
               key={option.id}
               option={option}
               selected={deliveryType === option.id}
-              disabled={option.id === "Free" && !isFreeDeliveryAvailable(subTotal)}
+              blocked={option.id === "Free" ? freeDeliveryBlock(subTotal, promoCode) : null}
               fee={deliveryFeeFor(option.id, region)}
               regionChosen={Boolean(region?.name)}
               onSelect={form.onChange}
@@ -176,7 +178,7 @@ function TotalRow({ label, value, strong }) {
   );
 }
 
-export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply, promoResetKey, userId }) {
+export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply, promoResetKey, userId, promo }) {
   const v = form.values;
 
   return (
@@ -215,7 +217,7 @@ export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply,
         </ul>
       </div>
 
-      <PromoCodeInput key={promoResetKey} subTotal={totals.subTotal} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} />
+      <PromoCodeInput key={promoResetKey} subTotal={totals.subTotal} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} {...promo} />
 
       <div className="flex flex-col gap-2.5">
         <TotalRow label="Subtotal" value={formatAmount(totals.subTotal)} />

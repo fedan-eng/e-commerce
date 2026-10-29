@@ -90,6 +90,8 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const [discount, setDiscount] = useState(0);
   const [promoCode, setPromoCode] = useState(null);
   const [promoResetKey, setPromoResetKey] = useState(0);
+  const [promoRemoved, setPromoRemoved] = useState(false); // stops a creator link re-applying its code
+  const [freeSwitched, setFreeSwitched] = useState(false); // we moved them off Free delivery for a code
   const [submitting, setSubmitting] = useState(false);
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -103,11 +105,20 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     setPromoResetKey((k) => k + 1);
   }, [items]);
 
-  // Free delivery needs a minimum spend
+  // Free delivery needs a minimum spend and no promo code. A code moves them to Regular,
+  // and removing it again puts Free back (see handlePromoApply).
   const { setValue } = form;
   useEffect(() => {
-    if (values.deliveryType === "Free" && !isFreeDeliveryAvailable(subTotal)) setValue("deliveryType", "Regular");
-  }, [subTotal, values.deliveryType, setValue]);
+    if (values.deliveryType !== "Free" || isFreeDeliveryAvailable(subTotal, promoCode)) return;
+    setValue("deliveryType", "Regular");
+    if (promoCode) setFreeSwitched(true);
+  }, [subTotal, promoCode, values.deliveryType, setValue]);
+
+  // Choosing Express themselves means there's nothing to undo. (Not "anything but Regular":
+  // in the render that switches them, the old value is still Free.)
+  useEffect(() => {
+    if (values.deliveryType === "Express") setFreeSwitched(false);
+  }, [values.deliveryType]);
 
   // Signed-in shoppers whose details are all saved start on Review; Back still lets them edit.
   // Checked once, right after the prefill, so typing on step 1 never jumps ahead.
@@ -133,10 +144,20 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     goTo(step + 1);
   };
 
-  const handlePromoApply = ({ promoCode: code, amount }) => {
+  const handlePromoApply = ({ promoCode: code, amount, removed }) => {
     setPromoCode(code || null);
     setDiscount(amount || 0);
+    if (code) setPromoRemoved(false);
+    if (removed) {
+      setPromoRemoved(true);
+      if (freeSwitched && isFreeDeliveryAvailable(subTotal)) setValue("deliveryType", "Free");
+      setFreeSwitched(false);
+    }
   };
+
+  const freeNotice = freeSwitched && promoCode
+    ? `Free delivery isn't available with promo codes, so we've switched you to Regular delivery (+${formatAmount(deliveryFee)}).`
+    : null;
 
   const handlePlaceOrder = async () => {
     if (!isValidEmail(values.email) || !isValidPhone(values.phone)) {
@@ -234,7 +255,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       labelledBy="checkout-title"
     >
       {step === 1 && <ContactStep form={form} emailLocked={Boolean(user)} />}
-      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} />}
+      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} promoCode={promoCode} />}
       {step === 3 && (
         <ReviewStep
           form={form}
@@ -245,6 +266,12 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           onPromoApply={handlePromoApply}
           promoResetKey={promoResetKey}
           userId={user?._id}
+          promo={{
+            applied: promoCode ? { code: promoCode, amount: discount } : null,
+            autoApplyRef: !promoRemoved,
+            notice: freeNotice,
+            removeLabel: freeNotice ? "Remove code and keep free delivery" : "Remove",
+          }}
         />
       )}
     </ModalShell>

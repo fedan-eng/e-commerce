@@ -163,7 +163,7 @@ export async function POST(req) {
     }
     const { subTotal } = priced;
 
-    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal);
+    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode);
     if (delivery.error) {
       return NextResponse.json({ message: delivery.error }, { status: 400 });
     }

@@ -2,22 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CircleCheck, Tag } from "lucide-react";
+import { CircleCheck, Tag, X } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import { getReferral } from "@/lib/referral";
 
-// phone / email: the checkout's delivery details, so first-order codes are checked against them
-export default function PromoCodeInput({ subTotal, onApply, userId, phone = "", email = "" }) {
-  const [code, setCode] = useState("");
+// phone / email: the checkout's delivery details, so first-order codes are checked against them.
+// applied: { code, amount } the checkout currently holds (kept when this step is left and reopened).
+// autoApplyRef: false once the shopper removed a code, so a creator's link doesn't put it back.
+// notice: shown under an applied code (e.g. that free delivery was switched off).
+export default function PromoCodeInput({
+  subTotal, onApply, userId, phone = "", email = "", applied = null, autoApplyRef = true, notice = null, removeLabel = "Remove",
+}) {
+  const [code, setCode] = useState(applied?.code || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [discount, setDiscount] = useState(0);
   const [requiresLogin, setRequiresLogin] = useState(false);
+  const discount = applied?.amount || 0;
 
   // A creator's link (?ref=) fills their code in and applies it straight away
   useEffect(() => {
     const ref = getReferral();
-    if (ref) {
+    if (ref && !applied && autoApplyRef) {
       setCode(ref);
       handleApply(ref);
     }
@@ -55,13 +60,11 @@ export default function PromoCodeInput({ subTotal, onApply, userId, phone = "", 
         } else {
           setError(data.message || "Invalid promo code");
         }
-        setDiscount(0);
         onApply({ promoCode: null, amount: 0 });
         return;
       }
 
       const discountAmount = (subTotal * data.discount) / 100;
-      setDiscount(discountAmount);
       onApply({ promoCode: value.toUpperCase(), amount: discountAmount });
     } catch (err) {
       setError("Something went wrong, try again.");
@@ -69,6 +72,40 @@ export default function PromoCodeInput({ subTotal, onApply, userId, phone = "", 
       setLoading(false);
     }
   };
+
+  const remove = () => {
+    setCode("");
+    setError("");
+    onApply({ promoCode: null, amount: 0, removed: true });
+  };
+
+  if (applied?.code) {
+    return (
+      <div className="w-full rounded-2xl bg-sage p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-[#0b9a52]">
+            <CircleCheck size={16} className="shrink-0" />
+            <span className="min-w-0">
+              <span className="font-semibold tracking-wide text-forest">{applied.code}</span> applied, you save {formatAmount(discount)}
+            </span>
+          </p>
+          {!notice && (
+            <button type="button" onClick={remove} className="flex shrink-0 items-center gap-1 text-sm font-semibold text-forest underline underline-offset-2">
+              <X size={14} /> {removeLabel}
+            </button>
+          )}
+        </div>
+        {notice && (
+          <div className="mt-3 border-t border-line pt-3">
+            <p className="text-[13px] leading-snug text-muted">{notice}</p>
+            <button type="button" onClick={remove} className="mt-2 text-sm font-semibold text-forest underline underline-offset-2">
+              {removeLabel}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -110,11 +147,6 @@ export default function PromoCodeInput({ subTotal, onApply, userId, phone = "", 
         </p>
       )}
 
-      {discount > 0 && (
-        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[#0b9a52]">
-          <CircleCheck size={16} /> Promo applied, you save {formatAmount(discount)}
-        </p>
-      )}
     </div>
   );
 }
