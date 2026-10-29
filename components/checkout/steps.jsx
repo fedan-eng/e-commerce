@@ -215,7 +215,7 @@ export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply,
         </ul>
       </div>
 
-      <PromoCodeInput key={promoResetKey} subTotal={totals.subTotal} onApply={onPromoApply} userId={userId} />
+      <PromoCodeInput key={promoResetKey} subTotal={totals.subTotal} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} />
 
       <div className="flex flex-col gap-2.5">
         <TotalRow label="Subtotal" value={formatAmount(totals.subTotal)} />

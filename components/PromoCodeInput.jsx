@@ -6,7 +6,8 @@ import { CircleCheck, Tag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import { getReferral } from "@/lib/referral";
 
-export default function PromoCodeInput({ subTotal, onApply, userId }) {
+// phone / email: the checkout's delivery details, so first-order codes are checked against them
+export default function PromoCodeInput({ subTotal, onApply, userId, phone = "", email = "" }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +42,8 @@ export default function PromoCodeInput({ subTotal, onApply, userId }) {
           code: value,
           cartValue: subTotal,
           userId: userId || null,
+          phone,
+          email,
         }),
       });
 

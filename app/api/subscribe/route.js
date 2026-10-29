@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { subscribeContact } from "@/lib/brevo";
 import { EMAIL_RE, startEmailSignup } from "@/lib/signup";
+import { DISPOSABLE_EMAIL_MESSAGE, isDisposableEmail } from "@/lib/disposableEmail";
 import { baseUrlFrom } from "@/lib/verification";
 
 export async function POST(req) {
@@ -17,6 +18,11 @@ export async function POST(req) {
         { message: "Please enter a valid email address" },
         { status: 400 }
       );
+    }
+
+    // Checked before the newsletter sign-up too (lib/signup.js checks again)
+    if (isDisposableEmail(email)) {
+      return NextResponse.json({ message: DISPOSABLE_EMAIL_MESSAGE }, { status: 400 });
     }
 
     // Optional phone in E.164 form (e.g. +2348137678990), sent by the promo popup

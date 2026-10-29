@@ -158,6 +158,9 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+// "First order only" promo codes look up past orders by phone (lib/promo.js)
+orderSchema.index({ phone: 1 });
+
 const upper = (v) => String(v || "").trim().toUpperCase();
 
 // Same credit rule as lib/creatorStats.js: a typed creator code wins, then the ?ref= link

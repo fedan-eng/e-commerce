@@ -172,7 +172,9 @@ export async function POST(req) {
     let discount = 0;
     let appliedPromo = null;
     if (promoCode) {
-      const promo = await validatePromo({ code: promoCode, userId: finalUserId, cartValue: subTotal });
+      const promo = await validatePromo({
+        code: promoCode, userId: finalUserId, cartValue: subTotal, phone: deliveryInfo.phone, email,
+      });
       if (!promo.valid) {
         return NextResponse.json({ message: promo.message }, { status: promo.status });
       }
