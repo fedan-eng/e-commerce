@@ -74,7 +74,6 @@ const Footer = () => {
                 <li><Link href="/contact#track" className="text-white/70 hover:text-white text-[14px] transition-colors">Track your order</Link></li>
                 <li><Link href="/policies" className="text-white/70 hover:text-white text-[14px] transition-colors">Delivery and payment</Link></li>
                 <li><Link href="/policies" className="text-white/70 hover:text-white text-[14px] transition-colors">Returns and warranty</Link></li>
-                <li><Link href="/faq" className="text-white/70 hover:text-white text-[14px] transition-colors">FAQs</Link></li>
                 <li><Link href="/blog" className="text-white/70 hover:text-white text-[14px] transition-colors">Blog</Link></li>
                 <li><Link href="https://wa.me/2347018900705" className="text-white/70 hover:text-white text-[14px] transition-colors">WhatsApp support</Link></li>
               </ul>
