@@ -258,7 +258,7 @@ export default function LoginForm() {
           <label htmlFor="password" className="text-sm font-semibold text-forest">
             Password
           </label>
-          <Link href="/reset-password" className="text-[13px] font-medium text-muted underline-offset-2 hover:text-forest hover:underline">
+          <Link href={`/reset-password${EMAIL_RE.test(email.trim()) ? `?email=${encodeURIComponent(email.trim())}` : ""}`} className="text-[13px] font-medium text-muted underline-offset-2 hover:text-forest hover:underline">
             Forgot password?
           </Link>
         </div>

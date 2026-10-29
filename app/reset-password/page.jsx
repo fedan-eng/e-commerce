@@ -1,15 +1,13 @@
-import React, { Suspense } from "react";
-import ResetForm from "@/components/ResetForm";
-import Loading from "@/components/Loading";
+// app/reset-password/page.jsx — forgotten password: email → code → new password
+import { Suspense } from "react";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 
-const ResetPasswordPage = () => {
+export const metadata = { title: "Reset your password | FIL", robots: { index: false } };
+
+export default function ResetPasswordPage() {
   return (
-    <div className = " ">
-      <Suspense fallback={<Loading />}>
-        <ResetForm/>
-      </Suspense>
-    </div>
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   );
-};
-
-export default ResetPasswordPage;
+}

@@ -43,7 +43,7 @@ export default function Navbar() {
   const [productOpen, setProductOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
-  const staticPaths    = ["/register", "/login", "/verify-email", "/reset-password"];
+  const staticPaths    = ["/register", "/login", "/verify-email", "/reset-password", "/reset-password/token"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
   useEffect(() => setHasMounted(true), []);

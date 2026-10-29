@@ -1,15 +1,13 @@
-import React, { Suspense } from "react";
-import TokenResetForm from "@/components/TokenResetForm";
-import Loading from "@/components/Loading";
+// app/reset-password/token/page.jsx — the reset link from the email (?token=)
+import { Suspense } from "react";
+import { TokenResetForm } from "@/components/auth/ResetPasswordForm";
 
-const TokenResetPasswordPage = () => {
+export const metadata = { title: "Choose a new password | FIL", robots: { index: false } };
+
+export default function TokenResetPasswordPage() {
   return (
-    <div className="">
-      <Suspense fallback={<Loading />}>
-        <TokenResetForm />
-      </Suspense>
-    </div>
+    <Suspense fallback={null}>
+      <TokenResetForm />
+    </Suspense>
   );
-};
-
-export default TokenResetPasswordPage;
+}
