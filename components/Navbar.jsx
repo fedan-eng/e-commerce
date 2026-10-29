@@ -279,6 +279,9 @@ export default function Navbar() {
                       {user?.role === "admin" && (
                         <Link href="/admin_console" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Admin Dashboard</Link>
                       )}
+                      {user?.role === "creator" && (
+                        <Link href="/creator" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Creator Dashboard</Link>
+                      )}
                     </>
                   )}
                 </div>

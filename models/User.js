@@ -44,7 +44,8 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
 
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    // "creator" opens /creator for the promo codes linked to them (PromoCode.creatorUser)
+    role: { type: String, enum: ["user", "creator", "admin"], default: "user" },
 
     address: {
       type: String,

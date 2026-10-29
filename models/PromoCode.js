@@ -23,10 +23,14 @@ const PromoCodeSchema = new mongoose.Schema(
     creatorName: { type: String, default: "" },
     creatorHandle: { type: String, default: "" },
     commissionPercent: { type: Number, default: 0 }, // of product sales after discount
+    // The account that sees this code on /creator (set from the admin customer page)
+    creatorUser: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     note: { type: String, default: "" }, // admins only
   },
   { timestamps: true }
 );
+
+PromoCodeSchema.index({ creatorUser: 1 });
 
 export default mongoose.models.PromoCode ||
   mongoose.model("PromoCode", PromoCodeSchema);

@@ -4,15 +4,22 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { MessageCircle, Phone, Mail, ShoppingBag, ShoppingCart, Users } from "lucide-react";
+import { MessageCircle, Phone, Mail, ShoppingBag, ShoppingCart, Users, ExternalLink } from "lucide-react";
 import { shortId } from "@/lib/orderStatus";
 import {
-  PageHeader, Card, CardHeader, Button, Tabs, Segmented, Switch, StatusBadge, Avatar, EmptyState, Spinner, TH, TD, cx,
+  PageHeader, Card, CardHeader, Button, Tabs, Segmented, Switch, Checkbox, StatusBadge, Avatar, EmptyState, Spinner, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, localPhone, telLink, whatsappLink } from "@/components/admin/format";
 
 const fmtDate = d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 const orderTotal = o => parseFloat(o.total ?? o.subTotal ?? 0);
+const ROLE_LABELS = { user: "Customer", creator: "Creator", admin: "Admin" };
+const ROLE_CONFIRM = {
+  admin:   "Give this account admin access? They'll be able to manage orders, products and customers.",
+  creator: "Make this account a creator? They'll see orders, first names and commission for the codes you picked, at /creator.",
+  user:    "Make this a regular customer account? They'll lose access to their current dashboard.",
+};
+const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
 
 function ProfileRow({ label, value }) {
   return (
@@ -32,6 +39,8 @@ export default function AdminCustomerDetailPage() {
   const [role,     setRole]     = useState("user");
   const [isActive, setIsActive] = useState(true);
   const [tab,      setTab]      = useState("orders");
+  const [creatorCodes, setCreatorCodes] = useState([]); // every creator code, with who it's linked to
+  const [linked,   setLinked]   = useState([]);         // ids picked for this account
 
   useEffect(() => {
     fetch(`/api/admin/users/${id}`)
@@ -41,24 +50,28 @@ export default function AdminCustomerDetailPage() {
         setOrders(data.orders || []);
         setRole(data.user?.role || "user");
         setIsActive(data.user?.isActive !== false);
+        setCreatorCodes(data.creatorCodes || []);
+        setLinked((data.creatorCodes || []).filter(c => c.linkedTo === id).map(c => c._id));
       })
       .catch(() => toast.error("Couldn't load this customer"))
       .finally(() => setLoading(false));
   }, [id]);
 
   const saveChanges = async () => {
-    if (role !== user.role && !window.confirm(role === "admin"
-      ? "Give this account admin access? They'll be able to manage orders, products and customers."
-      : "Remove admin access from this account?")) return;
+    if (role === "creator" && !linked.length) return toast.error("Pick at least one creator code for their dashboard");
+    if (role !== user.role && !window.confirm(ROLE_CONFIRM[role])) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, isActive }),
+        body: JSON.stringify({ role, isActive, ...(role === "creator" && { creatorCodes: linked }) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Couldn't save changes");
       setUser(data.user);
+      if (role === "creator") setCreatorCodes(list => list.map(c => ({
+        ...c, linkedTo: linked.includes(c._id) ? id : c.linkedTo === id ? null : c.linkedTo,
+      })));
       toast.success("Account updated");
     } catch (err) {
       toast.error(err.message || "Network error");
@@ -82,7 +95,8 @@ export default function AdminCustomerDetailPage() {
   }
 
   const currentIsActive = user.isActive ?? true;
-  const hasChanges      = role !== user.role || isActive !== currentIsActive;
+  const savedLinks      = creatorCodes.filter(c => c.linkedTo === id).map(c => c._id);
+  const hasChanges      = role !== user.role || isActive !== currentIsActive || (role === "creator" && !sameSet(linked, savedLinks));
   const name            = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
   const phone           = localPhone(user.phone);
   const totalSpent      = orders.reduce((acc, o) => acc + orderTotal(o), 0);
@@ -98,8 +112,8 @@ export default function AdminCustomerDetailPage() {
             <span className="min-w-0">
               <span className="block">{name}</span>
               <span className="mt-1 flex flex-wrap gap-1.5 font-roboto text-xs font-medium tracking-normal">
-                <span className={cx("rounded-full px-2 py-0.5", user.role === "admin" ? "bg-pine-tint text-pine" : "bg-[#f1f3f2] text-sub")}>
-                  {user.role === "admin" ? "Admin" : "Customer"}
+                <span className={cx("rounded-full px-2 py-0.5", user.role !== "user" ? "bg-pine-tint text-pine" : "bg-[#f1f3f2] text-sub")}>
+                  {ROLE_LABELS[user.role] || "Customer"}
                 </span>
                 {user.isActive === false && <span className="rounded-full bg-[#fdeeee] px-2 py-0.5 text-[#b91c1c]">Suspended</span>}
                 <span className="rounded-full bg-[#f1f3f2] px-2 py-0.5 text-sub">{user.provider === "google" ? "Google sign-in" : "Email sign-in"}</span>
@@ -223,8 +237,43 @@ export default function AdminCustomerDetailPage() {
               label="Role"
               value={role}
               onChange={setRole}
-              options={[{ value: "user", label: "Customer" }, { value: "admin", label: "Admin" }]}
+              options={Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }))}
             />
+            {role === "creator" && (
+              <div className="mt-4">
+                <div className="mb-1.5 text-[13px] font-medium text-sub">Codes on their dashboard</div>
+                {creatorCodes.length === 0 ? (
+                  <p className="m-0 text-xs text-faint">
+                    No creator codes yet. Make one on <Link href="/admin_console/promo-codes" className="text-pine">Promo codes</Link> with the type set to Creator.
+                  </p>
+                ) : (
+                  <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                    {creatorCodes.map(c => {
+                      const taken = c.linkedTo && c.linkedTo !== id;
+                      return (
+                        <li key={c._id}>
+                          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-hover">
+                            <span className="pt-0.5">
+                              <Checkbox
+                                label={c.code}
+                                checked={linked.includes(c._id)}
+                                onChange={e => setLinked(l => e.target.checked ? [...l, c._id] : l.filter(x => x !== c._id))}
+                              />
+                            </span>
+                            <span className="min-w-0 text-[13px]">
+                              <span className="block font-mono font-medium text-ink">{c.code}</span>
+                              <span className="block text-xs text-faint">
+                                {c.creatorName}{taken && " · linked to another account, picking it moves it here"}
+                              </span>
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
             <div className="mt-4">
               <Switch
                 label="Active"
@@ -236,6 +285,15 @@ export default function AdminCustomerDetailPage() {
             <Button variant="primary" className="mt-4 w-full" onClick={saveChanges} disabled={saving || !hasChanges}>
               {saving ? "Saving…" : "Save changes"}
             </Button>
+            {user.role === "creator" && savedLinks.length > 0 && (
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                href={`/creator?code=${encodeURIComponent(creatorCodes.find(c => c._id === savedLinks[0]).code)}`}
+              >
+                See their dashboard <ExternalLink size={14} aria-hidden />
+              </Button>
+            )}
           </Card>
         </div>
       </div>

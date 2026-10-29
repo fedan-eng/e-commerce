@@ -16,6 +16,7 @@ import {
   TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, moneyShort, compact, timeAgo, initials } from "@/components/admin/format";
+import CreatorPayouts from "@/components/admin/CreatorPayouts";
 
 Chart.register(...registerables);
 
@@ -312,7 +313,7 @@ export default function CreatorsPage() {
     { label: "Link visits",     value: scoped.visits.toLocaleString(), icon: MousePointerClick, note: `${scoped.visitors.toLocaleString()} different people` },
     { label: "Orders",          value: scoped.orders.toLocaleString(), icon: ShoppingBag,       note: `${fmtPct(pct(scoped.viaLink, scoped.visitors))} of visitors ordered` },
     { label: "Sales",           value: money(scoped.sales),            icon: Wallet,            note: scoped.orders ? `${money(scoped.sales / scoped.orders)} per order` : rangeLabel },
-    { label: "Commission owed", value: money(scoped.commission),       icon: HandCoins,         note: rangeLabel },
+    { label: "Commission",      value: money(scoped.commission),       icon: HandCoins,         note: focus ? "Earned and pending, at today's rate" : rangeLabel },
   ];
 
   const header = (
@@ -360,7 +361,7 @@ export default function CreatorsPage() {
       <Card>
         <CardHeader
           title="Leaderboard"
-          description="Ranked by sales. Click a creator to see their funnel and trends below."
+          description="Ranked by sales. Click a creator to see their funnel, trends and payouts below."
           action={selected !== "all" && <Button variant="ghost" size="sm" onClick={() => setSelected("all")}>Show all creators</Button>}
         />
         <div className="px-4 pb-4 sm:px-5 sm:pb-5">
@@ -472,6 +473,8 @@ export default function CreatorsPage() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {statCards.map(s => <StatCard key={s.label} {...s} loading={loading} />)}
       </div>
+
+      {focus && <CreatorPayouts key={focus.code} code={focus.code} name={focus.creatorName} />}
 
       {/* Trends: one measure per chart */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">

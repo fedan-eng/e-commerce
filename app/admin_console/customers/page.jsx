@@ -14,8 +14,9 @@ const PAGE_SIZE = 20;
 
 const ROLE_TABS = [
   { value: "all",   label: "All" },
-  { value: "user",  label: "Customers" },
-  { value: "admin", label: "Admins" },
+  { value: "user",    label: "Customers" },
+  { value: "creator", label: "Creators" },
+  { value: "admin",   label: "Admins" },
 ];
 
 const SORTS = [
@@ -29,9 +30,10 @@ const fullName = u => [u.firstName, u.lastName].filter(Boolean).join(" ") || "â€
 const fmtDate  = d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function RoleBadge({ role }) {
-  return role === "admin"
-    ? <span className="rounded-full bg-pine-tint px-2 py-0.5 text-xs font-medium text-pine">Admin</span>
-    : <span className="rounded-full bg-[#f1f3f2] px-2 py-0.5 text-xs font-medium text-sub">Customer</span>;
+  if (role === "admin" || role === "creator") {
+    return <span className="rounded-full bg-pine-tint px-2 py-0.5 text-xs font-medium text-pine">{role === "admin" ? "Admin" : "Creator"}</span>;
+  }
+  return <span className="rounded-full bg-[#f1f3f2] px-2 py-0.5 text-xs font-medium text-sub">Customer</span>;
 }
 
 function CartCell({ user }) {
@@ -196,7 +198,7 @@ export default function AdminCustomersPage() {
                   <Link href={`/admin_console/customers/${u._id}`} className="min-w-0 flex-1 text-ink no-underline">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-[13px] font-medium">{fullName(u)}</span>
-                      {u.role === "admin" && <RoleBadge role="admin" />}
+                      {(u.role === "admin" || u.role === "creator") && <RoleBadge role={u.role} />}
                       {u.isActive === false && <span className="rounded-full bg-[#fdeeee] px-2 py-px text-[11px] font-medium text-[#b91c1c]">Suspended</span>}
                     </span>
                     <span className="block truncate text-xs text-faint">{u.email}</span>

@@ -44,7 +44,7 @@ export default function LoginForm() {
   const [notice, setNotice] = useState(""); // shown above the code form
   const [loading, setLoading] = useState(false);
 
-  const destinationFor = (u) => (u?.role === "admin" ? "/admin_console" : callback);
+  const destinationFor = (u) => (u?.role === "admin" ? "/admin_console" : u?.role === "creator" && callback === "/" ? "/creator" : callback);
 
   // Already signed in (e.g. a cached page)
   useEffect(() => {

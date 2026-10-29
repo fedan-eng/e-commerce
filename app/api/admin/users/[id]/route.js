@@ -3,6 +3,7 @@
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Order from "@/models/Order";
+import PromoCode from "@/models/PromoCode";
 import { verifyToken } from "@/lib/auth";
 import mongoose from "mongoose";
 
@@ -33,14 +34,19 @@ export async function GET(req, context) {
       .sort({ createdAt: -1 })
       .lean();
 
-    return new Response(JSON.stringify({ user, orders }), { status: 200 });
+    // Creator codes to link on the Account card (a code belongs to at most one account)
+    const creatorCodes = (await PromoCode.find({ type: "creator" }).select("code creatorName creatorUser").sort({ code: 1 }).lean())
+      .map((p) => ({ _id: String(p._id), code: p.code, creatorName: p.creatorName || "", linkedTo: p.creatorUser ? String(p.creatorUser) : null }));
+
+    return new Response(JSON.stringify({ user, orders, creatorCodes }), { status: 200 });
   } catch (err) {
     console.error("Admin user GET error:", err);
     return new Response(JSON.stringify({ message: "Server error" }), { status: 500 });
   }
 }
 
-// PATCH — update role or isActive (ban/unban)
+// PATCH — update role or isActive (ban/unban). With role "creator", creatorCodes = the promo
+// code ids whose dashboard they get; codes no longer listed are unlinked from them.
 export async function PATCH(req, context) {
   await connectDB();
   const { id } = await context.params;
@@ -66,10 +72,18 @@ export async function PATCH(req, context) {
 
     // Only allow role and isActive to be changed from admin panel
     if (body.role !== undefined) {
-      if (!["user", "admin"].includes(body.role)) {
+      if (!["user", "creator", "admin"].includes(body.role)) {
         return new Response(JSON.stringify({ message: "Invalid role" }), { status: 400 });
       }
       updates.role = body.role;
+    }
+
+    let codeIds = null;
+    if (body.role === "creator") {
+      codeIds = Array.isArray(body.creatorCodes) ? body.creatorCodes.filter((c) => mongoose.Types.ObjectId.isValid(c)) : [];
+      if (!codeIds.length) {
+        return new Response(JSON.stringify({ message: "Pick at least one creator code for their dashboard" }), { status: 400 });
+      }
     }
 
     if (body.isActive !== undefined) {
@@ -80,6 +94,12 @@ export async function PATCH(req, context) {
       .select("-password -resetPasswordCode -resetPasswordExpiry");
 
     if (!user) return new Response(JSON.stringify({ message: "User not found" }), { status: 404 });
+
+    // Switching the role off keeps the links, so turning it back on restores the same dashboard
+    if (codeIds) {
+      await PromoCode.updateMany({ creatorUser: id, _id: { $nin: codeIds } }, { $set: { creatorUser: null } });
+      await PromoCode.updateMany({ _id: { $in: codeIds }, type: "creator" }, { $set: { creatorUser: id } });
+    }
 
     return new Response(JSON.stringify({ user }), { status: 200 });
   } catch (err) {

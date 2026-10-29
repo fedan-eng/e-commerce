@@ -82,6 +82,12 @@ const ProfileTooltip = () => {
                       Admin dashboard
                     </Link>
                   )}
+                  {user?.role === "creator" && (
+                    <Link href="/creator" className={ROW}>
+                      <LayoutDashboard size={16} className="text-[#1FA34A]" />
+                      Creator dashboard
+                    </Link>
+                  )}
 
                   <div className="my-1 h-px bg-[#E3EDE6]" />
                   <LogoutButton className={`${ROW} text-[#C0392B] hover:bg-[#FDECEA]`}>
