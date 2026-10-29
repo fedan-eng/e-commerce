@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PromoPopup from "@/components/PromoPopup";
+import MinimumLoader from "@/components/MinimumLoader";
 
 export default function ConditionalShell({ children }) {
   const pathname = usePathname();
@@ -21,6 +22,7 @@ export default function ConditionalShell({ children }) {
        </div>
       <Footer />
       <PromoPopup />
+      <MinimumLoader />
     </>
   );
 }

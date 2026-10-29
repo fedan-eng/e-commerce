@@ -4,7 +4,7 @@
 // Shown by the route loading.jsx files while the next page renders. The line changes
 // with the page being opened. It fades in after 150ms (see .route-loader in
 // globals.css), so quick navigations never flash it, and pages still in the router
-// cache skip loading.jsx altogether.
+// cache skip loading.jsx altogether. MinimumLoader also shows it over every page change.
 
 import { usePathname } from "next/navigation";
 
@@ -38,14 +38,17 @@ function lineFor(pathname) {
   return match ? match.slice(1) : FALLBACK;
 }
 
-export default function RouteLoader() {
-  const [lead, highlight] = lineFor(usePathname());
+// path: the page being opened, when it isn't the current one yet.
+// instant: skip the 150ms wait (MinimumLoader is always meant to be seen).
+export default function RouteLoader({ path, instant = false }) {
+  const current = usePathname();
+  const [lead, highlight] = lineFor(path || current);
 
   return (
     <div
       role="status"
       aria-busy="true"
-      className="route-loader flex min-h-[60vh] w-full items-center justify-center px-4"
+      className={`${instant ? "" : "route-loader "}flex min-h-[60vh] w-full items-center justify-center px-4`}
     >
       <div className="w-full max-w-[280px] sm:max-w-[340px]">
         <p className="font-oswald text-xl uppercase tracking-wide text-ink sm:text-2xl">
