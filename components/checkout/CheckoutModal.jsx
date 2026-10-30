@@ -120,6 +120,14 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     if (values.deliveryType === "Express") setFreeSwitched(false);
   }, [values.deliveryType]);
 
+  // Coming back from Paystack (cancelled, or the Back button) restores this page from the
+  // browser's back/forward cache with "Taking you to payment…" still on. Switch Pay back on.
+  useEffect(() => {
+    const onShow = (e) => e.persisted && setSubmitting(false);
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
   // Signed-in shoppers whose details are all saved start on Review; Back still lets them edit.
   // Checked once, right after the prefill, so typing on step 1 never jumps ahead.
   const { fromAccount, isComplete } = form;
