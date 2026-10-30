@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6";
 import { SOCIALS } from "@/lib/socials";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
 const SOCIAL_ICONS = { TikTok: FaTiktok, Instagram: FaInstagram, Facebook: FaFacebookF };
 import FloatingActions from "@/components/FloatingActions";
@@ -37,7 +38,7 @@ const Footer = () => {
               <p className="text-white/80 text-[14px] leading-relaxed">
                 Everyday tech for real Nigerian days.<br />
                 {/* Extensions hidden — no stock. Was: "Power banks, audio, chargers, cables, sockets and fans." */}
-                Power banks, audio, chargers, cables and fans.
+                Power banks, chargers, wearables and lifestyle gadgets.
               </p>
               <div className="flex items-center gap-5 mt-2">
                 {SOCIALS.map(({ name, url }) => {
@@ -56,14 +57,12 @@ const Footer = () => {
             <div>
               <h3 className="font-semibold text-white text-[15px] mb-5">Shop</h3>
               <ul className="flex flex-col gap-3.5">
-                <li><Link href="/products?categories=Power+Bank" className="text-white/70 hover:text-white text-[14px] transition-colors">Power banks</Link></li>
-                <li><Link href="/products?categories=Wearables" className="text-white/70 hover:text-white text-[14px] transition-colors">Audio</Link></li>
-                <li><Link href="/products?categories=Chargers" className="text-white/70 hover:text-white text-[14px] transition-colors">Charging</Link></li>
-                <li><Link href="/products?categories=Cables" className="text-white/70 hover:text-white text-[14px] transition-colors">Cables</Link></li>
-                <li><Link href="/products?categories=Lifestyle" className="text-white/70 hover:text-white text-[14px] transition-colors">Fans</Link></li>
-                {/* Extensions hidden — no stock
-                <li><Link href="/products?categories=Extensions" className="text-white/70 hover:text-white text-[14px] transition-colors">Sockets</Link></li>
-                */}
+                {/* The category pages (lib/categories.js), so this follows whatever the store sells */}
+                {STORE_CATEGORIES.map((c) => (
+                  <li key={c.slug}>
+                    <Link href={`/products/${c.slug}`} className="text-white/70 hover:text-white text-[14px] transition-colors">{c.title}</Link>
+                  </li>
+                ))}
               </ul>
             </div>
 

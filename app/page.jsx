@@ -1,5 +1,6 @@
 import React from "react";
 import { SOCIAL_URLS } from "@/lib/socials";
+import { STORE_CATEGORIES } from "@/lib/categories";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
 import BestSellers from "@/components/landing/BestSellers";
@@ -145,33 +146,16 @@ const page = async () => {
         "name": "Home",
         "item": baseUrl
       },
+      // The category pages (lib/categories.js); there's no all-products page
+      ...STORE_CATEGORIES.map((c, i) => ({
+        "@type": "ListItem",
+        "position": i + 2,
+        "name": c.title,
+        "item": `${baseUrl}/products/${c.slug}`
+      })),
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "All Products",
-        "item": `${baseUrl}/products`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Power Banks",
-        "item": `${baseUrl}/products?categories=Power+Bank`
-      },
-      {
-        "@type": "ListItem",
-        "position": 4,
-        "name": "Wearables",
-        "item": `${baseUrl}/products?categories=Wearables`
-      },
-      {
-        "@type": "ListItem",
-        "position": 5,
-        "name": "Chargers & Cables",
-        "item": `${baseUrl}/products?categories=Chargers`
-      },
-      {
-        "@type": "ListItem",
-        "position": 6,
+        "position": STORE_CATEGORIES.length + 2,
         "name": "Contact Us",
         "item": `${baseUrl}/contact`
       }
