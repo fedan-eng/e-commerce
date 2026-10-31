@@ -2,18 +2,18 @@
 "use client";
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { Plus, X, ArrowUp, ArrowDown, GripVertical, Sparkles, Package } from "lucide-react";
+import { CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/categories";
+import { Card, CardHeader, Button, Field, Switch, inputCls, selectCls, textareaCls, cx } from "@/components/admin/ui";
+import { money } from "@/components/admin/format";
 
-const TAG_OPTIONS = ["", "hurry", "fast", "new", "discount"];
-const TAG_COLORS  = {
-  hurry:    { text: "text-[#e86a6a]", border: "border-[#e86a6a77]", bg: "bg-[#e86a6a18]" },
-  fast:     { text: "text-[#e8a06a]", border: "border-[#e8a06a77]", bg: "bg-[#e8a06a18]" },
-  new:      { text: "text-[#6ae8a0]", border: "border-[#6ae8a077]", bg: "bg-[#6ae8a018]" },
-  discount: { text: "text-[#6ab4e8]", border: "border-[#6ab4e877]", bg: "bg-[#6ab4e818]" },
-  "":       { text: "text-[#fff]",    border: "border-[#2a2a2a]",   bg: "bg-transparent" },
-};
-
-const INPUT_CLASS = "w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-md px-3.5 py-2.5 text-[#e8e8e8] text-[13px] outline-none font-mono box-border";
+const TAG_OPTIONS = [
+  { value: "",         label: "None" },
+  { value: "hurry",    label: "Hurry" },
+  { value: "fast",     label: "Fast" },
+  { value: "new",      label: "New" },
+  { value: "discount", label: "Discount" },
+];
 
 function useDragSort(setter) {
   const from = useRef(null), to = useRef(null);
@@ -33,78 +33,59 @@ function useDragSort(setter) {
   }), [setter]);
 }
 
-const Section = ({ title, children }) => (
-  <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-6 mb-3.5">
-    <div className="text-[9px] tracking-[0.22em] text-[#fff] uppercase mb-5 font-semibold">{title}</div>
-    {children}
-  </div>
+// ── Presentational pieces ────────────────────────────────────
+
+const Section = ({ title, description, children }) => (
+  <Card>
+    <CardHeader title={title} description={description} />
+    <div className="px-5 pb-5">{children}</div>
+  </Card>
 );
 
-const Label = ({ children }) => (
-  <div className="text-[9px] tracking-[0.18em] text-[#fff] uppercase mb-1.5 font-semibold">{children}</div>
-);
-
-const Field = ({ label, children, className = "" }) => (
-  <div className={`mb-4 ${className}`}>{label && <Label>{label}</Label>}{children}</div>
-);
-
-const Checkbox = ({ label, checked, onChange, accentClass }) => (
-  <label className={`flex items-center gap-2.5 cursor-pointer p-2 rounded-md border transition-all mb-1.5
-    ${checked ? `${accentClass.border} ${accentClass.bg}` : "border-[#1e1e1e] bg-transparent"}`}>
-    <div className={`w-[15px] h-[15px] border-[1.5px] rounded-sm flex items-center justify-center flex-shrink-0 transition-all
-      ${checked ? `${accentClass.checkBorder} ${accentClass.checkBg}` : "border-[#333] bg-transparent"}`}>
-      {checked && <span className={`text-[9px] font-black ${accentClass.checkText}`}>✓</span>}
-    </div>
-    <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
-    <span className={`text-[12px] tracking-[0.04em] ${checked ? "text-[#e8e8e8]" : "text-[#666]"}`}>{label}</span>
+// A tickable row (specs and badges)
+const CheckRow = ({ label, checked, onChange }) => (
+  <label className={cx(
+    "flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-[13px] transition-colors",
+    checked ? "border-pine/40 bg-pine-tint text-ink" : "border-edge text-sub hover:bg-[#fafbfa]",
+  )}>
+    <input type="checkbox" checked={!!checked} onChange={onChange} className="h-4 w-4 cursor-pointer accent-pine" />
+    <span className="font-medium">{label}</span>
   </label>
 );
 
 const AddBtn = ({ onClick, label }) => (
-  <button type="button" onClick={onClick}
-    className="px-4 py-1.5 bg-transparent border border-dashed border-[#2a2a2a] rounded-md text-[#fff] text-[11px] tracking-[0.1em] cursor-pointer transition-all mt-1.5 font-mono hover:border-[#fff] hover:text-[#999]">
-    + {label}
+  <Button size="sm" onClick={onClick} className="mt-1 border-dashed">
+    <Plus size={14} aria-hidden /> {label}
+  </Button>
+);
+
+const IconBtn = ({ onClick, label, children, danger, disabled }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    title={label}
+    className={cx(
+      "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-sub transition-colors disabled:cursor-default disabled:opacity-30",
+      danger ? "hover:bg-[#fdeeee] hover:text-[#b91c1c]" : "hover:bg-hover hover:text-ink",
+    )}
+  >
+    {children}
   </button>
 );
 
-const IconBtn = ({ onClick, title, children, danger, disabled }) => (
-  <button type="button" onClick={onClick} disabled={disabled} title={title}
-    className={`w-[26px] h-[26px] flex items-center justify-center bg-transparent border border-[#1e1e1e] rounded text-[11px] flex-shrink-0 transition-all font-mono
-      ${disabled
-        ? "text-[#252525] cursor-default"
-        : danger
-          ? "text-[#fff] cursor-pointer hover:border-[#e86a6a55] hover:text-[#e86a6a] hover:bg-[#e86a6a0a]"
-          : "text-[#fff] cursor-pointer hover:border-[#fff] hover:text-[#bbb] hover:bg-[#1a1a1a]"
-      }`}
-  >{children}</button>
-);
-
-const DragDots = () => (
-  <div className="flex flex-col gap-[3px] p-1 cursor-grab flex-shrink-0 opacity-[0.22] hover:opacity-80 transition-opacity" title="Drag to reorder">
-    {[0,1,2].map(r => (
-      <div key={r} className="flex gap-[2.5px]">
-        <div className="w-[2.5px] h-[2.5px] rounded-full bg-[#aaa]" />
-        <div className="w-[2.5px] h-[2.5px] rounded-full bg-[#aaa]" />
-      </div>
-    ))}
-  </div>
-);
-
-const Badge = ({ n }) => (
-  <div className="min-w-[20px] h-5 rounded bg-[#161616] border border-[#1e1e1e] flex items-center justify-center text-[9px] text-[#fff] font-bold flex-shrink-0 px-1">{n}</div>
-);
-
-const Thumb = ({ url }) => (
-  <div className="w-[34px] h-[34px] rounded border border-[#1e1e1e] bg-[#0a0a0a] overflow-hidden flex-shrink-0 flex items-center justify-center">
-    {url ? <Image src={url} alt="" width={34} height={34} className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
-          : <span className="text-[12px] text-[#222]">□</span>}
-  </div>
+const Thumb = ({ url, size = "h-10 w-10" }) => (
+  <span className={cx(size, "flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-edge bg-hover")}>
+    {url
+      // eslint-disable-next-line @next/next/no-img-element
+      ? <img src={url} alt="" className="h-full w-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
+      : <Package size={14} className="text-faint" aria-hidden />}
+  </span>
 );
 
 const DragTip = () => (
-  <div className="text-[10px] text-[#2e2e2e] mb-2.5 flex items-center gap-1.5 tracking-[0.06em]">
-    <span>⠿</span> Drag to reorder · ↑↓ for precise moves
-  </div>
+  <p className="m-0 mb-2 text-xs text-faint">Drag rows to reorder, or use the arrows.</p>
 );
 
 const SortRow = ({ dragH, i, total, onUp, onDown, onRemove, children }) => {
@@ -115,45 +96,24 @@ const SortRow = ({ dragH, i, total, onUp, onDown, onRemove, children }) => {
       onDragEnter={() => { h.onDragEnter(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDragEnd={(e) => { h.onDragEnd(e); setOver(false); }}
-      className={`flex gap-1.5 items-center mb-1.5 px-1.5 py-1 rounded-lg border transition-all
-        ${over ? "border-[#fff] bg-[#161616]" : "border-transparent bg-transparent"}`}
+      className={cx("mb-1.5 flex items-center gap-1.5 rounded-lg border p-1 transition-colors", over ? "border-pine bg-pine-tint" : "border-transparent")}
     >
-      <DragDots />
-      <Badge n={i + 1} />
+      <GripVertical size={16} className="shrink-0 cursor-grab text-faint" aria-hidden />
+      <span className="w-5 shrink-0 text-center text-xs text-faint">{i + 1}</span>
       {children}
-      <div className="flex flex-col gap-0.5">
-        <IconBtn onClick={onUp}   disabled={i === 0}       title="Move up">↑</IconBtn>
-        <IconBtn onClick={onDown} disabled={i === total-1} title="Move down">↓</IconBtn>
-      </div>
-      <IconBtn onClick={onRemove} danger title="Remove">✕</IconBtn>
+      <IconBtn onClick={onUp}   disabled={i === 0}         label="Move up"><ArrowUp size={14} aria-hidden /></IconBtn>
+      <IconBtn onClick={onDown} disabled={i === total - 1} label="Move down"><ArrowDown size={14} aria-hidden /></IconBtn>
+      <IconBtn onClick={onRemove} danger label="Remove"><X size={15} aria-hidden /></IconBtn>
     </div>
   );
 };
 
-const ColorImageRow = ({ img, ii, total, onUpdate, onMoveUp, onMoveDown, onRemove, dragHandlers }) => {
-  const [over, setOver] = useState(false);
-  const ih = dragHandlers(ii);
-  return (
-    <div {...ih}
-      onDragEnter={() => { ih.onDragEnter(); setOver(true); }}
-      onDragLeave={() => setOver(false)}
-      onDragEnd={(e) => { ih.onDragEnd(e); setOver(false); }}
-      className={`flex gap-1.5 items-center mb-1.5 px-1 py-1 rounded-md border transition-all
-        ${over ? "border-[#fff] bg-[#1a1a1a]" : "border-transparent bg-transparent"}`}
-    >
-      <DragDots />
-      <Badge n={ii + 1} />
-      <input value={img} onChange={e => onUpdate(e.target.value)} placeholder="Image URL"
-        className={`${INPUT_CLASS} flex-1 text-[12px] mb-0`} />
-      <Thumb url={img} />
-      <div className="flex flex-col gap-0.5">
-        <IconBtn onClick={onMoveUp}   disabled={ii === 0}       title="Move up">↑</IconBtn>
-        <IconBtn onClick={onMoveDown} disabled={ii === total-1} title="Move down">↓</IconBtn>
-      </div>
-      <IconBtn onClick={onRemove} danger title="Remove">✕</IconBtn>
-    </div>
-  );
-};
+const ColorImageRow = ({ img, ii, total, onUpdate, onMoveUp, onMoveDown, onRemove, dragHandlers }) => (
+  <SortRow dragH={dragHandlers} i={ii} total={total} onUp={onMoveUp} onDown={onMoveDown} onRemove={onRemove}>
+    <input value={img} onChange={e => onUpdate(e.target.value)} placeholder="Image URL" className={cx(inputCls, "flex-1")} aria-label={`Image ${ii + 1} URL`} />
+    <Thumb url={img} />
+  </SortRow>
+);
 
 const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown, onRemove, onAddImage, onRemoveImage, onUpdateImage, onMoveImageUp, onMoveImageDown, dragHandlers, imageDragHandlers }) => {
   const [cardOver, setCardOver] = useState(false);
@@ -163,50 +123,99 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
       onDragEnter={() => { ch.onDragEnter(); setCardOver(true); }}
       onDragLeave={() => setCardOver(false)}
       onDragEnd={(e) => { ch.onDragEnd(e); setCardOver(false); }}
-      className={`border rounded-lg p-4 mb-2.5 transition-all ${cardOver ? "bg-[#141414] border-[#fff]" : "bg-[#0c0c0c] border-[#1e1e1e]"}`}
+      className={cx("mb-3 rounded-xl border p-4 transition-colors", cardOver ? "border-pine bg-pine-tint" : "border-edge bg-[#fafbfa]")}
     >
-      <div className="flex justify-between items-center mb-3.5">
-        <div className="flex items-center gap-2">
-          <DragDots />
-          <span className="text-[9px] tracking-[0.18em] text-[#fff] uppercase font-semibold">
-            Variant {ci + 1}{color.name ? ` — ${color.name}` : ""}
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <GripVertical size={16} className="shrink-0 cursor-grab text-faint" aria-hidden />
+          <span
+            className="h-5 w-5 shrink-0 rounded-full border border-edge"
+            style={{ background: color.name || "#f1f3f2" }}
+            aria-hidden
+          />
+          <span className="truncate text-[13px] font-medium text-ink">
+            Variant {ci + 1}{color.name ? ` · ${color.name}` : ""}
           </span>
         </div>
-        <div className="flex gap-1">
-          <IconBtn onClick={onMoveUp}   disabled={ci === 0}            title="Move up">↑</IconBtn>
-          <IconBtn onClick={onMoveDown} disabled={ci === totalColors-1} title="Move down">↓</IconBtn>
-          <IconBtn onClick={onRemove} danger title="Remove">✕</IconBtn>
+        <div className="flex shrink-0 gap-0.5">
+          <IconBtn onClick={onMoveUp}   disabled={ci === 0}               label="Move variant up"><ArrowUp size={14} aria-hidden /></IconBtn>
+          <IconBtn onClick={onMoveDown} disabled={ci === totalColors - 1} label="Move variant down"><ArrowDown size={14} aria-hidden /></IconBtn>
+          <IconBtn onClick={onRemove} danger label="Remove variant"><X size={15} aria-hidden /></IconBtn>
         </div>
       </div>
-      <div className="flex gap-2.5 items-center mb-3.5">
-        <div className="flex-1">
-          <Label>Color Name</Label>
-          <input value={color.name} onChange={e => onNameChange(e.target.value)} placeholder="e.g. black, midnight blue"
-            className={INPUT_CLASS} />
-        </div>
-        <div className="mt-5 flex-shrink-0">
-          <div className="w-10 h-10 rounded-full border-2 border-[#2a2a2a] transition-all duration-300"
-            style={{ background: color.name || "#1e1e1e", boxShadow: color.name ? `0 0 14px ${color.name}55` : "none" }} />
-        </div>
-      </div>
-      <div className="text-[9px] tracking-[0.18em] text-[#333] uppercase mb-2 font-semibold">Images</div>
+      <Field label="Colour name" className="mb-3">
+        <input value={color.name} onChange={e => onNameChange(e.target.value)} placeholder="e.g. black, midnight blue" className={inputCls} />
+      </Field>
+      <div className="mb-1.5 text-[13px] font-medium text-sub">Images</div>
       {color.images.map((img, ii) => (
         <ColorImageRow key={ii} img={img} ii={ii} total={color.images.length}
           onUpdate={val => onUpdateImage(ii, val)}
           onMoveUp={() => onMoveImageUp(ii)} onMoveDown={() => onMoveImageDown(ii)}
           onRemove={() => onRemoveImage(ii)} dragHandlers={imageDragHandlers} />
       ))}
-      <AddBtn onClick={onAddImage} label="Add Image" />
+      <AddBtn onClick={onAddImage} label="Add image" />
     </div>
   );
 };
+
+// Inputs for product.specs — which fields show depends on the category (see lib/categories.js)
+const SpecsFields = ({ fields, specs, onChange }) => {
+  const toggle = (name, id) => {
+    const current = specs[name] || [];
+    onChange(name, current.includes(id) ? current.filter(v => v !== id) : [...current, id]);
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {fields.map(f => (
+        <Field key={f.name} label={f.unit ? `${f.label} (${f.unit})` : f.label}
+          className={f.kind === "multiselect" ? "sm:col-span-2" : ""}>
+          {f.kind === "number" && (
+            <input type="number" min="0" step="any" value={specs[f.name] ?? ""}
+              onChange={e => onChange(f.name, e.target.value)} className={inputCls} />
+          )}
+          {f.kind === "select" && (
+            <select value={specs[f.name] ?? ""} onChange={e => onChange(f.name, e.target.value)} className={selectCls}>
+              <option value="">Not set</option>
+              {f.options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          )}
+          {f.kind === "multiselect" && (
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              {f.options.map(o => (
+                <CheckRow key={o.id} label={o.label} checked={(specs[f.name] || []).includes(o.id)} onChange={() => toggle(f.name, o.id)} />
+              ))}
+            </div>
+          )}
+        </Field>
+      ))}
+    </div>
+  );
+};
+
+// Only send the specs that belong to the selected category, with numbers parsed
+function buildSpecs(fields, specs) {
+  const out = {};
+  for (const f of fields) {
+    const v = specs[f.name];
+    if (f.kind === "number") {
+      const n = parseFloat(v);
+      if (!isNaN(n)) out[f.name] = n;
+    } else if (f.kind === "select") {
+      if (v) out[f.name] = v;
+    } else if (v?.length) {
+      out[f.name] = v;
+    }
+  }
+  return out;
+}
 
 export default function ProductForm({ initial = {}, isEdit = false }) {
   const router = useRouter();
 
   const [form, setForm] = useState({
     name: initial.name || "", price: initial.price || "", originalPrice: initial.originalPrice || "",
-    category: initial.category || "", tag: initial.tag || "", description: initial.description || "",
+    category: getCategoryByDbName(initial.category)?.dbCategory || initial.category || "", tag: initial.tag || "", description: initial.description || "",
     image: initial.image || "", availability: initial.availability ?? true,
     features: (initial.features || []).join(", "),
     isBestseller: initial.isBestseller || false, isTodaysDeal: initial.isTodaysDeal || false,
@@ -217,6 +226,9 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const [colors,     setColors]     = useState(initial.colors?.length ? initial.colors.map(c => ({ name: c.name || "", images: c.images?.length ? c.images : [""] })) : []);
   const [videos,     setVideos]     = useState(initial.videos?.length ? initial.videos : []);
   const [boxContent, setBoxContent] = useState(initial.boxContent?.length ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 })) : []);
+  const [specs,      setSpecs]      = useState(initial.specs || {});
+  const specFields = getSpecFields(form.category);
+  const setSpec    = (name, value) => setSpecs(p => ({ ...p, [name]: value }));
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [success, setSuccess] = useState(false);
@@ -254,10 +266,11 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const ciFrom = useRef({}), ciTo = useRef({});
   const colorImgDrag = (ci) => (ii) => ({
     draggable: true,
-    onDragStart: (e) => { ciFrom.current[ci] = ii; e.dataTransfer.effectAllowed = "move"; },
+    onDragStart: (e) => { e.stopPropagation(); ciFrom.current[ci] = ii; e.dataTransfer.effectAllowed = "move"; },
     onDragEnter: () => { ciTo.current[ci] = ii; },
     onDragOver:  (e) => e.preventDefault(),
-    onDragEnd:   () => {
+    onDragEnd:   (e) => {
+      e?.stopPropagation?.();
       const f = ciFrom.current[ci], t = ciTo.current[ci];
       if (f !== undefined && t !== undefined && f !== t) {
         setColors(prev => prev.map((c, idx) => {
@@ -288,6 +301,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const updateBox = (i, f, v) => setBoxContent(p => p.map((b, idx) => idx === i ? { ...b, [f]: v } : b));
   const addBox    = () => setBoxContent(p => [...p, { item: "", quantity: 1 }]);
   const removeBox = (i) => setBoxContent(p => p.filter((_, idx) => idx !== i));
+  // The product page lists the product first in "In the box" unless it's here under its exact name
+  const productName   = form.name?.trim() || "";
+  const boxHasProduct = boxContent.some(b => b.item?.trim().toLowerCase() === productName.toLowerCase());
+  const addProductToBox = () => setBoxContent(p => [{ item: productName, quantity: 1 }, ...p]);
 
   const handleSubmit = async () => {
     setSaving(true); setError(null);
@@ -301,6 +318,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean) })).filter(c => c.name),
         videos: videos.filter(Boolean),
         boxContent: boxContent.filter(b => b.item?.trim()).map(b => ({ item: b.item.trim(), quantity: parseInt(b.quantity) || 1 })),
+        specs: buildSpecs(specFields, specs),
       };
       const url = isEdit ? `/api/products/${initial._id}` : "/api/admin/products";
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -346,182 +364,201 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     }
   };
 
-  const CHECKBOX_ACCENTS = {
-    gold:  { border: "border-[#e8c46a44]", bg: "bg-[#e8c46a0a]", checkBorder: "border-[#e8c46a]", checkBg: "bg-[#e8c46a22]", checkText: "text-[#e8c46a]" },
-    amber: { border: "border-[#e8a06a44]", bg: "bg-[#e8a06a0a]", checkBorder: "border-[#e8a06a]", checkBg: "bg-[#e8a06a22]", checkText: "text-[#e8a06a]" },
-    green: { border: "border-[#6ae8a044]", bg: "bg-[#6ae8a00a]", checkBorder: "border-[#6ae8a0]", checkBg: "bg-[#6ae8a022]", checkText: "text-[#6ae8a0]" },
-    blue:  { border: "border-[#6ab4e844]", bg: "bg-[#6ab4e80a]", checkBorder: "border-[#6ab4e8]", checkBg: "bg-[#6ab4e822]", checkText: "text-[#6ab4e8]" },
-  };
+  const discountPct = form.originalPrice && parseFloat(form.originalPrice) > parseFloat(form.price)
+    ? Math.round((1 - parseFloat(form.price) / parseFloat(form.originalPrice)) * 100)
+    : 0;
 
   return (
-    <div className="max-w-[780px]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {/* ── Main column ── */}
+      <div className="flex min-w-0 flex-col gap-4">
+        <Section title="Details">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Product name"><input value={form.name} onChange={set("name")} placeholder="e.g. MagFlex Powerbank" className={inputCls} /></Field>
+            <Field label="Category">
+              <select value={form.category} onChange={set("category")} className={selectCls}>
+                <option value="">Select category</option>
+                {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                {form.category && !CATEGORY_OPTIONS.some(c => c.value === form.category) && (
+                  <option value={form.category}>{form.category} (not a shop category)</option>
+                )}
+              </select>
+            </Field>
+            <Field label="Price (₦)"><input type="number" value={form.price} onChange={set("price")} placeholder="19000" min="0" className={inputCls} /></Field>
+            <Field label="Original price (₦)" hint="Leave blank if there's no discount">
+              <input type="number" value={form.originalPrice} onChange={set("originalPrice")} placeholder="23000" min="0" className={inputCls} />
+            </Field>
+          </div>
 
-      {/* Core Details */}
-      <Section title="Core Details">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <Field label="Product Name"><input value={form.name} onChange={set("name")} placeholder="e.g. MagFlex Powerbank" className={INPUT_CLASS} /></Field>
-          <Field label="Category"><input value={form.category} onChange={set("category")} placeholder="e.g. Power Bank" className={INPUT_CLASS} /></Field>
-          <Field label="Price (₦)"><input type="number" value={form.price} onChange={set("price")} placeholder="19000" min="0" className={INPUT_CLASS} /></Field>
-          <Field label="Original Price (₦)"><input type="number" value={form.originalPrice} onChange={set("originalPrice")} placeholder="23000 — leave blank if no discount" min="0" className={INPUT_CLASS} /></Field>
-        </div>
-        <Field label="Tag">
-          <div className="flex gap-1.5 flex-wrap">
-            {TAG_OPTIONS.map(t => {
-              const active = form.tag === t;
-              const c = TAG_COLORS[t];
-              return (
-                <button key={t} type="button" onClick={() => setForm(p => ({ ...p, tag: t }))}
-                  className={`px-3.5 py-1.5 rounded-full cursor-pointer text-[11px] tracking-[0.1em] uppercase border transition-all font-mono
-                    ${active ? `${c.text} ${c.border} ${c.bg} font-bold` : "text-[#fff] border-[#1e1e1e] bg-transparent hover:text-[#666] hover:border-[#333]"}`}>
-                  {t === "" ? "None" : t}
+          <Field label="Tag" className="mt-4">
+            <div className="flex flex-wrap gap-1.5">
+              {TAG_OPTIONS.map(t => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, tag: t.value }))}
+                  aria-pressed={form.tag === t.value}
+                  className={cx(
+                    "h-8 cursor-pointer rounded-full border px-3 text-[13px] font-medium transition-colors",
+                    form.tag === t.value ? "border-pine bg-pine text-white" : "border-[#dfe3e1] bg-white text-sub hover:border-pine hover:text-pine",
+                  )}
+                >
+                  {t.label}
                 </button>
-              );
-            })}
-          </div>
-        </Field>
-        <Field label="Description">
-          <div className="flex gap-2 mb-1.5">
-            <button
-  type="button"
-  onClick={generateDescription}
-  disabled={generating || !form.name || !form.category}
-  className={`
-    relative inline-flex items-center gap-2 px-4 h-[34px] rounded-md font-mono
-    text-[11px] font-bold tracking-[0.12em] uppercase transition-all duration-200
-    border overflow-hidden cursor-pointer
-    disabled:opacity-35 disabled:cursor-not-allowed active:scale-[0.98]
-    ${form.description
-      ? 'border-[#6ae8a055] text-[#6ae8a0] bg-[#001a0d] hover:border-[#6ae8a0aa] hover:bg-[#002a15]'
-      : 'border-[#e8c46a55] text-[#e8c46a] bg-[#1a1500] hover:border-[#e8c46aaa] hover:bg-[#211a00]'
-    }
-  `}
->
-  <span
-    className={`text-[13px] leading-none flex-shrink-0 ${generating ? 'animate-spin' : ''}`}
-  >
-    {generating ? '⟳' : '✦'}
-  </span>
-  <span className="leading-none">
-    {generating ? 'Generating...' : form.description ? 'Improve' : 'AI Generate'}
-  </span>
-  {form.description && !generating && (
-    <span className="text-[10px] font-normal opacity-50 ml-1">
-      {form.description.length}chars
-    </span>
-  )}
-</button>
-          </div>
-          <textarea value={form.description} onChange={set("description")} placeholder="Product description..." rows={5}
-            className={`${INPUT_CLASS} resize-y leading-relaxed`} />
-        </Field>
-        <Field label="Features (comma-separated)">
-          <input value={form.features} onChange={set("features")} placeholder="Fast charging, Built-in cable, 10000mAh" className={INPUT_CLASS} />
-        </Field>
-      </Section>
-
-      {/* Main Image */}
-      <Section title="Main Image & Availability">
-        <div className="grid grid-cols-[1fr_auto] gap-3.5 items-start">
-          <Field label="Main Image URL" className="mb-0">
-            <input value={form.image} onChange={set("image")} placeholder="https://res.cloudinary.com/..." className={INPUT_CLASS} />
-          </Field>
-          {form.image && (
-            <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#1e1e1e] mt-[22px] flex-shrink-0">
-              <Image src={form.image} alt="" width={56} height={56} className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />
+              ))}
             </div>
+          </Field>
+
+          <Field className="mt-4">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-[13px] font-medium text-sub">Description</span>
+              <Button
+                size="sm"
+                onClick={generateDescription}
+                aria-label={form.description ? "Improve description with AI" : "Generate AI description"}
+                disabled={generating || !form.name || !form.category}
+              >
+                <Sparkles size={14} className={cx(generating && "animate-spin")} aria-hidden />
+                {generating ? "Writing…" : form.description ? "Improve with AI" : "Write with AI"}
+              </Button>
+            </div>
+            <textarea value={form.description} onChange={set("description")} placeholder="Product description…" rows={6} className={textareaCls} />
+            {form.description && <div className="mt-1 text-right text-xs text-faint">{form.description.length} characters</div>}
+          </Field>
+
+          <Field label="Features" hint="Separate with commas" className="mt-4">
+            <input value={form.features} onChange={set("features")} placeholder="Fast charging, Built-in cable, 10000mAh" className={inputCls} />
+          </Field>
+        </Section>
+
+        <Section
+          title="Specs and filters"
+          description={specFields.length ? `These power the filters on the ${form.category} page. Leave blank if they don't apply.` : undefined}
+        >
+          {specFields.length === 0
+            ? <p className="m-0 text-[13px] text-faint">{form.category ? "No filterable specs for this category yet." : "Pick a category to see its specs."}</p>
+            : <SpecsFields fields={specFields} specs={specs} onChange={setSpec} />}
+        </Section>
+
+        <Section title="Images" description="The main image is used on product cards; the gallery shows on the product page">
+          <Field label="Main image URL">
+            <div className="flex items-center gap-2">
+              <input value={form.image} onChange={set("image")} placeholder="https://res.cloudinary.com/..." className={inputCls} />
+              <Thumb url={form.image} />
+            </div>
+          </Field>
+          <div className="mb-1.5 mt-4 text-[13px] font-medium text-sub">Gallery</div>
+          {secondaryImages.length > 1 && <DragTip />}
+          {secondaryImages.map((url, i) => (
+            <SortRow key={i} dragH={secDrag} i={i} total={secondaryImages.length}
+              onUp={() => swap(setSecondaryImages, i, -1)} onDown={() => swap(setSecondaryImages, i, 1)} onRemove={() => removeSecImg(i)}>
+              <input value={url} onChange={e => updateSecImg(i, e.target.value)} placeholder="Image URL" className={cx(inputCls, "flex-1")} aria-label={`Gallery image ${i + 1} URL`} />
+              <Thumb url={url} />
+            </SortRow>
+          ))}
+          <AddBtn onClick={addSecImg} label="Add image" />
+        </Section>
+
+        <Section title="Colour variants" description="Each colour has a name and its own images. Drag cards to reorder.">
+          {colors.length === 0 && <p className="m-0 mb-2 text-[13px] text-faint">No colour variants yet.</p>}
+          {colors.map((color, ci) => (
+            <ColorCard key={ci} color={color} ci={ci} totalColors={colors.length}
+              onNameChange={val => updateColorName(ci, val)}
+              onMoveUp={() => swap(setColors, ci, -1)} onMoveDown={() => swap(setColors, ci, 1)}
+              onRemove={() => removeColor(ci)} onAddImage={() => addColorImage(ci)}
+              onRemoveImage={ii => removeColorImage(ci, ii)}
+              onUpdateImage={(ii, val) => updateColorImage(ci, ii, val)}
+              onMoveImageUp={ii => swapColorImage(ci, ii, -1)}
+              onMoveImageDown={ii => swapColorImage(ci, ii, 1)}
+              dragHandlers={colorCardDrag} imageDragHandlers={colorImgDrag(ci)} />
+          ))}
+          <AddBtn onClick={addColor} label="Add colour variant" />
+        </Section>
+
+        <Section title="Videos" description="Optional">
+          {videos.length === 0 && <p className="m-0 mb-2 text-[13px] text-faint">No videos added.</p>}
+          {videos.length > 1 && <DragTip />}
+          {videos.map((url, i) => (
+            <SortRow key={i} dragH={videoDrag} i={i} total={videos.length}
+              onUp={() => swap(setVideos, i, -1)} onDown={() => swap(setVideos, i, 1)} onRemove={() => removeVideo(i)}>
+              <input value={url} onChange={e => updateVideo(i, e.target.value)} placeholder="Video URL" className={cx(inputCls, "flex-1")} aria-label={`Video ${i + 1} URL`} />
+            </SortRow>
+          ))}
+          <AddBtn onClick={addVideo} label="Add video URL" />
+        </Section>
+
+        <Section
+          title="In the box"
+          description="Each item with its quantity. The product itself always shows first on the product page; add it here only to change its quantity or position."
+        >
+          {boxContent.length === 0 && <p className="m-0 mb-2 text-[13px] text-faint">No box items yet.</p>}
+          {boxContent.length > 1 && <DragTip />}
+          {boxContent.map((b, i) => (
+            <SortRow key={i} dragH={boxDrag} i={i} total={boxContent.length}
+              onUp={() => swap(setBoxContent, i, -1)} onDown={() => swap(setBoxContent, i, 1)} onRemove={() => removeBox(i)}>
+              <input value={b.item} onChange={e => updateBox(i, "item", e.target.value)} placeholder="e.g. USB-C cable, user manual" className={cx(inputCls, "flex-1")} aria-label={`Box item ${i + 1}`} />
+              <input type="number" value={b.quantity} onChange={e => updateBox(i, "quantity", e.target.value)} min="1" placeholder="Qty"
+                className={cx(inputCls, "w-16 text-center")} aria-label={`Quantity of box item ${i + 1}`} />
+            </SortRow>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            <AddBtn onClick={addBox} label="Add item" />
+            {productName && !boxHasProduct && <AddBtn onClick={addProductToBox} label={`Add "${productName}"`} />}
+          </div>
+        </Section>
+      </div>
+
+      {/* ── Side column: summary, visibility and save ── */}
+      <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+        <Card className="overflow-hidden">
+          <div className="flex aspect-[4/3] items-center justify-center bg-hover">
+            {form.image
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={form.image} alt="" className="h-full w-full object-cover" onError={e => { e.currentTarget.style.display = "none"; }} />
+              : <Package size={32} className="text-faint" aria-hidden />}
+          </div>
+          <div className="px-5 py-4">
+            <div className="truncate text-[15px] font-medium text-ink">{form.name || "Untitled product"}</div>
+            <div className="mt-0.5 text-xs text-faint">{form.category || "No category"}</div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-poppins text-lg font-semibold">{money(form.price)}</span>
+              {discountPct > 0 && (
+                <>
+                  <span className="text-[13px] text-faint line-through">{money(form.originalPrice)}</span>
+                  <span className="rounded-full bg-[#eaf7ef] px-2 py-px text-xs font-semibold text-[#15803d]">−{discountPct}%</span>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="px-5 py-4">
+          <h2 className="m-0 mb-3 font-poppins text-[15px] font-semibold text-ink">Visibility</h2>
+          <Switch
+            label="In stock"
+            description={form.availability ? "Shoppers can buy this product" : "Shown as out of stock"}
+            checked={form.availability}
+            onChange={set("availability")}
+          />
+          <div className="mb-2 mt-4 text-[13px] font-medium text-sub">Badges</div>
+          <div className="flex flex-col gap-1.5">
+            <CheckRow label="Bestseller"   checked={form.isBestseller} onChange={set("isBestseller")} />
+            <CheckRow label="Today's deal" checked={form.isTodaysDeal} onChange={set("isTodaysDeal")} />
+            <CheckRow label="What's new"   checked={form.isWhatsNew}   onChange={set("isWhatsNew")} />
+            <CheckRow label="Discounted"   checked={form.isDiscounted} onChange={set("isDiscounted")} />
+          </div>
+        </Card>
+
+        <Card className="px-5 py-4">
+          {error && (
+            <div role="alert" className="mb-3 rounded-lg border border-[#f3c4c4] bg-[#fdeeee] px-3 py-2 text-[13px] text-[#b91c1c]">{error}</div>
           )}
-        </div>
-        <div className="mt-3.5">
-          <Checkbox label="In Stock / Available" checked={form.availability} onChange={set("availability")} accentClass={CHECKBOX_ACCENTS.green} />
-        </div>
-      </Section>
-
-      {/* Secondary Images */}
-      <Section title="Secondary Images">
-        <div className="text-[11px] text-[#fff] mb-2.5">Gallery thumbnails shown on the product page.</div>
-        <DragTip />
-        {secondaryImages.map((url, i) => (
-          <SortRow key={i} dragH={secDrag} i={i} total={secondaryImages.length}
-            onUp={() => swap(setSecondaryImages, i, -1)} onDown={() => swap(setSecondaryImages, i, 1)} onRemove={() => removeSecImg(i)}>
-            <input value={url} onChange={e => updateSecImg(i, e.target.value)} placeholder="Image URL"
-              className={`${INPUT_CLASS} flex-1 text-[12px]`} />
-            <Thumb url={url} />
-          </SortRow>
-        ))}
-        <AddBtn onClick={addSecImg} label="Add Image" />
-      </Section>
-
-      {/* Color Variants */}
-      <Section title="Color Variants">
-        <div className="text-[11px] text-[#fff] mb-2.5">Each color has a name and its own set of images. Drag cards to reorder.</div>
-        {colors.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No color variants yet.</div>}
-        {colors.map((color, ci) => (
-          <ColorCard key={ci} color={color} ci={ci} totalColors={colors.length}
-            onNameChange={val => updateColorName(ci, val)}
-            onMoveUp={() => swap(setColors, ci, -1)} onMoveDown={() => swap(setColors, ci, 1)}
-            onRemove={() => removeColor(ci)} onAddImage={() => addColorImage(ci)}
-            onRemoveImage={ii => removeColorImage(ci, ii)}
-            onUpdateImage={(ii, val) => updateColorImage(ci, ii, val)}
-            onMoveImageUp={ii => swapColorImage(ci, ii, -1)}
-            onMoveImageDown={ii => swapColorImage(ci, ii, 1)}
-            dragHandlers={colorCardDrag} imageDragHandlers={colorImgDrag(ci)} />
-        ))}
-        <AddBtn onClick={addColor} label="Add Color Variant" />
-      </Section>
-
-      {/* Videos */}
-      <Section title="Videos (optional)">
-        {videos.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No videos added.</div>}
-        {videos.length > 1 && <DragTip />}
-        {videos.map((url, i) => (
-          <SortRow key={i} dragH={videoDrag} i={i} total={videos.length}
-            onUp={() => swap(setVideos, i, -1)} onDown={() => swap(setVideos, i, 1)} onRemove={() => removeVideo(i)}>
-            <input value={url} onChange={e => updateVideo(i, e.target.value)} placeholder="Video URL"
-              className={`${INPUT_CLASS} flex-1 text-[12px]`} />
-          </SortRow>
-        ))}
-        <AddBtn onClick={addVideo} label="Add Video URL" />
-      </Section>
-
-      {/* Box Content */}
-      <Section title="Box Contents (optional)">
-        <div className="text-[11px] text-[#fff] mb-2.5">What's included in the box — each item with quantity.</div>
-        {boxContent.length === 0 && <div className="text-[12px] text-[#252525] mb-2.5">No box items yet.</div>}
-        {boxContent.length > 1 && <DragTip />}
-        {boxContent.map((b, i) => (
-          <SortRow key={i} dragH={boxDrag} i={i} total={boxContent.length}
-            onUp={() => swap(setBoxContent, i, -1)} onDown={() => swap(setBoxContent, i, 1)} onRemove={() => removeBox(i)}>
-            <input value={b.item} onChange={e => updateBox(i, "item", e.target.value)} placeholder="e.g. USB-C Cable, User Manual"
-              className={`${INPUT_CLASS} flex-1 text-[12px]`} />
-            <input type="number" value={b.quantity} onChange={e => updateBox(i, "quantity", e.target.value)} min="1" placeholder="Qty"
-              className={`${INPUT_CLASS} w-14 sm:w-16 text-[12px] text-center`} style={{ flex: "none" }} />
-          </SortRow>
-        ))}
-        <AddBtn onClick={addBox} label="Add Item" />
-      </Section>
-
-      {/* Specials */}
-      <Section title="Specials / Badges">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-          <Checkbox label="Bestseller"   checked={form.isBestseller} onChange={set("isBestseller")} accentClass={CHECKBOX_ACCENTS.gold} />
-          <Checkbox label="Today's Deal" checked={form.isTodaysDeal} onChange={set("isTodaysDeal")} accentClass={CHECKBOX_ACCENTS.amber} />
-          <Checkbox label="What's New"   checked={form.isWhatsNew}   onChange={set("isWhatsNew")}   accentClass={CHECKBOX_ACCENTS.green} />
-          <Checkbox label="Discounted"   checked={form.isDiscounted} onChange={set("isDiscounted")} accentClass={CHECKBOX_ACCENTS.blue} />
-        </div>
-      </Section>
-
-      {error && (
-        <div className="px-4 py-3 bg-[#e86a6a15] border border-[#e86a6a33] rounded-md text-[#e86a6a] text-[13px] mb-4">{error}</div>
-      )}
-
-      <button onClick={handleSubmit} disabled={saving || success}
-        className={`w-full py-3.5 border-none rounded-lg text-[11px] tracking-[0.18em] uppercase font-bold cursor-pointer transition-all font-mono
-          ${success  ? "bg-[#1a2e1a] text-[#6ae8a0] cursor-default"
-          : saving   ? "bg-[#141414] text-[#fff] cursor-default"
-          : "bg-[#e8c46a] text-[#0a0a0a] hover:bg-[#d4b05e]"}`}
-        style={{ boxShadow: (!saving && !success) ? "0 0 24px #e8c46a22" : "none" }}>
-        {success ? "✓ Saved — Redirecting..." : saving ? "Saving..." : isEdit ? "Save Changes" : "Create Product"}
-      </button>
+          <Button variant="primary" onClick={handleSubmit} disabled={saving || success} className="h-11 w-full">
+            {success ? "Saved — taking you back…" : saving ? "Saving…" : isEdit ? "Save changes" : "Create product"}
+          </Button>
+          <Button href="/admin_console/products" variant="ghost" className="mt-2 w-full">Cancel</Button>
+        </Card>
+      </div>
     </div>
   );
 }

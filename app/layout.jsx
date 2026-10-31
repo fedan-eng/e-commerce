@@ -8,6 +8,7 @@ import { Oswald, Poppins, Roboto } from "next/font/google";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import AnalyticsProvider from "./AnalyticsProvider";
 import CartAnimationProvider from "@/context/CartAnimationProvider";
+import ReferralTracker from "@/components/ReferralTracker";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -72,6 +73,7 @@ export default function RootLayout({ children }) {
                 <ConditionalShell>{children}</ConditionalShell>
                 {/* Load analytics after main content */}
                 <AnalyticsProvider />
+                <ReferralTracker />
               </CartAnimationProvider>
             </Providers>
           </CookieConsentProvider>

@@ -8,6 +8,7 @@ import Product from "@/models/Product";
 import { verifyToken } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { revalidateProduct } from "@/lib/revalidate";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -130,11 +131,13 @@ export async function POST(req) {
       statusHistory: [{ status: "delivered", date }],
       createdAt:     date,
       followUpSent:  true, // no automated customer emails for offline sales
+      soldCounted:   true, // soldCount is incremented right below
     });
 
     await Promise.all(
       orderItems.map(it => Product.updateOne({ _id: it.productId }, { $inc: { soldCount: it.quantity } }))
     );
+    orderItems.forEach(it => revalidateProduct(it.productId));
 
     return NextResponse.json({ sale: order }, { status: 201, headers: NO_STORE });
   } catch (err) {
@@ -154,14 +157,19 @@ export async function DELETE(req) {
     if (!mongoose.isValidObjectId(id)) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     // Only manual sales can be deleted here — never touch online orders
-    const order = await Order.findOneAndDelete({ _id: id, source: "manual" });
+    const order = await Order.findOneAndDelete({ _id: id, source: "manual" }).lean(); // lean: see raw soldCounted
     if (!order) return NextResponse.json({ message: "Sale not found" }, { status: 404 });
+
+    // Skip if it was cancelled/returned already (lib/soldCount took it off then).
+    // Older manual sales have no flag but were always counted.
+    if (order.soldCounted === false) return NextResponse.json({ ok: true }, { headers: NO_STORE });
 
     await Promise.all(
       (order.items || []).map(it =>
         Product.updateOne({ _id: it.productId, soldCount: { $gte: it.quantity } }, { $inc: { soldCount: -it.quantity } })
       )
     );
+    (order.items || []).forEach(it => revalidateProduct(it.productId));
 
     return NextResponse.json({ ok: true }, { headers: NO_STORE });
   } catch (err) {

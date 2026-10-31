@@ -4,13 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Menu, X, ChevronDown, ChevronUp,
-  ShoppingBag, HelpCircle, User,
+  ShoppingCart, HelpCircle, User,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import ProfileTooltip   from "./ProfileTooltip";
-import ArrivalTooltip   from "./ArrivalTooltip";
-import ProductTooltip   from "./ProductTooltip";
+import ProductMenu      from "./ProductMenu";
 import NavSearchTooltip from "./NavSearchTooltip";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,13 +18,14 @@ import { toggleCart }  from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import CartSidebar     from "@/components/cart/CartSidebar";
 import CartBottomSheet from "@/components/cart/CartBottomSheet";
+import { STORE_CATEGORIES } from "@/lib/categories";
 
-const MOBILE_CATEGORIES = [
-  { name: "Power Bank",  key: "Power Bank"  },
-  { name: "Wearables",   key: "Wearables"   },
-  { name: "Chargers",    key: "Chargers"    },
-  { name: "Lifestyle",   key: "Lifestyle"   },
-  { name: "Extensions",  key: "Extensions"  },
+const MOBILE_CATEGORIES = STORE_CATEGORIES;
+
+const NAV_LINKS = [
+  { label: "Power Banks",  href: "/products/power-banks" },
+  { label: "Contact us",   href: "/contact" },
+  { label: "Blogs",        href: "/blog" },
 ];
 
 export default function Navbar() {
@@ -33,7 +33,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const pathname = usePathname();
 
-  // Cart animation context — gives us the ref to put on the cart icon
   const { cartIconRef } = useCartAnimationContext();
 
   const cartItems  = useSelector((state) => state.cart.items);
@@ -44,7 +43,7 @@ export default function Navbar() {
   const [productOpen, setProductOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
-  const staticPaths    = ["/register", "/login", "/verify", "/reset-password"];
+  const staticPaths    = ["/register", "/login", "/verify-email", "/reset-password", "/reset-password/token"];
   const noNavigationMenu = staticPaths.includes(pathname);
 
   useEffect(() => setHasMounted(true), []);
@@ -70,10 +69,6 @@ export default function Navbar() {
 
   if (noNavigationMenu) return null;
 
-  // ── Cart icon click handler ──────────────────────────────────────────────
-  // Opens sidebar on desktop, bottom sheet on mobile.
-  // Both components listen to the same Redux `cartUI.isOpen` flag
-  // and show/hide themselves based on screen size via Tailwind's `hidden md:flex`.
   const handleCartClick = (e) => {
     e.preventDefault();
     dispatch(toggleCart());
@@ -82,51 +77,60 @@ export default function Navbar() {
   return (
     <>
       <nav className="relative bg-white">
-        {/* Top green accent stripe */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#b8e8c8] via-[#7ed09a] to-[#b8e8c8]" />
+        {/* MATCHED BANNER: Replaced the gradient stripe with the text banner from your design */}
+        <div className="w-full bg-[#c6e8b9] py-[8px] flex justify-center items-center px-4">
+          <span className="text-[#1a1a1a] text-[12px] font-medium text-center tracking-tight">
+            All deliveries in Lagos are free on Thursday but express deliveries are priced
+          </span>
+        </div>
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-5 nav:py-6">
+          {/* Centering Strategy: using flex-1 on the Left and Right containers forces the Middle container to absolute true center */}
+          <div className="flex items-center justify-between w-full py-4 nav:py-5">
+            
             {/* LEFT: Logo */}
-            <Link href="/" className="flex items-center flex-shrink-0">
-              <Image
-                width={64} height={30}
-                alt="FIL"
-                src="/fillogo.png"
-                priority
-                className="h-auto w-auto"
-              />
-            </Link>
+            <div className="flex-1 flex justify-start">
+              <Link href="/" className="flex items-center flex-shrink-0">
+                <Image
+                  width={64} height={30}
+                  alt="FIL"
+                  src="/fillogo.png"
+                  priority
+                  className="h-auto w-auto"
+                />
+              </Link>
+            </div>
 
-            {/* CENTER: Desktop nav links */}
-            <ul className="hidden nav:flex items-center gap-12 mx-auto text-sm">
-              <ProductTooltip />
-              <ArrivalTooltip />
-              <li>
-                <Link href="/contact" className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200">
-                  Contact us
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="font-roboto text-[#1a1a1a] hover:text-filgreen transition-colors duration-200">
-                  Blog
-                </Link>
-              </li>
+            {/* CENTER: Desktop nav links - Pixel perfect matching */}
+            <ul className="hidden nav:flex flex-shrink-0 items-center justify-center gap-10 text-[14px] font-medium text-[#1a1a1a]">
+              <ProductMenu />
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="hover:text-filgreen transition-colors duration-200">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+              <li aria-hidden="true" className="w-4" />
+              <NavSearchTooltip />
             </ul>
 
-            {/* RIGHT: Desktop icons */}
-            <ul className="hidden nav:flex items-center gap-7 ml-auto">
-              <NavSearchTooltip />
-
-              {/* ── Cart icon — attach cartIconRef here ── */}
+            {/* RIGHT: Desktop icons - Re-ordered to match your image exactly */}
+            <ul className="hidden nav:flex flex-1 items-center justify-end gap-8">
+              <ProfileTooltip />
+              <li>
+                <Link href="/contact" className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors" aria-label="Help">
+                  <HelpCircle size={20} strokeWidth={1.75} />
+                </Link>
+              </li>
               <li>
                 <button
-                  ref={cartIconRef}         // 👈 THE KEY REF — fly animation targets this
+                  ref={cartIconRef}
                   onClick={handleCartClick}
                   className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                   aria-label="Cart"
                 >
-                  <ShoppingBag size={20} strokeWidth={1.75} />
+                  <ShoppingCart size={20} strokeWidth={1.75} />
                   {hasMounted && totalItems > 0 && (
                     <motion.span
                       key={totalItems}
@@ -140,27 +144,19 @@ export default function Navbar() {
                   )}
                 </button>
               </li>
-
-              <ProfileTooltip />
-              <li>
-                <Link href="/contact" className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors" aria-label="Help">
-                  <HelpCircle size={20} strokeWidth={1.75} />
-                </Link>
-              </li>
             </ul>
 
             {/* MOBILE: Right icons */}
-            <div className="nav:hidden flex items-center gap-5 ml-auto">
+            <div className="nav:hidden flex flex-1 items-center justify-end gap-5">
               <NavSearchTooltip />
 
-              {/* ── Mobile cart icon — same ref ── */}
               <button
-                ref={cartIconRef}           // 👈 same ref — on mobile this is the target
+                ref={cartIconRef}
                 onClick={handleCartClick}
                 className="flex items-center text-[#1a1a1a] hover:text-filgreen transition-colors relative"
                 aria-label="Cart"
               >
-                <ShoppingBag size={20} strokeWidth={1.75} />
+                <ShoppingCart size={20} strokeWidth={1.75} />
                 {hasMounted && totalItems > 0 && (
                   <motion.span
                     key={totalItems}
@@ -223,7 +219,7 @@ export default function Navbar() {
                       onClick={() => setProductOpen((o) => !o)}
                       className="w-full flex items-center justify-between py-4 text-left"
                     >
-                      <span className="font-medium text-[17px] text-[#1a1a1a]">Product</span>
+                      <span className="font-medium text-[17px] text-[#1a1a1a]">All Products</span>
                       {productOpen
                         ? <ChevronUp size={20} className="text-[#1a1a1a]" />
                         : <ChevronDown size={20} className="text-[#1a1a1a]" />
@@ -241,13 +237,14 @@ export default function Navbar() {
                         >
                           <ul className="pb-2 space-y-4">
                             {MOBILE_CATEGORIES.map((cat) => (
-                              <li key={cat.key}>
+                              <li key={cat.slug}>
                                 <Link
-                                  href={`/products?categories=${encodeURIComponent(cat.key)}`}
+                                  href={`/products/${cat.slug}`}
                                   onClick={() => setMenuOpen(false)}
-                                  className="block text-[15px] text-[#b5b5b5] hover:text-filgreen transition-colors"
+                                  className="flex items-center gap-3 text-[15px] text-[#4A4A4A] hover:text-filgreen transition-colors"
                                 >
-                                  {cat.name}
+                                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.theme.exploreBg }} />
+                                  {cat.title}
                                 </Link>
                               </li>
                             ))}
@@ -257,11 +254,10 @@ export default function Navbar() {
                     </AnimatePresence>
                   </div>
 
-                  <Link href="/products?sort=newest" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">New Arrivals</Link>
-                  <Link href="/track"                onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Contact us</Link>
-                  <Link href="/blog"                 onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Blog</Link>
+                  {NAV_LINKS.map((l) => (
+                    <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">{l.label}</Link>
+                  ))}
 
-                  {/* Cart link in mobile drawer — still works as a full-page link */}
                   <Link
                     href="/cart"
                     onClick={() => setMenuOpen(false)}
@@ -282,6 +278,9 @@ export default function Navbar() {
                       <Link href="/profile?tab=Wishlist"   onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Wishlist</Link>
                       {user?.role === "admin" && (
                         <Link href="/admin_console" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Admin Dashboard</Link>
+                      )}
+                      {user?.role === "creator" && (
+                        <Link href="/creator" onClick={() => setMenuOpen(false)} className="block py-4 font-medium text-[17px] text-[#1a1a1a] hover:text-filgreen transition-colors">Creator Dashboard</Link>
                       )}
                     </>
                   )}
@@ -321,12 +320,6 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
 
-      {/*
-        Cart panels live OUTSIDE the <nav> so they can cover the full viewport.
-        CartSidebar  → hidden on mobile  (hidden md:flex  inside the component)
-        CartBottomSheet → hidden on desktop (md:hidden inside the component)
-        Both listen to the same Redux cartUI.isOpen flag.
-      */}
       <CartSidebar />
       <CartBottomSheet />
     </>

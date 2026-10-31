@@ -3,6 +3,7 @@
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { verifyToken } from "@/lib/auth";
+import { revalidateStorefront } from "@/lib/revalidate";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -24,6 +25,7 @@ export async function POST(req) {
       ratings: [],
       comments: [],
     });
+    revalidateStorefront();
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {

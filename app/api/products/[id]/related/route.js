@@ -47,6 +47,7 @@ export async function GET(req, context) {
 
     // Find related products
     const relatedProducts = await Product.find(query)
+      .select("-comments -ratings") // public: no reviews or rater ids
       .sort({ 
         // Prioritize by multiple factors
         // 1. Bestsellers first
@@ -68,6 +69,7 @@ export async function GET(req, context) {
         availability: true,
         category: currentProduct.category
       })
+      .select("-comments -ratings")
       .sort({ 
         isBestseller: -1,
         averageRating: -1,

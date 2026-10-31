@@ -6,10 +6,15 @@ export async function POST(req) {
   await connectDB();
 
   try {
-    const { code, cartValue } = await req.json();
+    // phone / email: the delivery details typed so far, so "first order only" is checked
+    // against them now rather than only when they pay (/api/paystack checks again)
+    const { code, cartValue, phone, email } = await req.json();
     const userId = await sessionUserId();
 
-    const result = await validatePromo({ code, userId, cartValue: Number(cartValue) || 0 });
+    const result = await validatePromo({
+      code, userId, cartValue: Number(cartValue) || 0,
+      phone: typeof phone === "string" ? phone : "", email: typeof email === "string" ? email : "",
+    });
     if (!result.valid) {
       return Response.json({ valid: false, message: result.message }, { status: result.status });
     }

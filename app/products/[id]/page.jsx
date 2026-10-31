@@ -1,16 +1,32 @@
+import { cache } from "react";
+import { notFound } from "next/navigation";
+import mongoose from "mongoose";
+import { connectDB } from "@/lib/db";
+import Product from "@/models/Product";
 import ProductDetailsPage from "./ProductDetailsPage";
 
-async function fetchProduct(id) {
-  try {
-    const res = await fetch(`https://www.filstore.com.ng/api/products/${id}`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
-    const json = await res.json();
-    return json.product || json;
-  } catch (e) {
-    return null;
-  }
+// Pages are cached and rebuilt at most hourly; admin edits, review moderation and
+// paid orders call revalidateProduct() so changes show up straight away.
+export const revalidate = 3600;
+
+// Without this Next renders every visit on demand (a DB query per view) and ignores
+// `revalidate`. An empty list builds nothing up front: each product page is
+// generated on its first visit, then served from the cache.
+export function generateStaticParams() {
+  return [];
 }
+
+// Read straight from the database (no HTTP hop to the live site). Reviews are left
+// out: the page loads approved ones from /api/products/[id]/comments, and pending
+// ones must never reach the browser. cache() shares one query between
+// generateMetadata and the page.
+const fetchProduct = cache(async (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  // DB errors throw (error page, not cached) rather than looking like a missing product
+  await connectDB();
+  const product = await Product.findById(id).select("-comments -ratings -sortOrder").lean();
+  return product ? JSON.parse(JSON.stringify(product)) : null;
+});
 
 function cleanText(value = "") {
   return String(value).replace(/\s+/g, " ").trim();
@@ -101,6 +117,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params }) {
   const { id } = await params;
   const product = await fetchProduct(id);
+  if (!product?._id) notFound();
 
   const productName = cleanText(product.name || "Product");
   const productUrl = `https://www.filstore.com.ng/products/${id}`;

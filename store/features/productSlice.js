@@ -11,7 +11,12 @@ import axios from "axios";
 export const getAllProducts = createAsyncThunk(
   "products/getAll",
   async ({ page = 1, limit = 10 } = {}) => {
-    const res = await axios.get(`/api/products?page=${page}&limit=${limit}`);
+    const res = await axios.get(`/api/products?page=${page}&limit=${limit}`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+    });
     return res.data;
   }
 );
@@ -68,7 +73,12 @@ export const getFilteredProducts = createAsyncThunk(
     params.append("page", page.toString());
     params.append("limit", limit.toString());
 
-    const res = await axios.get(`/api/products?${params.toString()}`);
+    const res = await axios.get(`/api/products?${params.toString()}`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+    });
     return res.data;
   }
 );

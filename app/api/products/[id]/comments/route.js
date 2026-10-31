@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import User from "@/models/User";
+import { findVerifiedPurchase } from "@/lib/reviews";
 
 export const POST = async (req, context) => {
   await connectDB();
@@ -36,20 +37,26 @@ export const POST = async (req, context) => {
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
   }
 
-  // Check if user has already rated this product (via comment or rating)
-  const existingRating = product.ratings.find(
-    (r) => r.user.toString() === userData.id
-  );
-  if (existingRating) {
-    return NextResponse.json({ error: "Already rated" }, { status: 400 });
+  // One review per user per product: approved (ratings) or still pending (comments)
+  const alreadyReviewed =
+    product.ratings.some((r) => r.user?.toString() === userData.id) ||
+    product.comments.some((c) => c.user?.toString() === userData.id);
+  if (alreadyReviewed) {
+    return NextResponse.json({ error: "You've already reviewed this product" }, { status: 400 });
   }
+
+  // Bought and received it? Then it's a verified-purchase review
+  const purchase = await findVerifiedPurchase(userData.id, id);
 
   const comment = {
     user: userData.id,
     text: text.trim(),
     rating: rating || 5, // Store rating with default of 5
     createdAt: new Date(),
-    status: "pending", 
+    status: "pending",
+    verified: Boolean(purchase),
+    orderId: purchase?.orderId || null,
+    color: purchase?.color || "",
   };
 
   product.comments.push(comment);
@@ -115,7 +122,9 @@ export const GET = async (req, context) => {
         commentObj.isDisliked = false;
       }
 
-      return commentObj;
+      // Public payload: counts only (not who voted), and never the order behind a review
+      const { orderId, ...publicComment } = commentObj;
+      return { ...publicComment, likes: likes.length, dislikes: dislikes.length };
     });
 
     return NextResponse.json(commentsWithStatus, { status: 200 });

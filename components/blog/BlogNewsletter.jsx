@@ -38,7 +38,7 @@ export default function BlogNewsletter() {
               Stay Plugged In
             </p>
           </div>
-          <h3 className="text-white text-3xl md:text-4xl font-bold mb-3 tracking-tight">
+          <h3 className="text-white text-2xl md:text-4xl font-bold mb-3 tracking-tight">
             Plug Into More Gist
           </h3>
           <p className="text-zinc-400 text-sm leading-relaxed">

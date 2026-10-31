@@ -73,13 +73,13 @@ export default function OrderProgressBar({
             const Icon = step.icon;
             return (
               <div key={step.label} className="relative flex flex-col flex-1 items-center">
-                <div className="flex justify-center items-center bg-gray-300 rounded-full w-6 h-6 text-white">
+                <div className="flex justify-center items-center bg-line rounded-full w-6 h-6 text-white">
                   <Icon className="text-[10px]" />
                 </div>
-                <span className="mt-1 text-sm text-center uppercase">{step.label}</span>
+                <span className="mt-1.5 text-[11px] sm:text-xs tracking-wide text-center uppercase text-muted">{step.label}</span>
                 {index < steps.length - 1 && (
                   <div
-                    className="absolute top-3 bg-gray-300 rounded-md h-[2px]"
+                    className="absolute top-3 bg-line rounded-full h-[3px]"
                     style={{ left: "calc(50% + 1rem)", right: "calc(-50% + 1rem)", zIndex: 1 }}
                   />
                 )}
@@ -93,17 +93,17 @@ export default function OrderProgressBar({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center gap-3 bg-red-50 mt-6 px-4 py-3 border border-red-200 rounded-lg w-fit"
+          className="flex items-center gap-3 bg-red-50 mt-6 px-4 py-3 rounded-2xl w-fit"
         >
           <div className="flex justify-center items-center bg-red-500 rounded-full w-6 h-6 text-white flex-shrink-0">
             <FiX className="text-xs" />
           </div>
           <div>
-            <p className="font-semibold text-red-600 text-sm uppercase tracking-wide">
-              Order Cancelled
+            <p className="font-semibold text-red-600 text-sm">
+              Order cancelled
             </p>
             {cancelledEntry && (
-              <p className="text-red-400 text-xs mt-0.5">
+              <p className="text-red-500/80 text-xs mt-0.5">
                 {new Date(cancelledEntry.date).toLocaleString()}
               </p>
             )}
@@ -129,19 +129,19 @@ export default function OrderProgressBar({
               animate={{ scale: isCompleted ? 1 : 0.8 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               className={`w-6 h-6 rounded-full flex items-center justify-center text-white z-10
-                ${isCompleted ? "bg-filgreen" : "bg-gray-300"}`}
+                ${isCompleted ? "bg-forest" : "bg-line"}`}
             >
               <Icon className="text-[10px]" />
             </motion.div>
 
             {/* Label */}
-            <span className={`mt-1 text-sm text-center uppercase ${isCompleted ? "text-filgreen font-medium" : "text-gray-400"}`}>
+            <span className={`mt-1.5 text-[11px] sm:text-xs tracking-wide text-center uppercase ${isCompleted ? "text-forest font-semibold" : "text-muted"}`}>
               {step.label}
             </span>
 
             {/* Date */}
             {step.date && (
-              <span className="text-gray-500 text-xs text-center mt-0.5">{step.date}</span>
+              <span className="text-muted text-[11px] text-center mt-0.5">{step.date}</span>
             )}
 
             {/* Connector line */}
@@ -149,7 +149,7 @@ export default function OrderProgressBar({
               <>
                 {/* Grey base line */}
                 <div
-                  className="absolute top-3 bg-gray-200 rounded-md h-[2px]"
+                  className="absolute top-3 bg-line rounded-full h-[3px]"
                   style={{ left: "calc(50% + 1rem)", right: "calc(-50% + 1rem)", zIndex: 0 }}
                 />
                 {/* Green animated fill */}
@@ -157,7 +157,7 @@ export default function OrderProgressBar({
                   initial={{ width: 0 }}
                   animate={{ width: isNextCompleted ? "calc(100% - 2rem)" : "0%" }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="absolute top-3 bg-filgreen rounded-md h-[2px]"
+                  className="absolute top-3 bg-forest rounded-full h-[3px]"
                   style={{ left: "calc(50% + 1rem)", zIndex: 1 }}
                 />
               </>

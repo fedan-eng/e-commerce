@@ -1,17 +1,12 @@
 //api/auth/update-profile
 import { connectDB } from "@/lib/db";
-import User from "@/models/User";
+import User, { PRIVATE_USER_FIELDS } from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 import { parse } from "cookie";
 
 // The only fields shoppers may change here. Everything else (role, email, password,
 // isVerified, isActive, cart…) has its own route or is admin-only.
 const EDITABLE_TEXT = ["firstName", "lastName", "phone", "addPhone", "address", "country", "city", "dob"];
-
-// Never sent back to the browser
-const PRIVATE_FIELDS =
-  "-password -verificationToken -verificationTokenExpiry -resetPasswordCode -resetPasswordExpiry " +
-  "-resetPasswordToken -resetPasswordTokenExpiry";
 
 function pickEditable(body) {
   const updates = {};
@@ -42,7 +37,7 @@ export async function PUT(req) {
   const body = await req.json().catch(() => ({}));
   const updates = pickEditable(body || {});
 
-  const user = await User.findByIdAndUpdate(userData.id, { $set: updates }, { new: true }).select(PRIVATE_FIELDS);
+  const user = await User.findByIdAndUpdate(userData.id, { $set: updates }, { new: true }).select(PRIVATE_USER_FIELDS);
   if (!user) {
     return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,

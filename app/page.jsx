@@ -1,10 +1,23 @@
 import React from "react";
-import Hero from "../components/Hero";
-import About from "../components/About";
-import ProductCategory from "../components/ProductCategory";
-import BestSellerSection from "../components/BestSellerSection";
-import VideoSection from "../components/VideoSection";
-import FAQ from "./../components/FAQ";
+import { SOCIAL_URLS } from "@/lib/socials";
+import { STORE_CATEGORIES } from "@/lib/categories";
+import Hero1 from "@/components/landing/Hero1";
+import Hero2 from "@/components/landing/Hero2";
+import BestSellers from "@/components/landing/BestSellers";
+import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
+import Anniversary from "@/components/landing/Anniversary";
+import Creators from "@/components/landing/Creators";
+// import FeaturedBlog from "@/components/landing/FeaturedBlog";
+import Marquee from "@/components/landing/Marquee";
+import NeedsPower from "@/components/landing/NeedsPower";
+// import VideoAnimation from "@/components/landing/VideoAnimation";
+import MadeFor from "@/components/landing/MadeFor";
+import Banner from "@/components/landing/Banner";
+import { getWhatsAppReviews } from "@/lib/whatsappReviews";
+import { getFeaturedProducts } from "@/lib/products";
+
+// Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
+export const revalidate = 3600;
 
 export const metadata = {
   title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
@@ -52,7 +65,12 @@ export const metadata = {
   },
 };
 
-const page = () => {
+const page = async () => {
+  const [reviewChats, featuredProducts] = await Promise.all([
+    getWhatsAppReviews("home"),
+    getFeaturedProducts(),
+  ]);
+
   const baseUrl = "https://www.filstore.com.ng";
 
   // 1. Homepage & Searchbox Schema (The "Konga" Look)
@@ -99,10 +117,7 @@ const page = () => {
       "postalCode": "102113",
       "addressCountry": "NG"
     },
-    "sameAs": [
-  "https://www.instagram.com/filstoreng?utm_source=ig_web_button_share_sheet&igsh=NTRkZHUxaXYzYnRz",
-  "https://www.tiktok.com/@filstoreng_",
-],
+    "sameAs": SOCIAL_URLS,
     "priceRange": "$",
     "areaServed": [
       {
@@ -131,33 +146,16 @@ const page = () => {
         "name": "Home",
         "item": baseUrl
       },
+      // The category pages (lib/categories.js); there's no all-products page
+      ...STORE_CATEGORIES.map((c, i) => ({
+        "@type": "ListItem",
+        "position": i + 2,
+        "name": c.title,
+        "item": `${baseUrl}/products/${c.slug}`
+      })),
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "All Products",
-        "item": `${baseUrl}/products`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Power Banks",
-        "item": `${baseUrl}/products?categories=Power+Bank`
-      },
-      {
-        "@type": "ListItem",
-        "position": 4,
-        "name": "Wearables",
-        "item": `${baseUrl}/products?categories=Wearables`
-      },
-      {
-        "@type": "ListItem",
-        "position": 5,
-        "name": "Chargers & Cables",
-        "item": `${baseUrl}/products?categories=Chargers`
-      },
-      {
-        "@type": "ListItem",
-        "position": 6,
+        "position": STORE_CATEGORIES.length + 2,
         "name": "Contact Us",
         "item": `${baseUrl}/contact`
       }
@@ -190,12 +188,18 @@ const page = () => {
         }}
       />
 
-      <Hero />
-      <About />
-      <ProductCategory />
-      <BestSellerSection />
-      <VideoSection />
-      <FAQ />
+      <Hero1 />
+      <Marquee/>
+      <Hero2 />
+      <NeedsPower/>
+      <BestSellers initialProducts={featuredProducts}/>
+      <WhatsAppReviews chats={reviewChats}/>
+      {/* <VideoAnimation/> */}
+      <MadeFor/>
+      <Anniversary/>
+      <Creators/>
+      {/* <FeaturedBlog/> */}
+      <Banner/>
     </div>
   );
 };

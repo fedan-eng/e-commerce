@@ -7,13 +7,21 @@ const ratingSchema = new mongoose.Schema({
 });
 
 // ─── Subdoc: a review comment (text + its own star rating) ───────────────────
+// Written by a signed-in user, or by a buyer through an emailed review link
+// (lib/reviews.js), in which case `user` may be empty and `authorName` is used.
 const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    default: null,
   },
+  authorName: { type: String, trim: true, default: "" },
   text: { type: String, required: true, trim: true },
+
+  // Verified purchase: the order this review came from, and the colour bought
+  verified: { type: Boolean, default: false },
+  orderId:  { type: mongoose.Schema.Types.ObjectId, ref: "Order", default: null },
+  color:    { type: String, default: "" },
 
   // ✅ Each review carries its own star rating (1–5)
   rating: { type: Number, min: 1, max: 5, default: null },
@@ -63,6 +71,25 @@ const productSchema = new mongoose.Schema(
 
     category:         { type: String, required: true },
     features:         { type: [String], default: [] },
+
+    // ✅ Structured specs used by the category page filters (/products/<slug>).
+    // Which fields apply to which category is defined in lib/categories.js.
+    specs: {
+      capacityMah:   { type: Number },   // power banks
+      outputW:       { type: Number },   // chargers, power banks
+      batteryHours:  { type: Number },   // wearables
+      portCount:     { type: Number },   // chargers
+      socketCount:   { type: Number },   // extensions
+      cableLengthM:  { type: Number },   // extensions, in metres
+      ports:         { type: [String], default: undefined },  // "USB-C", "USB-A", "Lightning"
+      chargingType:  { type: String },   // "wall" | "desktop" | "car"
+      connectivity:  { type: String },   // "Bluetooth 5.3"
+      wearableType:  { type: String },   // "earbuds" | "headphones" | "smartwatch"
+      lifestyleType: { type: String },   // "projector" | "lamp" | "fan"
+      powerSource:   { type: [String], default: undefined },  // "rechargeable", "mains"
+      compatibility: { type: [String], default: undefined },  // "phones", "laptops", "multi-device"
+      featureTags:   { type: [String], default: undefined },  // "noise-cancellation", "magnetic", …
+    },
     availability:     { type: Boolean, default: true },
     secondaryImages:  { type: [String], default: [] },
 

@@ -1,7 +1,12 @@
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import { requireAdmin } from "@/lib/auth";
+import { revalidateStorefront } from "@/lib/revalidate";
 
 export async function PATCH(req) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
   await connectDB();
 
   try {
@@ -18,6 +23,7 @@ export async function PATCH(req) {
         })
       )
     );
+    revalidateStorefront();
 
     return Response.json({ message: "Order saved" });
   } catch (err) {

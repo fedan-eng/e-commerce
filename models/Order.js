@@ -1,5 +1,6 @@
 // models/Order.js
 import mongoose from "mongoose";
+import PromoCode from "./PromoCode";
 
 // Online checkout orders need delivery/contact details; manual (offline) sales don't
 function requiredIfOnline() {
@@ -64,6 +65,14 @@ const orderSchema = new mongoose.Schema({
   total: { type: Number, required: true },
 
   promoCode: { type: String, default: null },
+
+  // Creator code from the shopper's ?ref= link (lib/referral.js), credited when no creator code was typed
+  referralCode: { type: String, default: null },
+
+  // The creator this order is credited to and their commission rate when it was placed, so
+  // changing a creator's rate later doesn't rewrite what past orders earned (lib/creatorStats.js)
+  creatorCode: { type: String, default: null },
+  commissionPercent: { type: Number, default: null },
 
   deliveryType: {
     type: String,
@@ -136,6 +145,45 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // true once this order's quantities are included in Product.soldCount (see lib/soldCount.js)
+  soldCounted: {
+    type: Boolean,
+    default: false,
+  },
+  // Set when the review reminder was sent, or when there was nothing left to review
+  // (app/api/cron/review-requests)
+  reviewReminderSentAt: {
+    type: Date,
+    default: null,
+  },
+});
+
+// "First order only" promo codes look up past orders by phone (lib/promo.js)
+orderSchema.index({ phone: 1 });
+
+const upper = (v) => String(v || "").trim().toUpperCase();
+
+// Same credit rule as lib/creatorStats.js: a typed creator code wins, then the ?ref= link
+orderSchema.pre("save", async function () {
+  if (!this.isNew || this.creatorCode) return;
+  const typed = upper(this.promoCode);
+  const ref = upper(this.referralCode);
+  if (!typed && !ref) return;
+  try {
+    const docs = await PromoCode.find({ code: { $in: [typed, ref].filter(Boolean) }, type: "creator" })
+      .collation({ locale: "en", strength: 2 })
+      .select("code commissionPercent")
+      .lean();
+    const byCode = Object.fromEntries(docs.map((d) => [upper(d.code), d]));
+    const credit = byCode[typed] || byCode[ref];
+    if (credit) {
+      this.creatorCode = upper(credit.code);
+      this.commissionPercent = Number(credit.commissionPercent) || 0;
+    }
+  } catch (err) {
+    // Never block an order over this; stats fall back to the code's current rate
+    console.error("Creator credit lookup failed:", err.message);
+  }
 });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

@@ -16,8 +16,14 @@ class ErrorBoundary extends React.Component {
     console.error('Error caught by boundary:', error, errorInfo)
   }
 
+  handleReset = () => {
+    this.setState({ hasError: false, error: null })
+  }
+
   render() {
-    if (this.state.hasError) { 
+    if (this.state.hasError) {
+      const isDev = process.env.NODE_ENV === 'development'
+
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#0e0e0e] px-6 text-center gap-4">
           {/* Icon */}
@@ -48,16 +54,29 @@ class ErrorBoundary extends React.Component {
             </p>
           </div>
 
+          {/* Dev-only error details */}
+          {isDev && this.state.error && (
+            <pre className="text-red-400 text-[11px] text-left max-w-xl w-full max-h-64 overflow-auto bg-[#1a1a1a] border border-red-500/20 rounded-lg p-3 whitespace-pre-wrap">
+              {this.state.error.stack || String(this.state.error)}
+            </pre>
+          )}
+
           {/* Actions */}
-          <div className="flex gap-3 mt-2">
+          <div className="flex flex-wrap justify-center gap-3 mt-2">
+            <button
+              onClick={this.handleReset}
+              className="bg-[#1cc978] text-white text-[13px] font-medium px-5 py-2.5 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all"
+            >
+              Try again
+            </button>
             <button
               onClick={() => window.location.reload()}
-              className="bg-[#1cc978] text-white text-[13px] font-medium px-5 py-2.5 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all"
+              className="bg-white/5 border border-white/10 text-white/60 text-[13px] font-medium px-5 py-2.5 rounded-lg hover:bg-white/10 active:scale-[0.98] transition-all"
             >
               Reload page
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               className="bg-white/5 border border-white/10 text-white/60 text-[13px] font-medium px-5 py-2.5 rounded-lg hover:bg-white/10 active:scale-[0.98] transition-all"
             >
               Go home

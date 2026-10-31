@@ -34,6 +34,7 @@ export async function GET(req) {
     const limit  = parseInt(searchParams.get("limit")) || 20;
     const status = searchParams.get("status") || "";
     const search = (searchParams.get("search") || "").trim();
+    const source = searchParams.get("source") || "";
     const days   = parseInt(searchParams.get("days"))  || 0;
 
     const query = {};
@@ -43,6 +44,10 @@ export async function GET(req) {
       const normalizedStatus = normalizeStatusKey(status);
       query.status = { $regex: new RegExp(`^${normalizedStatus}$`, "i") };
     }
+
+    // Source filter - orders without a source are online orders
+    if (source === "manual") query.source = "manual";
+    else if (source === "online") query.source = { $ne: "manual" };
 
     // Days filter
     if (days > 0) {
@@ -74,14 +79,20 @@ export async function GET(req) {
         const oid = new mongoose.Types.ObjectId(search);
         conditions.push({ _id: oid });
         conditions.push({ userId: oid });
-      } else if (search.length >= 8) {
-        // Try to match by short ID (last 8 characters)
-        conditions.push({ _id: { $regex: escapedSearch + "$", $options: "i" } });
+      } else if (/^[0-9a-f]{8,23}$/i.test(search)) {
+        // Short ID (last 8+ characters). _id is an ObjectId, so a plain $regex on it
+        // throws a CastError — compare against its string form instead.
+        conditions.push({
+          $expr: { $regexMatch: { input: { $toString: "$_id" }, regex: escapedSearch + "$", options: "i" } },
+        });
       }
 
       // Partial text fallback for email / name
       conditions.push({ email:      { $regex: escapedSearch, $options: "i" } });
       conditions.push({ firstName:  { $regex: escapedSearch, $options: "i" } });
+      // Exact promo / creator code, so the promo codes and creators pages can link to a code's orders
+      conditions.push({ promoCode:    { $regex: `^${escapedSearch}$`, $options: "i" } });
+      conditions.push({ referralCode: { $regex: `^${escapedSearch}$`, $options: "i" } });
 
       query.$or = conditions;
     }

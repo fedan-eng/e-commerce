@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const AUTH_ROUTES = ["/login", "/register"];
+const HOME_FOR_ROLE = { admin: "/admin_console", creator: "/creator" };
 
 // Prevent Vercel edge from caching any middleware response
 const noCache = (response) => {
@@ -45,7 +46,7 @@ export async function middleware(req) {
   if (AUTH_ROUTES.includes(pathname)) {
     const payload = await getPayload(token);
     if (payload) {
-      const destination = payload.role === "admin" ? "/admin_console" : "/products";
+      const destination = HOME_FOR_ROLE[payload.role] || "/products";
       return noCache(NextResponse.redirect(new URL(destination, req.url)));
     }
     return noCache(NextResponse.next());
@@ -59,9 +60,18 @@ export async function middleware(req) {
     return noCache(NextResponse.next());
   }
 
+  // ── /creator: sign-in only; the page's API checks the role against the database,
+  // since a role switched on or off in the admin console isn't in an older token yet
+  if (pathname.startsWith("/creator")) {
+    if (await getPayload(token)) return noCache(NextResponse.next());
+    const login = new URL("/login", req.url);
+    login.searchParams.set("callbackUrl", pathname + req.nextUrl.search);
+    return noCache(NextResponse.redirect(login));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin_console/:path*", "/logout"],
+  matcher: ["/admin_console/:path*", "/creator/:path*", "/creator", "/logout"],
 };

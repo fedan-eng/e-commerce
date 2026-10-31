@@ -49,3 +49,5 @@ next-env.d.ts
 
 .claude
 .vscode
+# email previews (scripts/email-preview.mjs)
+.email-preview/

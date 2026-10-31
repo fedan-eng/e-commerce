@@ -63,6 +63,11 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
+    // Removes what was just bought (an order's items), leaving anything else in the cart
+    removePurchased: (state, action) => {
+      const bought = new Set(action.payload.map((item) => `${item._id}|${item.color || ""}`));
+      state.items = state.items.filter((item) => !bought.has(`${item._id}|${item.color || ""}`));
+    },
     // Today's prices from /api/cart/prices: { [productId]: price }
     updatePrices: (state, action) => {
       state.items.forEach((item) => {
@@ -85,6 +90,7 @@ export const {
   updateColor,
   clearCart,
   updatePrices,
+  removePurchased,
   setCartFromDB, // 👈 export it
 } = cartSlice.actions;
 
@@ -107,6 +113,7 @@ export const cartSyncMiddleware = (store) => (next) => (action) => {
     "cart/updateColor",
     "cart/clearCart",
     "cart/updatePrices",
+    "cart/removePurchased",
     // ⚠️ cart/setCartFromDB is intentionally NOT here
     // We don't want to re-sync back to DB when we just loaded FROM the DB
   ];

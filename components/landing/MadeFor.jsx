@@ -1,0 +1,116 @@
+import React from 'react';
+
+const moments = [
+  {
+    id: 1,
+    time: '6:40am',
+    dotColor: 'bg-[#C49BFF]', // Purple
+    imageBg: 'bg-[#F2EBFF]',
+    title: 'Earbuds in, noise out.',
+    product: 'FIL Pods Pro',
+    // Using a lifestyle/product mix that works well with the blend mode
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor1.png',
+    focus: 'object-top',
+    marginClasses: 'md:mt-0 lg:mt-0',
+  },
+  {
+    id: 2,
+    time: '1:15pm',
+    dotColor: 'bg-[#00E575]', // Green
+    imageBg: 'bg-[#E5FDF0]',
+    title: '9% battery. Not a problem.',
+    product: 'FIL Thunder 30K',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor2.png',
+    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[80px]',
+  },
+  {
+    id: 3,
+    time: '4:30pm',
+    dotColor: 'bg-[#7BC5FF]', // Blue
+    imageBg: 'bg-[#EBF5FF]',
+    title: 'Light is not. Fan is on.',
+    product: 'FIL Flex Fan',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor3.png',
+    focus: 'object-top',
+    marginClasses: 'md:mt-0 lg:mt-[30px]',
+  },
+  {
+    id: 4,
+    time: '11:50pm',
+    dotColor: 'bg-[#FFD166]', // Yellow
+    imageBg: 'bg-[#FFF9E5]',
+    title: 'Long call, still charging strong.',
+    product: 'FIL MagFlex 10K',
+    image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor4.png',
+    focus: 'object-top',
+    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[110px]',
+  },
+];
+
+const MadeFor = () => {
+  return (
+    <section className="w-full bg-white py-10 md:py-24 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header Section */}
+        <div className="mb-6 md:mb-16">
+          <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight mb-1 sm:mb-2">
+            Made for the whole day.
+          </h2>
+          <p className="text-gray-500 text-[13px] sm:text-base">
+            From the first bus to the last call, here's where FIL shows up.
+          </p>
+        </div>
+
+        {/* Timeline Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5 md:gap-6 lg:gap-8">
+          {moments.map((moment) => (
+            <div
+              key={moment.id}
+              className={`flex flex-col group ${moment.marginClasses}`}
+            >
+              {/* Time Indicator */}
+              <div className="flex items-center gap-2 sm:gap-2.5 mb-2.5 sm:mb-3.5 px-1">
+                <span className={`w-2 h-2 rounded-full ${moment.dotColor}`} />
+                <span className="text-[#0A321B] font-bold text-[12px] sm:text-[15px]">
+                  {moment.time}
+                </span>
+              </div>
+
+              {/* Image Card */}
+              <div
+                className={`relative w-full aspect-[4/5] rounded-[20px] sm:rounded-[32px] overflow-hidden mb-3 sm:mb-4 ${moment.imageBg} flex items-center justify-center`}
+              >
+                
+               <img
+  src={moment.image}
+  alt={moment.title}
+  className={`absolute inset-0 w-full h-full  ${moment.focus || 'object-contain'} transition-transform duration-500 group-hover:scale-105`}
+/>
+              </div>
+
+              {/* Text & Product Pill */}
+              <div className="px-1 flex flex-col items-start">
+                <h3 className="text-[13px] sm:text-[15px] font-bold text-gray-900 leading-snug mb-2 sm:mb-3">
+                  {moment.title}
+                </h3>
+                
+                {/* Pill */}
+                <div className="inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-1 py-1 sm:px-1.5 sm:py-1.5 bg-[#F4F5F4] rounded-full">
+                  <div className={`w-[16px] h-[16px] sm:w-[22px] sm:h-[22px] rounded-full ${moment.dotColor} flex-shrink-0 shadow-sm`} />
+                  <span className="truncate text-[10.5px] sm:text-[12px] font-bold text-[#0A321B] pr-2 sm:pr-3">
+                    {moment.product}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+export default MadeFor;

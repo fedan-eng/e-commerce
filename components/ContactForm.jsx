@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { AlertTriangle, Lightbulb, MessageCircle, UploadCloud } from "lucide-react";
 
 const INQUIRY_TYPES = [
-  { value: "general",    label: "💬 General Question",         placeholder: "How can we help you?" },
-  { value: "redress",    label: "⚠️ Complaint / Redress",      placeholder: "Please describe what went wrong and what outcome you'd like..." },
-  { value: "suggestion", label: "💡 Suggestion / Recommendation", placeholder: "We'd love to hear your thoughts..." },
+  { value: "general",    label: "General question", icon: MessageCircle, field: "Your question",      placeholder: "How can we help you?" },
+  { value: "redress",    label: "Complaint",        icon: AlertTriangle, field: "Describe the issue", placeholder: "Tell us what went wrong and what outcome you'd like..." },
+  { value: "suggestion", label: "Suggestion",       icon: Lightbulb,     field: "Your suggestion",    placeholder: "We'd love to hear your thoughts..." },
 ];
+
+const inputCls =
+  "mt-2 block h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-forest";
+const labelCls = "text-[13px] font-semibold text-ink";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -20,6 +24,7 @@ export default function ContactForm() {
   });
   const [files, setFiles]     = useState([]);
   const [message, setMessage] = useState("");
+  const [failed, setFailed]   = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleDrop = (e) => {
@@ -35,6 +40,7 @@ export default function ContactForm() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setFailed(false);
 
     const payload = new FormData();
     Object.entries(formData).forEach(([k, v]) => payload.append(k, v));
@@ -44,129 +50,121 @@ export default function ContactForm() {
       const res = await fetch("/api/contact", { method: "POST", body: payload });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
-      setMessage(data.message || "Message sent successfully!");
+      setMessage(data.message || "Message sent! We'll get back to you soon.");
       setFormData({ inquiryType: "general", name: "", email: "", question: "", reason: "", productName: "" });
       setFiles([]);
     } catch {
-      setMessage("Failed to send message. Please try again.");
+      setFailed(true);
+      setMessage("We couldn't send your message. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const activePlaceholder = INQUIRY_TYPES.find((t) => t.value === formData.inquiryType)?.placeholder || "";
+  const active = INQUIRY_TYPES.find((t) => t.value === formData.inquiryType) || INQUIRY_TYPES[0];
 
   return (
-    <div>
-      <h1 className="bg-white pt-12 pb-4 font-oswald font-medium text-xl sm:text-3xl">
-        CONTACT US
-      </h1>
+    <section className="rounded-[28px] bg-sage p-5 sm:p-8">
+      <h2 className="text-2xl font-bold tracking-tight text-forest md:text-[28px]">Send us a message</h2>
+      <p className="mt-1 text-sm text-muted">Fill in the form and our support team will reply by email.</p>
 
-      <div className="bg-[#f6f6f6] pt-6 rounded-md">
-        <form onSubmit={handleSubmit} className="mx-auto mb-24 nav:mb-[255px] px-2 pb-[44px] w-full max-w-[804px]">
+      <form onSubmit={handleSubmit} className="mt-6">
+        {/* Inquiry type */}
+        <p className={labelCls}>What can we help you with?</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {INQUIRY_TYPES.map(({ value, label, icon: Icon }) => {
+            const on = formData.inquiryType === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setFormData((prev) => ({ ...prev, inquiryType: value }))}
+                className={`flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors ${
+                  on ? "bg-forest text-white" : "bg-white text-forest hover:bg-mint"
+                }`}
+              >
+                <Icon size={16} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
-          {/* ── Inquiry type ── */}
-          <div className="mb-6">
-            <p className="mb-3 text-sm font-medium">What can we help you with?</p>
-            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3">
-              {INQUIRY_TYPES.map((type) => (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, inquiryType: type.value }))}
-                  className={`px-4 py-3 rounded-md border-2 text-sm font-medium text-left transition-all cursor-pointer ${
-                    formData.inquiryType === type.value
-                      ? "border-filgreen bg-[#f0fdf6] text-[#007c42]"
-                      : "border-[#e3e3e3] bg-white hover:border-[#c0c0c0] text-[#3e3e3e]"
-                  }`}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
+        {/* Name & Email */}
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCls} htmlFor="name">Name <span className="text-filred">*</span></label>
+            <input type="text" name="name" id="name" autoComplete="name" value={formData.name} onChange={handleChange} required className={inputCls} />
           </div>
-
-          {/* Name & Email */}
-          <div className="xxs:flex gap-2 md:gap-6 mb-3 w-full">
-            <div className="max-xxs:mb-3 w-full">
-              <label className="text-sm" htmlFor="name"><span className="text-red-600">*</span> Name</label>
-              <input type="text" name="name" id="name" value={formData.name} onChange={handleChange} required
-                className="block bg-white mt-2 px-3 py-2 rounded-md outline-0 w-full text-sm" />
-            </div>
-            <div className="max-xxs:mb-3 w-full">
-              <label className="text-sm" htmlFor="email"><span className="text-red-600">*</span> Email Address</label>
-              <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required
-                className="block bg-white mt-2 px-3 py-2 rounded-md outline-0 w-full text-sm" />
-            </div>
+          <div>
+            <label className={labelCls} htmlFor="email">Email address <span className="text-filred">*</span></label>
+            <input type="email" id="email" name="email" autoComplete="email" value={formData.email} onChange={handleChange} required className={inputCls} />
           </div>
+        </div>
 
-          {/* Question / Message */}
-          <div className="mb-3">
-            <label className="text-sm" htmlFor="question">
-              <span className="text-red-600">*</span>
-              {formData.inquiryType === "general"    && " Your Question"}
-              {formData.inquiryType === "redress"    && " Describe the Issue"}
-              {formData.inquiryType === "suggestion" && " Your Suggestion"}
-            </label>
-            <textarea name="question" id="question" value={formData.question} onChange={handleChange} required rows={4}
-              placeholder={activePlaceholder}
-              className="block bg-white mt-2 px-3 py-2 rounded-md outline-0 w-full text-sm resize-none" />
+        {/* Message */}
+        <div className="mt-4">
+          <label className={labelCls} htmlFor="question">{active.field} <span className="text-filred">*</span></label>
+          <textarea
+            name="question" id="question" value={formData.question} onChange={handleChange} required rows={5}
+            placeholder={active.placeholder}
+            className={`${inputCls} h-auto resize-none py-3`}
+          />
+        </div>
+
+        {/* Reason & Product */}
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCls} htmlFor="reason">Reason <span className="font-normal text-faint">(optional)</span></label>
+            <input id="reason" type="text" name="reason" value={formData.reason} onChange={handleChange} className={inputCls} />
           </div>
-
-          {/* Reason & Product Name */}
-          <div className="xxs:flex gap-2 md:gap-6 mb-3 w-full">
-            <div className="max-xxs:mb-3 w-full">
-              <label className="text-sm" htmlFor="reason"><span className="text-red-600">*</span> Reason</label>
-              <input id="reason" type="text" name="reason" value={formData.reason} onChange={handleChange}
-                className="block bg-white mt-2 px-3 py-2 rounded-md outline-0 w-full text-sm" />
-            </div>
-            <div className="max-xxs:mb-3 w-full">
-              <label className="text-sm" htmlFor="productName"><span className="text-red-600">*</span> Product Name</label>
-              <input type="text" id="productName" name="productName" value={formData.productName} onChange={handleChange}
-                className="block bg-white mt-2 px-3 py-2 rounded-md outline-0 w-full text-sm" />
-            </div>
+          <div>
+            <label className={labelCls} htmlFor="productName">Product name <span className="font-normal text-faint">(optional)</span></label>
+            <input type="text" id="productName" name="productName" value={formData.productName} onChange={handleChange} className={inputCls} />
           </div>
+        </div>
 
-          {/* File Upload */}
-          <div className="mb-6 md:mb-12">
-            <label className="text-sm" htmlFor="file"><span className="text-red-600">*</span> Files</label>
-            <label htmlFor="file" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}
-              className="flex flex-col justify-center items-center bg-white border border-[#b7b7b7] border-dashed rounded-md outline-0 w-full text-sm text-center cursor-pointer mt-2">
-              {files.length === 0 ? (
-                <>
-                  <Image src="/cloud.svg" alt="Upload" width={64} height={64} className="pt-6 pb-4" />
-                  <p className="pb-[10px] font-medium text-xs">.PDF, .JPG, .JPEG, .PNG</p>
-                  <p className="pb-[10px]">Drag and drop files here or <span className="text-[#034da2] underline">click here to select files</span></p>
-                  <p className="pb-4 text-[#929292] text-xs">Maximum size (5MB)</p>
-                </>
-              ) : (
-                <div className="px-2 py-4 w-full">
-                  {files.map((f, i) => <p key={i} className="text-gray-700 text-xs truncate">{f.name}</p>)}
-                </div>
-              )}
-              <input id="file" type="file" name="files" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFiles(Array.from(e.target.files))} multiple className="hidden" />
-            </label>
-          </div>
+        {/* Files */}
+        <div className="mt-4">
+          <p className={labelCls}>Attachments <span className="font-normal text-faint">(optional)</span></p>
+          <label
+            htmlFor="file" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}
+            className="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-forest/30 bg-white px-4 py-6 text-center text-sm transition-colors hover:border-forest"
+          >
+            {files.length === 0 ? (
+              <>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-mint text-forest">
+                  <UploadCloud size={20} />
+                </span>
+                <p className="mt-3 text-ink">
+                  Drag and drop files or <span className="font-semibold text-forest underline underline-offset-2">browse</span>
+                </p>
+                <p className="mt-1 text-xs text-faint">PDF, JPG or PNG, up to 5MB</p>
+              </>
+            ) : (
+              <div className="w-full">
+                {files.map((f, i) => <p key={i} className="truncate text-xs text-ink">{f.name}</p>)}
+                <p className="mt-2 text-xs font-semibold text-forest">Change files</p>
+              </div>
+            )}
+            <input id="file" type="file" name="files" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFiles(Array.from(e.target.files))} multiple className="hidden" />
+          </label>
+        </div>
 
-          {/* Submit */}
-          <div className="flex justify-center gap-4 py-4 border-[#d9d9d9] border-t">
-            <button type="button" onClick={() => window.history.back()}
-              className="px-6 py-3 border border-[#d9d9d9] rounded-md font-roboto font-medium text-dark text-sm">
-              Back
-            </button>
-            <button type="submit" disabled={loading}
-              className="bg-filgreen px-6 py-3 rounded-md font-roboto font-medium text-dark text-sm disabled:opacity-60">
-              {loading ? "Sending..." : "Submit"}
-            </button>
-          </div>
+        <button
+          type="submit" disabled={loading}
+          className="mt-6 h-12 w-full rounded-full bg-forest px-8 text-sm font-semibold text-white transition-colors hover:bg-black disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+        >
+          {loading ? "Sending…" : "Send message"}
+        </button>
 
-          {message && (
-            <p className={`mt-2 text-sm text-center ${message.includes("Failed") ? "text-red-600" : "text-green-600"}`}>
-              {message}
-            </p>
-          )}
-        </form>
-      </div>
-    </div>
+        {message && (
+          <p role="status" className={`mt-3 text-sm font-medium ${failed ? "text-filred" : "text-forest"}`}>
+            {message}
+          </p>
+        )}
+      </form>
+    </section>
   );
 }

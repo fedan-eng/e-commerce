@@ -3,8 +3,10 @@
 import Script from 'next/script'
 import { useEffect } from 'react'
 import { useCookieConsent } from '../context/CookieConsentContext'
+import { IS_PREVIEW } from '@/lib/analytics/env'
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID
+// No GA on preview deployments
+const GA_ID = IS_PREVIEW ? null : process.env.NEXT_PUBLIC_GA_ID
 
 export default function GoogleAnalytics() {
   const { preferences, status, mounted } = useCookieConsent()

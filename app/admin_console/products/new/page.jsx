@@ -1,20 +1,12 @@
-//app/admin_console/products/new/page.jsx
+// app/admin_console/products/new/page.jsx
 "use client";
-import Link from "next/link";
 import ProductForm from "../ProductForm";
- 
+import { PageHeader } from "@/components/admin/ui";
+
 export default function NewProductPage() {
   return (
     <div>
-      <div className="mb-8">
-        <Link href="/admin_console/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
-          ← BACK TO PRODUCTS
-        </Link>
-        <div className="mt-4">
-          <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Products</div>
-          <h1 className="m-0 text-[28px] font-bold text-[#e8e8e8] tracking-tight">Add New Product</h1>
-        </div>
-      </div>
+      <PageHeader title="Add product" description="Fill in the details, then create the product." />
       <ProductForm />
     </div>
   );

@@ -44,7 +44,8 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
 
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    // "creator" opens /creator for the promo codes linked to them (PromoCode.creatorUser)
+    role: { type: String, enum: ["user", "creator", "admin"], default: "user" },
 
     address: {
       type: String,
@@ -77,6 +78,12 @@ const userSchema = new mongoose.Schema(
     resetPasswordTokenExpiry: { type: Date },
     verificationToken: { type: String },
     verificationTokenExpiry: { type: Date },
+    // 6-digit email code (stored hashed) — the in-page alternative to the verification link
+    verificationCode: { type: String },
+    verificationCodeExpiry: { type: Date },
+    verificationCodeAttempts: { type: Number, default: 0 },
+    // Accounts made from the promo popup start with a password we generated and emailed
+    passwordIsGenerated: { type: Boolean, default: false },
     cart: {
   items: [
     {
@@ -105,5 +112,13 @@ wishlist: {
   },
   { timestamps: true }
 );
+
+// "In 50+ people's cart" counts (app/api/products/cart-counts)
+userSchema.index({ "cart.items._id": 1, "cart.updatedAt": -1 });
+
+// Never sent to the browser (see /api/auth/me and /api/auth/update-profile)
+export const PRIVATE_USER_FIELDS =
+  "-password -verificationToken -verificationTokenExpiry -verificationCode -verificationCodeExpiry " +
+  "-verificationCodeAttempts -resetPasswordCode -resetPasswordExpiry -resetPasswordToken -resetPasswordTokenExpiry";
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

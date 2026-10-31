@@ -1,43 +1,49 @@
-//app/admin_console/products/[id]/page.jsx
+// app/admin_console/products/[id]/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import { ExternalLink, Package } from "lucide-react";
 import ProductForm from "../ProductForm";
- 
+import { PageHeader, Card, Button, EmptyState, Spinner } from "@/components/admin/ui";
+
 export default function EditProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
- 
+
   useEffect(() => {
     fetch(`/api/products/${id}`, { cache: "no-store" })
       .then(r => r.json())
-      .then(data => { setProduct(data); setLoading(false); });
+      .then(data => setProduct(data))
+      .catch(() => setProduct(null))
+      .finally(() => setLoading(false));
   }, [id]);
- 
-  if (loading) return <div className="text-[#444] text-[13px]">Loading product...</div>;
-  if (!product || product.message) return <div className="text-[#e86a6a] text-[13px]">Product not found.</div>;
- 
+
+  if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (!product || product.message) {
+    return (
+      <Card>
+        <EmptyState
+          icon={Package}
+          title="Product not found"
+          description="It may have been deleted, or the link is wrong."
+          action={<Button href="/admin_console/products">Back to products</Button>}
+        />
+      </Card>
+    );
+  }
+
   return (
     <div>
-      <div className="mb-8">
-        <Link href="/admin_console/products" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
-          ← BACK TO PRODUCTS
-        </Link>
-        <div className="mt-4 flex flex-wrap justify-between items-end gap-2.5">
-          <div>
-            <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1.5">Products</div>
-            <h1 className="m-0 text-[24px] font-bold text-[#e8e8e8] tracking-tight">
-              Edit: <span className="text-[#888]">{product.name}</span>
-            </h1>
-          </div>
-          <a href={`/products/${id}`} target="_blank" rel="noreferrer"
-            className="text-[11px] text-[#fff] no-underline tracking-[0.1em] px-3 py-1.5 border border-[#222] rounded hover:border-[#444] hover:text-[#888] transition-all whitespace-nowrap">
-            VIEW LIVE ↗
-          </a>
-        </div>
-      </div>
+      <PageHeader
+        title={product.name}
+        description="Edit the details, then save your changes."
+        actions={
+          <Button onClick={() => window.open(`/products/${id}`, "_blank", "noopener")}>
+            <ExternalLink size={16} aria-hidden /> View in store
+          </Button>
+        }
+      />
       <ProductForm initial={product} isEdit />
     </div>
   );

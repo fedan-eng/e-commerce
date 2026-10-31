@@ -3,19 +3,32 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { MessageCircle, Phone, Mail, ShoppingBag, ShoppingCart, Users, ExternalLink } from "lucide-react";
+import { shortId } from "@/lib/orderStatus";
+import {
+  PageHeader, Card, CardHeader, Button, Tabs, Segmented, Switch, Checkbox, StatusBadge, Avatar, EmptyState, Spinner, TH, TD, cx,
+} from "@/components/admin/ui";
+import { money, localPhone, telLink, whatsappLink } from "@/components/admin/format";
 
-const STATUS_COLORS = {
-  confirmed:  "#e8c46a", pending:   "#e8c46a",
-  processing: "#6ab4e8", processed: "#6ab4e8",
-  shipped:    "#a06ae8", delivered: "#6ae8a0",
-  cancelled:  "#e86a6a",
+const fmtDate = d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+const orderTotal = o => parseFloat(o.total ?? o.subTotal ?? 0);
+const ROLE_LABELS = { user: "Customer", creator: "Creator", admin: "Admin" };
+const ROLE_CONFIRM = {
+  admin:   "Give this account admin access? They'll be able to manage orders, products and customers.",
+  creator: "Make this account a creator? They'll see orders, first names and commission for the codes you picked, at /creator.",
+  user:    "Make this a regular customer account? They'll lose access to their current dashboard.",
 };
+const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
 
-const getTotal = (order) => {
-  if (order.total != null)    return parseFloat(order.total).toLocaleString();
-  if (order.subTotal != null) return parseFloat(order.subTotal).toLocaleString();
-  return "—";
-};
+function ProfileRow({ label, value }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-[#eef0ef] py-2.5 text-[13px] last:border-0">
+      <span className="shrink-0 text-faint">{label}</span>
+      <span className="min-w-0 break-words text-right text-ink">{value || "—"}</span>
+    </div>
+  );
+}
 
 export default function AdminCustomerDetailPage() {
   const { id } = useParams();
@@ -23,10 +36,11 @@ export default function AdminCustomerDetailPage() {
   const [orders,   setOrders]   = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
-  const [saved,    setSaved]    = useState(false);
-  const [error,    setError]    = useState(null);
   const [role,     setRole]     = useState("user");
   const [isActive, setIsActive] = useState(true);
+  const [tab,      setTab]      = useState("orders");
+  const [creatorCodes, setCreatorCodes] = useState([]); // every creator code, with who it's linked to
+  const [linked,   setLinked]   = useState([]);         // ids picked for this account
 
   useEffect(() => {
     fetch(`/api/admin/users/${id}`)
@@ -36,365 +50,251 @@ export default function AdminCustomerDetailPage() {
         setOrders(data.orders || []);
         setRole(data.user?.role || "user");
         setIsActive(data.user?.isActive !== false);
-        setLoading(false);
-      });
+        setCreatorCodes(data.creatorCodes || []);
+        setLinked((data.creatorCodes || []).filter(c => c.linkedTo === id).map(c => c._id));
+      })
+      .catch(() => toast.error("Couldn't load this customer"))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const saveChanges = async () => {
-    setSaving(true); setError(null);
+    if (role === "creator" && !linked.length) return toast.error("Pick at least one creator code for their dashboard");
+    if (role !== user.role && !window.confirm(ROLE_CONFIRM[role])) return;
+    setSaving(true);
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, isActive }),
+        body: JSON.stringify({ role, isActive, ...(role === "creator" && { creatorCodes: linked }) }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
-      } else {
-        const data = await res.json();
-        setError(data.message);
-      }
-    } catch { setError("Network error"); }
-    finally { setSaving(false); }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Couldn't save changes");
+      setUser(data.user);
+      if (role === "creator") setCreatorCodes(list => list.map(c => ({
+        ...c, linkedTo: linked.includes(c._id) ? id : c.linkedTo === id ? null : c.linkedTo,
+      })));
+      toast.success("Account updated");
+    } catch (err) {
+      toast.error(err.message || "Network error");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (loading) return <div className="text-[#444] text-[13px] pt-10">Loading customer...</div>;
-  if (!user)   return <div className="text-[#e86a6a] text-[13px] pt-10">Customer not found.</div>;
+  if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (!user) {
+    return (
+      <Card>
+        <EmptyState
+          icon={Users}
+          title="Customer not found"
+          description="The account may have been deleted."
+          action={<Button href="/admin_console/customers">Back to customers</Button>}
+        />
+      </Card>
+    );
+  }
 
   const currentIsActive = user.isActive ?? true;
-  const hasChanges      = role !== user.role || isActive !== currentIsActive;
-  const fullName        = [user.firstName, user.lastName].filter(Boolean).join(" ") || "—";
-  const initials        = ((user.firstName?.[0] || "") + (user.lastName?.[0] || "")).toUpperCase() || user.email?.[0]?.toUpperCase() || "?";
-  const totalSpent      = orders.reduce((acc, o) => acc + parseFloat(o.total || o.subTotal || 0), 0);
-
-  const isAdmin    = user.role === "admin";
-  const avatarText = isAdmin ? "text-[#e8c46a]" : "text-[#6ab4e8]";
-  const avatarBg   = isAdmin ? "bg-[#e8c46a18]" : "bg-[#6ab4e818]";
-  const avatarBorder = isAdmin ? "border-[#e8c46a33]" : "border-[#6ab4e833]";
-
-  const profileFields = [
-    { label: "Email",            value: user.email },
-    { label: "Provider",         value: user.provider === "google" ? "Google" : "Email/Password" },
-    { label: "Phone",            value: user.phone || "—" },
-    { label: "Additional Phone", value: user.addPhone || "—" },
-    { label: "Date of Birth",    value: user.dob || "—" },
-    { label: "Address",          value: user.address || "—" },
-    { label: "City",             value: user.city || "—" },
-    { label: "Region",           value: user.region?.name || "—" },
-    { label: "Country",          value: user.country || "—" },
-  ];
+  const savedLinks      = creatorCodes.filter(c => c.linkedTo === id).map(c => c._id);
+  const hasChanges      = role !== user.role || isActive !== currentIsActive || (role === "creator" && !sameSet(linked, savedLinks));
+  const name            = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email;
+  const phone           = localPhone(user.phone);
+  const totalSpent      = orders.reduce((acc, o) => acc + orderTotal(o), 0);
+  const cartItems       = user.cart?.items || [];
+  const cartTotal       = cartItems.reduce((sum, it) => sum + (it.price || 0) * (it.quantity || 1), 0);
 
   return (
-    <div className="max-w-[960px]">
-      {/* Header */}
-      <div className="mb-8">
-        <Link href="/admin_console/customers" className="text-[11px] text-[#fff] no-underline tracking-[0.1em] hover:text-[#888] transition-colors">
-          ← BACK TO CUSTOMERS
-        </Link>
-        <div className="mt-4 flex items-center gap-4">
-          <div className={`w-[52px] h-[52px] rounded-full border flex items-center justify-center text-lg font-bold flex-shrink-0 ${avatarText} ${avatarBg} ${avatarBorder}`}>
-            {initials}
-          </div>
-          <div>
-            <div className="text-[11px] tracking-[0.2em] text-[#fff] uppercase mb-1">Customer</div>
-            <h1 className="m-0 text-[24px] font-bold text-[#e8e8e8] tracking-tight flex items-center flex-wrap gap-3">
-              {fullName}
-              {user.isActive === false && (
-                <span className="text-[11px] text-[#e86a6a] tracking-[0.1em] bg-[#e86a6a18] border border-[#e86a6a33] px-2 py-0.5 rounded uppercase align-middle">
-                  SUSPENDED
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title={
+          <span className="flex flex-wrap items-center gap-3">
+            <Avatar first={user.firstName} last={user.lastName} email={user.email} size="lg" />
+            <span className="min-w-0">
+              <span className="block">{name}</span>
+              <span className="mt-1 flex flex-wrap gap-1.5 font-roboto text-xs font-medium tracking-normal">
+                <span className={cx("rounded-full px-2 py-0.5", user.role !== "user" ? "bg-pine-tint text-pine" : "bg-[#f1f3f2] text-sub")}>
+                  {ROLE_LABELS[user.role] || "Customer"}
                 </span>
-              )}
-            </h1>
-          </div>
-        </div>
+                {user.isActive === false && <span className="rounded-full bg-[#fdeeee] px-2 py-0.5 text-[#b91c1c]">Suspended</span>}
+                <span className="rounded-full bg-[#f1f3f2] px-2 py-0.5 text-sub">{user.provider === "google" ? "Google sign-in" : "Email sign-in"}</span>
+              </span>
+            </span>
+          </span>
+        }
+        actions={
+          <>
+            {phone && <Button onClick={() => window.open(whatsappLink(phone, `Hi ${user.firstName || ""}, this is FIL.`), "_blank", "noopener")}><MessageCircle size={16} aria-hidden /> WhatsApp</Button>}
+            {phone && <Button href={telLink(phone)}><Phone size={16} aria-hidden /> Call</Button>}
+            <Button variant="primary" href={`mailto:${user.email}`}><Mail size={16} aria-hidden /> Email</Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {[
+          { label: "Orders",        value: orders.length.toLocaleString() },
+          { label: "Total spent",   value: money(totalSpent) },
+          { label: "Average order", value: money(orders.length ? totalSpent / orders.length : 0) },
+          { label: "Member since",  value: fmtDate(user.createdAt) },
+        ].map(s => (
+          <Card key={s.label} className="px-5 py-4">
+            <div className="text-[13px] text-sub">{s.label}</div>
+            <div className="mt-1 break-words font-poppins text-lg font-semibold text-ink sm:text-xl">{s.value}</div>
+          </Card>
+        ))}
       </div>
 
-      {/* Two-col on md+, stacked on mobile */}
-      <div className="flex flex-col md:grid md:grid-cols-[1fr_280px] gap-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="min-w-0">
+          <Tabs
+            label="Customer activity"
+            value={tab}
+            onChange={setTab}
+            tabs={[
+              { value: "orders", label: "Orders", count: orders.length },
+              { value: "cart",   label: "Cart",   count: cartItems.length },
+            ]}
+          />
 
-        {/* Left */}
-        <div>
-          {/* Stats strip */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            {[
-              { label: "Total Orders", value: orders.length },
-              { label: "Total Spent",  value: `₦${totalSpent.toLocaleString()}` },
-              { label: "Member Since", value: new Date(user.createdAt).toLocaleDateString() },
-            ].map(s => (
-              <div key={s.label} className="bg-[#111] border border-[#222] rounded-lg p-4 md:p-5">
-                <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-2">{s.label}</div>
-                <div className="text-lg md:text-[20px] font-bold text-[#e8e8e8] leading-tight truncate">{s.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Profile Info */}
-          <div className="bg-[#111] border border-[#222] rounded-lg p-5 mb-5">
-            <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-4">Profile Info</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2">
-              {profileFields.map(f => (
-                <div key={f.label} className="py-2.5 border-b border-[#171717]">
-                  <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-1">{f.label}</div>
-                  <div className="text-[13px] text-[#888] break-all">{f.value}</div>
-                </div>
-              ))}
+          {tab === "orders" && (orders.length === 0 ? (
+            <EmptyState icon={ShoppingBag} title="No orders yet" />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] border-collapse text-[13px]">
+                <thead>
+                  <tr>
+                    <th className={cx(TH, "border-t-0")}>Order</th>
+                    <th className={cx(TH, "border-t-0")}>Date</th>
+                    <th className={cx(TH, "border-t-0")}>Items</th>
+                    <th className={cx(TH, "border-t-0 text-right")}>Total</th>
+                    <th className={cx(TH, "border-t-0")}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(o => (
+                    <tr key={o._id} className="hover:bg-[#fafbfa]">
+                      <td className={TD}><Link href={`/admin_console/orders/${o._id}`} className="font-medium text-pine no-underline hover:underline">#{shortId(o._id)}</Link></td>
+                      <td className={cx(TD, "whitespace-nowrap text-sub")}>{fmtDate(o.createdAt)}</td>
+                      <td className={cx(TD, "text-sub")}>{o.items?.length || 0}</td>
+                      <td className={cx(TD, "whitespace-nowrap text-right font-medium")}>{money(orderTotal(o))}</td>
+                      <td className={TD}><StatusBadge status={o.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          ))}
 
-          {/* Current Cart */}
-          <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden mb-5">
-            <div className="px-5 py-4 border-b border-[#1a1a1a]">
-              <div className="flex items-center justify-between">
-                <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase">
-                  Current Cart ({user.cart?.items?.length || 0})
-                </div>
-                {user.cart?.updatedAt && (
-                  <div className="text-[10px] text-[#444]">
-                    Last updated: {new Date(user.cart.updatedAt).toLocaleDateString()} {new Date(user.cart.updatedAt).toLocaleTimeString()}
+          {tab === "cart" && (cartItems.length === 0 ? (
+            <EmptyState icon={ShoppingCart} title="Cart is empty" />
+          ) : (
+            <>
+              {user.cart?.updatedAt && (
+                <p className="m-0 px-5 pt-3 text-xs text-faint">Last updated {new Date(user.cart.updatedAt).toLocaleString("en-GB")}</p>
+              )}
+              <div className="flex flex-col">
+                {cartItems.map((it, i) => (
+                  <div key={i} className="flex items-center gap-3 border-b border-[#eef0ef] px-5 py-3">
+                    {it.image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={it.image} alt="" className="h-11 w-11 shrink-0 rounded-lg bg-hover object-cover" />
+                      : <span className="h-11 w-11 shrink-0 rounded-lg bg-hover" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-medium">{it.name || "—"}</div>
+                      <div className="text-xs text-faint">{it.quantity || 1} × {money(it.price)}{it.color ? ` · ${it.color}` : ""}</div>
+                    </div>
+                    <div className="shrink-0 text-[13px] font-medium">{money((it.price || 0) * (it.quantity || 1))}</div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {(!user.cart?.items || user.cart.items.length === 0) ? (
-              <div className="py-8 text-[#444] text-[13px] text-center">No items in cart.</div>
-            ) : (
-              <>
-                {/* Desktop cart table */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full border-collapse min-w-[500px]">
-                    <thead>
-                      <tr className="border-b border-[#1a1a1a]">
-                        {["Product","Price","Qty","Color","Total"].map(h => (
-                          <th key={h} className="px-5 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {user.cart.items.map((item, idx) => {
-                        const itemTotal = (item.price || 0) * (item.quantity || 1);
-                        return (
-                          <tr key={idx} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
-                            <td className="px-5 py-3">
-                              <div className="flex items-center gap-3">
-                                {item.image && (
-                                  <img 
-                                    src={item.image} 
-                                    alt={item.name}
-                                    className="w-10 h-10 object-cover rounded border border-[#222]"
-                                  />
-                                )}
-                                <div className="text-[13px] text-[#e8e8e8]">{item.name || "—"}</div>
-                              </div>
-                            </td>
-                            <td className="px-5 py-3 text-[13px] text-[#888] whitespace-nowrap">₦{(item.price || 0).toLocaleString()}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] whitespace-nowrap">{item.quantity || 1}</td>
-                            <td className="px-5 py-3 text-[12px] text-[#666] whitespace-nowrap">{item.color || "—"}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] font-semibold whitespace-nowrap">₦{itemTotal.toLocaleString()}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile cart cards */}
-                <div className="sm:hidden flex flex-col divide-y divide-[#161616]">
-                  {user.cart.items.map((item, idx) => {
-                    const itemTotal = (item.price || 0) * (item.quantity || 1);
-                    return (
-                      <div key={idx} className="px-4 py-3 hover:bg-[#141414] transition-colors">
-                        <div className="flex items-start gap-3 mb-2">
-                          {item.image && (
-                            <img 
-                              src={item.image} 
-                              alt={item.name}
-                              className="w-12 h-12 object-cover rounded border border-[#222] flex-shrink-0"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px] text-[#e8e8e8] font-medium truncate">{item.name || "—"}</div>
-                            <div className="text-[11px] text-[#666] mt-0.5">{item.color || "—"}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-[11px] text-[#444]">
-                            Qty: {item.quantity || 1} × ₦{(item.price || 0).toLocaleString()}
-                          </div>
-                          <div className="text-[13px] text-[#e8e8e8] font-semibold">₦{itemTotal.toLocaleString()}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Cart total */}
-                <div className="px-5 py-3 border-t border-[#1a1a1a] bg-[#0a0a0a]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-[#444] uppercase tracking-[0.1em]">Cart Total</span>
-                    <span className="text-[16px] font-bold text-[#e8e8e8]">
-                      ₦{user.cart.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Order History */}
-          <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#1a1a1a]">
-              <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase">
-                Order History ({orders.length})
-              </div>
-            </div>
-
-            {orders.length === 0 ? (
-              <div className="py-8 text-[#444] text-[13px] text-center">No orders yet.</div>
-            ) : (
-              <>
-                {/* Desktop order table */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full border-collapse min-w-[420px]">
-                    <thead>
-                      <tr className="border-b border-[#1a1a1a]">
-                        {["Order ID","Items","Total","Status","Date"].map(h => (
-                          <th key={h} className="px-5 py-2.5 text-left text-[10px] tracking-[0.12em] text-[#444] uppercase whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map(order => {
-                        const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#888";
-                        return (
-                          <tr key={order._id} className="border-b border-[#161616] hover:bg-[#141414] transition-colors">
-                            <td className="px-5 py-3 whitespace-nowrap">
-                              <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
-                                #{String(order._id).slice(-8).toUpperCase()}
-                              </Link>
-                            </td>
-                            <td className="px-5 py-3 text-[13px] text-[#666]">{order.items?.length || 0}</td>
-                            <td className="px-5 py-3 text-[13px] text-[#e8e8e8] font-semibold whitespace-nowrap">₦{getTotal(order)}</td>
-                            <td className="px-5 py-3 whitespace-nowrap">
-                              <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded border"
-                                style={{ color: sColor, background: sColor + "18", borderColor: sColor + "33" }}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3 text-[12px] text-[#fff] whitespace-nowrap">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile order cards */}
-                <div className="sm:hidden flex flex-col divide-y divide-[#161616]">
-                  {orders.map(order => {
-                    const sColor = STATUS_COLORS[order.status?.toLowerCase()] || "#888";
-                    return (
-                      <div key={order._id} className="px-4 py-3 hover:bg-[#141414] transition-colors">
-                        <div className="flex justify-between items-start mb-1.5">
-                          <Link href={`/admin_console/orders/${order._id}`} className="text-[12px] text-[#e8c46a] no-underline font-mono hover:underline">
-                            #{String(order._id).slice(-8).toUpperCase()}
-                          </Link>
-                          <span className="text-[13px] text-[#e8e8e8] font-semibold">₦{getTotal(order)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] tracking-[0.08em] uppercase px-2 py-0.5 rounded border"
-                              style={{ color: sColor, background: sColor + "18", borderColor: sColor + "33" }}>
-                              {order.status}
-                            </span>
-                            <span className="text-[11px] text-[#444]">{order.items?.length || 0} item(s)</span>
-                          </div>
-                          <span className="text-[11px] text-[#fff]">{new Date(order.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Actions Panel */}
-        <div>
-          <div className="bg-[#111] border border-[#222] rounded-lg p-5 md:sticky md:top-5">
-            <div className="text-[10px] tracking-[0.15em] text-[#444] uppercase mb-5">Account Controls</div>
-
-            {/* Role */}
-            <div className="mb-5">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2">Role</div>
-              <div className="flex gap-2">
-                {["user", "admin"].map(r => (
-                  <button key={r} onClick={() => setRole(r)}
-                    className={`flex-1 py-2.5 rounded-md cursor-pointer text-[11px] tracking-[0.1em] uppercase border transition-all font-mono
-                      ${role === r
-                        ? r === "admin"
-                          ? "border-[#e8c46a] bg-[#e8c46a12] text-[#e8c46a] font-bold"
-                          : "border-[#6ab4e8] bg-[#6ab4e812] text-[#6ab4e8] font-bold"
-                        : "border-[#222] bg-transparent text-[#444] hover:border-[#333] hover:text-[#666]"
-                      }`}>
-                    {r}
-                  </button>
                 ))}
               </div>
-            </div>
-
-            {/* Account Status */}
-            <div className="mb-6">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2">Account Status</div>
-              <button onClick={() => setIsActive(a => !a)}
-                className={`w-full py-2.5 rounded-md cursor-pointer text-[11px] tracking-[0.12em] uppercase font-semibold border transition-all font-mono
-                  ${isActive
-                    ? "border-[#6ae8a033] bg-[#6ae8a012] text-[#6ae8a0] hover:bg-[#6ae8a01a]"
-                    : "border-[#e86a6a33] bg-[#e86a6a12] text-[#e86a6a] hover:bg-[#e86a6a1a]"
-                  }`}>
-                {isActive ? "● Active — Click to Suspend" : "● Suspended — Click to Restore"}
-              </button>
-              <div className={`text-[11px] mt-1.5 leading-relaxed ${isActive ? "text-[#333]" : "text-[#444]"}`}>
-                {isActive ? "Customer can log in and place orders." : "Customer account is suspended."}
+              <div className="flex justify-between px-5 py-3 text-[13px]">
+                <span className="font-medium">Cart total</span>
+                <span className="font-poppins text-base font-semibold">{money(cartTotal)}</span>
               </div>
-            </div>
+            </>
+          ))}
+        </Card>
 
-            {error && (
-              <div className="px-3 py-2.5 bg-[#e86a6a18] border border-[#e86a6a33] rounded-md text-[#e86a6a] text-[12px] mb-3">
-                {error}
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card>
+            <CardHeader title="Profile" />
+            <div className="px-5 pb-3">
+              <ProfileRow label="Email" value={user.email} />
+              <ProfileRow label="Phone" value={phone} />
+              <ProfileRow label="Other phone" value={localPhone(user.addPhone)} />
+              <ProfileRow label="Date of birth" value={user.dob} />
+              <ProfileRow label="Address" value={user.address} />
+              <ProfileRow label="City" value={user.city} />
+              <ProfileRow label="Region" value={user.region?.name} />
+              <ProfileRow label="Country" value={user.country} />
+            </div>
+          </Card>
+
+          <Card className="px-5 py-4">
+            <h2 className="m-0 mb-3 font-poppins text-[15px] font-semibold text-ink">Account</h2>
+            <div className="mb-1.5 text-[13px] font-medium text-sub">Role</div>
+            <Segmented
+              label="Role"
+              value={role}
+              onChange={setRole}
+              options={Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }))}
+            />
+            {role === "creator" && (
+              <div className="mt-4">
+                <div className="mb-1.5 text-[13px] font-medium text-sub">Codes on their dashboard</div>
+                {creatorCodes.length === 0 ? (
+                  <p className="m-0 text-xs text-faint">
+                    No creator codes yet. Make one on <Link href="/admin_console/promo-codes" className="text-pine">Promo codes</Link> with the type set to Creator.
+                  </p>
+                ) : (
+                  <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                    {creatorCodes.map(c => {
+                      const taken = c.linkedTo && c.linkedTo !== id;
+                      return (
+                        <li key={c._id}>
+                          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-hover">
+                            <span className="pt-0.5">
+                              <Checkbox
+                                label={c.code}
+                                checked={linked.includes(c._id)}
+                                onChange={e => setLinked(l => e.target.checked ? [...l, c._id] : l.filter(x => x !== c._id))}
+                              />
+                            </span>
+                            <span className="min-w-0 text-[13px]">
+                              <span className="block font-mono font-medium text-ink">{c.code}</span>
+                              <span className="block text-xs text-faint">
+                                {c.creatorName}{taken && " · linked to another account, picking it moves it here"}
+                              </span>
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             )}
-
-            <button onClick={saveChanges} disabled={saving || saved || !hasChanges}
-              className={`w-full py-3 border-none rounded-md text-[11px] tracking-[0.15em] uppercase font-bold transition-all font-mono
-                ${saved       ? "bg-[#1a2e1a] text-[#6ae8a0] cursor-default"
-                : saving      ? "bg-[#1a1a1a] text-[#444] cursor-default"
-                : hasChanges  ? "bg-[#e8c46a] text-[#0a0a0a] cursor-pointer hover:bg-[#d4b05e]"
-                : "bg-[#141414] text-[#333] cursor-default"
-                }`}>
-              {saved ? "✓ Saved" : saving ? "Saving..." : "Save Changes"}
-            </button>
-
-            {/* Quick Links */}
-            <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
-              <div className="text-[10px] tracking-[0.12em] text-[#444] uppercase mb-2.5">Quick Links</div>
-              <a href={`mailto:${user.email}`}
-                className="block py-2 text-[12px] text-[#fff] no-underline border-b border-[#161616] transition-colors hover:text-[#888]">
-                ✉ Email customer
-              </a>
-              {orders.length > 0 && (
-                <Link href={`/admin_console/orders?search=${user._id}`}
-                  className="block pt-2 text-[12px] text-[#fff] no-underline transition-colors hover:text-[#888]">
-                  ◈ View all orders
-                </Link>
-              )}
+            <div className="mt-4">
+              <Switch
+                label="Active"
+                description={isActive ? "Can sign in and place orders" : "Suspended — can't sign in"}
+                checked={isActive}
+                onChange={e => setIsActive(e.target.checked)}
+              />
             </div>
-          </div>
+            <Button variant="primary" className="mt-4 w-full" onClick={saveChanges} disabled={saving || !hasChanges}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+            {user.role === "creator" && savedLinks.length > 0 && (
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                href={`/creator?code=${encodeURIComponent(creatorCodes.find(c => c._id === savedLinks[0]).code)}`}
+              >
+                See their dashboard <ExternalLink size={14} aria-hidden />
+              </Button>
+            )}
+          </Card>
         </div>
       </div>
     </div>

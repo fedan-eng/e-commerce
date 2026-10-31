@@ -1,4 +1,5 @@
 // app/sitemap.js
+import { STORE_CATEGORIES } from "@/lib/categories";
 export default async function sitemap() {
   const baseUrl = 'https://www.filstore.com.ng';
   
@@ -11,12 +12,6 @@ export default async function sitemap() {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/products`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -24,18 +19,9 @@ export default async function sitemap() {
     },
   ];
 
-  // 2. Category Pages (The "Konga" Sitelinks)
-  // We define these manually since they are your main business pillars
-  const categories = [
-    { name: 'Power Bank', url: 'Power+Bank' },
-    { name: 'Wearables', url: 'Wearables' },
-    { name: 'Chargers', url: 'Chargers' },
-    { name: 'Lifestyle', url: 'Lifestyle' },
-    { name: 'Extensions', url: 'Extensions' }
-  ];
-
-  const categoryPages = categories.map((cat) => ({
-    url: `${baseUrl}/products?categories=${cat.url}`,
+  // 2. Category Pages (The "Konga" Sitelinks), from lib/categories.js
+  const categoryPages = STORE_CATEGORIES.map((cat) => ({
+    url: `${baseUrl}/products/${cat.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.8, // High priority to encourage Sitelinks

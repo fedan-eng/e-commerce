@@ -3,6 +3,8 @@ import axios from "axios";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { sessionUserId, validatePromo } from "@/lib/promo";
+import { findCreatorCode } from "@/lib/promoCodes";
+import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
 
 const isValidEmail = (email) => {
@@ -41,6 +43,9 @@ export async function POST(req) {
     const finalCartItems = modalCartItems || simpleItems || [];
     // Who is buying comes from the session cookie, not the request body
     const finalUserId = await sessionUserId();
+    // Creator whose ?ref= link brought the shopper in (lib/referral.js); credited on the order
+    await connectDB();
+    const referralCode = (await findCreatorCode(req.cookies.get(REF_COOKIE)?.value).catch(() => null))?.code || null;
 
     // Log GA client_id for debugging (Vercel logs)
     console.log('[Paystack API] Received gaClientId:', gaClientId);
@@ -85,6 +90,7 @@ export async function POST(req) {
           amount: Math.round(total * 100),
           currency: "NGN",
           metadata: {
+            referralCode,
             cartItems: priced.items,
             userId: finalUserId,
             subTotal,
@@ -157,7 +163,7 @@ export async function POST(req) {
     }
     const { subTotal } = priced;
 
-    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal);
+    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode);
     if (delivery.error) {
       return NextResponse.json({ message: delivery.error }, { status: 400 });
     }
@@ -166,7 +172,9 @@ export async function POST(req) {
     let discount = 0;
     let appliedPromo = null;
     if (promoCode) {
-      const promo = await validatePromo({ code: promoCode, userId: finalUserId, cartValue: subTotal });
+      const promo = await validatePromo({
+        code: promoCode, userId: finalUserId, cartValue: subTotal, phone: deliveryInfo.phone, email,
+      });
       if (!promo.valid) {
         return NextResponse.json({ message: promo.message }, { status: promo.status });
       }
@@ -191,6 +199,7 @@ export async function POST(req) {
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
         metadata: {
+          referralCode,
           cartItems: priced.items,
           deliveryInfo: {
             ...deliveryInfo,
