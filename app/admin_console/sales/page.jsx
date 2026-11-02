@@ -140,7 +140,7 @@ export default function SalesEntryPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Sales entry"
-        description="Record sales from Instagram, TikTok, WhatsApp and other orders. They count towards the dashboard totals."
+        description="Record sales made outside the website: social media, returning customers, outsourced and others. They count towards the dashboard totals."
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
