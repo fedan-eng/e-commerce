@@ -11,6 +11,7 @@ import {
   inputCls, selectCls, textareaCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money } from "@/components/admin/format";
+import { SALES_CHANNELS, channelLabel } from "@/lib/salesChannels";
 
 const PAGE_SIZE = 15;
 
@@ -22,7 +23,7 @@ const PAYMENT_OPTIONS = [
 
 const EMPTY_FORM = {
   firstName: "", lastName: "", email: "", phone: "", address: "", city: "",
-  paymentMethod: "cash", discount: "", orderNote: "", saleDate: "",
+  paymentMethod: "cash", discount: "", orderNote: "", saleDate: "", channel: "",
 };
 
 function todayLocal() {
@@ -42,6 +43,7 @@ export default function SalesEntryPage() {
   const [sales,      setSales]      = useState([]);
   const [salesTotal, setSalesTotal] = useState(0);
   const [revenue,    setRevenue]    = useState(0);
+  const [channels,   setChannels]   = useState({});
   const [page,       setPage]       = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingSales, setLoadingSales] = useState(true);
@@ -59,6 +61,7 @@ export default function SalesEntryPage() {
         setSales(data.sales || []);
         setSalesTotal(data.total || 0);
         setRevenue(data.revenue || 0);
+        setChannels(data.channels || {});
         setTotalPages(data.totalPages || 1);
       })
       .catch(() => toast.error("Couldn't load sales"))
@@ -96,6 +99,7 @@ export default function SalesEntryPage() {
     e.preventDefault();
     if (!form.firstName.trim()) return toast.error("Customer name is required");
     if (!lines.length)          return toast.error("Add at least one product");
+    if (!form.channel)          return toast.error("Pick where the sale came from");
     if (discount > subTotal)    return toast.error("Discount cannot exceed subtotal");
 
     setSubmitting(true);
@@ -106,7 +110,7 @@ export default function SalesEntryPage() {
         items: lines.map(({ productId, price, quantity, color }) => ({ productId, price, quantity, color })),
       });
       toast.success("Sale recorded");
-      setForm({ ...EMPTY_FORM, saleDate: todayLocal() });
+      setForm(f => ({ ...EMPTY_FORM, saleDate: todayLocal(), channel: f.channel })); // staff often log a run from one channel
       setLines([]);
       refreshAlerts();
       if (page === 1) loadSales(1);
@@ -136,7 +140,7 @@ export default function SalesEntryPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Sales entry"
-        description="Record in-store, phone or WhatsApp sales. They count towards the dashboard totals."
+        description="Record sales from Instagram, TikTok, WhatsApp and other orders. They count towards the dashboard totals."
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -236,6 +240,25 @@ export default function SalesEntryPage() {
         <Card className="h-fit lg:sticky lg:top-20">
           <CardHeader title="Payment" />
           <div className="flex flex-col gap-3 px-5 pb-5">
+            <Field label="Came from *">
+              <div role="radiogroup" aria-label="Where the sale came from" className="grid grid-cols-2 gap-1.5">
+                {SALES_CHANNELS.map(c => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={form.channel === c.value}
+                    onClick={() => setForm(f => ({ ...f, channel: c.value }))}
+                    className={cx(
+                      "h-10 cursor-pointer rounded-lg border text-[13px] font-medium transition-colors",
+                      form.channel === c.value ? "border-pine bg-pine-tint text-pine" : "border-edge bg-white text-sub hover:border-[#cdd3d0] hover:text-ink",
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
             <Field label="Sale date">
               <input className={inputCls} type="datetime-local" max={todayLocal()} value={form.saleDate} onChange={set("saleDate")} />
             </Field>
@@ -273,6 +296,15 @@ export default function SalesEntryPage() {
           title="Recorded sales"
           description={`${salesTotal.toLocaleString()} sale${salesTotal === 1 ? "" : "s"} · ${money(revenue)} in total`}
         />
+        {salesTotal > 0 && (
+          <div className="flex flex-wrap gap-2 px-5 pb-4">
+            {[...SALES_CHANNELS, { value: "none", label: "Not set" }].filter(c => channels[c.value]).map(c => (
+              <span key={c.value} className="rounded-full bg-[#f1f3f2] px-3 py-1 text-xs text-sub">
+                <span className="font-medium text-ink">{c.label}</span> · {channels[c.value].sales} · {money(channels[c.value].revenue)}
+              </span>
+            ))}
+          </div>
+        )}
         {loadingSales && !sales.length ? (
           <div className="flex justify-center py-12"><Spinner /></div>
         ) : sales.length === 0 ? (
@@ -280,12 +312,13 @@ export default function SalesEntryPage() {
         ) : (
           <div className={cx(loadingSales && "opacity-60")}>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[760px] border-collapse text-[13px]">
+              <table className="w-full min-w-[860px] border-collapse text-[13px]">
                 <thead>
                   <tr>
                     <th className={TH}>Date</th>
                     <th className={TH}>Customer</th>
                     <th className={TH}>Items</th>
+                    <th className={TH}>Came from</th>
                     <th className={TH}>Method</th>
                     <th className={cx(TH, "text-right")}>Total</th>
                     <th className={TH}>Recorded by</th>
@@ -302,6 +335,7 @@ export default function SalesEntryPage() {
                         </Link>
                       </td>
                       <td className={cx(TD, "max-w-[260px] truncate text-sub")}>{(s.items || []).map(it => `${it.name} ×${it.quantity}`).join(", ")}</td>
+                      <td className={cx(TD, "text-sub")}>{channelLabel(s.channel) || <span className="text-faint">—</span>}</td>
                       <td className={cx(TD, "text-sub")}>{paymentLabel(s.paymentMethod)}</td>
                       <td className={cx(TD, "whitespace-nowrap text-right font-medium")}>{money(s.total)}</td>
                       <td className={cx(TD, "whitespace-nowrap text-faint")}>{s.recordedBy ? `${s.recordedBy.firstName || ""} ${s.recordedBy.lastName || ""}`.trim() : "—"}</td>
@@ -333,7 +367,7 @@ export default function SalesEntryPage() {
                     </div>
                     <div className="truncate text-xs text-sub">{(s.items || []).map(it => `${it.name} ×${it.quantity}`).join(", ")}</div>
                     <div className="text-xs text-faint">
-                      {new Date(s.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · {paymentLabel(s.paymentMethod)}
+                      {new Date(s.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}{s.channel && ` · ${channelLabel(s.channel)}`} · {paymentLabel(s.paymentMethod)}
                     </div>
                   </div>
                   <button
