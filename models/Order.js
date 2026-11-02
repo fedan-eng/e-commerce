@@ -128,6 +128,12 @@ const orderSchema = new mongoose.Schema({
     enum: ["online", "manual"],
     default: "online",
   },
+  // Manual sales only: where the sale came from (lib/salesChannels.js). Older ones have none.
+  channel: {
+    type: String,
+    enum: ["instagram", "tiktok", "whatsapp", "orders", null],
+    default: null,
+  },
   recordedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

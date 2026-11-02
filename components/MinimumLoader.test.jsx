@@ -15,15 +15,14 @@ beforeEach(() => {
   vi.useFakeTimers();
   pathname = "/";
   window.history.replaceState(null, "", "/");
-  sessionStorage.clear();
 });
 afterEach(() => vi.useRealTimers());
 
 describe("MinimumLoader", () => {
-  it("shows on the first visit for 3 seconds, then fades away", async () => {
+  it("shows on the first visit for 1 second, then fades away", async () => {
     render(<MinimumLoader />);
     expect(screen.getByRole("status")).toHaveTextContent(/think FIL/i);
-    await advance(2900);
+    await advance(900);
     expect(screen.getByRole("status")).toBeInTheDocument();
     await advance(500);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -39,15 +38,6 @@ describe("MinimumLoader", () => {
     // The page arrives quickly; the loader stays anyway
     pathname = "/products/power-banks";
     rerender(<><MinimumLoader /><a href="/products/power-banks">Power banks</a></>);
-    await advance(800);
-    expect(screen.getByRole("status")).toBeInTheDocument();
-    await advance(600);
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  });
-
-  it("is 1 second on a refresh later in the same visit", async () => {
-    sessionStorage.setItem("fil_loader_seen", "1");
-    render(<MinimumLoader />);
     await advance(800);
     expect(screen.getByRole("status")).toBeInTheDocument();
     await advance(600);

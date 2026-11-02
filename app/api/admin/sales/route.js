@@ -9,6 +9,7 @@ import { verifyToken } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { revalidateProduct } from "@/lib/revalidate";
+import { SALES_CHANNEL_VALUES } from "@/lib/salesChannels";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,7 +37,7 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit")) || 20;
 
     const query = { source: "manual" };
-    const [total, sales, [sums]] = await Promise.all([
+    const [total, sales, [sums], byChannel] = await Promise.all([
       Order.countDocuments(query),
       Order.find(query)
         .sort({ createdAt: -1 })
@@ -45,10 +46,14 @@ export async function GET(req) {
         .populate("recordedBy", "firstName lastName")
         .lean(),
       Order.aggregate([{ $match: query }, { $group: { _id: null, revenue: { $sum: "$total" } } }]),
+      Order.aggregate([{ $match: query }, { $group: { _id: "$channel", sales: { $sum: 1 }, revenue: { $sum: "$total" } } }]),
     ]);
 
+    // { instagram: { sales, revenue }, ..., none: {...} for sales recorded before channels existed }
+    const channels = Object.fromEntries(byChannel.map(({ _id, ...c }) => [_id || "none", c]));
+
     return NextResponse.json(
-      { sales, total, page, totalPages: Math.ceil(total / limit), revenue: sums?.revenue || 0 },
+      { sales, total, page, totalPages: Math.ceil(total / limit), revenue: sums?.revenue || 0, channels },
       { headers: NO_STORE }
     );
   } catch (err) {
@@ -67,11 +72,12 @@ export async function POST(req) {
     const body = await req.json();
     const {
       firstName, lastName, email, phone, address, city,
-      items, paymentMethod, discount, orderNote, saleDate,
+      items, paymentMethod, discount, orderNote, saleDate, channel,
     } = body;
 
     if (!firstName?.trim()) return NextResponse.json({ message: "Customer name is required" }, { status: 400 });
     if (!PAYMENT_METHODS.includes(paymentMethod)) return NextResponse.json({ message: "Invalid payment method" }, { status: 400 });
+    if (!SALES_CHANNEL_VALUES.includes(channel)) return NextResponse.json({ message: "Pick where the sale came from" }, { status: 400 });
     if (!Array.isArray(items) || !items.length) return NextResponse.json({ message: "Add at least one item" }, { status: 400 });
 
     // Resolve products server-side so category/image come from the catalogue.
@@ -112,6 +118,7 @@ export async function POST(req) {
     const order = await Order.create({
       source:        "manual",
       recordedBy:    user.id,
+      channel,
       userId:        null,
       firstName:     firstName.trim(),
       lastName:      lastName?.trim() || "",

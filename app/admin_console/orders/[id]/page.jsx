@@ -13,6 +13,7 @@ import {
   selectCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, localPhone, telLink, whatsappLink } from "@/components/admin/format";
+import { channelLabel } from "@/lib/salesChannels";
 
 const lineTotal = it => parseFloat(it.price || 0) * parseFloat(it.quantity || 1);
 const orderTotal = o => (o.total != null ? parseFloat(o.total) : o.subTotal != null ? parseFloat(o.subTotal) : (o.items || []).reduce((a, it) => a + lineTotal(it), 0));
@@ -144,7 +145,7 @@ export default function AdminOrderDetailPage() {
             <StatusBadge status={order.status} />
           </span>
         }
-        description={`Placed ${fmtDateTime(order.createdAt)}${order.source === "manual" ? " · Recorded manually" : ""}`}
+        description={`Placed ${fmtDateTime(order.createdAt)}${order.source === "manual" ? ` · Recorded manually${order.channel ? ` from ${channelLabel(order.channel)}` : ""}` : ""}`}
         actions={
           <>
             <Button onClick={copyId}><Copy size={16} aria-hidden /> Copy ID</Button>
