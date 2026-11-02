@@ -28,7 +28,7 @@ const COPY = {
 };
 
 export default function ReturnForm({ type = "return", order, item, itemIndex, onBack, onSent }) {
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState({ ...EMPTY, quantity: "1" });
   const [submitting, setSubmitting] = useState(false);
   const [sentCode, setSentCode] = useState("");
   const maxQty = Number(item.quantity) || 1;
@@ -100,17 +100,18 @@ export default function ReturnForm({ type = "return", order, item, itemIndex, on
               </Field>
             )}
             <Field label={`Quantity (max ${maxQty})`} htmlFor="quantity" required>
+              {/* Text, not type="number": React can't clear what a number box shows (e.g. "00000") */}
               <input
                 id="quantity"
                 name="quantity"
-                type="number"
-                min={1}
-                max={maxQty}
+                inputMode="numeric"
+                autoComplete="off"
                 required
                 value={form.quantity}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, quantity: e.target.value === "" ? "" : Math.min(Number(e.target.value), maxQty) }))
-                }
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").replace(/^0+/, "");
+                  setForm((f) => ({ ...f, quantity: digits ? String(Math.min(Number(digits), maxQty)) : "" }));
+                }}
                 className={inputClass(false)}
               />
             </Field>

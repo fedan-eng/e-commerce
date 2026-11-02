@@ -93,8 +93,12 @@ const sections = [
         body: "Items may be returned within 7 days of delivery, provided they are unused, in their original packaging, and accompanied by proof of purchase. Non-defected products are not eligible for return.",
       },
       {
-        heading: "How to Initiate a Return",
-        body: "To initiate a return, log into your FIL Store account, navigate to your order history, and submit a return request through the Order Sheet. Alternatively, contact our support team at filsmteam@gmail.com with your order number and reason for return. Our team will respond within 2 business days with return instructions.",
+        heading: "How to Request a Return or Refund",
+        body: "Log into your FIL Store account, open the order in your order history, and choose Return or Refund next to the item. A return means you send the item to us, we sort it out, and deliver it back to you. A refund means we send your money back to the bank account you give us. Each request gets its own ID (starting with RT for returns or RF for refunds), which we email to you. Our team will respond within 2 business days. You can also contact our support team at filsmteam@gmail.com with your order number and reason.",
+      },
+      {
+        heading: "Tracking Your Request",
+        body: "Check the status of a return or refund any time at filstore.com.ng/track using your request ID and the email or phone number on your order. We also email you each time the status changes.",
       },
       {
         heading: "Return Shipping",
@@ -102,7 +106,7 @@ const sections = [
       },
       {
         heading: "Refund Processing",
-        body: "Once your returned item is received and inspected, we will notify you via email of the approval or rejection of your refund. Approved refunds are processed within 5–10 business days and returned to your original payment method via Paystack.",
+        body: "We review every refund request and notify you via email of its approval or rejection. Approved refunds are processed within 5–10 business days by bank transfer to the account you provided, and we email you the amount and transfer reference once it is sent.",
       },
       {
         heading: "Damaged or Incorrect Items",
@@ -110,7 +114,7 @@ const sections = [
       },
       {
         heading: "Exchange Policy",
-        body: "We currently do not process direct exchanges. If you wish to exchange an item, please initiate a return for the original item and place a new order for the desired product. This ensures the fastest turnaround for you.",
+        body: "We currently do not process direct exchanges. If you wish to exchange an item, please request a refund for the original item and place a new order for the desired product. This ensures the fastest turnaround for you.",
       },
     ],
   },
