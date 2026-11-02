@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, ReceiptText, TicketPercent, Megaphone, Package, Users, Star, MessageCircle, Store, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Undo2, ReceiptText, TicketPercent, Megaphone, Package, Users, Star, MessageCircle, Store, LogOut } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import { useAdmin } from "./AdminContext";
 import { cx } from "./ui";
@@ -11,6 +11,7 @@ const GROUPS = [
   { label: "Overview",  items: [{ href: "/admin_console", label: "Dashboard", icon: LayoutDashboard }] },
   { label: "Sales",     items: [
     { href: "/admin_console/orders", label: "Orders",      icon: ShoppingBag, badge: "confirmedOrders" },
+    { href: "/admin_console/returns", label: "Returns & refunds", icon: Undo2, badge: "newReturnRequests" },
     { href: "/admin_console/sales",  label: "Sales entry", icon: ReceiptText },
     { href: "/admin_console/promo-codes", label: "Promo codes", icon: TicketPercent },
     { href: "/admin_console/creators",    label: "Creators",    icon: Megaphone },

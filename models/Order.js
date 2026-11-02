@@ -131,7 +131,8 @@ const orderSchema = new mongoose.Schema({
   // Manual sales only: where the sale came from (lib/salesChannels.js). Older ones have none.
   channel: {
     type: String,
-    enum: ["instagram", "tiktok", "whatsapp", "orders", null],
+    // "orders" is a short-lived old name for "others", kept so those sales still load
+    enum: ["instagram", "tiktok", "whatsapp", "facebook", "returning", "outsourced", "others", "orders", null],
     default: null,
   },
   recordedBy: {

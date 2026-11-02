@@ -36,7 +36,7 @@ export default function SalesEntryPage() {
   const { refreshAlerts } = useAdmin();
   const [products,   setProducts]   = useState([]);
   const [form,       setForm]       = useState({ ...EMPTY_FORM, saleDate: todayLocal() });
-  const [lines,      setLines]      = useState([]); // { productId, name, image, price, quantity, color, colors }
+  const [lines,      setLines]      = useState([]); // { productId, name, image, listPrice, price, quantity, color, colors }
   const [query,      setQuery]      = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -84,14 +84,16 @@ export default function SalesEntryPage() {
     setLines(ls => {
       const existing = ls.find(l => l.productId === p._id);
       if (existing) return ls.map(l => l.productId === p._id ? { ...l, quantity: Number(l.quantity) + 1 } : l);
-      return [...ls, { productId: p._id, name: p.name, image: p.image, price: p.price, quantity: 1, color: "", colors: (p.colors || []).map(c => c.name).filter(Boolean) }];
+      return [...ls, { productId: p._id, name: p.name, image: p.image, listPrice: p.price, price: "", quantity: 1, color: "", colors: (p.colors || []).map(c => c.name).filter(Boolean) }];
     });
     setQuery("");
   };
   const updateLine = (i, k, v) => setLines(ls => ls.map((l, idx) => idx === i ? { ...l, [k]: v } : l));
   const removeLine = (i) => setLines(ls => ls.filter((_, idx) => idx !== i));
 
-  const subTotal = lines.reduce((a, l) => a + (Number(l.price) || 0) * (Number(l.quantity) || 0), 0);
+  // An empty price box means the product's own price (the API does the same)
+  const unitPrice = l => (l.price === "" ? Number(l.listPrice) || 0 : Number(l.price) || 0);
+  const subTotal = lines.reduce((a, l) => a + unitPrice(l) * (Number(l.quantity) || 0), 0);
   const discount = Math.max(0, Number(form.discount) || 0);
   const total    = Math.max(0, subTotal - discount);
 
@@ -140,7 +142,7 @@ export default function SalesEntryPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Sales entry"
-        description="Record sales from Instagram, TikTok, WhatsApp and other orders. They count towards the dashboard totals."
+        description="Record sales made outside the website: social media, returning customers, outsourced and others. They count towards the dashboard totals."
       />
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -159,7 +161,7 @@ export default function SalesEntryPage() {
           </Card>
 
           <Card>
-            <CardHeader title="Items" description={lines.length ? `${lines.length} product${lines.length === 1 ? "" : "s"} added` : "Search for products to add them"} />
+            <CardHeader title="Items" description={lines.length ? `${lines.length} product${lines.length === 1 ? "" : "s"} added · leave the price empty to use the normal price` : "Search for products to add them"} />
             <div className="px-5 pb-5">
               <div className="relative mb-4">
                 <SearchInput value={query} onChange={setQuery} onClear={() => setQuery("")} placeholder="Search products to add…" label="Search products to add" />
@@ -203,14 +205,19 @@ export default function SalesEntryPage() {
                           : <span className="h-10 w-10 shrink-0 rounded-lg bg-hover" />}
                         <div className="min-w-0">
                           <div className="truncate text-[13px] font-medium">{l.name}</div>
-                          <div className="text-xs text-faint">{money((Number(l.price) || 0) * (Number(l.quantity) || 0))}</div>
+                          <div className="text-xs text-faint">
+                            {money(unitPrice(l) * (Number(l.quantity) || 0))}
+                            {l.price !== "" && Number(l.price) !== Number(l.listPrice) && (
+                              <span className="ml-1.5">· usually <span className="line-through">{money(l.listPrice)}</span></span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Field label="Qty" className="col-span-1">
                         <input className={inputCls} type="number" min="1" value={l.quantity} onChange={e => updateLine(i, "quantity", e.target.value)} aria-label={`Quantity of ${l.name}`} />
                       </Field>
-                      <Field label="Unit price (₦)" className="col-span-1">
-                        <input className={inputCls} type="number" min="0" step="0.01" value={l.price} onChange={e => updateLine(i, "price", e.target.value)} aria-label={`Unit price of ${l.name}`} />
+                      <Field label="Price (₦)" className="col-span-1">
+                        <input className={inputCls} type="number" min="0" step="0.01" value={l.price} onChange={e => updateLine(i, "price", e.target.value)} placeholder={String(l.listPrice ?? "")} aria-label={`Unit price of ${l.name} (leave empty for ${money(l.listPrice)})`} />
                       </Field>
                       <Field label="Colour" className="col-span-1">
                         {l.colors.length ? (
@@ -240,7 +247,7 @@ export default function SalesEntryPage() {
         <Card className="h-fit lg:sticky lg:top-20">
           <CardHeader title="Payment" />
           <div className="flex flex-col gap-3 px-5 pb-5">
-            <Field label="Came from *">
+            <Field label="Order Source *">
               <div role="radiogroup" aria-label="Where the sale came from" className="grid grid-cols-2 gap-1.5">
                 {SALES_CHANNELS.map(c => (
                   <button

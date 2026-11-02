@@ -206,6 +206,12 @@ const STATUS_STYLES = {
   approved:   "bg-[#eaf7ef] text-[#15803d]",
   cancelled:  "bg-[#fdeeee] text-[#b91c1c]",
   returned:   "bg-[#fff1e8] text-[#c2410c]",
+  // Refund / return requests (lib/returnRefund.js)
+  requested:      "bg-[#fef7e6] text-[#a16207]",
+  received:       "bg-[#f3eefe] text-[#6d28d9]",
+  outfordelivery: "bg-[#e9f5fc] text-[#0369a1]",
+  refunded:       "bg-[#eaf7ef] text-[#15803d]",
+  rejected:       "bg-[#fdeeee] text-[#b91c1c]",
 };
 export const statusStyle = status => STATUS_STYLES[normalizeStatusKey(status)] || "bg-[#f1f3f2] text-sub";
 

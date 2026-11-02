@@ -1,5 +1,6 @@
 // app/api/orders/[id]/route.js
 
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
@@ -14,11 +15,36 @@ const STATUS_UPDATE_EMAILS = ["processing", "shipped", "intransit", "delivered"]
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// What anyone with the order number sees (the public tracker in components/Tracking.jsx):
+// progress and items, never the customer's name, address, phone or email
+const publicOrder = (o) => ({
+  _id: o._id,
+  status: o.status,
+  statusHistory: o.statusHistory,
+  items: (o.items || []).map(({ name, color, quantity, price, image }) => ({ name, color, quantity, price, image })),
+  total: o.total,
+  createdAt: o.createdAt,
+});
+
+// Admins, and the customer it belongs to (their account, or their email on a guest order)
+function canSeeFullOrder(user, order) {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  if (order.userId && String(order.userId) === String(user.id)) return true;
+  return Boolean(user.email && order.email && user.email.toLowerCase() === order.email.toLowerCase());
+}
+
 export async function GET(req, context) {
   await connectDB();
   const { id } = await context.params;
   try {
-    const order = await Order.findById(id);
+    const order = mongoose.isValidObjectId(id) ? await Order.findById(id).lean() : null;
+    if (order && !canSeeFullOrder(verifyToken(req.cookies.get("token")?.value), order)) {
+      return new Response(JSON.stringify({ order: publicOrder(order) }), {
+        status: 200,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      });
+    }
     if (!order) {
       return new Response(JSON.stringify({ message: "Order not found" }), {
         status: 404,

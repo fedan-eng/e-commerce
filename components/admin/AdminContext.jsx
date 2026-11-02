@@ -21,7 +21,7 @@ export function AdminProvider({ user, children }) {
 
   const refreshAlerts = useCallback(async () => {
     const staleBefore = new Date(Date.now() - STALE_DAYS * 86400000).toISOString();
-    const [pendingReviews, confirmedOrders, staleOrders, outOfStock, abandonedCarts, recent] = await Promise.all([
+    const [pendingReviews, confirmedOrders, staleOrders, outOfStock, abandonedCarts, recent, newReturnRequests] = await Promise.all([
       total("/api/admin/reviews?status=pending&limit=1"),
       total("/api/admin/orders?status=confirmed&limit=1"),
       total(`/api/admin/orders?status=confirmed&limit=1&to=${encodeURIComponent(staleBefore)}`),
@@ -31,8 +31,9 @@ export function AdminProvider({ user, children }) {
         .then(r => (r.ok ? r.json() : {}))
         .then(d => d.orders || [])
         .catch(() => []),
+      total("/api/admin/returns?stage=new&limit=1"),
     ]);
-    setAlerts({ pendingReviews, confirmedOrders, staleOrders, staleDays: STALE_DAYS, outOfStock, abandonedCarts, recentOrders: recent });
+    setAlerts({ pendingReviews, confirmedOrders, staleOrders, staleDays: STALE_DAYS, outOfStock, abandonedCarts, recentOrders: recent, newReturnRequests });
   }, []);
 
   useEffect(() => {

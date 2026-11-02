@@ -1,7 +1,9 @@
 "use client";
 // components/profile/orders/OrderDetail.jsx — one order: items (buy again / return), totals,
-// delivery details and tracking, plus the return and support forms.
-import { useState } from "react";
+// delivery details and tracking, plus the refund/return and support forms.
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import axios from "axios";
 import { ArrowLeft, Info, MessageCircle } from "lucide-react";
 import AddToCartButton from "@/components/AddToCart";
 import OrderProgressBar from "@/components/OrderTracking";
@@ -11,15 +13,37 @@ import StatusPill from "./StatusPill";
 import ReturnForm from "./ReturnForm";
 import SupportForm from "./SupportForm";
 import { RETURN_DAYS, getReturnDeadline, formatReturnDate } from "@/lib/returns";
+import { canRequest } from "@/lib/returnRefund";
 import { normalizeStatusKey } from "@/lib/orderStatus";
+
+const itemBtn =
+  "h-10 flex-1 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-forest transition-colors hover:border-forest sm:flex-none";
 
 export default function OrderDetail({ order, onBack }) {
   const [tab, setTab] = useState("details"); // details | track
-  const [view, setView] = useState("order"); // order | return | support
-  const [returningItem, setReturningItem] = useState(null);
+  const [view, setView] = useState("order"); // order | refund | return | support
+  const [itemIndex, setItemIndex] = useState(null);
+  const [requests, setRequests] = useState([]); // this order's refund/return requests
 
-  if (view === "return" && returningItem) {
-    return <ReturnForm order={order} item={returningItem} onBack={() => setView("order")} />;
+  const loadRequests = useCallback(() => {
+    axios
+      .get(`/api/returns?orderId=${order._id}`)
+      .then((res) => setRequests(res.data.requests || []))
+      .catch(() => setRequests([]));
+  }, [order._id]);
+  useEffect(loadRequests, [loadRequests]);
+
+  if ((view === "refund" || view === "return") && order.items[itemIndex]) {
+    return (
+      <ReturnForm
+        type={view}
+        order={order}
+        item={order.items[itemIndex]}
+        itemIndex={itemIndex}
+        onSent={loadRequests}
+        onBack={() => setView("order")}
+      />
+    );
   }
   if (view === "support") {
     return <SupportForm order={order} onBack={() => setView("order")} />;
@@ -28,6 +52,9 @@ export default function OrderDetail({ order, onBack }) {
   const regionName = order.region?.name || order.region || "";
   const deadline = getReturnDeadline(order);
   const returnOpen = Boolean(deadline) && new Date() <= deadline;
+  const refundOpen = canRequest("refund", order);
+  // The latest open request of each kind for an item
+  const openRequest = (i, type) => requests.find((r) => r.itemIndex === i && r.type === type && r.open);
   // Not delivered yet (and not cancelled/returned): the window starts on delivery
   const awaitingDelivery = !deadline && !["cancelled", "returned"].includes(normalizeStatusKey(order.status));
   const rows = [
@@ -88,25 +115,40 @@ export default function OrderDetail({ order, onBack }) {
                     {item.color ? `${item.color} · ` : ""}Qty {item.quantity} · {formatAmount(item.price)}
                   </p>
                 </div>
-                <div className="flex w-full gap-2 sm:w-auto">
+                <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap">
                   <AddToCartButton
                     product={{ ...item, availability: item.availability ?? true }}
                     label="Buy again"
                     animated={false}
                     className="h-10 flex-1 rounded-full bg-forest px-4 text-[13px] font-semibold text-white transition-colors hover:bg-black sm:flex-none"
                   />
-                  {returnOpen && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setReturningItem(item);
-                        setView("return");
-                      }}
-                      className="h-10 flex-1 rounded-full border border-line bg-white px-4 text-[13px] font-semibold text-forest transition-colors hover:border-forest sm:flex-none"
-                    >
-                      Return
-                    </button>
-                  )}
+                  {[
+                    { type: "refund", label: "Refund", allowed: refundOpen },
+                    { type: "return", label: "Return", allowed: returnOpen },
+                  ].map(({ type, label, allowed }) => {
+                    const open = openRequest(i, type);
+                    if (open) {
+                      return (
+                        <Link key={type} href={`/track?code=${open.code}`} className={`${itemBtn} inline-flex items-center justify-center bg-mint`}>
+                          {label}: {open.statusLabel}
+                        </Link>
+                      );
+                    }
+                    if (!allowed) return null;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          setItemIndex(i);
+                          setView(type);
+                        }}
+                        className={itemBtn}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </li>
             ))}

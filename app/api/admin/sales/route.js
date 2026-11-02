@@ -46,7 +46,11 @@ export async function GET(req) {
         .populate("recordedBy", "firstName lastName")
         .lean(),
       Order.aggregate([{ $match: query }, { $group: { _id: null, revenue: { $sum: "$total" } } }]),
-      Order.aggregate([{ $match: query }, { $group: { _id: "$channel", sales: { $sum: 1 }, revenue: { $sum: "$total" } } }]),
+      // Old "orders" sales count as Others (lib/salesChannels.js)
+      Order.aggregate([
+        { $match: query },
+        { $group: { _id: { $cond: [{ $eq: ["$channel", "orders"] }, "others", "$channel"] }, sales: { $sum: 1 }, revenue: { $sum: "$total" } } },
+      ]),
     ]);
 
     // { instagram: { sales, revenue }, ..., none: {...} for sales recorded before channels existed }
