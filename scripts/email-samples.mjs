@@ -4,6 +4,7 @@ import { buildAbandonedCartEmail } from "../lib/emails/abandonedCartEmail.js";
 import { buildReviewRequestEmail } from "../lib/emails/reviewRequestEmail.js";
 import { buildWelcomeEmail } from "../lib/emails/welcomeEmail.js";
 import { buildAccountCreatedEmail } from "../lib/emails/accountCreatedEmail.js";
+import { buildCreatorLinkedEmail } from "../lib/emails/creatorLinkedEmail.js";
 import { buildSignInCodeEmail } from "../lib/emails/signInCodeEmail.js";
 import { buildPasswordResetEmail, buildPasswordChangedEmail } from "../lib/emails/passwordEmails.js";
 import {
@@ -87,6 +88,7 @@ export function emailSamples() {
     })],
     ["account-welcome", buildWelcomeEmail({ firstName: "Adaeze" })],
     ["account-created", buildAccountCreatedEmail({ email: "adaeze@example.com", password: "Fil#k82mQa", code: "482913", link: "https://www.filstore.com.ng/verify-email?token=sample" })],
+    ["account-creator-linked", buildCreatorLinkedEmail({ firstName: "Dammy", code: "DAMMY10", discount: 10, commissionPercent: 5 })],
     ["account-sign-in-code", buildSignInCodeEmail({ code: "731520" })],
     ["account-password-reset", buildPasswordResetEmail({ firstName: "Adaeze", code: "590214", link: "https://www.filstore.com.ng/reset-password/token?token=sample" })],
     ["account-password-reset-done", buildPasswordChangedEmail({ firstName: "Adaeze", reset: true })],

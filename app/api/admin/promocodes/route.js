@@ -1,12 +1,13 @@
 // app/api/admin/promocodes/route.js
 // GET  ?from&to — every code with its order stats for that range (all time without one)
-// POST — create a code
+// POST — create a code; a creator code can be tied to an account straight away (creatorUser)
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import PromoCode from "@/models/PromoCode";
 import { EMPTY_STATS, parsePromoBody, promoStats, toClient } from "@/lib/promoCodes";
 import { creatorAnalytics } from "@/lib/creatorStats";
+import { parseCreatorUser, onCreatorLinked } from "@/lib/creatorLink";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(req) {
   const to = dateParam(searchParams.get("to"));
 
   await connectDB();
-  const codes = await PromoCode.find().sort({ createdAt: -1, _id: -1 }).lean();
+  const codes = await PromoCode.find().sort({ createdAt: -1, _id: -1 }).populate("creatorUser", "email firstName lastName").lean();
   const creatorCodes = codes.filter((c) => c.type === "creator").map((c) => c.code.toUpperCase());
   const [stats, credited] = await Promise.all([
     promoStats({ from, to }),
@@ -58,6 +59,11 @@ export async function POST(req) {
   const taken = await PromoCode.exists({ code: data.code }).collation({ locale: "en", strength: 2 });
   if (taken) return NextResponse.json({ message: `${data.code} already exists` }, { status: 409 });
 
-  const promo = await PromoCode.create(data);
-  return NextResponse.json({ code: { ...toClient(promo.toObject()), stats: EMPTY_STATS } }, { status: 201 });
+  const link = await parseCreatorUser(body, data.type);
+  if (link.error) return NextResponse.json({ message: link.error }, { status: 400 });
+
+  const promo = await PromoCode.create({ ...data, creatorUser: link.userId || null });
+  const emailed = link.user ? await onCreatorLinked(promo, link.user) : false;
+  const code = { ...toClient({ ...promo.toObject(), creatorUser: link.user || null }), stats: EMPTY_STATS };
+  return NextResponse.json({ code, linked: Boolean(link.user), emailed }, { status: 201 });
 }
