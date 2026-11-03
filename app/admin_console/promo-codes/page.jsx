@@ -2,15 +2,15 @@
 // Promo codes: create and edit the checkout rules, and see the orders each code brought in.
 // Creator codes also show sales and the commission owed for the chosen period.
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
-  Plus, Pencil, Trash2, Power, Copy, TicketPercent, CalendarDays, ChevronDown, ShoppingBag, Wallet, HandCoins, BadgePercent,
+  Plus, Pencil, Trash2, Power, Copy, X, UserRound, TicketPercent, CalendarDays, ChevronDown, ShoppingBag, Wallet, HandCoins, BadgePercent,
 } from "lucide-react";
 import {
   PageHeader, Card, CardHeader, Button, IconButton, Tabs, Field, Switch, EmptyState, Skeleton, StatusBadge,
-  StatCard, Segmented, Dropdown, MenuItem, inputCls, TH, TD, cx,
+  StatCard, Dropdown, MenuItem, inputCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, compact, timeAgo } from "@/components/admin/format";
 
@@ -19,6 +19,7 @@ const API = "/api/admin/promocodes";
 const EMPTY_FORM = {
   code: "", type: "general", discount: "10", creatorName: "", creatorHandle: "", commissionPercent: "",
   minCartValue: "", maxUses: "", expiresAt: "", firstPurchaseOnly: false, oneTimePerUser: true, active: true, note: "",
+  creatorUser: null, // { _id, email, name } of the account that gets the creator dashboard
 };
 
 const RANGES = [
@@ -71,6 +72,83 @@ function statusOf(c) {
   return { key: "approved", label: "Active" };
 }
 
+// Optional: tie a creator code to an existing account. Linking makes them a creator and emails them.
+function AccountPicker({ value, onChange }) {
+  const [query,   setQuery]   = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(timer.current);
+    const q = query.trim();
+    if (q.length < 2) { setResults([]); return; }
+    timer.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const data = await send(`/api/admin/users?search=${encodeURIComponent(q)}&limit=6`, "GET");
+        setResults(data.users || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer.current);
+  }, [query]);
+
+  if (value) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-edge bg-canvas px-3 py-2">
+        <span className="flex min-w-0 items-center gap-2">
+          <UserRound size={16} className="shrink-0 text-faint" aria-hidden />
+          <span className="min-w-0">
+            <span className="block truncate text-[13px] font-medium text-ink">{value.name || value.email || "Linked account"}</span>
+            {value.name && <span className="block truncate text-xs text-faint">{value.email}</span>}
+          </span>
+        </span>
+        <IconButton label="Unlink account" onClick={() => onChange(null)} className="h-8 w-8"><X size={15} /></IconButton>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <input
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Search by name or email"
+        className={inputCls}
+      />
+      {query.trim().length >= 2 && (
+        <div className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-edge bg-white py-1 shadow-lg">
+          {loading && !results.length && <p className="m-0 px-3 py-2 text-xs text-faint">Searching…</p>}
+          {!loading && !results.length && <p className="m-0 px-3 py-2 text-xs text-faint">No accounts match.</p>}
+          {results.map(u => {
+            const name = [u.firstName, u.lastName].filter(Boolean).join(" ");
+            const banned = u.isActive === false;
+            return (
+              <button
+                key={u._id}
+                type="button"
+                disabled={banned}
+                onClick={() => { onChange({ _id: u._id, email: u.email, name }); setQuery(""); }}
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-3 py-2 text-left hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] text-ink">{name || u.email}</span>
+                  {name && <span className="block truncate text-xs text-faint">{u.email}</span>}
+                </span>
+                <span className="shrink-0 text-xs text-faint">{banned ? "Banned" : u.role === "user" ? "Shopper" : u.role[0].toUpperCase() + u.role.slice(1)}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Add / edit form ──────────────────────────────────────────
 function PromoForm({ initial, onCancel, onSaved }) {
   const isEdit = Boolean(initial?._id);
@@ -94,9 +172,14 @@ function PromoForm({ initial, onCancel, onSaved }) {
     try {
       // End of the chosen day, in the admin's time zone
       const expiresAt = form.expiresAt ? new Date(`${form.expiresAt}T23:59:59`).toISOString() : null;
-      const body = { ...form, expiresAt };
+      const body = { ...form, expiresAt, creatorUser: form.creatorUser?._id || "" };
       const data = isEdit ? await send(`${API}/${initial._id}`, "PATCH", body) : await send(API, "POST", body);
       toast.success(isEdit ? `${data.code.code} updated` : `${data.code.code} created`);
+      if (data.linked) {
+        const who = data.code.creatorUser?.email || "the creator";
+        if (data.emailed) toast.success(`Linked to ${who} and emailed them`);
+        else toast.error(`Linked to ${who}, but the confirmation email didn't send`);
+      }
       onSaved(data.code);
     } catch (err) {
       toast.error(err.message);
@@ -112,14 +195,30 @@ function PromoForm({ initial, onCancel, onSaved }) {
         description={isCreator
           ? "Give the creator this code, or their link (filstore.com.ng/?ref=CODE), which fills the code in for shoppers. Orders through either count under their name."
           : "Shoppers type this code at checkout to get the discount."}
+        action={
+          <div className="w-full sm:w-auto sm:min-w-[300px]">
+            <Switch
+              checked={form.active}
+              onChange={e => set("active", e.target.checked)}
+              label="Active"
+              description="Turn off to stop it working at checkout. Its orders stay counted."
+            />
+          </div>
+        }
       />
       <form onSubmit={submit} className="flex flex-col gap-5 border-t border-edge px-5 py-5">
-        <Segmented
-          label="Code type"
-          value={form.type}
-          onChange={v => set("type", v)}
-          options={[{ value: "general", label: "General" }, { value: "creator", label: "Creator" }]}
-        />
+        <div role="group" aria-label="Code type" className="flex flex-wrap gap-2">
+          {[{ value: "general", label: "General" }, { value: "creator", label: "Creator" }].map(o => (
+            <Button
+              key={o.value}
+              variant={form.type === o.value ? "primary" : "secondary"}
+              aria-pressed={form.type === o.value}
+              onClick={() => set("type", o.value)}
+            >
+              {o.label}
+            </Button>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Code" hint={isEdit ? "Codes can't be renamed. Create a new one instead." : "Letters, numbers, - or _. Saved in capitals."}>
@@ -144,6 +243,9 @@ function PromoForm({ initial, onCancel, onSaved }) {
               </Field>
               <Field label="Handle (optional)">
                 <input value={form.creatorHandle} onChange={e => set("creatorHandle", e.target.value)} placeholder="e.g. @dammy on TikTok" maxLength={80} className={inputCls} />
+              </Field>
+              <Field label="Link to an account (optional)" hint="Makes them a creator and emails them. You can also do this from their customer page.">
+                <AccountPicker value={form.creatorUser} onChange={v => set("creatorUser", v)} />
               </Field>
               <Field label="Commission (%)" hint="Of product sales after the discount, delivery not included. Leave empty for none.">
                 <input type="number" min="0" max="100" step="any" value={form.commissionPercent} onChange={e => set("commissionPercent", e.target.value)} placeholder="0" className={inputCls} />
@@ -174,12 +276,6 @@ function PromoForm({ initial, onCancel, onSaved }) {
             onChange={e => set("firstPurchaseOnly", e.target.checked)}
             label="First order only"
             description="Only for shoppers who have never ordered before, with or without a code."
-          />
-          <Switch
-            checked={form.active}
-            onChange={e => set("active", e.target.checked)}
-            label="Active"
-            description="Turn off to stop it working at checkout. Its orders stay counted."
           />
         </div>
 

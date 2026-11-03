@@ -76,7 +76,7 @@ export async function POST(req) {
     const body = await req.json();
     const {
       firstName, lastName, email, phone, address, city,
-      items, paymentMethod, discount, orderNote, saleDate, channel,
+      items, paymentMethod, discount, deliveryFee, orderNote, saleDate, channel,
     } = body;
 
     if (!firstName?.trim()) return NextResponse.json({ message: "Customer name is required" }, { status: 400 });
@@ -113,6 +113,8 @@ export async function POST(req) {
     const subTotal = orderItems.reduce((a, it) => a + it.price * it.quantity, 0);
     const disc     = Math.max(0, Number(discount) || 0);
     if (disc > subTotal) return NextResponse.json({ message: "Discount cannot exceed subtotal" }, { status: 400 });
+    const delivery = deliveryFee === "" || deliveryFee == null ? 0 : Number(deliveryFee);
+    if (!Number.isFinite(delivery) || delivery < 0) return NextResponse.json({ message: "Invalid delivery fee" }, { status: 400 });
 
     const date = saleDate ? new Date(saleDate) : new Date();
     if (isNaN(date) || date > new Date()) return NextResponse.json({ message: "Invalid sale date" }, { status: 400 });
@@ -133,9 +135,9 @@ export async function POST(req) {
       orderNote:     orderNote?.trim() || "",
       items:         orderItems,
       subTotal,
-      deliveryFee:   0,
+      deliveryFee:   delivery,
       discount:      disc,
-      total:         subTotal - disc,
+      total:         subTotal - disc + delivery,
       paymentMethod,
       paymentStatus: "paid",
       status:        "delivered",
