@@ -23,7 +23,7 @@ const PAYMENT_OPTIONS = [
 
 const EMPTY_FORM = {
   firstName: "", lastName: "", email: "", phone: "", address: "", city: "",
-  paymentMethod: "cash", discount: "", orderNote: "", saleDate: "", channel: "",
+  paymentMethod: "cash", discount: "", deliveryFee: "", orderNote: "", saleDate: "", channel: "",
 };
 
 function todayLocal() {
@@ -94,8 +94,10 @@ export default function SalesEntryPage() {
   // An empty price box means the product's own price (the API does the same)
   const unitPrice = l => (l.price === "" ? Number(l.listPrice) || 0 : Number(l.price) || 0);
   const subTotal = lines.reduce((a, l) => a + unitPrice(l) * (Number(l.quantity) || 0), 0);
-  const discount = Math.max(0, Number(form.discount) || 0);
-  const total    = Math.max(0, subTotal - discount);
+  // The discount comes off the products only; delivery is added on top
+  const discount    = Math.max(0, Number(form.discount) || 0);
+  const deliveryFee = Math.max(0, Number(form.deliveryFee) || 0);
+  const total       = Math.max(0, subTotal - discount) + deliveryFee;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -274,8 +276,11 @@ export default function SalesEntryPage() {
                 {PAYMENT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </Field>
-            <Field label="Discount (₦)">
+            <Field label="Discount (₦)" hint="Off the products, not the delivery fee.">
               <input className={inputCls} type="number" min="0" step="0.01" value={form.discount} onChange={set("discount")} placeholder="0" />
+            </Field>
+            <Field label="Delivery fee (₦)">
+              <input className={inputCls} type="number" min="0" step="0.01" value={form.deliveryFee} onChange={set("deliveryFee")} placeholder="0" />
             </Field>
             <Field label="Note">
               <textarea className={textareaCls} rows={3} value={form.orderNote} onChange={set("orderNote")} placeholder="Optional" />
@@ -284,6 +289,7 @@ export default function SalesEntryPage() {
             <div className="mt-1 flex flex-col gap-1.5 border-t border-edge pt-3 text-[13px]">
               <div className="flex justify-between text-sub"><span>Subtotal</span><span>{money(subTotal)}</span></div>
               {discount > 0 && <div className="flex justify-between text-sub"><span>Discount</span><span className="text-[#b91c1c]">−{money(discount)}</span></div>}
+              {deliveryFee > 0 && <div className="flex justify-between text-sub"><span>Delivery</span><span>{money(deliveryFee)}</span></div>}
               <div className="flex items-baseline justify-between pt-1">
                 <span className="font-medium">Total</span>
                 <span className="font-poppins text-xl font-semibold">{money(total)}</span>

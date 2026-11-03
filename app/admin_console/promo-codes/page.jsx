@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import {
   PageHeader, Card, CardHeader, Button, IconButton, Tabs, Field, Switch, EmptyState, Skeleton, StatusBadge,
-  StatCard, Segmented, Dropdown, MenuItem, inputCls, TH, TD, cx,
+  StatCard, Dropdown, MenuItem, inputCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, compact, timeAgo } from "@/components/admin/format";
 
@@ -112,14 +112,30 @@ function PromoForm({ initial, onCancel, onSaved }) {
         description={isCreator
           ? "Give the creator this code, or their link (filstore.com.ng/?ref=CODE), which fills the code in for shoppers. Orders through either count under their name."
           : "Shoppers type this code at checkout to get the discount."}
+        action={
+          <div className="w-full sm:w-auto sm:min-w-[300px]">
+            <Switch
+              checked={form.active}
+              onChange={e => set("active", e.target.checked)}
+              label="Active"
+              description="Turn off to stop it working at checkout. Its orders stay counted."
+            />
+          </div>
+        }
       />
       <form onSubmit={submit} className="flex flex-col gap-5 border-t border-edge px-5 py-5">
-        <Segmented
-          label="Code type"
-          value={form.type}
-          onChange={v => set("type", v)}
-          options={[{ value: "general", label: "General" }, { value: "creator", label: "Creator" }]}
-        />
+        <div role="group" aria-label="Code type" className="flex flex-wrap gap-2">
+          {[{ value: "general", label: "General" }, { value: "creator", label: "Creator" }].map(o => (
+            <Button
+              key={o.value}
+              variant={form.type === o.value ? "primary" : "secondary"}
+              aria-pressed={form.type === o.value}
+              onClick={() => set("type", o.value)}
+            >
+              {o.label}
+            </Button>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Code" hint={isEdit ? "Codes can't be renamed. Create a new one instead." : "Letters, numbers, - or _. Saved in capitals."}>
@@ -174,12 +190,6 @@ function PromoForm({ initial, onCancel, onSaved }) {
             onChange={e => set("firstPurchaseOnly", e.target.checked)}
             label="First order only"
             description="Only for shoppers who have never ordered before, with or without a code."
-          />
-          <Switch
-            checked={form.active}
-            onChange={e => set("active", e.target.checked)}
-            label="Active"
-            description="Turn off to stop it working at checkout. Its orders stay counted."
           />
         </div>
 
