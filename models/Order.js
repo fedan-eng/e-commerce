@@ -1,6 +1,7 @@
 // models/Order.js
 import mongoose from "mongoose";
 import PromoCode from "./PromoCode";
+import { shortId } from "../lib/orderStatus.js";
 
 // Online checkout orders need delivery/contact details; manual (offline) sales don't
 function requiredIfOnline() {
@@ -122,6 +123,12 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  // The short number customers see in emails and type into the tracker: the last 8 characters
+  // of _id, uppercase (lib/orderStatus.js shortId). Not unique: two orders can share one, rarely.
+  orderNumber: {
+    type: String,
+    index: true,
+  },
   // "online" = storefront checkout, "manual" = entered by staff in the admin console
   source: {
     type: String,
@@ -169,6 +176,10 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ phone: 1 });
 
 const upper = (v) => String(v || "").trim().toUpperCase();
+
+orderSchema.pre("save", function () {
+  if (!this.orderNumber) this.orderNumber = shortId(this._id);
+});
 
 // Same credit rule as lib/creatorStats.js: a typed creator code wins, then the ?ref= link
 orderSchema.pre("save", async function () {
