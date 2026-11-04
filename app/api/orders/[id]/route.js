@@ -1,6 +1,5 @@
 // app/api/orders/[id]/route.js
 
-import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { verifyToken } from "@/lib/auth";
@@ -34,11 +33,20 @@ function canSeeFullOrder(user, order) {
   return Boolean(user.email && order.email && user.email.toLowerCase() === order.email.toLowerCase());
 }
 
+// The full id, or the 8-character order number the emails show (#1C57B6D4), with or without the #
+async function findOrderByNumber(raw) {
+  const id = String(raw || "").trim().replace(/^#+/, "").trim();
+  if (/^[0-9a-f]{24}$/i.test(id)) return Order.findById(id).lean();
+  if (!/^[0-9a-f]{8}$/i.test(id)) return null;
+  // Newest first, in the unlikely case two orders share the last 8 characters
+  return Order.findOne({ orderNumber: id.toUpperCase() }).sort({ _id: -1 }).lean();
+}
+
 export async function GET(req, context) {
   await connectDB();
   const { id } = await context.params;
   try {
-    const order = mongoose.isValidObjectId(id) ? await Order.findById(id).lean() : null;
+    const order = await findOrderByNumber(id);
     if (order && !canSeeFullOrder(verifyToken(req.cookies.get("token")?.value), order)) {
       return new Response(JSON.stringify({ order: publicOrder(order) }), {
         status: 200,

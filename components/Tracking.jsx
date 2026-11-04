@@ -27,8 +27,10 @@ function TrackingContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchOrder = async (id) => {
-    if (!id.trim()) {
+  const fetchOrder = async (input) => {
+    // Accept "#1C57B6D4" as well as "1C57B6D4" or the full id
+    const id = input.trim().replace(/^#+/, "").trim();
+    if (!id) {
       setError("Please enter an order number");
       return;
     }
@@ -38,7 +40,7 @@ function TrackingContent() {
     setOrder(null);
 
     try {
-      const res = await axios.get(`/api/orders/${id.trim()}`);
+      const res = await axios.get(`/api/orders/${encodeURIComponent(id)}`);
       setOrder(res.data.order);
     } catch (err) {
       console.error("Tracking error:", err);
