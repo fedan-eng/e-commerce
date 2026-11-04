@@ -1,48 +1,28 @@
 "use client";
 
-// Full-screen player for the Creators section: one video per screen, swipe (or arrow keys) between
-// them like Stories, and swiping past the last one closes it. Loaded on demand from Creators.jsx.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+// Full-screen player for the Creators section, built on the shared swipe shell. Loaded on demand
+// from Creators.jsx.
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play, Volume2, VolumeX, X } from "lucide-react";
+import { Play, Volume2, VolumeX } from "lucide-react";
 import {
   applyIOSInlineAttributes,
   exitFullscreen,
   formatPrice,
-  fullscreenElement,
   productHref,
   ProductThumb,
   safePause,
   safePlay,
 } from "./creatorsShared";
+import { EndSlide, SLIDE_CLASS, TRACK_CLASS, useSwipeViewer, ViewerArrows, ViewerButton, ViewerTopBar } from "./swipeViewer";
 
 export default function CreatorsViewer({ items, startIndex, onClose }) {
-  const trackRef = useRef(null);
-  const slideRefs = useRef([]);
   const videoRefs = useRef([]);
   const progressRef = useRef(null);
-  const [active, setActive] = useState(startIndex);
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const mutedRef = useRef(false);
-  const activeRef = useRef(startIndex);
-  const closedRef = useRef(false);
-  activeRef.current = active;
-
-  const close = useCallback(() => {
-    if (closedRef.current) return;
-    closedRef.current = true;
-    exitFullscreen();
-    onClose(activeRef.current);
-  }, [onClose]);
-
-  // Index items.length is the empty slide after the last video; landing on it closes the player
-  const goTo = useCallback((i) => {
-    const track = trackRef.current;
-    if (!track || i < 0) return;
-    track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
-  }, []);
 
   const playActive = useCallback((video) => {
     video.muted = mutedRef.current;
@@ -58,41 +38,31 @@ export default function CreatorsViewer({ items, startIndex, onClose }) {
     });
   }, []);
 
-  const togglePlay = useCallback(() => {
+  const { trackRef, slideRef, active, activeRef, goTo, close } = useSwipeViewer({
+    count: items.length,
+    startIndex,
+    onClose,
+    onKey: (e) => {
+      if (e.key !== " ") return;
+      e.preventDefault();
+      togglePlay();
+    },
+  });
+
+  const togglePlay = () => {
     const video = videoRefs.current[activeRef.current];
     if (!video) return;
     if (video.paused) playActive(video);
     else safePause(video);
-  }, [playActive]);
+  };
 
-  const toggleMute = (e) => {
-    e.stopPropagation();
+  const toggleMute = () => {
     const next = !mutedRef.current;
     mutedRef.current = next;
     setMuted(next);
     const video = videoRefs.current[activeRef.current];
     if (video) video.muted = next;
   };
-
-  // Open on the video that was tapped, before the first paint
-  useLayoutEffect(() => {
-    const track = trackRef.current;
-    if (track) track.scrollLeft = startIndex * track.clientWidth;
-  }, [startIndex]);
-
-  // Whichever slide is mostly on screen is the one that plays
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const i = Number(e.target.dataset.index);
-        if (i === items.length) close();
-        else setActive(i);
-      });
-    }, { root: trackRef.current, threshold: 0.6 });
-    slideRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [items.length, close]);
 
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
@@ -102,37 +72,6 @@ export default function CreatorsViewer({ items, startIndex, onClose }) {
     const video = videoRefs.current[active];
     if (video) playActive(video);
   }, [active, playActive]);
-
-  // Leaving browser fullscreen (Esc, Android back) closes the player too, so there's only one exit.
-  // Fullscreen is exited in close(), not on unmount: StrictMode's mount/unmount/mount would drop it.
-  useEffect(() => {
-    let wasFullscreen = Boolean(fullscreenElement());
-    const onChange = () => {
-      if (fullscreenElement()) wasFullscreen = true;
-      else if (wasFullscreen) close();
-    };
-    const onKey = (e) => {
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowRight") goTo(activeRef.current + 1);
-      else if (e.key === "ArrowLeft") goTo(activeRef.current - 1);
-      else if (e.key === " ") {
-        e.preventDefault();
-        togglePlay();
-      }
-    };
-    const html = document.documentElement;
-    const prevOverflow = html.style.overflow;
-    html.style.overflow = "hidden";
-    document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("webkitfullscreenchange", onChange);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      html.style.overflow = prevOverflow;
-      document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("webkitfullscreenchange", onChange);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [close, goTo, togglePlay]);
 
   return (
     <motion.div
@@ -145,10 +84,7 @@ export default function CreatorsViewer({ items, startIndex, onClose }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <div
-        ref={trackRef}
-        className="flex h-full w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      <div ref={trackRef} className={TRACK_CLASS}>
         {items.map((item, i) => {
           const isActive = i === active;
           // Only the current video and its neighbours get a <video>; the rest stay as posters
@@ -158,10 +94,10 @@ export default function CreatorsViewer({ items, startIndex, onClose }) {
           return (
             <div
               key={item.id}
-              ref={(el) => { slideRefs.current[i] = el; }}
+              ref={slideRef(i)}
               data-index={i}
               onClick={() => isActive && togglePlay()}
-              className="relative flex h-full w-full shrink-0 snap-center snap-always items-center justify-center overflow-hidden"
+              className={SLIDE_CLASS}
             >
               <img
                 src={item.poster}
@@ -249,66 +185,16 @@ export default function CreatorsViewer({ items, startIndex, onClose }) {
           );
         })}
 
-        <div
-          ref={(el) => { slideRefs.current[items.length] = el; }}
-          data-index={items.length}
-          aria-hidden
-          className="flex h-full w-full shrink-0 snap-center items-center justify-center text-sm text-white/50"
-        >
-          That&apos;s all for now
-        </div>
+        <EndSlide count={items.length} slideRef={slideRef} />
       </div>
 
-      {/* Story-style progress, mute and close */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/60 to-transparent px-3 pb-10 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
-        <div className="mx-auto flex max-w-3xl gap-1">
-          {items.map((item, i) => (
-            <div key={item.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/25">
-              {/* Re-keyed when it becomes or stops being the active one, so stale progress never sticks */}
-              <div
-                key={i === active ? "active" : "idle"}
-                ref={i === active ? progressRef : undefined}
-                className="h-full w-full origin-left bg-white"
-                style={{ transform: `scaleX(${i < active ? 1 : 0})` }}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="mx-auto mt-3 flex max-w-3xl items-center justify-end gap-2">
-          <button
-            onClick={toggleMute}
-            aria-label={muted ? "Unmute" : "Mute"}
-            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-md transition-colors hover:bg-black/70"
-          >
-            {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-          </button>
-          <button
-            onClick={close}
-            aria-label="Close"
-            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-md transition-colors hover:bg-black/70"
-          >
-            <X size={20} />
-          </button>
-        </div>
-      </div>
+      <ViewerTopBar count={items.length} active={active} progressRef={progressRef} onClose={close}>
+        <ViewerButton onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
+          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+        </ViewerButton>
+      </ViewerTopBar>
 
-      {/* Desktop arrows; on touch screens you swipe */}
-      {active > 0 && (
-        <button
-          onClick={() => goTo(active - 1)}
-          aria-label="Previous video"
-          className="absolute left-6 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition-colors hover:bg-white/20 md:flex"
-        >
-          <ChevronLeft size={22} />
-        </button>
-      )}
-      <button
-        onClick={() => goTo(active + 1)}
-        aria-label={active === items.length - 1 ? "Close" : "Next video"}
-        className="absolute right-6 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition-colors hover:bg-white/20 md:flex"
-      >
-        <ChevronRight size={22} />
-      </button>
+      <ViewerArrows count={items.length} active={active} goTo={goTo} />
     </motion.div>
   );
 }

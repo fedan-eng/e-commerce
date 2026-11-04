@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { applyIOSInlineAttributes, enterFullscreen, ProductPill, safePause, safePlay } from "./creatorsShared";
 
 // The player only downloads once the section is near the screen (see the `near` effect)
@@ -12,7 +12,7 @@ const CreatorsViewer = dynamic(() => import("./CreatorsViewer"), { ssr: false })
 // previewStart/previewEnd mark each video's peak seconds for the muted autoplay preview.
 // `preview` (optional) is a short pre-cut clip of those seconds, which loads much faster than
 // seeking into the full video; when it's set, previewStart/previewEnd are ignored.
-// TODO: real peak ranges, and product ids/thumbs/prices (id: null links to the category page).
+// TODO: real peak ranges, and product thumbs/prices.
 const items = [
   {
     id: 1,
@@ -24,7 +24,7 @@ const items = [
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
     previewStart: 0,
     previewEnd: 6,
-    product: { id: null, name: "MagFlex", href: "/products/power-banks", thumb: null, price: null },
+    product: { id: "691b18d96ab12366ceef60dc", name: "MagFlex", thumb: null, price: null },
   },
   {
     id: 2,
@@ -38,7 +38,7 @@ const items = [
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-2-thumb.png",
     previewStart: 0,
     previewEnd: 6,
-    product: { id: null, name: "MagFlex", href: "/products/power-banks", thumb: null, price: null },
+    product: { id: "691b0a30d622795f19fa8315", name: "Spark Box", thumb: null, price: null },
   },
   {
     id: 3,
@@ -52,7 +52,7 @@ const items = [
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/papeetyah-thumb.png",
     previewStart: 87,
     previewEnd: 93,
-    product: { id: null, name: "MagFlex", href: "/products/power-banks", thumb: null, price: null },
+    product: { id: "691b18d96ab12366ceef60dc", name: "MagFlex", thumb: null, price: null },
   },
   {
     id: 4,
@@ -66,7 +66,7 @@ const items = [
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/thunder-power-bank-thumb.png",
     previewStart: 0,
     previewEnd: 6,
-    product: { id: null, name: "Thunder Power Bank", href: "/products/power-banks", thumb: null, price: null },
+    product: { id: "691b05fc33c8bd59db5ab57f", name: "Thunder Power Bank", thumb: null, price: null },
   },
 ];
 
@@ -297,16 +297,7 @@ export default function Creators() {
               <div
                 key={item.id}
                 ref={(el) => { cardRefs.current[i] = el; }}
-                role="button"
-                tabIndex={0}
-                aria-label={`Watch: ${item.title}`}
-                onClick={() => openViewer(i)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openViewer(i);
-                  }
-                }}
+                onClick={() => goTo(i)}
                 className={`relative flex-shrink-0 snap-start rounded-[20px] sm:rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group transition-[width] duration-500 ease-out h-[75vw] max-h-[390px] sm:h-[460px] sm:max-h-none lg:h-[500px] ${
                   isActive ? ACTIVE_WIDTH : IDLE_WIDTH
                 }`}
@@ -393,9 +384,17 @@ export default function Creators() {
                       )}
                     </div>
 
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <Play size={16} className="text-[#082C17] fill-[#082C17] ml-0.5 sm:ml-1" />
-                    </div>
+                    {/* Tapping the card previews it; this opens the full-screen player */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openViewer(i);
+                      }}
+                      aria-label={`Watch full screen: ${item.title}`}
+                      className="pointer-events-auto w-9 h-9 sm:w-10 sm:h-10 shrink-0 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300"
+                    >
+                      <Maximize2 size={16} className="text-[#082C17]" strokeWidth={2.5} />
+                    </button>
                   </div>
                 </div>
 
