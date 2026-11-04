@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Play, Volume2, VolumeX, Maximize2, X } from "lucide-react";
+import dynamic from "next/dynamic";
+import { AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { applyIOSInlineAttributes, enterFullscreen, ProductPill, safePause, safePlay } from "./creatorsShared";
 
-// Updated data structure to accommodate the new mixed layout
+// The player only downloads once the section is near the screen (see the `near` effect)
+const CreatorsViewer = dynamic(() => import("./CreatorsViewer"), { ssr: false });
+
+// previewStart/previewEnd mark each video's peak seconds for the muted autoplay preview.
+// `preview` (optional) is a short pre-cut clip of those seconds, which loads much faster than
+// seeking into the full video; when it's set, previewStart/previewEnd are ignored.
+// TODO: real peak ranges, and product thumbs/prices.
 const items = [
   {
     id: 1,
@@ -15,6 +23,8 @@ const items = [
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/magflex.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/magflex-thumb.png",
     previewStart: 0,
+    previewEnd: 6,
+    product: { id: "691b18d96ab12366ceef60dc", name: "MagFlex", thumb: null, price: null },
   },
   {
     id: 2,
@@ -27,6 +37,8 @@ const items = [
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/dammy-2.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/dammy-2-thumb.png",
     previewStart: 0,
+    previewEnd: 6,
+    product: { id: "691b0a30d622795f19fa8315", name: "Spark Box", thumb: null, price: null },
   },
   {
     id: 3,
@@ -35,10 +47,12 @@ const items = [
     badgeColor: "bg-[#C49BFF]", // Purple
     title: "Honest review...",
     description: "no script",
-    handle: "@papeetyah",
+    handle: "@papeeyah",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/papeetyah.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/papeetyah-thumb.png",
     previewStart: 87,
+    previewEnd: 93,
+    product: { id: "691b18d96ab12366ceef60dc", name: "MagFlex", thumb: null, price: null },
   },
   {
     id: 4,
@@ -51,127 +65,190 @@ const items = [
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/thunder-power-bank.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/thumbnails/thunder-power-bank-thumb.png",
     previewStart: 0,
+    previewEnd: 6,
+    product: { id: "691b05fc33c8bd59db5ab57f", name: "Thunder Power Bank", thumb: null, price: null },
   },
 ];
 
-// Utility functions kept intact
-function safePlay(videoEl) {
-  const p = videoEl.play();
-  videoEl._pendingPlay = p;
-  if (p !== undefined) p.catch(() => {});
-}
+const PREVIEW_SECONDS = 6;
+const STALL_MS = 4000; // skip a card whose preview hasn't started by then (slow network, autoplay blocked)
+const TOUCH_RESUME_MS = 2500; // after a manual swipe, wait this long before the cycle carries on
+const WIDTH_TRANSITION_MS = 500;
 
-function safePause(videoEl, resetTime = false) {
-  const pending = videoEl._pendingPlay;
-  if (pending !== undefined) {
-    pending
-      .then(() => {
-        videoEl.pause();
-        if (resetTime) videoEl.currentTime = 0;
-      })
-      .catch(() => {});
-    videoEl._pendingPlay = undefined;
-  } else {
-    videoEl.pause();
-    if (resetTime) videoEl.currentTime = 0;
-  }
-}
+const ACTIVE_WIDTH = "w-[85vw] max-w-[700px] sm:w-[600px] lg:w-[700px]";
+const IDLE_WIDTH = "w-[42vw] max-w-[220px] sm:max-w-none sm:w-[260px] lg:w-[280px]";
 
-function applyIOSInlineAttributes(el) {
-  if (!el) return;
-  el.setAttribute("playsinline", "");
-  el.setAttribute("webkit-playsinline", "");
-  el.setAttribute("x5-playsinline", "");
-  el.setAttribute("x5-video-player-type", "h5");
-  el.setAttribute("x5-video-player-fullscreen", "false");
+// The #t= fragment makes the browser start the full video at the peak instead of 0:00
+function previewWindow(item) {
+  if (item.preview) return { src: item.preview, start: 0, end: Infinity };
+  const start = item.previewStart ?? 0;
+  return { src: `${item.img}#t=${start}`, start, end: item.previewEnd ?? start + PREVIEW_SECONDS };
 }
 
 export default function Creators() {
-  // const [activeFilter, setActiveFilter] = useState('Instagram');
-  const [isMuted, setIsMuted] = useState(true);
-  const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [playingId, setPlayingId] = useState(null);
-  const [activeFullscreenId, setActiveFullscreenId] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [liveIndex, setLiveIndex] = useState(null); // the card whose preview is actually playing
+  const [loaded, setLoaded] = useState(() => new Set()); // cards whose preview video has been attached
+  const [near, setNear] = useState(false); // section is close to the screen: start loading
+  const [inView, setInView] = useState(false); // section is on screen: run the previews
+  const [pageVisible, setPageVisible] = useState(true);
+  const [held, setHeld] = useState(false); // finger on the row
+  const [autoplayAllowed, setAutoplayAllowed] = useState(true);
+  const [viewerIndex, setViewerIndex] = useState(null);
 
-  const videoRefs = useRef({});
-  const fullscreenVideoRef = useRef(null);
+  const sectionRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const cardRefs = useRef([]);
+  const videoRefs = useRef([]);
+  const progressRefs = useRef([]);
+  const stallTimer = useRef(null);
+  const touchTimer = useRef(null);
+  const activeRef = useRef(0);
+  const heldRef = useRef(false);
+  activeRef.current = activeIndex;
+  heldRef.current = held;
 
-  const scroll = (direction) => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = window.innerWidth < 768 ? 300 : 500;
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
+  const running = near && inView && pageVisible && !held && autoplayAllowed && viewerIndex === null;
 
-  const pauseAllExcept = useCallback((id) => {
-    Object.entries(videoRefs.current).forEach(([vid, el]) => {
-      if (!el) return;
-      if (Number(vid) !== id) safePause(el, true);
-    });
+  const goTo = useCallback((i) => {
+    if (i === activeRef.current) return;
+    setLiveIndex(null);
+    setActiveIndex(i);
   }, []);
 
-  const handlePlayClick = (item) => {
-    const el = videoRefs.current[item.id];
+  const advance = useCallback(() => goTo((activeRef.current + 1) % items.length), [goTo]);
+
+  // Nothing loads until the section is within 300px of the screen
+  useEffect(() => {
+    const el = sectionRef.current;
     if (!el) return;
-
-    if (playingId === item.id) {
-      if (el.paused) safePlay(el);
-      else {
-        safePause(el);
-        setPlayingId(null);
+    const nearObs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setNear(true);
+        nearObs.disconnect();
       }
-    } else {
-      pauseAllExcept(item.id);
-      el.currentTime = item.previewStart ?? 0;
-      safePlay(el);
-      setPlayingId(item.id);
-    }
-  };
-
-  const openFullscreen = (item, e) => {
-    e.stopPropagation();
-    // Pause inline video before opening fullscreen
-    if (playingId === item.id) {
-      const el = videoRefs.current[item.id];
-      if (el) safePause(el);
-      setPlayingId(null);
-    }
-    setActiveFullscreenId(item.id);
-    setIsFullscreen(true);
-  };
-
-  useEffect(() => {
+    }, { rootMargin: "300px 0px" });
+    const viewObs = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.35 });
+    nearObs.observe(el);
+    viewObs.observe(el);
     return () => {
-      Object.values(videoRefs.current).forEach((el) => {
-        if (el) safePause(el);
-      });
+      nearObs.disconnect();
+      viewObs.disconnect();
     };
   }, []);
 
+  // Reduced motion or data saver: posters only, no autoplay
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") setIsFullscreen(false);
+    const onVisibility = () => setPageVisible(!document.hidden);
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setAutoplayAllowed(!motion.matches && !navigator.connection?.saveData);
+    sync();
+    document.addEventListener("visibilitychange", onVisibility);
+    motion.addEventListener("change", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      motion.removeEventListener("change", sync);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const activeFullscreenItem = items.find(i => i.id === activeFullscreenId) || items[0];
+  // Fetch the player's code early so the first tap opens it straight away
+  useEffect(() => {
+    if (near) import("./CreatorsViewer");
+  }, [near]);
+
+  // Attach the active card's video and the next one's, so the hand-off is smooth
+  useEffect(() => {
+    if (!near || !autoplayAllowed) return;
+    const next = (activeIndex + 1) % items.length;
+    setLoaded((prev) => (prev.has(activeIndex) && prev.has(next) ? prev : new Set(prev).add(activeIndex).add(next)));
+  }, [near, autoplayAllowed, activeIndex]);
+
+  const activeHasVideo = loaded.has(activeIndex);
+  useEffect(() => {
+    const video = videoRefs.current[activeIndex];
+    if (!running || !activeHasVideo || !video) return;
+    const { start, end } = previewWindow(items[activeIndex]);
+    if (video.readyState > 0 && (video.currentTime < start || video.currentTime >= end)) {
+      video.currentTime = start;
+    }
+    safePlay(video);
+    stallTimer.current = setTimeout(advance, STALL_MS);
+    return () => {
+      clearTimeout(stallTimer.current);
+      safePause(video);
+    };
+  }, [running, activeIndex, activeHasVideo, advance]);
+
+  // Once the active card has finished widening, scroll the row only as far as needed to show it all
+  useEffect(() => {
+    if (heldRef.current) return;
+    const t = setTimeout(() => {
+      const row = scrollContainerRef.current;
+      const card = cardRefs.current[activeIndex];
+      if (!row || !card) return;
+      const pad = 16;
+      const left = card.offsetLeft - pad;
+      const right = card.offsetLeft + card.offsetWidth + pad - row.clientWidth;
+      if (row.scrollLeft > left) row.scrollTo({ left, behavior: "smooth" });
+      else if (row.scrollLeft < right) row.scrollTo({ left: right, behavior: "smooth" });
+    }, WIDTH_TRANSITION_MS + 20);
+    return () => clearTimeout(t);
+  }, [activeIndex]);
+
+  useEffect(() => () => {
+    clearTimeout(stallTimer.current);
+    clearTimeout(touchTimer.current);
+  }, []);
+
+  const onPreviewTime = (i, video) => {
+    if (i !== activeIndex) return;
+    const { start, end } = previewWindow(items[i]);
+    const stop = Number.isFinite(end) ? end : video.duration;
+    const bar = progressRefs.current[i];
+    if (bar && stop > start) {
+      const pct = Math.min(1, Math.max(0, (video.currentTime - start) / (stop - start)));
+      bar.style.transform = `scaleX(${pct})`;
+    }
+    if (video.currentTime >= end) advance();
+  };
+
+  // Swiping the row by hand pauses the cycle; when they let go, the card they swiped to plays next
+  const holdForTouch = () => {
+    clearTimeout(touchTimer.current);
+    setHeld(true);
+  };
+  const releaseAfterTouch = () => {
+    clearTimeout(touchTimer.current);
+    touchTimer.current = setTimeout(() => {
+      const row = scrollContainerRef.current;
+      if (row) {
+        const i = cardRefs.current.findIndex((c) => c && c.offsetLeft + c.offsetWidth / 2 > row.scrollLeft);
+        if (i >= 0) goTo(i);
+      }
+      setHeld(false);
+    }, TOUCH_RESUME_MS);
+  };
+
+  const openViewer = (i) => {
+    enterFullscreen();
+    setViewerIndex(i);
+  };
+
+  // Hand the highlight to whichever video they were watching last
+  const closeViewer = useCallback((lastIndex) => {
+    setViewerIndex(null);
+    goTo(lastIndex);
+  }, [goTo]);
 
   return (
-    <section className="w-full bg-[#082C17] py-10 md:py-24 overflow-hidden text-white font-sans">
+    <section ref={sectionRef} className="w-full bg-[#082C17] py-10 md:py-24 overflow-hidden text-white font-sans">
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header Section */}
         <div className="mb-6 sm:mb-10">
           <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold tracking-tight mb-1 sm:mb-2">
@@ -183,34 +260,18 @@ export default function Creators() {
           </p>
 
           <div className="flex items-end justify-between gap-4">
-            {/* Instagram / TikTok filters — hidden until videos are tagged by platform
-            <div className="flex gap-2 sm:gap-3">
-              {['Instagram', 'TikTok'].map((platform) => (
-                <button
-                  key={platform}
-                  onClick={() => setActiveFilter(platform)}
-                  className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[13px] sm:text-sm font-medium border transition-colors duration-200 ${
-                    activeFilter === platform
-                      ? 'border-white text-white'
-                      : 'border-white/30 text-white/70 hover:border-white/60 hover:text-white'
-                  }`}
-                >
-                  {platform}
-                </button>
-              ))}
-            </div>
-            */}
-
             {/* Navigation Arrows */}
             <div className="ml-auto flex items-center gap-2">
               <button
-                onClick={() => scroll('left')}
+                onClick={() => goTo((activeIndex - 1 + items.length) % items.length)}
+                aria-label="Previous video"
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
               >
                 <ChevronLeft size={18} strokeWidth={2} className="text-white" />
               </button>
               <button
-                onClick={() => scroll('right')}
+                onClick={advance}
+                aria-label="Next video"
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/30 flex items-center justify-center hover:border-white hover:bg-white/10 transition-colors group"
               >
                 <ChevronRight size={18} strokeWidth={2} className="text-white" />
@@ -220,79 +281,90 @@ export default function Creators() {
         </div>
 
         {/* Carousel Container */}
-        <div 
+        <div
           ref={scrollContainerRef}
-          className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
+          onTouchStart={holdForTouch}
+          onTouchEnd={releaseAfterTouch}
+          onTouchCancel={releaseAfterTouch}
+          className="relative flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-proximity pb-4 sm:pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
-          {items.map((item) => {
-            const isPlaying = playingId === item.id;
+          {items.map((item, i) => {
+            const isActive = i === activeIndex;
+            const isLive = isActive && liveIndex === i;
             const isCampaign = item.type === "campaign";
 
             return (
               <div
                 key={item.id}
-                className={`relative flex-shrink-0 snap-start rounded-[20px] sm:rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group ${
-                  isCampaign 
-                    ? "w-[85vw] sm:w-[600px] lg:w-[700px] aspect-[4/3] sm:aspect-[16/9]" 
-                    : "w-[42vw] max-w-[220px] sm:max-w-none sm:w-[280px] aspect-[9/16]"
+                ref={(el) => { cardRefs.current[i] = el; }}
+                onClick={() => goTo(i)}
+                className={`relative flex-shrink-0 snap-start rounded-[20px] sm:rounded-[32px] overflow-hidden bg-[#0D4024] shadow-lg cursor-pointer group transition-[width] duration-500 ease-out h-[75vw] max-h-[390px] sm:h-[460px] sm:max-h-none lg:h-[500px] ${
+                  isActive ? ACTIVE_WIDTH : IDLE_WIDTH
                 }`}
-                onClick={() => handlePlayClick(item)}
               >
-                {/* Video Element */}
-                <video
-                  ref={(el) => {
-                    if (el) {
-                      videoRefs.current[item.id] = el;
-                      applyIOSInlineAttributes(el);
-                    }
-                  }}
-                  poster={item.poster}
-                  muted={isMuted}
-                  playsInline
-                  loop
-                  className={`w-full h-full object-cover transition-opacity duration-300 ${isCampaign ? 'object-top' : ''} ${!isPlaying && isCampaign && !item.poster ? 'opacity-0' : 'opacity-100'}`}
-                >
-                  <source src={item.img} type="video/mp4" />
-                </video>
+                {/* Blurred fill either side of a portrait video once its card is wide */}
+                {!isCampaign && (
+                  <img
+                    src={item.poster}
+                    alt=""
+                    aria-hidden
+                    loading="lazy"
+                    decoding="async"
+                    className={`absolute inset-0 h-full w-full object-cover scale-110 blur-2xl transition-opacity duration-500 ${isActive ? "opacity-60" : "opacity-0"}`}
+                  />
+                )}
+
+                {/* An <img> rather than the video's poster attribute, so it can lazy-load */}
+                <img
+                  src={item.poster}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${isCampaign ? "object-top" : ""} ${isLive ? "opacity-0" : "opacity-100"}`}
+                />
+
+                {loaded.has(i) && (
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[i] = el;
+                      if (el) {
+                        el.muted = true;
+                        applyIOSInlineAttributes(el);
+                      }
+                    }}
+                    src={previewWindow(item).src}
+                    muted
+                    playsInline
+                    preload={isActive ? "auto" : "metadata"}
+                    onPlaying={() => {
+                      if (i !== activeIndex) return;
+                      clearTimeout(stallTimer.current);
+                      setLiveIndex(i);
+                    }}
+                    onTimeUpdate={(e) => onPreviewTime(i, e.currentTarget)}
+                    onEnded={() => i === activeIndex && advance()}
+                    className={`absolute inset-0 h-full w-full transition-opacity duration-500 ${isCampaign ? "object-cover object-top" : "object-contain"} ${isLive ? "opacity-100" : "opacity-0"}`}
+                  />
+                )}
+
+                {/* Dark Gradient Overlay for text readability */}
+                <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
                 {/* Overlays & Badges */}
                 <div className="absolute inset-0 flex flex-col justify-between p-3 sm:p-6 pointer-events-none">
-                  
-                  {/* Top: Badge & Controls */}
                   <div className="flex justify-between items-start w-full">
-                    {/* Badge */}
                     <span className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-[12px] font-bold text-gray-900 leading-none ${
                       isCampaign ? "bg-white" : item.badgeColor
                     }`}>
                       {item.badge}
                     </span>
-                    
-                    {/* Top Right Controls (Fullscreen) */}
-                    {isPlaying && (
-                      <button
-                        onClick={(e) => openFullscreen(item, e)}
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors pointer-events-auto"
-                      >
-                        <Maximize2 size={18} className="text-white" />
-                      </button>
-                    )}
                   </div>
 
-                  {/* Campaign Card - Center Play Button */}
-                  {isCampaign && !isPlaying && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#00E575] rounded-full flex items-center justify-center shadow-xl group-hover:scale-105 transition-transform duration-300">
-                        <Play size={32} className="text-[#082C17] fill-[#082C17] ml-1.5" />
-                      </div>
-                    </div>
-                  )}
-
                   {/* Bottom Content Area */}
-                  <div className="flex items-end justify-between w-full relative z-10 pointer-events-auto">
-                    
-                    {/* Text Data */}
-                    <div className="flex flex-col gap-0.5 sm:gap-1 pr-2 sm:pr-4 min-w-0">
-                      <h3 className={`font-bold leading-tight ${isCampaign ? "text-lg sm:text-2xl" : "text-[14px] sm:text-[18px]"}`}>
+                  <div className="flex items-end justify-between gap-2 sm:gap-4 w-full relative z-10">
+                    <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
+                      {item.product && <ProductPill product={item.product} className="mb-1 sm:mb-1.5" />}
+                      <h3 className={`font-bold leading-tight line-clamp-2 ${isCampaign ? "text-lg sm:text-2xl" : "text-[14px] sm:text-[18px]"}`}>
                         {item.title}
                       </h3>
                       {item.description && (
@@ -306,36 +378,35 @@ export default function Creators() {
                         </p>
                       )}
                       {item.duration && (
-                        <p className="text-white/80 text-[14px] mt-1">
+                        <p className="text-white/80 text-[12px] sm:text-[14px] mt-1">
                           {item.duration}
                         </p>
                       )}
                     </div>
 
-                    {/* Creator Card - Bottom Right Play Button & Mute */}
-                    <div className="flex flex-col gap-3">
-                      {isPlaying && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setIsMuted((m) => !m); }}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors"
-                        >
-                          {isMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
-                        </button>
-                      )}
-                      
-                      {!isCampaign && !isPlaying && (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 self-end pointer-events-none">
-                          <Play size={16} className="text-[#082C17] fill-[#082C17] ml-0.5 sm:ml-1" />
-                        </div>
-                      )}
-                    </div>
-
+                    {/* Tapping the card previews it; this opens the full-screen player */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openViewer(i);
+                      }}
+                      aria-label={`Watch full screen: ${item.title}`}
+                      className="pointer-events-auto w-9 h-9 sm:w-10 sm:h-10 shrink-0 bg-[#00E575] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300"
+                    >
+                      <Maximize2 size={16} className="text-[#082C17]" strokeWidth={2.5} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Dark Gradient Overlay for text readability (only really needed for creator cards) */}
-                {!isCampaign && (
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+                {/* How far through its preview the active card is */}
+                {isActive && (
+                  <div className="absolute inset-x-0 bottom-0 h-[3px] bg-white/15 pointer-events-none">
+                    <div
+                      ref={(el) => { progressRefs.current[i] = el; }}
+                      className="h-full w-full origin-left bg-[#00E575]"
+                      style={{ transform: "scaleX(0)" }}
+                    />
+                  </div>
                 )}
               </div>
             );
@@ -343,52 +414,9 @@ export default function Creators() {
         </div>
       </div>
 
-      {/* Fullscreen Modal (Kept from original logic) */}
       <AnimatePresence>
-        {isFullscreen && (
-          <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsFullscreen(false);
-            }}
-          >
-            <motion.div
-              className="relative w-full max-w-lg md:max-w-2xl rounded-2xl overflow-hidden shadow-2xl bg-black"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-            >
-              <video
-                ref={fullscreenVideoRef}
-                key={activeFullscreenItem.id}
-                src={activeFullscreenItem.img}
-                poster={activeFullscreenItem.poster}
-                muted={isFullscreenMuted}
-                playsInline
-                controls
-                autoPlay
-                className="w-full h-auto max-h-[85vh] object-contain"
-              />
-
-              <button
-                onClick={() => setIsFullscreen(false)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 flex items-center justify-center transition-colors"
-              >
-                <X size={20} className="text-white" />
-              </button>
-
-              {/* Added a secondary mute toggle specifically for fullscreen for better UX if controls hide */}
-              <button
-                onClick={() => setIsFullscreenMuted((m) => !m)}
-                className="absolute bottom-6 right-6 z-10 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors md:hidden"
-              >
-                {isFullscreenMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
-              </button>
-            </motion.div>
-          </motion.div>
+        {viewerIndex !== null && (
+          <CreatorsViewer key="viewer" items={items} startIndex={viewerIndex} onClose={closeViewer} />
         )}
       </AnimatePresence>
     </section>

@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Maximize2, Quote } from 'lucide-react';
+import { enterFullscreen } from './creatorsShared';
+
+// The full-screen viewer only downloads when someone taps a screenshot
+const ReviewsViewer = dynamic(() => import('./ReviewsViewer'), { ssr: false });
 
 // Fallback for the homepage until the admin adds screenshots (Admin → WhatsApp reviews)
 const SAMPLE_SCREENSHOTS = [
@@ -45,6 +51,13 @@ export default function WhatsAppReviews({
   const scrollRef = useRef(null);
   // thumb: visible share of the track (%), progress: 0 → 1 across the scroll range
   const [bar, setBar] = useState({ thumb: 33, progress: 0 });
+  const [viewerIndex, setViewerIndex] = useState(null);
+  const closeViewer = useCallback(() => setViewerIndex(null), []);
+
+  const openViewer = (i) => {
+    enterFullscreen();
+    setViewerIndex(i);
+  };
 
   const updateBar = () => {
     const el = scrollRef.current;
@@ -137,9 +150,15 @@ export default function WhatsAppReviews({
           onScroll={updateBar}
           className="flex-1 min-w-0 flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-7 sm:pb-10 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
         >
-          {chats.map((chat) => (
+          {chats.map((chat, i) => (
             <div key={chat.id} className="relative flex-none w-[40vw] max-w-[210px] sm:max-w-none sm:w-[250px] snap-start">
-              <div className="rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2.5" style={{ backgroundColor: chat.bubble }}>
+              <button
+                type="button"
+                onClick={() => openViewer(i)}
+                aria-label="View chat full screen"
+                className="group block w-full text-left rounded-[18px] sm:rounded-[24px] p-1.5 sm:p-2.5"
+                style={{ backgroundColor: chat.bubble }}
+              >
                 <div className="relative aspect-[5/6] rounded-[12px] sm:rounded-[16px] overflow-hidden bg-[#0B141A]">
                   <Image
                     src={chat.src}
@@ -149,8 +168,11 @@ export default function WhatsAppReviews({
                     unoptimized={!canOptimise(chat.src)}
                     className="object-cover object-top"
                   />
+                  <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/45 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                    <Maximize2 className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+                  </span>
                 </div>
-              </div>
+              </button>
 
               {/* Bubble tail */}
               <div
@@ -163,6 +185,12 @@ export default function WhatsAppReviews({
         </div>
 
       </div>
+
+      <AnimatePresence>
+        {viewerIndex !== null && (
+          <ReviewsViewer key="viewer" chats={chats} startIndex={viewerIndex} onClose={closeViewer} />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
