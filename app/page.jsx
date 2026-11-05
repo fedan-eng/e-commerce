@@ -1,6 +1,7 @@
 import React from "react";
 import { SOCIAL_URLS } from "@/lib/socials";
 import { STORE_CATEGORIES } from "@/lib/categories";
+import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
 import BestSellers from "@/components/landing/BestSellers";
@@ -23,15 +24,14 @@ export const metadata = {
   title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
   description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available. Trusted online tech store.",
   keywords: "buy power bank online Nigeria, power bank price in Nigeria, wireless earbuds Nigeria, phone charger Nigeria, buy tech accessories online Nigeria, pay on delivery Nigeria, fast delivery Lagos, original power bank Nigeria",
-  metadataBase: new URL('https://www.filstore.com.ng'),
   openGraph: {
     title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
     description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available.",
-    url: 'https://www.filstore.com.ng',
+    url: SITE_URL,
     siteName: 'FIL Store',
     images: [
       {
-        url: 'https://www.filstore.com.ng/fillogo.png',
+        url: `${SITE_URL}/fillogo.png`,
         width: 1200,
         height: 630,
         alt: 'FIL Store - Tech Products Nigeria',
@@ -44,13 +44,13 @@ export const metadata = {
     card: 'summary_large_image',
     title: "Buy Power Banks, Wearables, Chargers & Tech in Nigeria | FIL Store Online",
     description: "Shop original power banks, wireless earbuds, phone chargers & tech accessories online in Nigeria. Best prices, fast delivery in Lagos, Abuja, Port Harcourt. Pay on delivery available.",
-    images: ['https://www.filstore.com.ng/fillogo.png'],
+    images: [`${SITE_URL}/fillogo.png`],
   },
   verification: {
     google: "F4YtRJObu3UIQ0aKa9qg3vBcTduL3MxF5mlHoxLyr94",
   },
   alternates: {
-    canonical: 'https://www.filstore.com.ng',
+    canonical: SITE_URL,
   },
   robots: {
     index: true,
@@ -71,28 +71,21 @@ const page = async () => {
     getFeaturedProducts(),
   ]);
 
-  const baseUrl = "https://www.filstore.com.ng";
+  const baseUrl = SITE_URL;
 
-  // 1. Homepage & Searchbox Schema (The "Konga" Look)
-  const siteLinksJsonLd = {
+  // 1. The site itself (Google shows this name above results)
+  const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "FIL Store",
+    "alternateName": ["Filstore", "FIL"],
     "url": baseUrl,
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${baseUrl}/products?search={search_term_string}`
-      },
-      "query-input": "required name=search_term_string"
-    }
   };
 
   // 2. Organization Schema (Enhanced for Google Recognition)
   const organizationJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "OnlineStore",
     "name": "FIL Store",
     "alternateName": "Fedan Investment Limited",
     "url": baseUrl,
@@ -118,7 +111,6 @@ const page = async () => {
       "addressCountry": "NG"
     },
     "sameAs": SOCIAL_URLS,
-    "priceRange": "$",
     "areaServed": [
       {
         "@type": "City",
@@ -135,58 +127,28 @@ const page = async () => {
     ]
   };
 
-  // 3. Breadcrumb List
-  const breadcrumbJsonLd = {
+  // 3. The main sections, in the order we'd like them as sitelinks under the homepage result
+  const navigation = [
+    ...STORE_CATEGORIES.map((c) => ({ name: c.title, url: `${baseUrl}/products/${c.slug}` })),
+    { name: "FIL MagFlex Power Bank", url: `${baseUrl}${MAGFLEX_PATH}` },
+    { name: "Contact Us", url: `${baseUrl}/contact` },
+    { name: "Blog", url: `${baseUrl}/blog` },
+  ];
+  const navigationJsonLd = {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": baseUrl
-      },
-      // The category pages (lib/categories.js); there's no all-products page
-      ...STORE_CATEGORIES.map((c, i) => ({
-        "@type": "ListItem",
-        "position": i + 2,
-        "name": c.title,
-        "item": `${baseUrl}/products/${c.slug}`
-      })),
-      {
-        "@type": "ListItem",
-        "position": STORE_CATEGORIES.length + 2,
-        "name": "Contact Us",
-        "item": `${baseUrl}/contact`
-      }
-    ]
+    "@type": "ItemList",
+    "itemListElement": navigation.map((item, i) => ({
+      "@type": "SiteNavigationElement",
+      "position": i + 1,
+      ...item,
+    })),
   };
 
   return (
     <div className="bg-white overflow-x-hidden text-black">
-      {/* Sitelinks Searchbox & WebSite */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(siteLinksJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-      
-      {/* Organization Info */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-      
-      {/* Breadcrumbs */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
+      {[websiteJsonLd, organizationJsonLd, navigationJsonLd].map((data) => (
+        <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
+      ))}
 
       <Hero1 />
       <Marquee/>

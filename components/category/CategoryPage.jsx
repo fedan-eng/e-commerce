@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { getCategory } from "@/lib/categories";
+import { SITE_URL, jsonLdHtml } from "@/lib/seo";
 import CategoryHero from "./CategoryHero";
 import TrustBar from "./TrustBar";
 import BestSellers from "@/components/landing/BestSellers";
@@ -33,6 +34,47 @@ async function getCategoryProducts(dbCategory) {
   return JSON.parse(JSON.stringify(docs));
 }
 
+// Structured data: where the page sits, what it lists, and its FAQs (search and AI answers read these)
+function categoryJsonLd(category, products) {
+  const url = `${SITE_URL}/products/${category.slug}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: category.title, item: url },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: category.seo.title,
+      description: category.seo.description,
+      url,
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: products.length,
+        itemListElement: products.map((p, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: p.name,
+          url: `${SITE_URL}/products/${p._id}`,
+        })),
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: category.faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.q,
+        acceptedAnswer: { "@type": "Answer", text: faq.a },
+      })),
+    },
+  ];
+}
+
 // One tab per product that has a video, in the shape <VideoAnimation /> expects
 // function collectVideoTabs(products) {
 //   return products
@@ -52,6 +94,9 @@ export default async function CategoryPage({ slug }) {
 
   return (
     <main>
+      {categoryJsonLd(category, products).map((data) => (
+        <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
+      ))}
       <CategoryHero category={category} />
       <TrustBar />
       {/* Same "What everyone's carrying" section as the homepage, scoped to this category */}

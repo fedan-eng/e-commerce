@@ -1,71 +1,63 @@
-// app/sitemap.js
+// app/sitemap.js → /sitemap.xml
+// Only real, indexable pages: no redirects, no query-string URLs.
+import { connectDB } from "@/lib/db";
+import Product from "@/models/Product";
 import { STORE_CATEGORIES } from "@/lib/categories";
+import { SITE_URL, MAGFLEX_PATH } from "@/lib/seo";
+
+export const revalidate = 3600;
+
+async function getProducts() {
+  try {
+    await connectDB();
+    // Products in hidden categories stay out, same as the storefront
+    const categories = STORE_CATEGORIES.map((c) => c.dbCategory);
+    return await Product.find({ category: { $in: categories } })
+      .collation({ locale: "en", strength: 2 })
+      .select("_id category updatedAt")
+      .lean();
+  } catch (e) {
+    console.error("could not load products for sitemap", e);
+    return [];
+  }
+}
+
 export default async function sitemap() {
-  const baseUrl = 'https://www.filstore.com.ng';
-  
-  // 1. Main Static Pages
-  const mainPages = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-  ];
+  const products = await getProducts();
+  const now = new Date();
 
-  // 2. Category Pages (The "Konga" Sitelinks), from lib/categories.js
-  const categoryPages = STORE_CATEGORIES.map((cat) => ({
-    url: `${baseUrl}/products/${cat.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8, // High priority to encourage Sitelinks
-  }));
-
-  // Blog as an additional sitelink (category-level priority)
-  const blogSitelink = {
-    url: `${baseUrl}/blog`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.8, // Same priority as category pages for sitelink inclusion
+  // A category page changes when one of its products does
+  const latestIn = (dbCategory) => {
+    const dates = products
+      .filter((p) => (p.category || "").toLowerCase() === dbCategory.toLowerCase() && p.updatedAt)
+      .map((p) => new Date(p.updatedAt));
+    return dates.length ? new Date(Math.max(...dates)) : now;
   };
 
-  // 3. Special Pages (Best Seller, What's New, Today's Deal)
-  const specials = [
-    { name: 'Best Seller', param: 'isBestseller' },
-    { name: "What's New", param: 'isWhatsNew' },
-    { name: "Today's Deal", param: 'isTodaysDeal' }
+  const mainPages = [
+    { url: SITE_URL, lastModified: now, changeFrequency: "daily", priority: 1.0 },
+    { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE_URL}/policies`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE_URL}/cookie-policy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const specialPages = specials.map((special) => ({
-    url: `${baseUrl}/products?specials=${special.param}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.85, // High priority for specials
+  const categoryPages = STORE_CATEGORIES.map((cat) => ({
+    url: `${SITE_URL}/products/${cat.slug}`,
+    lastModified: latestIn(cat.dbCategory),
+    changeFrequency: "weekly",
+    priority: 0.9,
   }));
 
-  // 4. Dynamic Product Pages
-  let productPages = [];
-  try {
-    const res = await fetch(`${baseUrl}/api/products?limit=1000`, {
-      cache: "no-store",
-    });
-    const data = await res.json();
-    const products = data.products || [];
-    productPages = products.map((p) => ({
-      url: `${baseUrl}/products/${p._id}`,
-      lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }));
-  } catch (e) {
-    console.error('could not load products for sitemap', e);
-  }
+  const productPages = products.map((p) => {
+    const path = `/products/${p._id}`;
+    return {
+      url: `${SITE_URL}${path}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
+      changeFrequency: "weekly",
+      priority: path === MAGFLEX_PATH ? 0.9 : 0.7,
+    };
+  });
 
-  return [...mainPages, ...categoryPages, ...specialPages, ...productPages, blogSitelink];
+  return [...mainPages, ...categoryPages, ...productPages];
 }

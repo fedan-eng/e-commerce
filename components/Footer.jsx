@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6";
 import { SOCIALS } from "@/lib/socials";
 import { STORE_CATEGORIES } from "@/lib/categories";
+import { MAGFLEX_PATH } from "@/lib/seo";
 
 const SOCIAL_ICONS = { TikTok: FaTiktok, Instagram: FaInstagram, Facebook: FaFacebookF };
 import FloatingActions from "@/components/FloatingActions";
@@ -63,6 +64,9 @@ const Footer = () => {
                     <Link href={`/products/${c.slug}`} className="text-white/70 hover:text-white text-[14px] transition-colors">{c.title}</Link>
                   </li>
                 ))}
+                <li>
+                  <Link href={MAGFLEX_PATH} className="text-white/70 hover:text-white text-[14px] transition-colors">MagFlex Power Bank</Link>
+                </li>
               </ul>
             </div>
 

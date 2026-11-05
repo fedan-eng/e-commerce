@@ -8,6 +8,7 @@ import { Oswald, Poppins, Roboto } from "next/font/google";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import AnalyticsProvider from "./AnalyticsProvider";
 import CartAnimationProvider from "@/context/CartAnimationProvider";
+import { SITE_URL } from "@/lib/seo";
 import ReferralTracker from "@/components/ReferralTracker";
 
 const oswald = Oswald({
@@ -36,6 +37,8 @@ const roboto = Roboto({
 });
 
 export const metadata = {
+  // Resolves relative URLs in metadata (og:image etc.) against the canonical domain
+  metadataBase: new URL(SITE_URL),
   title: "FIL Store",
   description:
     "At FIL, we take pride in offering quality products at unbeatable prices, making us the go-to destination for anyone who values quality.(Think quality, think FIL)",

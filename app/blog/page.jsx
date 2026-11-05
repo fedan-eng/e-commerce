@@ -1,15 +1,17 @@
 // app/blog/page.jsx
 import { getBlogPosts } from '@/lib/blog'
 import BlogPageClient from './BlogPageClient'
+import { SITE_URL } from '@/lib/seo'
 
 export const metadata = {
   title: 'Tech Gist That Actually Helps | Filstore Blog',
   description:
     'Honest reviews, buying guides, charging tips, and everyday gadget advice from the people who work with tech every single day.',
+  alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     title: 'Tech Gist That Actually Helps | Filstore Blog',
     description: 'Skip the confusing specs and marketing hype. Discover honest reviews and buying guides.',
-    url: 'https://filstore.com.ng/blog',
+    url: `${SITE_URL}/blog`,
     siteName: 'Filstore',
     type: 'website',
   },

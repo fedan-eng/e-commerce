@@ -43,7 +43,8 @@ export default function CategoryFAQ({ category }) {
               {faq.q}
               {open === i ? <Minus size={16} /> : <Plus size={16} />}
             </button>
-            {open === i && <p className="pb-5 text-sm text-gray-600">{faq.a}</p>}
+            {/* Always in the HTML (just hidden) so search engines can read every answer */}
+            <p hidden={open !== i} className="pb-5 text-sm text-gray-600">{faq.a}</p>
           </li>
         ))}
       </ul>

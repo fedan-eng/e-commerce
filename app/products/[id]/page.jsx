@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import { getCategoryByDbName } from "@/lib/categories";
+import { SITE_URL, jsonLdHtml } from "@/lib/seo";
 import ProductDetailsPage from "./ProductDetailsPage";
 
 // Pages are cached and rebuilt at most hourly; admin edits, review moderation and
@@ -56,7 +58,7 @@ export async function generateMetadata({ params }) {
     return {
       title: "Premium Tech Products | FIL Store",
       description: "Shop premium tech accessories, power solutions, and wearables at FIL Store.",
-      alternates: { canonical: `https://www.filstore.com.ng/products/${id}` },
+      alternates: { canonical: `${SITE_URL}/products/${id}` },
     };
   }
 
@@ -90,7 +92,7 @@ export async function generateMetadata({ params }) {
     `pay on delivery nigeria`,
   ].join(", ");
 
-  const url = `https://www.filstore.com.ng/products/${id}`;
+  const url = `${SITE_URL}/products/${id}`;
 
   return {
     title,
@@ -120,7 +122,8 @@ export default async function Page({ params }) {
   if (!product?._id) notFound();
 
   const productName = cleanText(product.name || "Product");
-  const productUrl = `https://www.filstore.com.ng/products/${id}`;
+  const productUrl = `${SITE_URL}/products/${id}`;
+  const category = getCategoryByDbName(product.category);
   const priceValidUntil = getPriceValidUntil();
   const cleanPrice = String(product.price || "").replace(/[^0-9.]/g, "");
 
@@ -156,6 +159,7 @@ export default async function Page({ params }) {
       priceCurrency: "NGN",
       price: cleanPrice || undefined,
       priceValidUntil,
+      itemCondition: "https://schema.org/NewCondition",
       availability:
         product.availability !== false
           ? "https://schema.org/InStock"
@@ -163,34 +167,14 @@ export default async function Page({ params }) {
       seller: {
         "@type": "Organization",
         name: "Fedan Investment Limited",
-        url: "https://www.filstore.com.ng",
+        url: SITE_URL,
       },
-      shippingDetails: {
-        "@type": "OfferShippingDetails",
-        shippingRate: {
-          "@type": "MonetaryAmount",
-          value: 0,
-          currency: "NGN",
-        },
-        shippingDestination: {
-          "@type": "DefinedRegion",
-          addressCountry: "NG",
-        },
-        deliveryTime: {
-          "@type": "ShippingDeliveryTime",
-          handlingTime: {
-            "@type": "QuantitativeValue",
-            minValue: 1,
-            maxValue: 2,
-            unitCode: "DAY",
-          },
-          transitTime: {
-            "@type": "QuantitativeValue",
-            minValue: 1,
-            maxValue: 5,
-            unitCode: "DAY",
-          },
-        },
+      // No shippingDetails: the fee depends on the delivery region, chosen at checkout
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "NG",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7, // the returns policy in lib/categories.js commonFaqs
       },
     },
   };
@@ -199,41 +183,19 @@ export default async function Page({ params }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: "https://www.filstore.com.ng",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Products",
-        item: "https://www.filstore.com.ng/products",
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: productName,
-        item: productUrl,
-      },
-    ],
+      { name: "Home", item: SITE_URL },
+      // Through the category page, matching the breadcrumb shown on the page
+      category && { name: category.title, item: `${SITE_URL}/products/${category.slug}` },
+      { name: productName, item: productUrl },
+    ]
+      .filter(Boolean)
+      .map((crumb, i) => ({ "@type": "ListItem", position: i + 1, ...crumb })),
   };
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
-        }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(jsonLd)} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(breadcrumb)} />
       <ProductDetailsPage product={product} />
     </>
   );
