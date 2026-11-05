@@ -1,6 +1,7 @@
 // middleware.js
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { CATEGORIES } from "@/lib/categories";
 
 const AUTH_ROUTES = ["/login", "/register"];
 const HOME_FOR_ROLE = { admin: "/admin_console", creator: "/creator" };
@@ -24,9 +25,38 @@ const getPayload = async (token) => {
   }
 };
 
+// ── Old /products list page (taken down) ────────────────────────────────────
+// Old links like /products?categories=Wearables are still in Google; a permanent
+// redirect to the category page makes Google swap them for the new URL.
+const normalize = (s) => (s || "").toLowerCase().replace(/[^a-z]/g, "");
+const LEGACY_CATEGORY_SLUGS = Object.fromEntries(
+  Object.values(CATEGORIES).flatMap((c) => [
+    [normalize(c.dbCategory), c.slug],
+    [normalize(c.title), c.slug],
+    [normalize(c.slug), c.slug],
+  ])
+);
+// Old footer labels and categories that were folded into others
+Object.assign(LEGACY_CATEGORY_SLUGS, {
+  cables: "chargers",
+  charging: "chargers",
+  audio: "wearables",
+  earbuds: "wearables",
+  sockets: "extensions",
+  fans: "lifestyle",
+});
+
+function legacyProductsRedirect(req) {
+  const raw = req.nextUrl.searchParams.get("categories") || req.nextUrl.searchParams.get("category");
+  const slug = LEGACY_CATEGORY_SLUGS[normalize(raw?.split(",")[0])];
+  return NextResponse.redirect(new URL(slug ? `/products/${slug}` : "/", req.url), 308);
+}
+
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
+
+  if (pathname === "/products") return legacyProductsRedirect(req);
 
   // ── /logout: clear cookie and redirect to login ──────────────────────────
   if (pathname === "/logout") {
@@ -46,7 +76,7 @@ export async function middleware(req) {
   if (AUTH_ROUTES.includes(pathname)) {
     const payload = await getPayload(token);
     if (payload) {
-      const destination = HOME_FOR_ROLE[payload.role] || "/products";
+      const destination = HOME_FOR_ROLE[payload.role] || "/";
       return noCache(NextResponse.redirect(new URL(destination, req.url)));
     }
     return noCache(NextResponse.next());
@@ -73,5 +103,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/admin_console/:path*", "/creator/:path*", "/creator", "/logout"],
+  matcher: ["/products", "/admin_console/:path*", "/creator/:path*", "/creator", "/logout"],
 };

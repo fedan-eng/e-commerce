@@ -84,12 +84,8 @@ const nextConfig: NextConfig = {
         destination: "https://filstore.com.ng/:path*",
         permanent: true,
       },
-      // Products list page has been taken down
-      {
-        source: "/products",
-        destination: "/",
-        permanent: false,
-      },
+      // /products itself (the old list page) is redirected in middleware.js,
+      // which can send ?categories=… links to the matching category page
     ];
   },
 
@@ -118,6 +114,13 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
+        ],
+      },
+      {
+        // Long-lived caching for public images and video only. Applied to HTML pages it made
+        // browsers keep a page for a year, so visitors never saw new prices or stock.
+        source: "/:all*(png|jpg|jpeg|webp|svg|ico|mp4)",
+        headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
