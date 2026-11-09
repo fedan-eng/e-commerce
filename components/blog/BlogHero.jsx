@@ -10,12 +10,14 @@ export default function BlogHero({ post }) {
     <div className="relative w-full rounded-2xl overflow-hidden flex flex-col md:flex-row bg-zinc-900">
 
       {/* ── LEFT / TOP: image panel ── */}
-      <div className="relative w-full md:w-[55%] h-[260px] sm:h-[300px] md:h-auto md:min-h-[420px] flex-shrink-0">
+      <div className="relative w-full md:w-[55%] h-[260px] sm:h-[300px] md:h-auto md:min-h-[420px] flex-shrink-0 overflow-hidden">
+        {/* Covers come in any shape: show the whole image over a blurred copy so text in it isn't cropped */}
+        <Image src={post.image} alt="" aria-hidden fill className="object-cover scale-110 blur-xl opacity-60" priority />
         <Image
           src={post.image}
           alt={post.title}
           fill
-          className="object-cover"
+          className="object-contain"
           priority
         />
         {/* Buyer's Guide badge — bottom-left of image */}

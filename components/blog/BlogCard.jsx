@@ -16,11 +16,13 @@ export default function BlogCard({ post }) {
         target={isExternal ? '_blank' : '_self'}
         className="relative block aspect-[16/11] overflow-hidden bg-zinc-100"
       >
+        {/* Covers come in any shape: show the whole image over a blurred copy so text in it isn't cropped */}
+        <Image src={post.image} alt="" aria-hidden fill className="object-cover scale-110 blur-xl opacity-60" />
         <Image
           src={post.image}
           alt={post.title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          className="object-contain group-hover:scale-105 transition-transform duration-500"
         />
         <span className="absolute top-4 left-4 bg-zinc-900 text-white text-[10px] font-semibold uppercase tracking-[0.15em] px-4 py-1.5 rounded-full">
           {post.category}
