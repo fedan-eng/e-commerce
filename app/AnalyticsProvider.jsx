@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from "next/dynamic";
+import { useCookieConsent } from "@/context/CookieConsentContext";
 
 // Dynamically import analytics components to reduce initial bundle size.
 // Using ssr: false to ensure they only run on the client
@@ -14,6 +15,9 @@ const CookieBanner = dynamic(() => import("@/components/CookieBanner"), { ssr: f
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
 
 export default function AnalyticsProvider() {
+  // Ad pixels only for visitors who chose "All" cookies; analytics runs for everyone
+  const { preferences } = useCookieConsent();
+
   return (
     <>
       {/* Critical analytics - load immediately */}
@@ -24,10 +28,14 @@ export default function AnalyticsProvider() {
       <CookieBanner />
 
       {/* Third-party pixels - defer loading to reduce blocking */}
-      <TiktokPixel />
-      <MetaPixel />
+      {preferences.marketing && (
+        <>
+          <TiktokPixel />
+          <MetaPixel />
+          <TiktokPageView />
+        </>
+      )}
       <ClarityInit />
-      <TiktokPageView />
       <GoogleAnalytics />
     </>
   );

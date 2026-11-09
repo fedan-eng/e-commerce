@@ -2,17 +2,16 @@
 
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import { verifyToken } from "@/lib/auth";
+import "@/models/User"; // registers the model that populate("comments.user") needs
+import { requireAdmin } from "@/lib/auth";
 
 // GET all comments across all products, flattened + filterable
 export async function GET(req) {
   await connectDB();
 
   try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
-    const admin = verifyToken(token);
-    if (admin.role !== "admin") return new Response(JSON.stringify({ message: "Forbidden" }), { status: 403 });
+    const denied = requireAdmin(req);
+    if (denied) return denied;
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") || "all";
@@ -75,7 +74,6 @@ export async function GET(req) {
     const total = reviews.length;
     const paginated = reviews.slice((page - 1) * limit, page * limit);
 
-    console.log("Admin reviews response sample:", paginated[0]);
     return new Response(
       JSON.stringify({ reviews: paginated, total, page, totalPages: Math.ceil(total / limit) }),
       { status: 200 }

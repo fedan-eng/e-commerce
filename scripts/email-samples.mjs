@@ -1,6 +1,8 @@
 // Sample data for every email, used by scripts/email-preview.mjs. Returns [name, { subject, html, text }].
 import { buildOrderStatusEmail, buildNewOrderAdminEmail, STATUS_EMAIL_KEYS } from "../lib/emails/orderEmails.js";
-import { buildAbandonedCartEmail } from "../lib/emails/abandonedCartEmail.js";
+import { buildAbandonedCartEmail, buildQuickQuestionCartEmail } from "../lib/emails/abandonedCartEmail.js";
+import { buildSecondWelcomeEmail } from "../lib/emails/secondWelcomeEmail.js";
+import { buildSalesReportEmail } from "../lib/emails/salesReportEmail.js";
 import { buildReviewRequestEmail } from "../lib/emails/reviewRequestEmail.js";
 import { buildWelcomeEmail } from "../lib/emails/welcomeEmail.js";
 import { buildAccountCreatedEmail } from "../lib/emails/accountCreatedEmail.js";
@@ -81,12 +83,14 @@ export function emailSamples() {
     ["order-confirmed-quick-checkout", buildOrderStatusEmail(quickOrder, "confirmed")],
     ["admin-new-order", buildNewOrderAdminEmail(order)],
     ["cart-reminder", buildAbandonedCartEmail({ firstName: "Adaeze", items: order.items })],
+    ["cart-quick-question", buildQuickQuestionCartEmail({ firstName: "Adaeze", items: order.items })],
     ["review-request", buildReviewRequestEmail({
       firstName: "Adaeze",
       isReminder: true,
       items: order.items.map((i) => ({ ...i, link: "https://www.filstore.com.ng/review?token=sample" })),
     })],
     ["account-welcome", buildWelcomeEmail({ firstName: "Adaeze" })],
+    ["account-second-welcome", buildSecondWelcomeEmail({ firstName: "Adaeze" })],
     ["account-created", buildAccountCreatedEmail({ email: "adaeze@example.com", password: "Fil#k82mQa", code: "482913", link: "https://www.filstore.com.ng/verify-email?token=sample" })],
     ["account-creator-linked", buildCreatorLinkedEmail({ firstName: "Dammy", code: "DAMMY10", discount: 10, commissionPercent: 5 })],
     ["account-sign-in-code", buildSignInCodeEmail({ code: "731520" })],
@@ -102,6 +106,12 @@ export function emailSamples() {
     ["support-return-requested", buildRequestStatusEmail(returnRequest, TRACK_URL)],
     ["support-return-out-for-delivery", buildRequestStatusEmail({ ...returnRequest, status: "outfordelivery", customerNote: "Fixed and tested. Our rider will call before arriving." }, TRACK_URL)],
     ["support-return-declined", buildRequestStatusEmail({ ...returnRequest, status: "rejected", customerNote: "The item shows water damage, which the warranty doesn't cover." }, TRACK_URL)],
+    ["admin-sales-report", buildSalesReportEmail({
+      from: new Date(Date.now() - 86400000),
+      to: new Date(),
+      payments: [{ name: "Adaeze Okafor", phone: "08031234567", email: "adaeze@example.com", items: order.items, value: 46150, at: new Date(), note: "Left the payment page" }],
+      carts: [{ name: "", phone: "", email: "tunde@example.com", items: order.items.slice(1), value: 18500, at: new Date(), note: "Items left in cart" }],
+    })],
     ["admin-feedback", buildFeedbackAdminEmail({ rating: 4, comment: "Checkout was quick. Would love more colour options." })],
   ];
 }

@@ -1,6 +1,7 @@
 // app/cookie-policy/page.jsx
 
 import Link from 'next/link'
+import CookieChoice from '@/components/CookieChoice'
 
 export const metadata = {
   title: 'Cookie Policy | Filstore',
@@ -8,7 +9,7 @@ export const metadata = {
     'Learn how Filstore uses cookies and similar technologies on filstore.com.ng.',
 }
 
-const LAST_UPDATED = 'March 2026'
+const LAST_UPDATED = 'November 2026'
 
 const sections = [
   {
@@ -16,113 +17,116 @@ const sections = [
     title: '1. What are cookies?',
     content: `Cookies are small text files that are placed on your device (phone, tablet, or computer) when you visit a website. They are widely used to make websites work properly, improve performance, and provide information to website owners.
 
-When you visit Filstore, cookies may be stored in your browser. Each cookie contains a small amount of data — typically an anonymous unique identifier — that allows us or third-party services to recognise your browser the next time you visit.`,
+When you visit Filstore, cookies may be stored in your browser. Each cookie contains a small amount of data, typically an anonymous unique identifier, that allows us or third-party services to recognise your browser the next time you visit.`,
   },
   {
-    id: 'why-we-use',
-    title: '2. Why we use cookies',
-    content: `We use cookies at Filstore to:
+    id: 'your-choice',
+    title: '2. Your choice: Basic or All',
+    content: `When you first visit Filstore, a banner asks you to choose between two options:
 
-• Keep your shopping cart intact as you browse different pages
-• Remember that you are logged in to your account
-• Understand how visitors use our store so we can improve it
-• Measure the effectiveness of our marketing campaigns
-• Personalise your shopping experience based on your preferences
-• Ensure the security of your account and transactions`,
+• Basic: the cookies Filstore needs to work, plus analytics that show us how the store is used. Basic is always on, and it is what applies until you make a choice.
+• All: everything in Basic, plus marketing cookies from Meta (Facebook and Instagram) and TikTok, so we can measure our ads and show you relevant FIL ads on those platforms.
+
+Choosing Basic does not stop you seeing ads. They just will not be based on your visits to Filstore. You can change your choice at any time at the bottom of this page.`,
   },
   {
     id: 'types',
-    title: '3. Types of cookies we use',
+    title: '3. What each option includes',
     subsections: [
       {
-        title: 'Strictly necessary cookies',
-        badge: 'Always active',
+        title: 'Strictly necessary',
+        badge: 'Basic and All',
         locked: true,
         content:
-          'These cookies are essential for Filstore to function. They enable core features like your shopping cart, account login, and secure checkout. Without these cookies, the services you have asked for cannot be provided. You cannot opt out of these cookies.',
-        examples: ['Session ID (keeps you logged in)', 'Cart token (preserves your cart items)', 'CSRF token (protects against security attacks)', 'fil_ref (the creator code from a link you opened, so its discount applies at checkout, expires 30 days)'],
+          'These cookies keep Filstore working: your shopping cart, your account login and secure checkout. Without them, the services you ask for cannot be provided.',
+        examples: [
+          'token (keeps you signed in)',
+          'visitor_cart (keeps a guest cart while you sign in)',
+          'fil_ref (the creator code from a link you opened, so its discount applies at checkout, expires 30 days)',
+          'filstore_cookie_consent (remembers your Basic or All choice)',
+        ],
       },
       {
-        title: 'Analytics cookies',
-        badge: 'Optional',
+        title: 'Analytics',
+        badge: 'Basic and All',
+        locked: true,
         content:
-          'These cookies help us understand how visitors interact with Filstore. We use Google Analytics to collect anonymous data about pages visited, time spent on site, and how users navigate. This helps us identify what is working well and what needs improvement.',
-        examples: ['_ga (Google Analytics visitor ID, expires 2 years)', '_ga_XXXXXX (Google Analytics session, expires 2 years)', 'fil_vid (random ID, stored in your browser, that counts each visit from a creator link once a day)'],
+          'These help us understand how visitors use Filstore: which pages are visited, how long people stay and where they get stuck, so we can improve the store. The information is used in aggregate, and IP addresses are anonymised in Google Analytics. We do not sell it.',
+        examples: [
+          '_ga, _ga_* (Google Analytics visitor and session IDs, expire 2 years)',
+          '_clck, _clsk (Microsoft Clarity, which shows how pages are used, expire up to 1 year)',
+          'Vercel Analytics and Speed Insights (page speed and visits, no cookies)',
+          'fil_vid (random ID that counts each visit from a creator link once a day)',
+        ],
       },
       {
-        title: 'Marketing cookies',
-        badge: 'Optional',
+        title: 'Marketing',
+        badge: 'All only',
         content:
-          'These cookies track your activity across websites so that we can show you relevant ads on platforms like Facebook, Instagram, and Google. They are set by third-party advertising networks with our permission. If you decline, you may still see ads, but they will not be personalised to your interests.',
-        examples: ['_fbp (Meta/Facebook Pixel, expires 3 months)', 'IDE (Google Ads, expires 1 year)'],
-      },
-      {
-        title: 'Functional cookies',
-        badge: 'Optional',
-        content:
-          'These cookies allow Filstore to remember choices you make, such as your delivery region or preferred language, to provide a more personalised experience. Declining these will not prevent you from using the site, but some features may not work as smoothly.',
-        examples: ['region_pref (remembered delivery location)', 'recently_viewed (products you recently looked at)'],
+          'These are set by Meta and TikTok when you choose All. They tell us which ads bring people to Filstore and help those platforms show you relevant FIL ads. They are never set if you choose Basic.',
+        examples: [
+          '_fbp (Meta Pixel for Facebook and Instagram, expires 3 months)',
+          '_ttp (TikTok Pixel, expires up to 13 months)',
+        ],
       },
     ],
   },
   {
     id: 'third-party',
-    title: '4. Third-party cookies',
-    content: `Some cookies on Filstore are set by third-party services we use. These include:
+    title: '4. Third-party services',
+    content: `Some cookies on Filstore are set by services we use:
 
-• Google Analytics — website traffic analysis (analytics.google.com)
-• Google Ads — advertising and conversion tracking (ads.google.com)
-• Meta Pixel — Facebook and Instagram advertising (facebook.com)
-• Vercel Analytics — performance and speed monitoring (vercel.com)
+• Google Analytics: website traffic analysis (Basic)
+• Microsoft Clarity: how pages are used, such as clicks and scrolling (Basic)
+• Vercel Analytics: page speed and visits (Basic)
+• Meta Pixel: Facebook and Instagram advertising (All only)
+• TikTok Pixel: TikTok advertising (All only)
 
-These third parties have their own privacy and cookie policies, which we encourage you to review. We do not control the cookies these services place on your device.`,
+These services have their own privacy and cookie policies, which we encourage you to review. We do not control the cookies they place on your device.`,
   },
   {
     id: 'managing',
-    title: '5. Managing your cookie preferences',
-    content: `You are always in control of your cookies on Filstore.
+    title: '5. Changing your choice',
+    content: `You can switch between Basic and All at any time with the buttons at the bottom of this page. If you switch from All to Basic, the page reloads so the marketing cookies stop straight away.
 
-When you first visit our site, a cookie consent banner will appear asking for your preferences. You can choose to accept all cookies, decline non-essential cookies, or customise exactly which categories you allow.
-
-You can update your preferences at any time by clearing your browser's local storage for filstore.com.ng and revisiting the site — the banner will reappear.
-
-You can also manage or delete cookies directly through your browser settings. Here's how for popular browsers:
+You can also delete cookies through your browser settings:
 
 • Google Chrome: Settings → Privacy and security → Cookies and other site data
 • Safari: Settings → Privacy → Manage Website Data
 • Firefox: Settings → Privacy & Security → Cookies and Site Data
 • Microsoft Edge: Settings → Cookies and site permissions
 
-Please note that disabling all cookies may affect your ability to use certain features of Filstore, including your shopping cart and account login.`,
+Please note that blocking all cookies in your browser will stop your shopping cart and account login from working.`,
   },
   {
     id: 'local-storage',
     title: '6. localStorage and similar technologies',
-    content: `In addition to cookies, Filstore uses browser localStorage to store certain information on your device. This includes:
+    content: `In addition to cookies, Filstore uses your browser's localStorage to keep some information on your device:
 
-• Your cookie consent decision (so we do not show the banner on every visit)
-• Recently viewed products (so you can quickly find items you browsed)
-• Cart items for guest users (so your cart persists between sessions)
+• Your Basic or All choice, so we do not show the banner on every visit
+• Your cart and wishlist, so they are still there when you come back
+• Recently viewed products, so you can quickly find items you looked at
+• Delivery details you entered at checkout, so you do not have to type them again
 
-Unlike cookies, localStorage data is not automatically sent to our servers with each request. It stays on your device until you clear your browser data or it is explicitly removed.`,
+Unlike cookies, localStorage data is not sent to our servers with each request. It stays on your device until you clear your browser data.`,
   },
   {
     id: 'retention',
     title: '7. How long do cookies last?',
     content: `Different cookies have different lifetimes:
 
-• Session cookies — deleted when you close your browser
-• Persistent cookies — remain for a set period (e.g. Google Analytics _ga cookie lasts 2 years)
-• Third-party cookies — governed by the third party's own retention policy
+• Session cookies: deleted when you close your browser
+• Persistent cookies: remain for a set period (for example, the Google Analytics _ga cookie lasts 2 years)
+• Third-party cookies: governed by the third party's own retention policy
 
 We do not keep cookies longer than necessary for their stated purpose.`,
   },
   {
-    id: 'ndpr',
-    title: '8. Compliance with Nigerian law (NDPR)',
-    content: `Filstore is operated by Fedan Investment Limited, a company based in Nigeria. We are committed to complying with the Nigeria Data Protection Regulation (NDPR) issued by the National Information Technology Development Agency (NITDA).
+    id: 'ndpa',
+    title: '8. Nigerian data protection law',
+    content: `Filstore is operated by Fedan Investment Limited, a company based in Nigeria. We are committed to complying with the Nigeria Data Protection Act 2023 and the Nigeria Data Protection Regulation (NDPR).
 
-Under the NDPR, we are required to obtain your informed consent before placing non-essential cookies on your device. Our cookie consent banner fulfils this requirement. You have the right to withdraw your consent at any time.
+We ask for your consent before setting marketing cookies, and you can withdraw it at any time by switching to Basic. Analytics cookies are part of Basic because we rely on them to keep the store working well. They are used only to improve Filstore and are never sold.
 
 For questions about how we handle your personal data more broadly, please refer to our Privacy Policy.`,
   },
@@ -259,20 +263,13 @@ export default function CookiePolicyPage() {
             ))}
           </div>
 
-          {/* Footer CTA */}
-          <div className="mt-10 flex flex-col items-start gap-4 rounded-[24px] bg-sage p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
-            <div>
-              <p className="text-lg font-bold text-forest">Want to update your cookie choices?</p>
-              <p className="mt-1 text-sm text-muted">
-                Go back to the homepage and use the cookie banner to update your preferences.
-              </p>
-            </div>
-            <Link
-              href="/"
-              className="inline-flex h-11 shrink-0 items-center rounded-full bg-forest px-5 text-sm font-semibold text-white transition-colors hover:bg-black"
-            >
-              Back to Filstore
-            </Link>
+          {/* Change your choice */}
+          <div id="change-choice" className="mt-10 scroll-mt-24 rounded-[24px] bg-sage p-6 md:p-8">
+            <p className="text-lg font-bold text-forest">Change your cookie choice</p>
+            <p className="mb-4 mt-1 text-sm text-muted">
+              Basic keeps the store working and shows us how it&apos;s used. All also allows the Meta and TikTok ad pixels.
+            </p>
+            <CookieChoice />
           </div>
         </article>
       </div>

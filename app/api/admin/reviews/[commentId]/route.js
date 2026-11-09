@@ -2,7 +2,7 @@
 
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import { verifyToken } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import mongoose from "mongoose";
 import { revalidateProduct } from "@/lib/revalidate";
 
@@ -12,10 +12,8 @@ export async function PATCH(req, context) {
   const { commentId } = await context.params;
 
   try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
-    const admin = verifyToken(token);
-    if (admin.role !== "admin") return new Response(JSON.stringify({ message: "Forbidden" }), { status: 403 });
+    const denied = requireAdmin(req);
+    if (denied) return denied;
 
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
       return new Response(JSON.stringify({ message: "Invalid comment ID" }), { status: 400 });
@@ -80,10 +78,8 @@ export async function DELETE(req, context) {
   const { commentId } = await context.params;
 
   try {
-    const token = req.cookies.get("token")?.value;
-    if (!token) return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
-    const admin = verifyToken(token);
-    if (admin.role !== "admin") return new Response(JSON.stringify({ message: "Forbidden" }), { status: 403 });
+    const denied = requireAdmin(req);
+    if (denied) return denied;
 
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
       return new Response(JSON.stringify({ message: "Invalid comment ID" }), { status: 400 });

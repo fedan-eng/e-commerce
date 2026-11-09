@@ -96,8 +96,13 @@ const userSchema = new mongoose.Schema(
     },
   ],
   updatedAt:          { type: Date, default: null },
-  abandonedEmailSent: { type: Boolean, default: false }, // prevent duplicate emails
+  // Abandoned-cart reminders (app/api/cron/abandoned-cart): how many of the steps went out for this
+  // cart, and true once the last one has. Both reset whenever the cart changes.
+  reminderStep:       { type: Number, default: 0 },
+  abandonedEmailSent: { type: Boolean, default: false },
 },
+    // The "So, you probably do not know..." email, 3 hours after sign-up (app/api/cron/second-welcome)
+    secondWelcomeSentAt: { type: Date, default: null },
 wishlist: {
   items: [
     {

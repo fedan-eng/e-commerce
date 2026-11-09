@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Check, Clock, Archive, Trash2, Pencil, ThumbsUp, ThumbsDown, BadgeCheck, MessageSquare, Package } from "lucide-react";
+import { Check, Archive, Trash2, Pencil, ThumbsUp, ThumbsDown, BadgeCheck, MessageSquare, Package } from "lucide-react";
 import { useAdmin } from "@/components/admin/AdminContext";
 import {
   PageHeader, Card, Button, Tabs, SearchInput, Pagination, Checkbox, BulkBar, bulkBtnCls, StatusBadge,
@@ -149,11 +149,6 @@ function ReviewRow({ review, selected, onSelect, onStatusChange, onDelete, onEdi
             {status !== "approved" && (
               <Button size="sm" variant="primary" onClick={() => changeStatus("approved")} disabled={busy}>
                 <Check size={14} aria-hidden /> {actioning === "approved" ? "…" : "Approve"}
-              </Button>
-            )}
-            {status !== "pending" && (
-              <Button size="sm" onClick={() => changeStatus("pending")} disabled={busy}>
-                <Clock size={14} aria-hidden /> {actioning === "pending" ? "…" : "Pending"}
               </Button>
             )}
             {status !== "archived" && (
@@ -324,7 +319,6 @@ export default function AdminReviewsPage() {
 
         <BulkBar count={selectedIds.length} onClear={() => setSelected({})}>
           <button type="button" disabled={bulkBusy} onClick={() => bulk(setStatus, "approved")} className={bulkBtnCls}><Check size={13} aria-hidden /> Approve</button>
-          <button type="button" disabled={bulkBusy} onClick={() => bulk(setStatus, "pending")} className={bulkBtnCls}><Clock size={13} aria-hidden /> Pending</button>
           <button type="button" disabled={bulkBusy} onClick={() => bulk(setStatus, "archived")} className={bulkBtnCls}><Archive size={13} aria-hidden /> Archive</button>
           <button type="button" disabled={bulkBusy} onClick={bulkDelete} className={bulkBtnCls}><Trash2 size={13} aria-hidden /> Delete</button>
         </BulkBar>

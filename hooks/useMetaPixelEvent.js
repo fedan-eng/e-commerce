@@ -19,8 +19,8 @@ export const useMetaPixelEvent = () => {
   const { preferences } = useCookieConsent();
 
   const trackEvent = (eventName, params = {}) => {
-    if (!preferences.analytics) {
-      console.log(`[Meta Pixel] Analytics consent not given, skipping event: ${eventName}`);
+    if (!preferences.marketing) {
+      console.log(`[Meta Pixel] Marketing cookies not allowed, skipping event: ${eventName}`);
       return;
     }
     if (typeof window !== "undefined" && window.fbq) {

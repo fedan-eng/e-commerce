@@ -63,7 +63,7 @@ const sections = [
       },
       {
         heading: "Cookies",
-        body: "FIL Store uses HTTP-only cookies for session management and authentication. These cookies are essential to platform functionality. We do not use third-party advertising cookies. You can configure your browser to refuse cookies, but doing so may affect your ability to use certain features of the platform.",
+        body: "FIL Store uses cookies to keep you signed in, keep your cart and measure how the store is used (Google Analytics, Microsoft Clarity). If you choose \"All\" in our cookie banner, Meta and TikTok advertising cookies are also set; choose \"Basic\" and they never are. You can change your choice at any time on our Cookie Policy page.",
       },
       {
         heading: "Data Security",

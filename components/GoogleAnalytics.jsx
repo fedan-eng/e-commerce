@@ -1,24 +1,15 @@
 'use client'
 
 import Script from 'next/script'
-import { useEffect } from 'react'
-import { useCookieConsent } from '../context/CookieConsentContext'
 import { IS_PREVIEW } from '@/lib/analytics/env'
 
 // No GA on preview deployments
 const GA_ID = IS_PREVIEW ? null : process.env.NEXT_PUBLIC_GA_ID
 
+// Analytics is part of the "basic" cookie choice, so GA runs for every visitor
+// (context/CookieConsentContext.jsx)
 export default function GoogleAnalytics() {
-  const { preferences, status, mounted } = useCookieConsent()
-
-  const shouldLoad = mounted && status !== 'pending' && preferences.analytics && GA_ID
-
-  useEffect(() => {
-    if (!mounted || !GA_ID || typeof window === 'undefined') return
-    window[`ga-disable-${GA_ID}`] = !preferences.analytics
-  }, [preferences.analytics, mounted])
-
-  if (!shouldLoad) return null
+  if (!GA_ID) return null
 
   return (
     <>
