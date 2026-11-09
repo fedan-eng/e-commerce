@@ -11,6 +11,7 @@ import {
 import { toCSV, downloadCSV } from "@/lib/csv";
 import { STATUS_COLORS, normalizeStatusKey, normalizeStatusLabel, shortId } from "@/lib/orderStatus";
 import { useAdmin } from "@/components/admin/AdminContext";
+import { channelLabel } from "@/lib/salesChannels";
 import {
   PageHeader, Card, CardHeader, Button, Segmented, Dropdown, MenuItem, MenuSeparator,
   StatCard, StatusBadge, Skeleton, Spinner, EmptyState, cx,
@@ -425,33 +426,9 @@ export default function AdminDashboard() {
         {statCards.map(c => <StatCard key={c.label} {...c} loading={loading} note={trendNote} />)}
       </div>
 
-      {/* Sales chart + needs attention */}
+      {/* Carts + needs attention */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card>
-          <CardHeader
-            title="Sales over time"
-            description={
-              <span className="mt-1 flex flex-wrap gap-4">
-                <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px] bg-pine" />This period <b className="font-semibold text-ink">{loading ? "…" : moneyShort(totalSales)}</b></span>
-                {prevRange && <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px] bg-[#c9d0cc]" />Previous period <b className="font-semibold text-ink">{loading ? "…" : moneyShort(prevSales)}</b></span>}
-              </span>
-            }
-            action={
-              <Segmented
-                label="Chart grouping"
-                value={chartMode}
-                onChange={setChartMode}
-                options={[{ value: "daily", label: "Daily" }, { value: "monthly", label: "Monthly" }]}
-              />
-            }
-          />
-          <div className="relative h-[260px] px-4 pb-4">
-            {loading
-              ? <div className="flex h-full items-center justify-center"><Spinner /></div>
-              : <canvas ref={salesRef} aria-label="Sales over time, this period against the previous one" role="img" />}
-          </div>
-        </Card>
-
+        <CartsCard />
         <NeedsAttention alerts={alerts} />
       </div>
 
@@ -495,88 +472,159 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <CartsCard />
-
-      {/* Top products + latest orders */}
+      {/* Sales chart + latest orders */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
-          <CardHeader title="Top selling products" action={<Button variant="ghost" size="sm" href="/admin_console/products">All products</Button>} />
-          {loading ? <BarsSkeleton /> : topProducts.length === 0
-            ? <EmptyState icon={Trophy} title="No sales in this period" description="Best sellers show up here once orders come in." />
-            : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-collapse text-[13px]">
-                  <thead>
-                    <tr className="border-y border-edge bg-[#fafbfa] text-left text-xs font-medium text-faint">
-                      <th className="px-5 py-2.5 font-medium">Product</th>
-                      <th className="px-5 py-2.5 font-medium">Category</th>
-                      <th className="px-5 py-2.5 text-right font-medium">Price</th>
-                      <th className="px-5 py-2.5 text-right font-medium">Units</th>
-                      <th className="px-5 py-2.5 text-right font-medium">Revenue</th>
-                      <th className="px-5 py-2.5 font-medium">Rating</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topProducts.map((p, i) => (
-                      <tr key={i} className="border-b border-[#eef0ef] last:border-0 hover:bg-[#fafbfa]">
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            {p.image
-                              // eslint-disable-next-line @next/next/no-img-element
-                              ? <img src={p.image} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-hover object-cover" />
-                              : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pine-tint text-[11px] font-semibold text-pine">{initials(...p.name.split(" "))}</span>}
-                            {p.id
-                              ? <Link href={`/admin_console/products/${p.id}`} className="max-w-[240px] truncate text-ink no-underline hover:text-pine">{p.name}</Link>
-                              : <span className="max-w-[240px] truncate">{p.name}</span>}
-                          </div>
-                        </td>
-                        <td className="px-5 py-3"><span className="rounded-md bg-[#f1f3f2] px-2 py-0.5 text-xs font-medium text-sub">{p.category}</span></td>
-                        <td className="whitespace-nowrap px-5 py-3 text-right text-sub">{money(p.price)}</td>
-                        <td className="px-5 py-3 text-right">{p.qty}</td>
-                        <td className="whitespace-nowrap px-5 py-3 text-right font-medium">{money(p.total)}</td>
-                        <td className="whitespace-nowrap px-5 py-3">
-                          {p.rating
-                            ? <span className="inline-flex items-center gap-1"><Star size={13} className="fill-[#d97706] text-[#d97706]" aria-hidden />{Number(p.rating).toFixed(1)}</span>
-                            : <span className="text-faint">—</span>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <CardHeader
+            title="Sales over time"
+            description={
+              <span className="mt-1 flex flex-wrap gap-4">
+                <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px] bg-pine" />This period <b className="font-semibold text-ink">{loading ? "…" : moneyShort(totalSales)}</b></span>
+                {prevRange && <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px] bg-[#c9d0cc]" />Previous period <b className="font-semibold text-ink">{loading ? "…" : moneyShort(prevSales)}</b></span>}
+              </span>
+            }
+            action={
+              <Segmented
+                label="Chart grouping"
+                value={chartMode}
+                onChange={setChartMode}
+                options={[{ value: "daily", label: "Daily" }, { value: "monthly", label: "Monthly" }]}
+              />
+            }
+          />
+          <div className="relative h-[260px] px-4 pb-4">
+            {loading
+              ? <div className="flex h-full items-center justify-center"><Spinner /></div>
+              : <canvas ref={salesRef} aria-label="Sales over time, this period against the previous one" role="img" />}
+          </div>
         </Card>
 
-        <Card>
-          <CardHeader title="Latest orders" action={<Button variant="ghost" size="sm" href="/admin_console/orders">View all</Button>} />
-          {!alerts ? <BarsSkeleton /> : alerts.recentOrders.length === 0
-            ? <EmptyState icon={ShoppingBag} title="No orders yet" />
-            : alerts.recentOrders.map(o => (
-              <Link
-                key={o._id}
-                href={`/admin_console/orders/${o._id}`}
-                className="flex items-center gap-3 border-t border-[#eef0ef] px-5 py-3 text-ink no-underline transition-colors hover:bg-[#fafbfa]"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pine-tint text-xs font-semibold text-pine">
-                  {initials(o.firstName, o.lastName, o.email?.[0] || "?")}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-medium">{[o.firstName, o.lastName].filter(Boolean).join(" ") || o.email || "Customer"}</span>
-                  <span className="block text-xs text-faint">#{shortId(o._id)} · {timeAgo(o.createdAt)}</span>
-                </span>
-                <span className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="text-[13px] font-medium">{money(orderTotal(o))}</span>
-                  <StatusBadge status={o.status} />
-                </span>
-              </Link>
-            ))}
-        </Card>
+        <LatestOrders alerts={alerts} />
       </div>
+
+      {/* Top products */}
+      <Card>
+        <CardHeader title="Top selling products" action={<Button variant="ghost" size="sm" href="/admin_console/products">All products</Button>} />
+        {loading ? <BarsSkeleton /> : topProducts.length === 0
+          ? <EmptyState icon={Trophy} title="No sales in this period" description="Best sellers show up here once orders come in." />
+          : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] border-collapse text-[13px]">
+                <thead>
+                  <tr className="border-y border-edge bg-[#fafbfa] text-left text-xs font-medium text-faint">
+                    <th className="px-5 py-2.5 font-medium">Product</th>
+                    <th className="px-5 py-2.5 font-medium">Category</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Price</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Units</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Revenue</th>
+                    <th className="px-5 py-2.5 font-medium">Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topProducts.map((p, i) => (
+                    <tr key={i} className="border-b border-[#eef0ef] last:border-0 hover:bg-[#fafbfa]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.image
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={p.image} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-hover object-cover" />
+                            : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pine-tint text-[11px] font-semibold text-pine">{initials(...p.name.split(" "))}</span>}
+                          {p.id
+                            ? <Link href={`/admin_console/products/${p.id}`} className="max-w-[240px] truncate text-ink no-underline hover:text-pine">{p.name}</Link>
+                            : <span className="max-w-[240px] truncate">{p.name}</span>}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3"><span className="rounded-md bg-[#f1f3f2] px-2 py-0.5 text-xs font-medium text-sub">{p.category}</span></td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right text-sub">{money(p.price)}</td>
+                      <td className="px-5 py-3 text-right">{p.qty}</td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right font-medium">{money(p.total)}</td>
+                      <td className="whitespace-nowrap px-5 py-3">
+                        {p.rating
+                          ? <span className="inline-flex items-center gap-1"><Star size={13} className="fill-[#d97706] text-[#d97706]" aria-hidden />{Number(p.rating).toFixed(1)}</span>
+                          : <span className="text-faint">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </Card>
     </div>
   );
 }
 
 // ── Presentational pieces (module level so canvases don't remount on re-render) ──
+
+// Website checkout vs. sales recorded by staff (Sales entry)
+function SourceTag({ order }) {
+  const manual = order.source === "manual";
+  const channel = manual && order.channel ? channelLabel(order.channel) : "";
+  return (
+    <span className={cx(
+      "rounded-md px-1.5 py-px text-[11px] font-medium",
+      manual ? "bg-[#fef7e6] text-[#a16207]" : "bg-pine-tint text-pine",
+    )}>
+      {manual ? `Manual${channel ? ` · ${channel}` : ""}` : "Website"}
+    </span>
+  );
+}
+
+function LatestOrders({ alerts }) {
+  const [source, setSource] = useState("all");
+  const [filtered, setFiltered] = useState(null);
+
+  // "All" reuses the shared alerts fetch; the other views load their own five
+  useEffect(() => {
+    if (source === "all") return;
+    let live = true;
+    setFiltered(null);
+    axios.get(`/api/admin/orders?limit=5&source=${source}`)
+      .then(({ data }) => live && setFiltered(data.orders || []))
+      .catch(() => live && setFiltered([]));
+    return () => { live = false; };
+  }, [source]);
+
+  const orders = source === "all" ? alerts?.recentOrders : filtered;
+
+  return (
+    <Card>
+      <CardHeader
+        title="Latest orders"
+        action={<Button variant="ghost" size="sm" href={`/admin_console/orders${source === "all" ? "" : `?source=${source}`}`}>View all</Button>}
+      />
+      <div className="px-5 pb-3">
+        <Segmented
+          label="Order source"
+          value={source}
+          onChange={setSource}
+          options={[{ value: "all", label: "All" }, { value: "online", label: "Website" }, { value: "manual", label: "Manual" }]}
+        />
+      </div>
+      {!orders ? <BarsSkeleton /> : orders.length === 0
+        ? <EmptyState icon={ShoppingBag} title={source === "manual" ? "No manual sales yet" : "No orders yet"} />
+        : orders.map(o => (
+          <Link
+            key={o._id}
+            href={`/admin_console/orders/${o._id}`}
+            className="flex items-center gap-3 border-t border-[#eef0ef] px-5 py-3 text-ink no-underline transition-colors hover:bg-[#fafbfa]"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pine-tint text-xs font-semibold text-pine">
+              {initials(o.firstName, o.lastName, o.email?.[0] || "?")}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium">{[o.firstName, o.lastName].filter(Boolean).join(" ") || o.email || "Customer"}</span>
+              <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-faint">#{shortId(o._id)} · {timeAgo(o.createdAt)} <SourceTag order={o} /></span>
+            </span>
+            <span className="flex shrink-0 flex-col items-end gap-1">
+              <span className="text-[13px] font-medium">{money(orderTotal(o))}</span>
+              <StatusBadge status={o.status} />
+            </span>
+          </Link>
+        ))}
+    </Card>
+  );
+}
 
 function NeedsAttention({ alerts }) {
   const items = alerts ? [

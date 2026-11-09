@@ -334,7 +334,7 @@ function AdminOrdersPage() {
           </select>
           <select value={source} onChange={e => resetPage(setSource)(e.target.value)} className={cx(selectCls, "w-auto")} aria-label="Source">
             <option value="">All sources</option>
-            <option value="online">Online</option>
+            <option value="online">Website</option>
             <option value="manual">Manual</option>
           </select>
           {hasFilters && <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>}
