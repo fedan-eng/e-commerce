@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { Check, Copy, FileText, MessageCircle, Phone, Mail, ChevronDown, User, Truck, CreditCard, ShoppingBag } from "lucide-react";
+import { Check, Copy, FileText, MessageCircle, Phone, Mail, ChevronDown, User, Truck, CreditCard, ShoppingBag, Pencil } from "lucide-react";
 import { TIMELINE_STEPS, ALL_STATUSES, normalizeStatusKey, matchStatusLabel, shortId } from "@/lib/orderStatus";
 import { downloadInvoice } from "@/lib/invoice";
 import { useAdmin } from "@/components/admin/AdminContext";
 import {
   PageHeader, Card, CardHeader, Button, Dropdown, MenuItem, StatusBadge, EmptyState, Spinner, Avatar,
-  selectCls, TH, TD, cx,
+  Field, Checkbox, selectCls, inputCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money, localPhone, telLink, whatsappLink } from "@/components/admin/format";
 import { channelLabel } from "@/lib/salesChannels";
@@ -73,6 +73,64 @@ function InfoRow({ label, children }) {
   );
 }
 
+// Fix a typo in the customer's name, email or phone. Offers to resend the order
+// confirmation when the email changes, since the first one went to the wrong address.
+function ContactForm({ order, onCancel, onSaved }) {
+  const [form, setForm] = useState({
+    firstName: order.firstName || "",
+    lastName:  order.lastName || "",
+    email:     order.email || "",
+    phone:     localPhone(order.phone),
+    addPhone:  localPhone(order.addPhone),
+  });
+  const [resend, setResend] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }));
+  const emailChanged = form.email.trim().toLowerCase() !== (order.email || "").toLowerCase();
+
+  const save = async e => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/orders/${order._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact: form, resendConfirmation: emailChanged && resend }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Couldn't save the changes");
+      onSaved(data.order);
+      toast.success(data.emailed ? `Saved, and the confirmation was sent to ${data.order.email}` : "Customer details saved");
+    } catch (err) {
+      toast.error(err.message || "Network error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="First name"><input value={form.firstName} onChange={set("firstName")} className={inputCls} autoComplete="off" /></Field>
+        <Field label="Last name"><input value={form.lastName} onChange={set("lastName")} className={inputCls} autoComplete="off" /></Field>
+      </div>
+      <Field label="Email"><input type="email" value={form.email} onChange={set("email")} className={inputCls} autoComplete="off" /></Field>
+      <Field label="Phone"><input type="tel" value={form.phone} onChange={set("phone")} className={inputCls} autoComplete="off" placeholder="0803 123 4567" /></Field>
+      <Field label="Alternate phone"><input type="tel" value={form.addPhone} onChange={set("addPhone")} className={inputCls} autoComplete="off" placeholder="Optional" /></Field>
+      {emailChanged && form.email.trim() && (
+        <label className="flex cursor-pointer items-center gap-2 text-[13px] text-sub">
+          <Checkbox checked={resend} onChange={() => setResend(r => !r)} label="Resend the order confirmation to the new email" />
+          Resend the order confirmation to the new email
+        </label>
+      )}
+      <div className="flex gap-2">
+        <Button type="submit" variant="primary" size="sm" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+        <Button type="button" size="sm" onClick={onCancel} disabled={saving}>Cancel</Button>
+      </div>
+    </form>
+  );
+}
+
 export default function AdminOrderDetailPage() {
   const { id } = useParams();
   const { refreshAlerts } = useAdmin();
@@ -80,6 +138,7 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [status,  setStatus]  = useState("");
+  const [editingContact, setEditingContact] = useState(false);
 
   useEffect(() => {
     fetch(`/api/orders/${id}`, { cache: "no-store" })
@@ -269,7 +328,18 @@ export default function AdminOrderDetailPage() {
           </Card>
 
           <Card className="px-5 py-4">
-            <div className="mb-3 flex items-center gap-2"><User size={16} className="text-faint" aria-hidden /><h2 className="m-0 font-poppins text-[15px] font-semibold text-ink">Customer</h2></div>
+            <div className="mb-3 flex items-center gap-2">
+              <User size={16} className="text-faint" aria-hidden />
+              <h2 className="m-0 flex-1 font-poppins text-[15px] font-semibold text-ink">Customer</h2>
+              {!editingContact && <Button size="sm" variant="ghost" onClick={() => setEditingContact(true)}><Pencil size={13} aria-hidden /> Edit</Button>}
+            </div>
+            {editingContact ? (
+              <ContactForm
+                order={order}
+                onCancel={() => setEditingContact(false)}
+                onSaved={updated => { setOrder(updated); setEditingContact(false); }}
+              />
+            ) : (<>
             <div className="flex items-center gap-3">
               <Avatar first={order.firstName} last={order.lastName} email={order.email} />
               <div className="min-w-0">
@@ -285,6 +355,8 @@ export default function AdminOrderDetailPage() {
                 {order.userId && <Button size="sm" variant="ghost" href={`/admin_console/customers/${order.userId}`}>View profile</Button>}
               </div>
             )}
+            {order.addPhone && <InfoRow label="Alternate phone">{localPhone(order.addPhone)}</InfoRow>}
+            </>)}
           </Card>
 
           <Card className="px-5 py-4">

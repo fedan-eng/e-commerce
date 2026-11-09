@@ -92,7 +92,9 @@ export async function PATCH(req, context) {
       });
     }
 
-    const { status } = await req.json();
+    const body = await req.json();
+    if (body.contact) return updateContact(id, body.contact, body.resendConfirmation === true);
+    const { status } = body;
 
     // Normalize status using shared helper
     const normalizedStatus = normalizeStatusKey(status);
@@ -162,6 +164,56 @@ export async function PATCH(req, context) {
 
 // The delivered email's button opens the review form for the first product (a signed link,
 // so guests can review too)
+// Admin fixing a customer's typo in their name, email or phone (admin order page, Customer card).
+// resendConfirmation: send the order confirmation again, e.g. to a corrected email address.
+const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const phoneDigits = (v) => String(v || "").replace(/\D/g, "");
+const noStore = { "Cache-Control": "no-store, no-cache, must-revalidate" };
+
+async function updateContact(id, contact, resendConfirmation) {
+  const firstName = String(contact.firstName ?? "").trim();
+  const lastName = String(contact.lastName ?? "").trim();
+  const email = String(contact.email ?? "").trim().toLowerCase();
+  const phone = phoneDigits(contact.phone);
+  const addPhone = phoneDigits(contact.addPhone);
+
+  const order = await Order.findById(id);
+  if (!order) return Response.json({ message: "Order not found" }, { status: 404, headers: noStore });
+
+  const online = order.source !== "manual";
+  if (email && !EMAIL_RE.test(email)) return Response.json({ message: "That email address doesn't look right" }, { status: 400, headers: noStore });
+  if (online && !email) return Response.json({ message: "Online orders need an email address" }, { status: 400, headers: noStore });
+  for (const [label, value] of [["Phone", phone], ["Alternate phone", addPhone]]) {
+    if (value && (value.length < 10 || value.length > 14)) {
+      return Response.json({ message: `${label} should be 10 to 14 digits` }, { status: 400, headers: noStore });
+    }
+  }
+  if (online && !phone) return Response.json({ message: "Online orders need a phone number" }, { status: 400, headers: noStore });
+  if (online && (!firstName || !lastName)) return Response.json({ message: "Online orders need a first and last name" }, { status: 400, headers: noStore });
+
+  const before = { firstName: order.firstName, lastName: order.lastName, email: order.email, phone: order.phone, addPhone: order.addPhone };
+  order.firstName = firstName;
+  order.lastName = lastName;
+  order.email = email;
+  order.phone = phone ? Number(phone) : undefined; // stored as a number (see models/Order.js)
+  order.addPhone = addPhone;
+  await order.save();
+  console.log(`Order ${id} contact details edited:`, before, "→", { firstName, lastName, email, phone, addPhone });
+
+  let emailed = false;
+  if (resendConfirmation && order.email) {
+    try {
+      const { subject, html, text } = buildOrderStatusEmail(order, "confirmed");
+      await sendEmail(order.email, subject, text, html);
+      emailed = true;
+    } catch (err) {
+      console.error("Confirmation resend failed:", err.message);
+    }
+  }
+
+  return Response.json({ order, emailed }, { status: 200, headers: noStore });
+}
+
 function statusEmailOptions(order, status) {
   if (status !== "delivered") return {};
   const first = reviewableItems(order)[0];
