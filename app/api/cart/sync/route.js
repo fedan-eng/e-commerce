@@ -31,6 +31,7 @@ export async function POST(req) {
         "cart.items":             [],
         "cart.updatedAt":         null,
         "cart.abandonedEmailSent": false,
+        "cart.reminderStep":       0,
       });
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
@@ -41,6 +42,7 @@ export async function POST(req) {
       "cart.items":             items,
       "cart.updatedAt":         new Date(),
       "cart.abandonedEmailSent": false,
+      "cart.reminderStep":       0,
     });
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
