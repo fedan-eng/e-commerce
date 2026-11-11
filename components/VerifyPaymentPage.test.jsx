@@ -203,7 +203,8 @@ describe('VerifyPaymentPage', () => {
       setupMocks({ paystackRef: 'ref_abc123' })
       render(<VerifyPaymentPage />)
       await waitFor(() => screen.getByText(/Thank you, John/i))
-      expect(screen.getByText('#ref_abc123')).toBeInTheDocument()
+      // Short order number (last 8 characters of _id 'order_123'), not the payment reference
+      expect(screen.getByText('#RDER_123')).toBeInTheDocument()
       expect(screen.getByText('Product 1')).toBeInTheDocument()
       expect(screen.getByText('Product 2')).toBeInTheDocument()
       expect(screen.getByText(/Discount \(WELCOME10\)/)).toBeInTheDocument()

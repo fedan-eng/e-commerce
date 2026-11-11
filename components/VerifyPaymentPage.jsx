@@ -14,6 +14,7 @@ import { removePurchased } from "@/store/features/cartSlice";
 import Loading from "@/components/Loading";
 import FeedbackForm from "@/components/FeedbackForm";
 import { formatAmount } from "@/lib/utils";
+import { shortId } from "@/lib/orderStatus";
 import { ProductImage } from "./ProductImage";
 import { DELIVERY_OPTIONS } from "./checkout/delivery";
 import { downloadReceipt } from "./checkout/receiptPdf";
@@ -183,7 +184,8 @@ export default function VerifyPaymentPage() {
   const trackHref = isAuthenticated ? "/profile?tab=My%20Orders" : `/contact?order=${orderDetails._id}#track`;
 
   const facts = [
-    { label: "Order number", value: `#${orderDetails.paymentReference || orderDetails._id}` },
+    // Same short number as the confirmation email, receipt and admin; the payment reference is on the receipt
+    { label: "Order number", value: `#${orderDetails._id ? shortId(orderDetails._id) : orderDetails.paymentReference}` },
     { label: "Order date", value: orderDate },
     { label: "Payment", value: "Paid via Paystack" },
     { label: "Delivery", value: delivery ? delivery.title : orderDetails.deliveryType || "Regular delivery" },

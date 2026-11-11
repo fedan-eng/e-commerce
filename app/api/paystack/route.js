@@ -6,6 +6,15 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
+import { hasEmoji, stripEmoji } from "@/lib/sanitize";
+import PendingCheckout from "@/models/PendingCheckout";
+import crypto from "crypto";
+
+// Text fields from the checkout form that end up on the order
+const TEXT_FIELDS = ["firstName", "lastName", "email", "phone", "addPhone", "city", "address", "orderNote"];
+
+// Our own reference, so the checkout can be saved before the shopper goes to Paystack
+const newReference = () => `FIL-${Date.now().toString(36)}-${crypto.randomBytes(5).toString("hex")}`;
 
 const isValidEmail = (email) => {
   if (!email || typeof email !== "string") return false;
@@ -147,6 +156,14 @@ export async function POST(req) {
       );
     }
 
+    // Emojis cut Paystack's metadata short and once lost a paid order (see lib/sanitize.js)
+    if (TEXT_FIELDS.some((f) => hasEmoji(deliveryInfo[f]))) {
+      return NextResponse.json(
+        { message: "Please remove emojis from your details and try again." },
+        { status: 400 }
+      );
+    }
+
     if (!deliveryInfo.address?.trim() || !deliveryInfo.city?.trim()) {
       return NextResponse.json(
         { message: "Complete delivery address is required" },
@@ -191,6 +208,39 @@ export async function POST(req) {
       );
     }
 
+    // Only the fields the order needs, never whatever else the browser sent
+    const clean = (v) => stripEmoji(String(v ?? "")).trim();
+    const checkout = {
+      referralCode,
+      cartItems: priced.items,
+      deliveryInfo: {
+        firstName: clean(deliveryInfo.firstName),
+        lastName: clean(deliveryInfo.lastName),
+        email,
+        phone: String(deliveryInfo.phone).replace(/\D/g, ""),
+        addPhone: String(deliveryInfo.addPhone || "").replace(/\D/g, ""),
+        region: delivery.region,
+        city: clean(deliveryInfo.city),
+        address: clean(deliveryInfo.address),
+        // Anything but Free/Express was priced as Regular by deliveryFeeFor
+        deliveryType: ["Free", "Express"].includes(deliveryInfo.deliveryType) ? deliveryInfo.deliveryType : "Regular",
+        orderNote: clean(deliveryInfo.orderNote).slice(0, 500),
+      },
+      promoCode: appliedPromo,
+      subTotal,
+      discount,
+      deliveryFee,
+      total,
+      userId: finalUserId,
+      gaClientId, // Pass GA client_id to webhook
+      clientIdSource: debugInfo?.clientIdSource || 'unknown',
+    };
+
+    // Save the order details on our side first: verify-payment and the webhook build the
+    // order from this, so it doesn't depend on Paystack returning the metadata intact
+    const reference = newReference();
+    await PendingCheckout.create({ reference, data: checkout });
+
     // ── Call Paystack ──
     const paystackRes = await axios.post(
       "https://api.paystack.co/transaction/initialize",
@@ -198,24 +248,9 @@ export async function POST(req) {
         email: email, // sanitized email
         amount: Math.round(total * 100), // in kobo
         currency: "NGN",
-        metadata: {
-          referralCode,
-          cartItems: priced.items,
-          deliveryInfo: {
-            ...deliveryInfo,
-            region: delivery.region,
-            email,
-            phone: String(deliveryInfo.phone).replace(/\D/g, ""),
-          },
-          promoCode: appliedPromo,
-          subTotal,
-          discount,
-          deliveryFee,
-          total,
-          userId: finalUserId,
-          gaClientId, // Pass GA client_id to webhook
-          clientIdSource: debugInfo?.clientIdSource || 'unknown',
-        },
+        reference,
+        // Still sent as a fallback and for the Paystack dashboard
+        metadata: checkout,
         callback_url: `${origin}/checkout/success`,
       },
       {
