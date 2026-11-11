@@ -10,6 +10,7 @@ import AnalyticsProvider from "./AnalyticsProvider";
 import CartAnimationProvider from "@/context/CartAnimationProvider";
 import { SITE_URL } from "@/lib/seo";
 import ReferralTracker from "@/components/ReferralTracker";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -77,6 +78,7 @@ export default function RootLayout({ children }) {
                 {/* Load analytics after main content */}
                 <AnalyticsProvider />
                 <ReferralTracker />
+                <ScrollToTop />
               </CartAnimationProvider>
             </Providers>
           </CookieConsentProvider>
