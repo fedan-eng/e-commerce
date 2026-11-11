@@ -7,6 +7,7 @@ import Order from "@/models/Order";
 import { countOrderSales } from "@/lib/soldCount";
 import { countPromoUse } from "@/lib/promo";
 import { sendOrderConfirmationEmails } from "@/lib/orderNotifications";
+import { alertUnsavedOrder, loadCheckout, orderFieldsFrom } from "@/lib/paystackOrder";
 
 // Helper function to send GA event via Measurement Protocol
 async function sendGAEventViaMeasurementProtocol(order, gaClientId, clientIdSource) {
@@ -111,12 +112,10 @@ export async function POST(req) {
   // Paystack test-mode payments (e.g. from a preview deployment) never go to GA
   const isTestPayment = data.domain === "test";
 
-  console.log('[Webhook] Full metadata received:', JSON.stringify(meta, null, 2));
-  console.log('[Webhook] Metadata keys:', Object.keys(meta || {}));
-  console.log('[Webhook] Has gaClientId in metadata:', !!meta?.gaClientId);
+  console.log('[Webhook] Metadata received:', typeof meta, JSON.stringify(meta, null, 2));
 
-  if (!reference || !meta) {
-    console.error("Webhook: missing reference or metadata");
+  if (!reference) {
+    console.error("Webhook: missing reference");
     return NextResponse.json({ received: true });
   }
 
@@ -147,87 +146,30 @@ export async function POST(req) {
     return NextResponse.json({ received: true });
   }
 
-  // ── 4. Build orderData (mirrors verify-payment logic) ────────────────────
-  const deliveryInfo = meta.deliveryInfo || meta;
-  const isSimpleCheckout = meta.simpleCheckout || false;
-  const gaClientId = meta.gaClientId || null;
-  const clientIdSource = meta.clientIdSource || 'unknown';
+  // ── 4. Build the order: our saved checkout first, Paystack's metadata as a fallback ──
+  const checkout = await loadCheckout(reference, meta);
+  const clientIdSource = checkout.data.clientIdSource || 'unknown';
+  const orderData = orderFieldsFrom(checkout.data, { reference, amount: data.amount / 100 });
 
-  // Log GA client_id for debugging (Vercel logs)
-  console.log(`[Webhook] Received gaClientId from metadata:`, gaClientId);
-  console.log(`[Webhook] Client ID source:`, clientIdSource);
-  console.log(`[Webhook] Is custom session ID:`, gaClientId?.startsWith('sess_'));
-
-  const cartItems = (meta.cartItems || []).map((item) => ({
-    ...item,
-    price: Number(item.price) || 0,
-    quantity: Number(item.quantity) || 1,
-  }));
-
-  const orderData = {
-    userId: meta.userId || null,
-    firstName: isSimpleCheckout ? "" : (deliveryInfo.firstName || ""),
-    lastName: isSimpleCheckout ? "" : (deliveryInfo.lastName || ""),
-    email: isSimpleCheckout ? (deliveryInfo.email || meta.email || "") : (deliveryInfo.email || ""),
-    phone: isSimpleCheckout ? "" : (deliveryInfo.phone || ""),
-    addPhone: isSimpleCheckout ? "" : (deliveryInfo.addPhone || ""),
-    region: isSimpleCheckout ? { name: "", fee: 0 } : (deliveryInfo.region || { name: "", fee: 0 }),
-    city: isSimpleCheckout ? "" : (deliveryInfo.city || ""),
-    deliveryType: isSimpleCheckout ? "Regular" : (deliveryInfo.deliveryType || "Regular"),
-    address: isSimpleCheckout ? "" : (deliveryInfo.address || ""),
-    orderNote: isSimpleCheckout ? "" : (deliveryInfo.orderNote || ""),
-    cartItems,
-    subTotal: Number(meta.subTotal) || 0,
-    discount: Number(meta.discount) || 0,
-    deliveryFee: Number(meta.deliveryFee) || 0,
-    total: Number(meta.total) || data.amount / 100,
-    promoCode: meta.promoCode || null,
-    referralCode: meta.referralCode || null,
-    paymentMethod: "paystack",
-    paymentReference: reference,
-    paymentStatus: "paid",
-    gaClientId, // Store GA client_id for server-side tracking
-  };
+  console.log('[Webhook] Order details source:', checkout.source);
+  console.log('[Webhook] gaClientId:', orderData.gaClientId, 'source:', clientIdSource);
 
   // ── 5. Save order ────────────────────────────────────────────────────────
   let order;
   try {
-    order = await Order.create({
-      userId: orderData.userId,
-      email: orderData.email,
-      firstName: orderData.firstName,
-      lastName: orderData.lastName,
-      phone: orderData.phone,
-      addPhone: orderData.addPhone,
-      address: orderData.address,
-      city: orderData.city,
-      region: {
-        name: orderData.region?.name || "",
-        fee: orderData.region?.fee || 0,
-      },
-      deliveryType: orderData.deliveryType,
-      orderNote: orderData.orderNote,
-      items: orderData.cartItems,
-      subTotal: orderData.subTotal,
-      discount: orderData.discount,
-      deliveryFee: orderData.deliveryFee,
-      total: orderData.total,
-      promoCode: orderData.promoCode,
-      referralCode: orderData.referralCode,
-      paymentMethod: orderData.paymentMethod,
-      paymentReference: orderData.paymentReference,
-      paymentStatus: orderData.paymentStatus,
-      status: "confirmed",
-      statusHistory: [{ status: "confirmed", date: new Date() }],
-      gaClientId: orderData.gaClientId, // Store GA client_id
-    });
+    order = await Order.create(orderData);
 
     console.log(`Webhook: order ${order._id} created for ${reference} with gaClientId:`, orderData.gaClientId);
 
     await countOrderSales(order._id);
     await countPromoUse(order.promoCode);
   } catch (err) {
-    console.error("Webhook: order save failed", err);
+    console.error(`Webhook: order save failed (details from ${checkout.source})`, err);
+    // Someone paid and there's no order: email the admin with everything Paystack sent.
+    // A duplicate key just means verify-payment saved it a moment earlier.
+    if (err?.code !== 11000) {
+      await alertUnsavedOrder({ reference, paystackData: data, error: err, source: checkout.source });
+    }
     // Return 200 so Paystack doesn't keep retrying
     return NextResponse.json({ received: true });
   }

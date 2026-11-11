@@ -12,6 +12,8 @@ import {
   getPhoneDigits,
   isValidEmail,
   isValidPhone,
+  hasEmoji,
+  EMOJI_ERROR,
 } from "@/lib/sanitize";
 
 export const SAVED_INFO_KEY = "savedCheckoutInfo";
@@ -47,7 +49,7 @@ const SANITIZERS = {
 
 const name = (label) => (v) => (!v.trim() ? `${label} is required` : v.trim().length < 2 ? `${label} is too short` : "");
 
-const RULES = {
+const BASE_RULES = {
   firstName: name("First name"),
   lastName: name("Last name"),
   email: (v) => (!v.trim() ? "Email is required" : !isValidEmail(v) ? "Please enter a valid email address" : ""),
@@ -57,10 +59,16 @@ const RULES = {
   region: (v) => (!v?.name ? "Region is required" : ""),
   city: (v) => (!v.trim() ? "City is required" : ""),
   address: (v) => (!v.trim() ? "Address is required" : v.trim().length < 5 ? "Please enter a complete address" : ""),
+  orderNote: () => "",
 };
 
+// Every text field also rejects emojis (see lib/sanitize.js for why)
+const RULES = Object.fromEntries(
+  Object.entries(BASE_RULES).map(([field, rule]) => [field, (v) => (hasEmoji(v) ? EMOJI_ERROR : rule(v))])
+);
+
 export const CONTACT_FIELDS = ["firstName", "lastName", "email", "phone", "addPhone"];
-export const DELIVERY_FIELDS = ["region", "city", "address"];
+export const DELIVERY_FIELDS = ["region", "city", "address", "orderNote"];
 export const PROFILE_FIELDS = ["firstName", "lastName", "phone", "region", "city", "address"];
 
 // Trimmed, digits-only values ready for the API
@@ -122,6 +130,8 @@ export default function useCheckoutForm() {
       const { name: field, value, type, checked } = e.target;
       const sanitize = SANITIZERS[field];
       setValue(field, type === "checkbox" ? checked : sanitize ? sanitize(value) : value);
+      // Flag emojis as soon as they're typed (fields that strip them still say why they vanished)
+      if (type !== "checkbox" && hasEmoji(value)) setErrors((prev) => ({ ...prev, [field]: EMOJI_ERROR }));
     },
     [setValue]
   );

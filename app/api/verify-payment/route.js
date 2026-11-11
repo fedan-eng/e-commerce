@@ -7,6 +7,7 @@ import Order from "@/models/Order";
 import { countOrderSales } from "@/lib/soldCount";
 import { countPromoUse } from "@/lib/promo";
 import { verifyToken } from "@/lib/auth";
+import { loadCheckout, orderFieldsFrom } from "@/lib/paystackOrder";
 import crypto from "crypto";
 
 // Helper function to send GA event via Measurement Protocol
@@ -110,6 +111,7 @@ export async function POST(req) {
     let verificationData;
     let orderData;
     let clientIdSource = 'unknown';
+    let checkoutSource = 'none';
 
     // ── PAYSTACK ──────────────────────────────────────────────────────────────
     if (provider === "paystack") {
@@ -123,7 +125,6 @@ export async function POST(req) {
       );
 
       const paystackData = res.data.data;
-      const meta = paystackData.metadata;
 
       verificationData = {
         verified: paystackData.status === "success",
@@ -132,46 +133,18 @@ export async function POST(req) {
         reference: paystackData.reference,
       };
 
-      // Extract GA client_id from metadata
-      const gaClientId = meta.gaClientId || null;
-      clientIdSource = meta.clientIdSource || 'unknown'; // Update the shared variable
-      console.log('[Verify Payment] Received gaClientId from Paystack metadata:', gaClientId);
-      console.log('[Verify Payment] Client ID source:', clientIdSource);
-      console.log('[Verify Payment] Is custom session ID:', gaClientId?.startsWith('sess_'));
+      // Our saved checkout first; Paystack's metadata only for payments started before that existed
+      const checkout = await loadCheckout(reference, paystackData.metadata);
+      checkoutSource = checkout.source;
+      clientIdSource = checkout.data.clientIdSource || 'unknown';
+      orderData = orderFieldsFrom(checkout.data, {
+        reference,
+        amount: paystackData.amount / 100,
+        fallbackUserId: user?.id || null,
+      });
 
-      // Handle both old flat structure and new nested deliveryInfo structure
-      const deliveryInfo = meta.deliveryInfo || meta;
-
-      // Coerce all cart item numeric fields to numbers
-      const cartItems = (meta.cartItems || []).map((item) => ({
-        ...item,
-        price: Number(item.price) || 0,
-        quantity: Number(item.quantity) || 1,
-      }));
-
-      orderData = {
-        firstName: deliveryInfo.firstName || meta.firstName || "",
-        lastName: deliveryInfo.lastName || meta.lastName || "",
-        email: deliveryInfo.email || meta.email || "",
-        phone: deliveryInfo.phone || meta.phone || "",
-        addPhone: deliveryInfo.addPhone || meta.addPhone || "",
-        region: deliveryInfo.region || meta.region || { name: "", fee: 0 },
-        city: deliveryInfo.city || meta.city || "",
-        deliveryType: deliveryInfo.deliveryType || meta.deliveryType || "Regular",
-        gaClientId, // Include GA client_id
-        address: deliveryInfo.address || meta.address || "",
-        orderNote: deliveryInfo.orderNote || meta.orderNote || "",
-        cartItems,
-        subTotal: Number(meta.subTotal) || 0,
-        discount: Number(meta.discount) || 0,
-        deliveryFee: Number(meta.deliveryFee) || 0,
-        total: Number(meta.total) || 0,
-        promoCode: meta.promoCode || null,
-        referralCode: meta.referralCode || null,
-        paymentMethod: "paystack",
-        paymentReference: reference,
-        paymentStatus: "paid",
-      };
+      console.log('[Verify Payment] Order details source:', checkoutSource);
+      console.log('[Verify Payment] gaClientId:', orderData.gaClientId, 'source:', clientIdSource);
 
     } else {
       return Response.json(
@@ -213,35 +186,7 @@ export async function POST(req) {
       }
 
       // Doesn't exist yet — create it
-      order = await Order.create({
-        userId: user?.id || null,
-        email: orderData.email,
-        address: orderData.address,
-        region: {
-          name: orderData.region?.name || orderData.region,
-          fee: orderData.region?.fee || orderData.deliveryFee,
-        },
-        city: orderData.city,
-        deliveryType: orderData.deliveryType,
-        phone: orderData.phone,
-        addPhone: orderData.addPhone || "",
-        firstName: orderData.firstName,
-        lastName: orderData.lastName || "",
-        orderNote: orderData.orderNote || "", 
-        items: orderData.cartItems,
-        subTotal: orderData.subTotal,
-        discount: orderData.discount,
-        promoCode: orderData.promoCode || null,
-        referralCode: orderData.referralCode || null,
-        deliveryFee: orderData.deliveryFee,
-        total: orderData.total,
-        paymentMethod: orderData.paymentMethod,
-        paymentReference: orderData.paymentReference,
-        paymentStatus: orderData.paymentStatus,
-        status: "confirmed",
-        statusHistory: [{ status: "confirmed", date: new Date() }],
-        gaClientId: orderData.gaClientId, // Store GA client_id
-      });
+      order = await Order.create(orderData);
 
       console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
 
@@ -273,7 +218,7 @@ export async function POST(req) {
         return Response.json({ message: "Order save failed" }, { status: 500 });
       }
     } catch (e) {
-      console.error("Error saving order:", e);
+      console.error(`Error saving order (details from ${checkoutSource}):`, e);
       return Response.json({ message: "Order save failed" }, { status: 500 });
     }
 
