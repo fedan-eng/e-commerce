@@ -11,7 +11,7 @@ import {
 import { toCSV, downloadCSV } from "@/lib/csv";
 import { STATUS_COLORS, normalizeStatusKey, normalizeStatusLabel, shortId } from "@/lib/orderStatus";
 import { useAdmin } from "@/components/admin/AdminContext";
-import { channelLabel } from "@/lib/salesChannels";
+import SourceTag from "@/components/admin/SourceTag";
 import {
   PageHeader, Card, CardHeader, Button, Segmented, Dropdown, MenuItem, MenuSeparator,
   StatCard, StatusBadge, Skeleton, Spinner, EmptyState, cx,
@@ -555,20 +555,6 @@ export default function AdminDashboard() {
 }
 
 // ── Presentational pieces (module level so canvases don't remount on re-render) ──
-
-// Website checkout vs. sales recorded by staff (Sales entry)
-function SourceTag({ order }) {
-  const manual = order.source === "manual";
-  const channel = manual && order.channel ? channelLabel(order.channel) : "";
-  return (
-    <span className={cx(
-      "rounded-md px-1.5 py-px text-[11px] font-medium",
-      manual ? "bg-[#fef7e6] text-[#a16207]" : "bg-pine-tint text-pine",
-    )}>
-      {manual ? `Manual${channel ? ` · ${channel}` : ""}` : "Website"}
-    </span>
-  );
-}
 
 function LatestOrders({ alerts }) {
   const [source, setSource] = useState("all");

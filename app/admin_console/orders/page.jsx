@@ -3,6 +3,7 @@
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import SourceTag from "@/components/admin/SourceTag";
 import toast from "react-hot-toast";
 import {
   Plus, Download, MoreVertical, ChevronRight, ChevronDown, Eye, FileText, Copy,
@@ -29,6 +30,9 @@ const STATUS_TABS = [
   { value: "Delivered",  label: "Delivered",  stat: "delivered" },
   { value: "Cancelled",  label: "Cancelled",  stat: "cancelled" },
 ];
+
+// Not a status: filters to manual (offline) sales via the source filter
+const MANUAL_TAB = "manual";
 
 const DAYS_OPTIONS = [
   { label: "All time",     value: "" },
@@ -291,6 +295,13 @@ function AdminOrdersPage() {
   };
 
   const resetPage = setter => v => { setter(v); setPage(1); };
+  // Manual = manual sales of any status (same as the Source dropdown); All clears that too.
+  // Other tabs keep the source, so Manual then Delivered shows delivered manual sales.
+  const selectTab = value => {
+    if (value === MANUAL_TAB) { setSource("manual"); setStatusFilter("all"); }
+    else { setStatusFilter(value); if (value === "all") setSource(""); }
+    setPage(1);
+  };
   const hasFilters = search || days || source || statusFilter !== "all";
   const clearFilters = () => { setSearch(""); setSearchInput(""); setDays(""); setSource(""); setStatusFilter("all"); setPage(1); };
 
@@ -314,9 +325,12 @@ function AdminOrdersPage() {
       <Card>
         <Tabs
           label="Order status"
-          value={statusFilter}
-          onChange={resetPage(setStatusFilter)}
-          tabs={STATUS_TABS.map(t => ({ value: t.value, label: t.label, count: stats ? stats[t.stat] : null }))}
+          value={source === "manual" && statusFilter === "all" ? MANUAL_TAB : statusFilter}
+          onChange={selectTab}
+          tabs={[
+            ...STATUS_TABS.map(t => ({ value: t.value, label: t.label, count: stats ? stats[t.stat] : null })),
+            { value: MANUAL_TAB, label: "Manual", count: stats ? stats.manual ?? 0 : null },
+          ]}
         />
 
         <div className="flex flex-wrap items-center gap-2 px-3 py-3 sm:px-5">
@@ -380,6 +394,7 @@ function AdminOrdersPage() {
                     <th className={TH}>Date</th>
                     <th className={TH}>Customer</th>
                     <th className={TH}>Items</th>
+                    <th className={TH}>Source</th>
                     <th className={cx(TH, "text-right")}>Total</th>
                     <th className={TH}>Status</th>
                     <th className={cx(TH, "w-12")}><span className="sr-only">Actions</span></th>
@@ -406,7 +421,6 @@ function AdminOrdersPage() {
                           </td>
                           <td className={cx(TD, "whitespace-nowrap")}>
                             <Link href={`/admin_console/orders/${o._id}`} className="font-medium text-pine no-underline hover:underline">#{shortId(o._id)}</Link>
-                            {o.source === "manual" && <span className="ml-2 rounded-md bg-[#f1f3f2] px-1.5 py-px text-[11px] font-medium text-sub">Manual</span>}
                           </td>
                           <td className={cx(TD, "whitespace-nowrap text-sub")}>{fmtDate(o.createdAt)}</td>
                           <td className={TD}>
@@ -418,7 +432,8 @@ function AdminOrdersPage() {
                               </div>
                             </div>
                           </td>
-                          <td className={cx(TD, "max-w-[220px] truncate text-sub")} title={itemsSummary(o)}>{itemsSummary(o) || "—"}</td>
+                          <td className={cx(TD, "max-w-[150px] truncate text-sub")} title={itemsSummary(o)}>{itemsSummary(o) || "—"}</td>
+                          <td className={TD}><SourceTag order={o} /></td>
                           <td className={cx(TD, "whitespace-nowrap text-right font-medium")}>{money(orderTotal(o))}</td>
                           <td className={TD}><StatusSelect order={o} onChange={updateStatus} busy={updating === o._id} /></td>
                           <td className={cx(TD, "text-right")}><OrderMenu order={o} onCancel={cancelOrder} /></td>
@@ -426,7 +441,7 @@ function AdminOrdersPage() {
                         {isExp && (
                           <tr>
                             <td colSpan={2} className="border-b border-[#eef0ef] bg-[#fafbfa]" />
-                            <td colSpan={7} className="border-b border-[#eef0ef] bg-[#fafbfa] px-4 py-3">
+                            <td colSpan={8} className="border-b border-[#eef0ef] bg-[#fafbfa] px-4 py-3">
                               <OrderItems order={o} />
                             </td>
                           </tr>
