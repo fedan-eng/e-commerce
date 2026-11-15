@@ -121,6 +121,10 @@ export async function GET(req) {
 
     const stats = statsResults ?? { total: 0, confirmed: 0, processing: 0, shipped: 0, intransit: 0, delivered: 0, cancelled: 0 };
 
+    // The Manual tab's count: manual sales within the same date range and search, whatever source is picked
+    const manualQuery = { ...statsQuery, source: "manual" };
+    stats.manual = await Order.countDocuments(manualQuery);
+
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
