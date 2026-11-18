@@ -118,6 +118,20 @@
   .route-loader-bar { animation-duration: 3s; }
 }
 
+/* Mobile feature strip: one row that scrolls endlessly (track holds two copies) */
+.feature-marquee-track {
+  animation: feature-marquee 22s linear infinite;
+}
+
+@keyframes feature-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-marquee-track { animation-duration: 60s; }
+}
+
 .form-background {
   background: linear-gradient(135deg, #0d542b, #1cc874, #0d542b);
 }
