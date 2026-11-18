@@ -24,10 +24,40 @@ const marqueeItems = [
   },
 ];
 
+const FeatureItem = ({ item }) => {
+  const Icon = item.icon;
+  return (
+    <div className="flex items-center gap-3 px-6 flex-shrink-0">
+      <div className="flex-shrink-0 text-gray-900">
+        <Icon size={26} strokeWidth={1.8} />
+      </div>
+      <div className="flex flex-col whitespace-nowrap">
+        <span className="text-[14px] font-bold text-gray-900 leading-tight tracking-tight">
+          {item.title}
+        </span>
+        <span className="text-[12px] font-medium text-gray-700/80 leading-tight mt-0.5">
+          {item.subtitle}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const Marquee = () => {
   return (
-    <section className="w-full bg-[#A2E8CE] py-4 px-4 sm:px-6 lg:px-8 border-b border-black/5">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-0 sm:divide-y-0 lg:divide-x divide-black/10">
+    <section className="w-full bg-[#A2E8CE] py-4 sm:px-6 lg:px-8 border-b border-black/5">
+      {/* Mobile: single scrolling row. Items are rendered twice so the loop is seamless. */}
+      <div className="sm:hidden overflow-hidden py-2">
+        <div className="feature-marquee-track flex w-max">
+          {[...marqueeItems, ...marqueeItems].map((item, index) => (
+            <div key={index} aria-hidden={index >= marqueeItems.length || undefined}>
+              <FeatureItem item={item} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden sm:grid max-w-7xl mx-auto sm:grid-cols-2 lg:grid-cols-4 gap-0 lg:divide-x divide-black/10">
         {marqueeItems.map((item, index) => {
           const Icon = item.icon;
           return (
