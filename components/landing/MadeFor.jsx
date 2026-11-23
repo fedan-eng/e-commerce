@@ -1,4 +1,7 @@
+// components/landing/MadeFor.jsx — "Made for the whole day": four moments with the FIL product in each.
+// Phones: one row of large cards you scroll sideways (as in the design). Tablet and up: a staggered grid.
 import React from 'react';
+import Image from 'next/image';
 
 const moments = [
   {
@@ -21,7 +24,7 @@ const moments = [
     title: '9% battery. Not a problem.',
     product: 'FIL Thunder 30K',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor2.png',
-    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[80px]',
+    marginClasses: 'md:mt-[60px] lg:mt-[80px]',
   },
   {
     id: 3,
@@ -43,7 +46,7 @@ const moments = [
     product: 'FIL MagFlex 10K',
     image: 'https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Madefor4.png',
     focus: 'object-top',
-    marginClasses: 'mt-10 md:mt-[60px] lg:mt-[110px]',
+    marginClasses: 'md:mt-[60px] lg:mt-[110px]',
   },
 ];
 
@@ -63,11 +66,11 @@ const MadeFor = () => {
         </div>
 
         {/* Timeline Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5 md:gap-6 lg:gap-8">
+        <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-8">
           {moments.map((moment) => (
             <div
               key={moment.id}
-              className={`flex flex-col group ${moment.marginClasses}`}
+              className={`group flex w-[72%] shrink-0 snap-start flex-col sm:w-[45%] md:w-auto ${moment.marginClasses}`}
             >
               {/* Time Indicator */}
               <div className="flex items-center gap-2 sm:gap-2.5 mb-2.5 sm:mb-3.5 px-1">
@@ -79,19 +82,21 @@ const MadeFor = () => {
 
               {/* Image Card */}
               <div
-                className={`relative w-full aspect-[4/5] rounded-[20px] sm:rounded-[32px] overflow-hidden mb-3 sm:mb-4 ${moment.imageBg} flex items-center justify-center`}
+                className={`relative w-full aspect-[3/4] rounded-[24px] sm:rounded-[32px] overflow-hidden mb-3 sm:mb-4 ${moment.imageBg} flex items-center justify-center`}
               >
                 
-               <img
-  src={moment.image}
-  alt={moment.title}
-  className={`absolute inset-0 w-full h-full  ${moment.focus || 'object-contain'} transition-transform duration-500 group-hover:scale-105`}
-/>
+                <Image
+                  src={moment.image}
+                  alt={moment.title}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 72vw"
+                  className={`${moment.focus ? `object-cover ${moment.focus}` : 'object-contain'} transition-transform duration-500 group-hover:scale-105`}
+                />
               </div>
 
               {/* Text & Product Pill */}
               <div className="px-1 flex flex-col items-start">
-                <h3 className="text-[13px] sm:text-[15px] font-bold text-gray-900 leading-snug mb-2 sm:mb-3">
+                <h3 className="text-[15px] font-bold text-gray-900 leading-snug mb-2 sm:mb-3">
                   {moment.title}
                 </h3>
                 
