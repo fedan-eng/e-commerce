@@ -261,7 +261,7 @@ export default function AdminOrderDetailPage() {
                               {[it.category, it.color && `Colour: ${it.color}`, it.size, it.sku].filter(Boolean).join(" · ") || "—"}
                             </span>
                             {it.deal && (
-                              <span className="mt-0.5 block text-xs font-semibold text-[#b45309]">Black Friday: {dealText(it)}</span>
+                              <span className="mt-0.5 block text-xs font-semibold text-[#b45309]">Deal: {dealText(it)}</span>
                             )}
                             {it.bundleContents?.length > 0 && (
                               <span className="mt-0.5 block text-xs font-medium text-pine">{bundleContentsText(it)}</span>

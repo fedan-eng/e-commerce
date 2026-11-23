@@ -1,5 +1,5 @@
 // app/admin_console/deals/page.jsx
-// Black Friday flash deals (models/Deal.js, lib/deals.js): "first N people" discounts and free
+// Flash deals (models/Deal.js, lib/deals.js): "first N people" discounts and free
 // gifts. Each deal shows how many units have gone; it stops by itself when the quota is reached.
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -13,8 +13,8 @@ const API = "/api/admin/deals";
 
 const EMPTY_FORM = { title: "", type: "discount", percent: "35", gift: "", quota: "30", products: [], sortOrder: "0", claimed: "", active: true };
 
-// The Black Friday 2026 list. `match` finds the products by name; check them before saving.
-const BLACK_FRIDAY_TEMPLATES = [
+// The first flash deal list. `match` finds the products by name; check them before saving.
+const DEAL_TEMPLATES = [
   { title: "Free cord with MagFlex",            type: "gift",     gift: "cord",             quota: 20, match: /magflex/i },
   { title: "Free cord with Thunder",            type: "gift",     gift: "cord",             quota: 20, match: /thunder/i },
   { title: "Free charger + cord with Spark Box", type: "gift",    gift: "charger and cord", quota: 10, match: /spark\s*box/i },
@@ -101,7 +101,7 @@ function DealForm({ initial, catalogue, onSaved, onCancel }) {
             <Field label="Order in popup"><input type="number" value={form.sortOrder} onChange={set("sortOrder")} className={inputCls} /></Field>
             {isEdit && <Field label="Claimed so far"><input type="number" min="0" value={form.claimed} onChange={set("claimed")} className={inputCls} /></Field>}
           </div>
-          <Switch label="Active" description={form.active ? "Runs during Black Friday" : "Paused"} checked={form.active} onChange={set("active")} />
+          <Switch label="Active" description={form.active ? "Runs while the deal period is on" : "Paused"} checked={form.active} onChange={set("active")} />
         </div>
         <Field label="Products">
           <ProductPicker catalogue={catalogue} selected={form.products} onChange={(products) => setForm((p) => ({ ...p, products }))} />
@@ -180,8 +180,8 @@ export default function DealsPage() {
     if (res.ok) load(); else toast.error("Couldn't delete the deal");
   };
 
-  // Creates the Black Friday list, matching products by name; skips titles that already exist
-  const matches = useMemo(() => BLACK_FRIDAY_TEMPLATES.map((t) => ({
+  // Creates the deal list, matching products by name; skips titles that already exist
+  const matches = useMemo(() => DEAL_TEMPLATES.map((t) => ({
     ...t, products: (catalogue || []).filter((p) => t.match.test(p.name)).map((p) => p._id),
   })), [catalogue]);
 
@@ -204,11 +204,11 @@ export default function DealsPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Black Friday deals"
-        description={`Flash deals run ${fmtDate(BLACK_FRIDAY_START)} – ${fmtDate(new Date(BLACK_FRIDAY_END - 60000))} (Lagos time). ${phase === "live" ? "Live now." : phase === "upcoming" ? "Not started yet." : "Finished."} Free delivery is off while they run.`}
+        title="Flash deals"
+        description={`Deals run ${fmtDate(BLACK_FRIDAY_START)} – ${fmtDate(new Date(BLACK_FRIDAY_END - 60000))} (Lagos time). ${phase === "live" ? "Live now." : phase === "upcoming" ? "Not started yet." : "Finished."} Free delivery is off while they run.`}
         actions={
           <div className="flex gap-2">
-            <Button onClick={seed} disabled={seeding || catalogue === null || deals === null}><Wand2 size={14} aria-hidden /> {seeding ? "Creating…" : "Set up Black Friday list"}</Button>
+            <Button onClick={seed} disabled={seeding || catalogue === null || deals === null}><Wand2 size={14} aria-hidden /> {seeding ? "Creating…" : "Set up deal list"}</Button>
             <Button variant="primary" onClick={() => setEditing({ ...EMPTY_FORM, sortOrder: String(deals?.length || 0) })}><Plus size={14} aria-hidden /> New deal</Button>
           </div>
         }
@@ -220,7 +220,7 @@ export default function DealsPage() {
         {deals === null ? (
           <div className="flex flex-col gap-3 p-5">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14" />)}</div>
         ) : deals.length === 0 ? (
-          <EmptyState icon={Zap} title="No deals yet" description="Use “Set up Black Friday list” to create the seven deals, then check their products." />
+          <EmptyState icon={Zap} title="No deals yet" description="Use “Set up deal list” to create the seven deals, then check their products." />
         ) : (
           <ul className="m-0 list-none p-0">
             {deals.map((d) => <DealRow key={d._id} deal={d} onEdit={() => editDeal(d)} onToggle={() => toggle(d)} onDelete={() => remove(d)} />)}

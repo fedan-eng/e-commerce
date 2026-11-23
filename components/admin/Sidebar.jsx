@@ -14,7 +14,7 @@ const GROUPS = [
     { href: "/admin_console/returns", label: "Returns & refunds", icon: Undo2, badge: "newReturnRequests" },
     { href: "/admin_console/sales",  label: "Sales entry", icon: ReceiptText },
     { href: "/admin_console/promo-codes", label: "Promo codes", icon: TicketPercent },
-    { href: "/admin_console/deals",       label: "Black Friday deals", icon: Zap },
+    { href: "/admin_console/deals",       label: "Flash deals", icon: Zap },
     { href: "/admin_console/creators",    label: "Creators",    icon: Megaphone },
   ] },
   { label: "Catalogue", items: [{ href: "/admin_console/products", label: "Products", icon: Package }] },
