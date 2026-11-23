@@ -4,7 +4,8 @@ import { STORE_CATEGORIES } from "@/lib/categories";
 import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
-import BundleHero from "@/components/landing/BundleHero";
+import BundleHeroCarousel from "@/components/landing/BundleHeroCarousel";
+import ComboDeals from "@/components/landing/ComboDeals";
 import StoryHero from "@/components/landing/StoryHero";
 import BestSellers from "@/components/landing/BestSellers";
 import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
@@ -17,7 +18,7 @@ import NeedsPower from "@/components/landing/NeedsPower";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
-import { getFeaturedBundle, getFeaturedProducts } from "@/lib/products";
+import { getFeaturedProducts, getLiveBundles } from "@/lib/products";
 
 // Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
 export const revalidate = 3600;
@@ -68,10 +69,10 @@ export const metadata = {
 };
 
 const page = async () => {
-  const [reviewChats, featuredProducts, bundle] = await Promise.all([
+  const [reviewChats, featuredProducts, bundles] = await Promise.all([
     getWhatsAppReviews("home"),
     getFeaturedProducts(),
-    getFeaturedBundle(),
+    getLiveBundles(),
   ]);
 
   const baseUrl = SITE_URL;
@@ -153,10 +154,12 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      {/* During a bundle deal: the bundle, then "Power your Story". Otherwise the usual two. */}
-      {bundle ? <BundleHero bundle={bundle} /> : <Hero1 />}
+      {/* With bundles in stock: a slide per bundle, "Power your Story" and Combo Deals.
+          Otherwise the usual two heroes. */}
+      {bundles.length > 0 ? <BundleHeroCarousel bundles={bundles} /> : <Hero1 />}
       <Marquee/>
-      {bundle ? <StoryHero /> : <Hero2 />}
+      {bundles.length > 0 ? <StoryHero /> : <Hero2 />}
+      <ComboDeals bundles={bundles} />
       <NeedsPower/>
       <BestSellers initialProducts={featuredProducts}/>
       <WhatsAppReviews chats={reviewChats}/>

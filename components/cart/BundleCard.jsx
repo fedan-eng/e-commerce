@@ -6,6 +6,29 @@ import Link from "next/link";
 import { Magnet, Trash2, Zap } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 
+// The bundle's art with its "Special bundle" tag, pieces sticker and price chip. Used by the
+// cart card below and the landing page's Combo Deals. aspect: Tailwind aspect class.
+export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 480px, 100vw" }) {
+  return (
+    <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#0b6b5f]`}>
+      {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-[50%_70%]" />}
+      <span className="absolute left-0 top-0 rounded-br-[14px] bg-[#b6f36a] px-3 py-1 text-xs font-bold italic text-forest">
+        Special bundle
+      </span>
+      {count > 1 && (
+        <span className="absolute right-2.5 top-2.5 flex h-11 w-11 rotate-12 flex-col items-center justify-center rounded-full border-2 border-white bg-[#22b14c] text-white shadow-md">
+          <span className="text-base font-extrabold leading-none">{count}</span>
+          <span className="text-[9px] font-semibold leading-none">items</span>
+        </span>
+      )}
+      <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-forest px-2.5 py-1 text-right text-white shadow-md">
+        {originalPrice > price && <span className="block text-[9px] leading-none text-white/70 line-through">{formatAmount(originalPrice)}</span>}
+        <span className="block text-base font-bold leading-tight">{formatAmount(price)}</span>
+      </span>
+    </div>
+  );
+}
+
 // One icon per highlight, in order (wireless charging, then charger and cable)
 const HIGHLIGHT_ICONS = [Magnet, Zap];
 
@@ -21,26 +44,7 @@ export default function BundleCard({ item, quantityControl = null, onRemove = nu
   const original = item.originalPrice > item.price ? (showLineTotal ? item.originalPrice * qty : item.originalPrice) : null;
   const href = item._id ? `/products/${item._id}` : null;
 
-  const banner = (
-    <div className="relative aspect-[2/1] w-full overflow-hidden rounded-[14px] bg-[#0b6b5f]">
-      {item.image && (
-        <Image src={item.image} alt={item.name} fill sizes="(min-width: 768px) 480px, 100vw" className="object-cover object-[50%_70%]" />
-      )}
-      <span className="absolute left-0 top-0 rounded-br-[14px] bg-[#b6f36a] px-3 py-1 text-xs font-bold italic text-forest">
-        Special bundle
-      </span>
-      {count > 1 && (
-        <span className="absolute right-2.5 top-2.5 flex h-11 w-11 rotate-12 flex-col items-center justify-center rounded-full border-2 border-white bg-[#22b14c] text-white shadow-md">
-          <span className="text-base font-extrabold leading-none">{count}</span>
-          <span className="text-[9px] font-semibold leading-none">items</span>
-        </span>
-      )}
-      <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-forest px-2.5 py-1 text-right text-white shadow-md">
-        {original && <span className="block text-[9px] leading-none text-white/70 line-through">{formatAmount(item.originalPrice)}</span>}
-        <span className="block text-base font-bold leading-tight">{formatAmount(item.price)}</span>
-      </span>
-    </div>
-  );
+  const banner = <BundleBanner image={item.image} name={item.name} count={count} price={item.price} originalPrice={original ? item.originalPrice : null} />;
 
   return (
     <div className={`flex flex-col ${className}`}>

@@ -235,8 +235,9 @@ const BundleFields = ({ rows, catalogue, onChange, onAdd, onRemove, partsTotal, 
       </div>
     )}
     <p className="m-0 mt-3 text-xs text-faint">
-      The bundle is sold as one product at the price above. Its first two features show on the bundle card in the cart.
-      Promo codes don&apos;t apply to bundles.
+      The bundle is sold as one product at the price above. Its main image should be the plain art (podium and products,
+      no text): it&apos;s the landing page hero slide, the Combo Deals card and the cart banner. Its first two features show
+      on the cart card. Promo codes don&apos;t apply to bundles.
     </p>
   </>
 );
