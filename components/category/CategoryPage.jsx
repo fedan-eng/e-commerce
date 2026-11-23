@@ -16,6 +16,8 @@ import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
 import CategoryFAQ from "./CategoryFAQ";
 import ExploreMore from "./ExploreMore";
+import ComboDeals from "@/components/landing/ComboDeals";
+import { getLiveBundles } from "@/lib/products";
 
 async function getCategoryProducts(dbCategory) {
   await connectDB();
@@ -86,9 +88,10 @@ export default async function CategoryPage({ slug }) {
   const category = getCategory(slug);
   if (!category) notFound();
 
-  const [products, chats] = await Promise.all([
+  const [products, chats, bundles] = await Promise.all([
     getCategoryProducts(category.dbCategory),
     getWhatsAppReviews(slug), // managed in Admin → WhatsApp reviews
+    category.showCombos ? getLiveBundles() : [],
   ]);
   const reviewsTitle = category.reviewsTitle || `What customers say about our ${category.title}`;
 
@@ -98,6 +101,8 @@ export default async function CategoryPage({ slug }) {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
       <CategoryHero category={category} />
+      {/* Bundles in stock (lib/categories.js showCombos); hidden when there are none */}
+      {bundles.length > 0 && <ComboDeals bundles={bundles} />}
       <TrustBar />
       {/* Same "What everyone's carrying" section as the homepage, scoped to this category */}
       <BestSellers

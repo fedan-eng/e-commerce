@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { Plus, Pencil, Trash2, Power, Zap, Gift, Wand2, X } from "lucide-react";
 import { PageHeader, Card, CardHeader, Button, IconButton, Field, Switch, EmptyState, Skeleton, inputCls, cx } from "@/components/admin/ui";
 import { money } from "@/components/admin/format";
+import { isBundleProduct } from "@/lib/bundles";
 import { BLACK_FRIDAY_START, BLACK_FRIDAY_END, blackFridayPhase } from "@/lib/blackFriday";
 
 const API = "/api/admin/deals";
@@ -160,7 +161,7 @@ export default function DealsPage() {
     load();
     fetch("/api/products?limit=500&sort=sortOrder.__all__")
       .then((r) => r.json())
-      .then((d) => setCatalogue((d.products || []).filter((p) => !p.isBundle).map((p) => ({ _id: p._id, name: p.name, price: p.price }))))
+      .then((d) => setCatalogue((d.products || []).filter((p) => !isBundleProduct(p)).map((p) => ({ _id: p._id, name: p.name, price: p.price }))))
       .catch(() => setCatalogue([]));
   }, [load]);
 

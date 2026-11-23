@@ -81,7 +81,10 @@ const page = async () => {
     getFeaturedProducts(),
     getLiveBundles(),
   ]);
-  const combos = bundles.length > 0 ? bundles : PREVIEW_BUNDLES;
+  // A combo without its own hero slide image uses the matching preview art (SnapTrio.png…),
+  // not its card art
+  const heroArt = (b) => b.heroImage || PREVIEW_BUNDLES.find((p) => p.name.toLowerCase() === b.name.trim().toLowerCase())?.image || "";
+  const combos = bundles.length > 0 ? bundles.map((b) => ({ ...b, heroImage: heroArt(b) })) : PREVIEW_BUNDLES;
 
   const baseUrl = SITE_URL;
 

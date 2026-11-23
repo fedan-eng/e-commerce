@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import { cartItemExtras } from "@/lib/bundles";
+import { cartItemExtras, isBundleProduct } from "@/lib/bundles";
 import { dealsByProduct, getLiveDeals } from "@/lib/deals";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export async function POST(req) {
     const valid = Array.isArray(ids) ? [...new Set(ids)].filter((id) => mongoose.isValidObjectId(id)).slice(0, 100) : [];
 
     await connectDB();
-    const products = await Product.find({ _id: { $in: valid } }).select("name price originalPrice availability isBundle bundleItems features").lean();
+    const products = await Product.find({ _id: { $in: valid } }).select("name price originalPrice availability isBundle bundleItems features category").lean();
 
     // { [productId]: { price, available, extras } }; ids missing from the reply are no longer sold.
     // extras: originalPrice and bundle details for the cart (lib/bundles.js)
@@ -22,7 +22,7 @@ export async function POST(req) {
     const deals = dealsByProduct(await getLiveDeals());
     const prices = Object.fromEntries(
       products.map((p) => {
-        const extras = cartItemExtras(p, p.isBundle ? null : deals.get(String(p._id)));
+        const extras = cartItemExtras(p, isBundleProduct(p) ? null : deals.get(String(p._id)));
         return [String(p._id), { price: extras.price ?? p.price, available: p.availability !== false, extras }];
       })
     );

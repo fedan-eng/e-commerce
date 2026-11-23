@@ -10,6 +10,7 @@ import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
 import { Specifications } from "./ProductSpecs";
 import useDeals from "@/hooks/useDeals";
+import { isBundleProduct } from "@/lib/bundles";
 import { Gift, Zap } from "lucide-react";
 
 function Badges({ product, discount }) {
@@ -94,7 +95,7 @@ export default function ProductInfo({ product: baseProduct, highlights, selected
   const [quantity, setQuantity] = useState(1);
   // A Black Friday discount shows as the price, with today's price struck through
   const { byProduct } = useDeals();
-  const deal = baseProduct.isBundle ? null : byProduct[baseProduct._id];
+  const deal = isBundleProduct(baseProduct) ? null : byProduct[baseProduct._id];
   const dealPrice = deal?.type === "discount" ? deal.products.find((p) => p._id === String(baseProduct._id))?.dealPrice : null;
   const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: Math.max(baseProduct.originalPrice || 0, baseProduct.price) } : baseProduct;
   const discount = getDiscount(product);

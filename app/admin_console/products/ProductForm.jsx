@@ -6,6 +6,7 @@ import { Plus, X, ArrowUp, ArrowDown, GripVertical, Sparkles, Package } from "lu
 import { BUNDLE_CATEGORY, CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/categories";
 import { Card, CardHeader, Button, Field, Switch, inputCls, selectCls, textareaCls, cx } from "@/components/admin/ui";
 import { money } from "@/components/admin/format";
+import { isBundleProduct } from "@/lib/bundles";
 
 const TAG_OPTIONS = [
   { value: "",         label: "None" },
@@ -260,7 +261,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const [videos,     setVideos]     = useState(initial.videos?.length ? initial.videos : []);
   const [boxContent, setBoxContent] = useState(initial.boxContent?.length ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 })) : []);
   const [specs,      setSpecs]      = useState(initial.specs || {});
-  const [isBundle,    setIsBundle]    = useState(!!initial.isBundle);
+  const [isBundle,    setIsBundle]    = useState(isBundleProduct(initial));
   const [bundleItems, setBundleItems] = useState(
     initial.bundleItems?.length
       ? initial.bundleItems.map(b => ({ product: String(b.product?._id || b.product || ""), quantity: b.quantity || 1 }))
@@ -351,7 +352,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     if (!isBundle || catalogue !== null) return;
     fetch("/api/products?limit=500&sort=sortOrder.__all__")
       .then(r => r.json())
-      .then(d => setCatalogue((d.products || []).filter(p => !p.isBundle && p._id !== initial._id)))
+      .then(d => setCatalogue((d.products || []).filter(p => !isBundleProduct(p) && p._id !== initial._id)))
       .catch(() => setCatalogue([]));
   }, [isBundle, catalogue, initial._id]);
 
