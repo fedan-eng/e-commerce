@@ -4,6 +4,8 @@ import { useDispatch } from "react-redux";
 import { useRef, useState, useCallback } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { addToCart } from "@/store/features/cartSlice";
+import { cartItemExtras } from "@/lib/bundles";
+import useDeals from "@/hooks/useDeals";
 import { itemAdded } from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import { useGAEvent } from "@/hooks/useGAEvent";
@@ -13,6 +15,7 @@ import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
 // Product details page "Add to Cart": flies the gallery image into the cart icon.
 const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, className = "" }) => {
   const dispatch       = useDispatch();
+  const { byProduct }  = useDeals(); // Black Friday deal prices and gifts
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null);
 
@@ -40,6 +43,7 @@ const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, class
         image:    imageToUse,
         quantity,
         ...(colorToAdd ? { color: colorToAdd.name } : {}),
+        ...cartItemExtras(product, byProduct[product._id]),
       })
     );
 
@@ -68,7 +72,7 @@ const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, class
         setTimeout(() => setPhase("idle"), 1200);
       },
     });
-  }, [phase, selectedColor, quantity, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
+  }, [phase, selectedColor, quantity, product, byProduct, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
   const isAvailable = Boolean(product?.availability);
 

@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { countOrderSales } from "@/lib/soldCount";
 import { countPromoUse } from "@/lib/promo";
+import { claimOrderDeals } from "@/lib/deals";
 import { verifyToken } from "@/lib/auth";
 import { loadCheckout, orderFieldsFrom } from "@/lib/paystackOrder";
 import crypto from "crypto";
@@ -191,6 +192,7 @@ export async function POST(req) {
       console.log('[Verify Payment] Order created with gaClientId:', orderData.gaClientId);
 
       await countOrderSales(order._id);
+      await claimOrderDeals(order._id);
       await countPromoUse(order.promoCode);
 
       // ── Fire GA event via Measurement Protocol (backup case) ──

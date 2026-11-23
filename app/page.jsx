@@ -4,6 +4,8 @@ import { STORE_CATEGORIES } from "@/lib/categories";
 import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
 import Hero1 from "@/components/landing/Hero1";
 import Hero2 from "@/components/landing/Hero2";
+import BundleHero from "@/components/landing/BundleHero";
+import StoryHero from "@/components/landing/StoryHero";
 import BestSellers from "@/components/landing/BestSellers";
 import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
 import Anniversary from "@/components/landing/Anniversary";
@@ -15,7 +17,7 @@ import NeedsPower from "@/components/landing/NeedsPower";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
-import { getFeaturedProducts } from "@/lib/products";
+import { getFeaturedBundle, getFeaturedProducts } from "@/lib/products";
 
 // Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
 export const revalidate = 3600;
@@ -66,9 +68,10 @@ export const metadata = {
 };
 
 const page = async () => {
-  const [reviewChats, featuredProducts] = await Promise.all([
+  const [reviewChats, featuredProducts, bundle] = await Promise.all([
     getWhatsAppReviews("home"),
     getFeaturedProducts(),
+    getFeaturedBundle(),
   ]);
 
   const baseUrl = SITE_URL;
@@ -150,9 +153,10 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      <Hero1 />
+      {/* During a bundle deal: the bundle, then "Power your Story". Otherwise the usual two. */}
+      {bundle ? <BundleHero bundle={bundle} /> : <Hero1 />}
       <Marquee/>
-      <Hero2 />
+      {bundle ? <StoryHero /> : <Hero2 />}
       <NeedsPower/>
       <BestSellers initialProducts={featuredProducts}/>
       <WhatsAppReviews chats={reviewChats}/>

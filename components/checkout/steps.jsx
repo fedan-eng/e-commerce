@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ChevronDown, Info, ShoppingBag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import PromoCodeInput from "@/components/PromoCodeInput";
+import BundleCard from "@/components/cart/BundleCard";
+import { dealText, promoEligibleSubtotal } from "@/lib/bundles";
 import { RegionField, TextAreaField, TextField } from "./formFields";
 import { DELIVERY_OPTIONS, deliveryFeeFor, freeDeliveryBlock } from "./delivery";
 
@@ -163,6 +165,7 @@ function OrderItem({ item }) {
           {item.quantity} × {formatAmount(item.price)}
           {item.color && <span className="capitalize"> · {item.color}</span>}
         </p>
+        {dealText(item) && <p className="mt-0.5 text-[12px] font-semibold text-black">⚡ {dealText(item)}</p>}
       </div>
       <span className="shrink-0 text-sm font-semibold text-forest">{formatAmount(item.price * item.quantity)}</span>
     </li>
@@ -211,13 +214,19 @@ export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply,
       <div>
         <p className="text-sm font-semibold text-forest">Your order</p>
         <ul className="divide-y divide-line">
-          {items.map((item) => (
-            <OrderItem key={`${item._id}-${item.color}`} item={item} />
-          ))}
+          {items.map((item) =>
+            item.bundle ? (
+              <li key={`${item._id}-${item.color}`} className="py-3">
+                <BundleCard item={item} showLineTotal />
+              </li>
+            ) : (
+              <OrderItem key={`${item._id}-${item.color}`} item={item} />
+            )
+          )}
         </ul>
       </div>
 
-      <PromoCodeInput key={promoResetKey} subTotal={totals.subTotal} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} {...promo} />
+      <PromoCodeInput key={promoResetKey} subTotal={promoEligibleSubtotal(items)} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} {...promo} />
 
       <div className="flex flex-col gap-2.5">
         <TotalRow label="Subtotal" value={formatAmount(totals.subTotal)} />

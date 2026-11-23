@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
+import BundleCard from "@/components/cart/BundleCard";
+import { dealText } from "@/lib/bundles";
 
-function QtyStepper({ value, onChange }) {
+export function QtyStepper({ value, onChange }) {
   const btn = "flex h-9 w-9 items-center justify-center rounded-full text-forest transition-colors hover:bg-sage disabled:opacity-30";
   return (
     <div className="flex items-center rounded-full border border-line">
@@ -52,6 +54,18 @@ export default function CartLineItem({ item, colors, onQuantityChange, onColorCh
   const href = `/products/${item._id}`;
   const canSwitchColor = item.color && colors?.length > 1;
 
+  if (item.bundle) {
+    return (
+      <li className="py-5">
+        <BundleCard
+          item={item}
+          onRemove={onRemove}
+          quantityControl={<QtyStepper value={item.quantity} onChange={onQuantityChange} />}
+        />
+      </li>
+    );
+  }
+
   return (
     <li className="flex gap-4 py-5">
       <Link href={href} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-mint sm:h-28 sm:w-28">
@@ -70,9 +84,15 @@ export default function CartLineItem({ item, colors, onQuantityChange, onColorCh
             </Link>
             <p className="mt-1 text-sm text-muted">
               {formatAmount(item.price)}
+              {item.originalPrice > item.price && <span className="ml-1.5 text-xs line-through">{formatAmount(item.originalPrice)}</span>}
               {item.color && !canSwitchColor && <span className="capitalize"> · {item.color}</span>}
             </p>
             {canSwitchColor && <ColorSwitch colors={colors} selected={item.color} onChange={onColorChange} />}
+            {dealText(item) && (
+              <span className="mt-1.5 inline-flex items-center rounded-full bg-black px-2.5 py-0.5 text-[11px] font-semibold text-[#ffd95d]">
+                {dealText(item)}
+              </span>
+            )}
           </div>
           <button
             type="button"

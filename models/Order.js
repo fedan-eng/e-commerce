@@ -164,6 +164,11 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // true once this order's Black Friday deal units are added to Deal.claimed (lib/deals.js)
+  dealsCounted: {
+    type: Boolean,
+    default: false,
+  },
   // Set when the review reminder was sent, or when there was nothing left to review
   // (app/api/cron/review-requests)
   reviewReminderSentAt: {

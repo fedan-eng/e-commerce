@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
+import { cartItemExtras } from "@/lib/bundles";
+import useDeals from "@/hooks/useDeals";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
 import { getGalleryImages, getHighlights, getImageBg } from "./productUtils";
@@ -53,6 +55,7 @@ export default function ProductDetailsPage({ product }) {
   const highlights = useMemo(() => getHighlights(product), [product]);
   const imageBg = getImageBg(product);
 
+  const { byProduct } = useDeals();
   const openCheckout = (quantity) =>
     setBuyNowItem({
       _id: product._id,
@@ -61,6 +64,7 @@ export default function ProductDetailsPage({ product }) {
       image: selectedColor?.images?.[0] || product.image,
       quantity,
       color: selectedColor?.name || null,
+      ...cartItemExtras(product, byProduct[product._id]),
     });
 
   return (

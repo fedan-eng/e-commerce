@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateUser } from "@/store/features/authSlice";
-import { updatePrices } from "@/store/features/cartSlice";
+import { updateItemDetails, updatePrices } from "@/store/features/cartSlice";
 import { formatAmount } from "@/lib/utils";
 import { isValidEmail, isValidPhone } from "@/lib/sanitize";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
@@ -36,10 +36,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((s) => s.cart.items);
   const [buyNowPrice, setBuyNowPrice] = useState(null); // today's price, once checked
+  const [buyNowExtras, setBuyNowExtras] = useState(null); // and its bundle details
   // Memoised: a fresh [buyNowItem] array every render would reset the promo code forever
   const items = useMemo(
-    () => (buyNowItem ? [{ ...buyNowItem, price: buyNowPrice ?? buyNowItem.price }] : cartItemsFromStore),
-    [buyNowItem, buyNowPrice, cartItemsFromStore]
+    () => (buyNowItem ? [{ ...buyNowItem, ...buyNowExtras, price: buyNowPrice ?? buyNowItem.price }] : cartItemsFromStore),
+    [buyNowItem, buyNowPrice, buyNowExtras, cartItemsFromStore]
   );
 
   // Payment is charged at today's prices (lib/pricing.js), so show those before anyone pays.
@@ -64,6 +65,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
         if (unavailable.length > 0) {
           toast.error(`${unavailable.map((i) => i.name).join(", ")} is no longer available. Please remove it from your cart.`, { duration: 6000 });
         }
+
+        // Bundle details and prices before discount, for the review step and the promo rule
+        const extras = Object.fromEntries(opened.filter((i) => prices[i._id]).map((i) => [i._id, prices[i._id].extras || {}]));
+        if (buyNowItem) setBuyNowExtras(extras[buyNowItem._id] || null);
+        else if (Object.keys(extras).length) dispatch(updateItemDetails(extras));
 
         const changed = opened.filter((item) => prices[item._id] && prices[item._id].price !== item.price);
         if (changed.length === 0) return;

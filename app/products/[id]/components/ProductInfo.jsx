@@ -9,6 +9,8 @@ import ColorPicker from "./ColorPicker";
 import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
 import { Specifications } from "./ProductSpecs";
+import useDeals from "@/hooks/useDeals";
+import { Gift, Zap } from "lucide-react";
 
 function Badges({ product, discount }) {
   const badges = [
@@ -47,6 +49,23 @@ function RatingLine({ product }) {
   );
 }
 
+// Black Friday flash deal (hooks/useDeals): what it is and how many are left
+function DealBanner({ deal }) {
+  const Icon = deal.type === "gift" ? Gift : Zap;
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-black px-4 py-3 text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ffd95d] text-black">
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ffd95d]">Black Friday flash deal</p>
+        <p className="text-sm font-semibold">{deal.title}</p>
+      </div>
+      <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">{deal.left} left</span>
+    </div>
+  );
+}
+
 function PriceLine({ product, discount }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -71,8 +90,13 @@ export function StockStatus({ inStock }) {
   );
 }
 
-export default function ProductInfo({ product, highlights, selectedColor, onColorChange, onCheckout }) {
+export default function ProductInfo({ product: baseProduct, highlights, selectedColor, onColorChange, onCheckout }) {
   const [quantity, setQuantity] = useState(1);
+  // A Black Friday discount shows as the price, with today's price struck through
+  const { byProduct } = useDeals();
+  const deal = baseProduct.isBundle ? null : byProduct[baseProduct._id];
+  const dealPrice = deal?.type === "discount" ? deal.products.find((p) => p._id === String(baseProduct._id))?.dealPrice : null;
+  const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: Math.max(baseProduct.originalPrice || 0, baseProduct.price) } : baseProduct;
   const discount = getDiscount(product);
   const inStock = product.availability !== false;
 
@@ -83,6 +107,7 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
         <h1 className="text-[22px] font-bold leading-[1.2] tracking-tight text-forest sm:text-[28px] md:text-[36px]">{product.name}</h1>
         <RatingLine product={product} />
         <PriceLine product={product} discount={discount} />
+        {deal && <DealBanner deal={deal} />}
       </div>
 
       {product.description && (
@@ -114,7 +139,7 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
           </button>
         )}
         <AddToCartButtonPDP
-          product={product}
+          product={baseProduct}
           selectedColor={selectedColor}
           quantity={quantity}
           className="flex-1 sm:flex-none sm:px-8"

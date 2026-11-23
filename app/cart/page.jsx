@@ -9,6 +9,7 @@ import CheckoutModal from "@/components/checkout/CheckoutModal";
 import CartLineItem from "./components/CartLineItem";
 import OrderSummary from "./components/OrderSummary";
 import useCartColorOptions from "./useCartColorOptions";
+import { cartPieceCount, cartSavings } from "@/lib/bundles";
 
 function trackBeginCheckout(items, value) {
   if (typeof window === "undefined" || !window.gtag) return;
@@ -37,6 +38,8 @@ export default function CartPage() {
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const pieceCount = cartPieceCount(items); // a bundle of 3 counts as 3 in the summary
+  const { full: fullPrice, savings } = cartSavings(items);
 
   const changeQuantity = (item, quantity) => {
     if (quantity >= 1) dispatch(updateQuantity({ _id: item._id, color: item.color, quantity }));
@@ -87,7 +90,7 @@ export default function CartPage() {
             </ul>
 
             <div className="lg:sticky lg:top-24">
-              <OrderSummary subTotal={subTotal} itemCount={itemCount} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
+              <OrderSummary subTotal={subTotal} itemCount={pieceCount} fullPrice={fullPrice} savings={savings} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
             </div>
           </div>
         </>

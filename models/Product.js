@@ -70,6 +70,18 @@ const productSchema = new mongoose.Schema(
     ],
 
     category:         { type: String, required: true },
+
+    // ✅ Bundle deals: one product made of other products (e.g. power bank + charger + cable).
+    // Sold and stocked as a single product; bundleItems say what goes in the box, and the
+    // order line gets a copy of them (lib/pricing.js). Promo codes don't apply to bundles.
+    isBundle: { type: Boolean, default: false },
+    bundleItems: [
+      {
+        _id:      false,
+        product:  { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+        quantity: { type: Number, default: 1, min: 1 },
+      },
+    ],
     features:         { type: [String], default: [] },
 
     // ✅ Structured specs used by the category page filters (/products/<slug>).

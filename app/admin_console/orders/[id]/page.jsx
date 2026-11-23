@@ -1,5 +1,6 @@
 // app/admin_console/orders/[id]/page.jsx
 "use client";
+import { bundleContentsText, dealText } from "@/lib/bundles";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -259,6 +260,12 @@ export default function AdminOrderDetailPage() {
                             <span className="block text-xs text-faint">
                               {[it.category, it.color && `Colour: ${it.color}`, it.size, it.sku].filter(Boolean).join(" · ") || "—"}
                             </span>
+                            {it.deal && (
+                              <span className="mt-0.5 block text-xs font-semibold text-[#b45309]">Black Friday: {dealText(it)}</span>
+                            )}
+                            {it.bundleContents?.length > 0 && (
+                              <span className="mt-0.5 block text-xs font-medium text-pine">{bundleContentsText(it)}</span>
+                            )}
                           </div>
                           {it.status && normalizeStatusKey(it.status) !== normalizeStatusKey(order.status) && <StatusBadge status={it.status} />}
                         </div>

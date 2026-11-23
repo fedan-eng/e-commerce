@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PromoPopup from "@/components/PromoPopup";
+import BlackFridayPopup from "@/components/BlackFridayPopup";
+import { isBlackFridayLive } from "@/lib/blackFriday";
 import MinimumLoader from "@/components/MinimumLoader";
 
 export default function ConditionalShell({ children }) {
@@ -21,7 +23,8 @@ export default function ConditionalShell({ children }) {
       {children}
        </div>
       <Footer />
-      <PromoPopup />
+      {/* The flash deals popup takes the welcome popup's place while Black Friday runs */}
+      {isBlackFridayLive() ? <BlackFridayPopup /> : <PromoPopup />}
       <MinimumLoader />
     </>
   );

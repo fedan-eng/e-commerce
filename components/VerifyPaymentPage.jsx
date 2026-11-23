@@ -19,6 +19,8 @@ import { ProductImage } from "./ProductImage";
 import { DELIVERY_OPTIONS } from "./checkout/delivery";
 import { downloadReceipt } from "./checkout/receiptPdf";
 import SaveAccountCard from "./checkout/SaveAccountCard";
+import BundleCard from "./cart/BundleCard";
+import { dealText } from "@/lib/bundles";
 
 // Old checkout details kept in localStorage by earlier versions of the checkout
 const OLD_CHECKOUT_KEYS = [
@@ -285,8 +287,12 @@ export default function VerifyPaymentPage() {
               Your order <span className="font-normal text-muted">· {itemCount} {itemCount === 1 ? "item" : "items"}</span>
             </h2>
             <ul className="mt-5 flex flex-col gap-4">
-              {lineItems.map((item, index) => (
-                <li key={`${item._id || index}-${item.color || ""}`} className="flex items-center gap-3">
+              {lineItems.map((item, index) => item.bundle ? (
+                <li key={`${item._id || ""}-${item.color || ""}-${index}`}>
+                  <BundleCard item={item} showLineTotal />
+                </li>
+              ) : (
+                <li key={`${item._id || ""}-${item.color || ""}-${index}`} className="flex items-center gap-3">
                   <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white">
                     <ProductImage src={item.image} alt={item.name} width={52} height={52} className="h-[52px] w-[52px] object-contain" />
                   </span>
@@ -295,6 +301,7 @@ export default function VerifyPaymentPage() {
                     <p className="mt-0.5 text-xs text-muted">
                       {item.color ? `${item.color} · ` : ""}Qty {item.quantity}
                     </p>
+                    {dealText(item) && <p className="mt-0.5 text-xs font-semibold text-black">⚡ {dealText(item)}</p>}
                   </div>
                   <p className="shrink-0 text-sm font-semibold text-ink">{formatAmount(item.price * item.quantity)}</p>
                 </li>

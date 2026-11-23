@@ -1,9 +1,9 @@
 // app/admin_console/products/ProductForm.jsx
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, ArrowUp, ArrowDown, GripVertical, Sparkles, Package } from "lucide-react";
-import { CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/categories";
+import { BUNDLE_CATEGORY, CATEGORY_OPTIONS, getCategoryByDbName, getSpecFields } from "@/lib/categories";
 import { Card, CardHeader, Button, Field, Switch, inputCls, selectCls, textareaCls, cx } from "@/components/admin/ui";
 import { money } from "@/components/admin/format";
 
@@ -210,6 +210,37 @@ function buildSpecs(fields, specs) {
   return out;
 }
 
+// Products the bundle is made of (lib/bundles.js). catalogue: every other non-bundle product.
+const BundleFields = ({ rows, catalogue, onChange, onAdd, onRemove, partsTotal, onUsePartsTotal }) => (
+  <>
+    {catalogue === null && <p className="m-0 mb-2 text-[13px] text-faint">Loading products…</p>}
+    {rows.map((row, i) => (
+      <div key={i} className="mb-2 flex items-center gap-2">
+        <select value={row.product} onChange={e => onChange(i, "product", e.target.value)} className={cx(selectCls, "flex-1")} aria-label={`Bundle product ${i + 1}`}>
+          <option value="">Choose a product</option>
+          {(catalogue || []).map(p => (
+            <option key={p._id} value={p._id}>{p.name} · {money(p.price)}{p.availability === false ? " (out of stock)" : ""}</option>
+          ))}
+        </select>
+        <input type="number" value={row.quantity} onChange={e => onChange(i, "quantity", e.target.value)} min="1"
+          className={cx(inputCls, "w-16 text-center")} aria-label={`Quantity of bundle product ${i + 1}`} />
+        <Button size="sm" variant="ghost" onClick={() => onRemove(i)} aria-label={`Remove bundle product ${i + 1}`}><X size={14} aria-hidden /></Button>
+      </div>
+    ))}
+    <AddBtn onClick={onAdd} label="Add product" />
+    {partsTotal > 0 && (
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-pine-tint px-3 py-2.5 text-[13px] text-ink">
+        <span>Bought separately: <strong>{money(partsTotal)}</strong></span>
+        <Button size="sm" onClick={onUsePartsTotal}>Use as original price</Button>
+      </div>
+    )}
+    <p className="m-0 mt-3 text-xs text-faint">
+      The bundle is sold as one product at the price above. Its first two features show on the bundle card in the cart.
+      Promo codes don&apos;t apply to bundles.
+    </p>
+  </>
+);
+
 export default function ProductForm({ initial = {}, isEdit = false }) {
   const router = useRouter();
 
@@ -227,6 +258,13 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const [videos,     setVideos]     = useState(initial.videos?.length ? initial.videos : []);
   const [boxContent, setBoxContent] = useState(initial.boxContent?.length ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 })) : []);
   const [specs,      setSpecs]      = useState(initial.specs || {});
+  const [isBundle,    setIsBundle]    = useState(!!initial.isBundle);
+  const [bundleItems, setBundleItems] = useState(
+    initial.bundleItems?.length
+      ? initial.bundleItems.map(b => ({ product: String(b.product?._id || b.product || ""), quantity: b.quantity || 1 }))
+      : [{ product: "", quantity: 1 }]
+  );
+  const [catalogue, setCatalogue] = useState(null); // products a bundle can be made of, loaded when needed
   const specFields = getSpecFields(form.category);
   const setSpec    = (name, value) => setSpecs(p => ({ ...p, [name]: value }));
   const [saving,  setSaving]  = useState(false);
@@ -306,9 +344,33 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   const boxHasProduct = boxContent.some(b => b.item?.trim().toLowerCase() === productName.toLowerCase());
   const addProductToBox = () => setBoxContent(p => [{ item: productName, quantity: 1 }, ...p]);
 
+  // Load the catalogue the first time the bundle section is opened
+  useEffect(() => {
+    if (!isBundle || catalogue !== null) return;
+    fetch("/api/products?limit=500&sort=sortOrder.__all__")
+      .then(r => r.json())
+      .then(d => setCatalogue((d.products || []).filter(p => !p.isBundle && p._id !== initial._id)))
+      .catch(() => setCatalogue([]));
+  }, [isBundle, catalogue, initial._id]);
+
+  const updateBundleRow = (i, f, v) => setBundleItems(p => p.map((b, idx) => idx === i ? { ...b, [f]: v } : b));
+  const addBundleRow    = () => setBundleItems(p => [...p, { product: "", quantity: 1 }]);
+  const removeBundleRow = (i) => setBundleItems(p => p.filter((_, idx) => idx !== i));
+  const bundlePartsTotal = bundleItems.reduce((sum, b) => {
+    const p = (catalogue || []).find(c => c._id === b.product);
+    return p ? sum + p.price * (parseInt(b.quantity) || 1) : sum;
+  }, 0);
+  const toggleBundle = (e) => {
+    const on = e.target.checked;
+    setIsBundle(on);
+    if (on && !form.category) setForm(p => ({ ...p, category: BUNDLE_CATEGORY }));
+  };
+
   const handleSubmit = async () => {
     setSaving(true); setError(null);
     try {
+      const cleanBundle = bundleItems.filter(b => b.product).map(b => ({ product: b.product, quantity: parseInt(b.quantity) || 1 }));
+      if (isBundle && cleanBundle.length === 0) throw new Error("Add the products that go in this bundle");
       const body = {
         ...form, price: parseFloat(form.price) || 0,
         originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : undefined,
@@ -319,6 +381,8 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         videos: videos.filter(Boolean),
         boxContent: boxContent.filter(b => b.item?.trim()).map(b => ({ item: b.item.trim(), quantity: parseInt(b.quantity) || 1 })),
         specs: buildSpecs(specFields, specs),
+        isBundle,
+        bundleItems: isBundle ? cleanBundle : [],
       };
       const url = isEdit ? `/api/products/${initial._id}` : "/api/admin/products";
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -429,6 +493,21 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           <Field label="Features" hint="Separate with commas" className="mt-4">
             <input value={form.features} onChange={set("features")} placeholder="Fast charging, Built-in cable, 10000mAh" className={inputCls} />
           </Field>
+        </Section>
+
+        <Section title="Bundle deal" description="Sell several products together as one, e.g. power bank + charger + cable">
+          <Switch
+            label="This product is a bundle"
+            description={isBundle ? "Shown with the bundle card in the cart and checkout" : "A normal single product"}
+            checked={isBundle}
+            onChange={toggleBundle}
+          />
+          {isBundle && (
+            <div className="mt-4">
+              <BundleFields rows={bundleItems} catalogue={catalogue} onChange={updateBundleRow} onAdd={addBundleRow} onRemove={removeBundleRow}
+                partsTotal={bundlePartsTotal} onUsePartsTotal={() => setForm(p => ({ ...p, originalPrice: String(bundlePartsTotal) }))} />
+            </div>
+          )}
         </Section>
 
         <Section

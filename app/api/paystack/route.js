@@ -6,6 +6,7 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
+import { BUNDLE_PROMO_MESSAGE, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
 import PendingCheckout from "@/models/PendingCheckout";
 import crypto from "crypto";
@@ -189,8 +190,13 @@ export async function POST(req) {
     let discount = 0;
     let appliedPromo = null;
     if (promoCode) {
+      // Bundles are already discounted, so the code only applies to everything else
+      const promoBase = promoEligibleSubtotal(priced.items);
+      if (promoBase <= 0) {
+        return NextResponse.json({ message: BUNDLE_PROMO_MESSAGE }, { status: 400 });
+      }
       const promo = await validatePromo({
-        code: promoCode, userId: finalUserId, cartValue: subTotal, phone: deliveryInfo.phone, email,
+        code: promoCode, userId: finalUserId, cartValue: promoBase, phone: deliveryInfo.phone, email,
       });
       if (!promo.valid) {
         return NextResponse.json({ message: promo.message }, { status: promo.status });

@@ -1,5 +1,6 @@
 // components/checkout/delivery.js — delivery options and fees used at checkout
 import { MapPin, Package, Zap } from "lucide-react";
+import { isBlackFridayLive } from "@/lib/blackFriday";
 
 export const FREE_DELIVERY_MIN_SUBTOTAL = 10000;
 
@@ -19,10 +20,11 @@ export function deliveryFeeFor(type, region) {
 
 // Free delivery needs a minimum spend and no promo code (any code at all). Returns why it's
 // unavailable, or null. /api/paystack checks the same through lib/pricing.js.
-export function freeDeliveryBlock(subTotal, promoCode) {
+export function freeDeliveryBlock(subTotal, promoCode, now = new Date()) {
+  if (isBlackFridayLive(now)) return "Not available during Black Friday";
   if (promoCode) return "Not available with promo codes";
   if (subTotal < FREE_DELIVERY_MIN_SUBTOTAL) return "Available on orders of ₦10,000 or more";
   return null;
 }
 
-export const isFreeDeliveryAvailable = (subTotal, promoCode = null) => !freeDeliveryBlock(subTotal, promoCode);
+export const isFreeDeliveryAvailable = (subTotal, promoCode = null, now = new Date()) => !freeDeliveryBlock(subTotal, promoCode, now);
