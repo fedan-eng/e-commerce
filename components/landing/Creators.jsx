@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/motion/Reveal";
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
@@ -250,7 +251,7 @@ export default function Creators() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header Section */}
-        <div className="mb-6 sm:mb-10">
+        <Reveal className="mb-6 sm:mb-10">
           <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold tracking-tight mb-1 sm:mb-2">
             Your Faves Fave
           </h2>
@@ -278,9 +279,10 @@ export default function Creators() {
               </button>
             </div>
           </div>
-        </div>
+        </Reveal>
 
-        {/* Carousel Container */}
+        {/* Carousel Container: rises in after the header */}
+        <Reveal y={40} delay={0.15}>
         <div
           ref={scrollContainerRef}
           onTouchStart={holdForTouch}
@@ -412,6 +414,7 @@ export default function Creators() {
             );
           })}
         </div>
+        </Reveal>
       </div>
 
       <AnimatePresence>

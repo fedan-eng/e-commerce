@@ -6,6 +6,7 @@ import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
 import { cartItemExtras } from "@/lib/bundles";
 import useDeals from "@/hooks/useDeals";
+import { Reveal } from "@/components/motion/Reveal";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
 import { getGalleryImages, getHighlights, getImageBg } from "./productUtils";
@@ -74,7 +75,7 @@ export default function ProductDetailsPage({ product }) {
         <Breadcrumbs items={getBreadcrumbs(product)} />
 
         <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] lg:gap-16">
-          <div className="flex min-w-0 flex-col gap-6 lg:gap-12">
+          <Reveal y={24} className="flex min-w-0 flex-col gap-6 lg:gap-12">
             <ProductGallery
               key={selectedColor?._id || "all"}
               product={product}
@@ -87,9 +88,9 @@ export default function ProductDetailsPage({ product }) {
             <div className="hidden lg:block">
               <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
-          </div>
+          </Reveal>
 
-          <div className="flex min-w-0 flex-col gap-5">
+          <Reveal y={24} delay={0.12} className="flex min-w-0 flex-col gap-5">
             <ProductInfo
               product={product}
               highlights={highlights}
@@ -103,15 +104,19 @@ export default function ProductDetailsPage({ product }) {
             <DeliveryOptions />
             <StockStatus inStock={product.availability !== false} />
             <ServicesCard />
-          </div>
+          </Reveal>
         </div>
         <div className="mt-14 border-t border-dashed border-line md:mt-20" />
       </Container>
 
       {/* Overview images taken down for now — to restore, render
           <ProductOverview productName={product.name} media={getOverviewMedia(product)} onOpenImage={setLightboxSrc} /> */}
-      <ProductReviews product={product} user={user} />
-      <RelatedProducts product={product} />
+      <Reveal>
+        <ProductReviews product={product} user={user} />
+      </Reveal>
+      <Reveal>
+        <RelatedProducts product={product} />
+      </Reveal>
 
       {shareOpen && <ShareModal productName={product.name} onClose={closeShare} />}
       {lightboxSrc && <ImageLightbox src={lightboxSrc} alt={product.name} onClose={closeLightbox} />}

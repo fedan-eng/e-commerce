@@ -2,6 +2,7 @@
 // Phones: one row of large cards you scroll sideways (as in the design). Tablet and up: a staggered grid.
 import React from 'react';
 import Image from 'next/image';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/Reveal';
 
 const moments = [
   {
@@ -56,20 +57,21 @@ const MadeFor = () => {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="mb-6 md:mb-16">
+        <Reveal className="mb-6 md:mb-16">
           <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight mb-1 sm:mb-2">
             Made for the whole day.
           </h2>
           <p className="text-gray-500 text-[13px] sm:text-base">
             From the first bus to the last call, here's where FIL shows up.
           </p>
-        </div>
+        </Reveal>
 
         {/* Timeline Grid */}
-        <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-8">
+        <Stagger gap={0.12} className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-8">
           {moments.map((moment) => (
-            <div
+            <StaggerItem
               key={moment.id}
+              pop
               className={`group flex w-[72%] shrink-0 snap-start flex-col sm:w-[45%] md:w-auto ${moment.marginClasses}`}
             >
               {/* Time Indicator */}
@@ -109,9 +111,9 @@ const MadeFor = () => {
                 </div>
               </div>
 
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
       </div>
     </section>

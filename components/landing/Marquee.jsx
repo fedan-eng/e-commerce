@@ -2,6 +2,7 @@
 // A 2×2 grid on phones and tablets (as in the design), one row of four on desktop.
 import React from 'react';
 import { Truck, CalendarDays, Headset, Award } from 'lucide-react';
+import { Stagger, StaggerItem } from '@/components/motion/Reveal';
 
 const marqueeItems = [
   { title: 'Free Shipping', subtitle: 'Fast and reliable delivery', icon: Truck },
@@ -13,20 +14,20 @@ const marqueeItems = [
 const Marquee = () => {
   return (
     <section className="w-full border-b border-black/5 bg-[#a8edc8] px-4 py-5 sm:px-6 lg:px-8 lg:py-4">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-black/10">
+      <Stagger gap={0.08} className="mx-auto grid max-w-7xl grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-black/10">
         {marqueeItems.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.title} className="flex items-center gap-2.5 sm:justify-center sm:gap-3.5 lg:px-4 lg:py-2">
-              <Icon className="h-6 w-6 shrink-0 text-gray-900 sm:h-7 sm:w-7" strokeWidth={1.8} aria-hidden />
+            <StaggerItem key={item.title} y={16} className="group flex items-center gap-2.5 sm:justify-center sm:gap-3.5 lg:px-4 lg:py-2">
+              <Icon className="h-6 w-6 shrink-0 text-gray-900 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 sm:h-7 sm:w-7" strokeWidth={1.8} aria-hidden />
               <div className="flex min-w-0 flex-col">
                 <span className="text-[14px] font-bold leading-tight tracking-tight text-gray-900 sm:text-[15px]">{item.title}</span>
                 <span className="mt-0.5 text-[11px] font-medium leading-tight text-gray-700/80 sm:text-[12px]">{item.subtitle}</span>
               </div>
-            </div>
+            </StaggerItem>
           );
         })}
-      </div>
+      </Stagger>
     </section>
   );
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/motion/Reveal";
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
@@ -151,14 +152,14 @@ const NeedsPower = () => {
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-10 gap-6">
-          <div>
+          <Reveal>
             <h2 className="text-[24px] sm:text-[40px] leading-tight font-bold text-[#004328] tracking-tight">
               Shop by Category
             </h2>
             <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">
               Swipe through our categories and pick where to start.
             </p>
-          </div>
+          </Reveal>
 
           <div className="hidden sm:flex items-center gap-3">
             <button
@@ -178,7 +179,8 @@ const NeedsPower = () => {
           </div>
         </div>
 
-        {/* Carousel */}
+        {/* Carousel: slides in from the right */}
+        <Reveal y={0} x={60} delay={0.15}>
         <div 
           ref={scrollRef}
           className="flex gap-3 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 sm:pb-8 -mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0 sm:scroll-px-0"
@@ -188,7 +190,7 @@ const NeedsPower = () => {
               key={cat.id}
               href={cat.href}
               aria-label={`Shop ${cat.title}`}
-              className={`flex-none w-[42vw] max-w-[200px] sm:max-w-none sm:w-[300px] h-[58vw] max-h-[276px] sm:max-h-none sm:h-[410px] rounded-[20px] sm:rounded-[28px] ${cat.bg} p-3 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow duration-300`}
+              className={`flex-none w-[42vw] max-w-[200px] sm:max-w-none sm:w-[300px] h-[58vw] max-h-[276px] sm:max-h-none sm:h-[410px] rounded-[20px] sm:rounded-[28px] ${cat.bg} p-3 sm:p-6 relative flex flex-col snap-start overflow-hidden group cursor-pointer hover:shadow-lg hover:-translate-y-1.5 transition-[box-shadow,transform] duration-300`}
             >
               {/* Text stays above any bleeding image */}
               <div className="relative z-10 pr-7 sm:pr-10">
@@ -209,6 +211,7 @@ const NeedsPower = () => {
             </Link>
           ))}
         </div>
+        </Reveal>
       </div>
     </section>
   );

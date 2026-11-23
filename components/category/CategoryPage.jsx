@@ -1,5 +1,6 @@
 // components/category/CategoryPage.jsx
 // Shared template for /products/<slug>. Server component — loads products from the DB.
+import { Reveal } from "@/components/motion/Reveal";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
@@ -126,7 +127,9 @@ export default async function CategoryPage({ slug }) {
           subtitle={`Real reviews from people using FIL ${category.title} every day.`}
         />
       )}
-      <CategoryFAQ category={category} />
+      <Reveal>
+        <CategoryFAQ category={category} />
+      </Reveal>
       <ExploreMore currentSlug={slug} />
     </main>
   );

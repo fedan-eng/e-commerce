@@ -155,3 +155,13 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Hero images settle in: a slight zoom-out on load (components/category/CategoryHero.jsx) */
+@keyframes hero-settle {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+.hero-settle { animation: hero-settle 1.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-settle { animation: none; }
+}

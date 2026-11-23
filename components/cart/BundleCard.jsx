@@ -9,17 +9,20 @@ import { formatAmount } from "@/lib/utils";
 // The bundle's art with its tag, pieces sticker and price chip. Used by the cart card below and
 // the landing page's Combo Deals (variant "combo": "Combo deal" tag on dark green, bright green
 // price chip in the corner, no sticker). aspect: Tailwind aspect class.
-export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 560px, 100vw", variant = "cart" }) {
+// large: bigger tag and chip (the product page's main image)
+export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 560px, 100vw", variant = "cart", large = false, priority = false }) {
   if (variant === "combo") {
     return (
       <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#eef1fb]`}>
-        {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-[50%_70%]" />}
-        <span className="absolute left-0 top-0 rounded-br-[12px] bg-[#014628] px-3 py-1 text-[11px] font-semibold text-white sm:text-xs">
+        {image && <Image src={image} alt={name} fill sizes={sizes} priority={priority} quality={large ? 90 : 75} className="object-cover object-[50%_70%]" />}
+        <span className={`absolute left-0 top-0 bg-[#014628] font-semibold text-white ${large ? "rounded-br-[18px] px-5 py-2 text-sm md:text-base" : "rounded-br-[12px] px-3 py-1 text-[11px] sm:text-xs"}`}>
           Combo deal
         </span>
-        <span className="absolute bottom-0 right-0 rounded-tl-[16px] bg-[#1fd17a] px-3 pb-1.5 pt-1 text-right text-[#014628]">
-          {originalPrice > price && <span className="block text-[9px] leading-none text-[#014628]/60 line-through">{formatAmount(originalPrice)}</span>}
-          <span className="block text-[15px] font-extrabold leading-tight sm:text-base">{formatAmount(price)}</span>
+        <span className={`absolute bottom-0 right-0 bg-[#1fd17a] text-right text-[#014628] ${large ? "rounded-tl-[22px] px-5 pb-2.5 pt-2" : "rounded-tl-[16px] px-3 pb-1.5 pt-1"}`}>
+          {originalPrice > price && (
+            <span className={`block leading-none text-[#014628]/60 line-through ${large ? "text-xs md:text-sm" : "text-[9px]"}`}>{formatAmount(originalPrice)}</span>
+          )}
+          <span className={`block font-extrabold leading-tight ${large ? "text-2xl md:text-3xl" : "text-[15px] sm:text-base"}`}>{formatAmount(price)}</span>
         </span>
       </div>
     );

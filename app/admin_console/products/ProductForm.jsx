@@ -378,7 +378,8 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         ...form, price: parseFloat(form.price) || 0,
         originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : undefined,
         tag: form.tag || null,
-        features: form.features.split(",").map(f => f.trim()).filter(Boolean),
+        // Split on commas, but not inside numbers like "30,000mAh"
+        features: form.features.split(/,(?!\s*\d)/).map(f => f.trim()).filter(Boolean),
         secondaryImages: secondaryImages.filter(Boolean),
         colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean) })).filter(c => c.name),
         videos: videos.filter(Boolean),
@@ -405,7 +406,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
 
     setGenerating(true); setError(null);
     try {
-      const featuresArray = form.features.split(",").map(f => f.trim()).filter(Boolean);
+      const featuresArray = form.features.split(/,(?!\s*\d)/).map(f => f.trim()).filter(Boolean);
       const res = await fetch("/api/admin/products/generate-description", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

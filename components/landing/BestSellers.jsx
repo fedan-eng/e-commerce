@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -123,14 +124,14 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-5 md:mb-10 gap-4 md:gap-6">
-          <div className="max-w-md">
+          <Reveal className="max-w-md">
             <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">
               {title}
             </h2>
             <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">
               Our most-loved gear right now. Hover a product to see it out in the world.
             </p>
-          </div>
+          </Reveal>
 
           {/* Filters */}
           <div className="flex overflow-x-auto no-scrollbar pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
@@ -178,7 +179,8 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
             <p>No products found in this category.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-5 md:gap-6">
+          // Keyed by the filter so the cards come in again when it changes
+          <Stagger key={activeFilter} gap={0.1} className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-5 md:gap-6">
             {products.map((product, index) => {
               // Only a 3-up row has room for a wide card; with fewer, every card stays narrow
               const isFeatured = index === 0 && (!theme || products.length >= 3);
@@ -187,8 +189,9 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
               const href = `/products/${product.slug || product._id}`;
 
               return (
-                <div
+                <StaggerItem
                   key={product._id}
+                  pop
                   className={`${isFeatured ? 'col-span-2' : 'col-span-1'} ${isFeatured && theme ? 'lg:order-last' : ''} flex flex-col min-w-0 group`}
                 >
                   {/* Image card */}
@@ -262,10 +265,10 @@ export default function BestSellers({ category = null, limit = 3, title = "What 
                       }
                     />
                   </div>
-                </div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </Stagger>
         )}
       </div>
     </section>
