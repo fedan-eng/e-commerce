@@ -18,13 +18,15 @@ export function deliveryFeeFor(type, region) {
   return base;
 }
 
-// Free delivery needs a minimum spend and no promo code (any code at all). Returns why it's
-// unavailable, or null. /api/paystack checks the same through lib/pricing.js.
-export function freeDeliveryBlock(subTotal, promoCode, now = new Date()) {
+// Free delivery needs a minimum spend, no promo code (any code at all) and no combo deal in the
+// order. Returns why it's unavailable, or null. /api/paystack checks the same through lib/pricing.js.
+// hasBundle: the order has a bundle (lib/bundles.js isBundleItem). now: for tests.
+export function freeDeliveryBlock(subTotal, promoCode, { hasBundle = false, now = new Date() } = {}) {
   if (isBlackFridayLive(now)) return "Not available during Black Friday";
+  if (hasBundle) return "Not available with combo deals";
   if (promoCode) return "Not available with promo codes";
   if (subTotal < FREE_DELIVERY_MIN_SUBTOTAL) return "Available on orders of ₦10,000 or more";
   return null;
 }
 
-export const isFreeDeliveryAvailable = (subTotal, promoCode = null, now = new Date()) => !freeDeliveryBlock(subTotal, promoCode, now);
+export const isFreeDeliveryAvailable = (subTotal, promoCode = null, options = {}) => !freeDeliveryBlock(subTotal, promoCode, options);

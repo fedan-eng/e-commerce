@@ -17,6 +17,7 @@ import StepIndicator from "./StepIndicator";
 import { ContactStep, DeliveryStep, ReviewStep } from "./steps";
 import useCheckoutForm, { CONTACT_FIELDS, DELIVERY_FIELDS, SAVED_INFO_KEY, cleanValues } from "./useCheckoutForm";
 import { deliveryFeeFor, isFreeDeliveryAvailable } from "./delivery";
+import { isBundleItem } from "@/lib/bundles";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
@@ -102,6 +103,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = deliveryFeeFor(values.deliveryType, values.region);
+  const hasBundle = items.some(isBundleItem); // combo deals rule out free delivery
   const total = Math.max(0, subTotal - discount + deliveryFee);
 
   // A promo applied to a different basket no longer holds
@@ -115,10 +117,10 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   // and removing it again puts Free back (see handlePromoApply).
   const { setValue } = form;
   useEffect(() => {
-    if (values.deliveryType !== "Free" || isFreeDeliveryAvailable(subTotal, promoCode)) return;
+    if (values.deliveryType !== "Free" || isFreeDeliveryAvailable(subTotal, promoCode, { hasBundle })) return;
     setValue("deliveryType", "Regular");
     if (promoCode) setFreeSwitched(true);
-  }, [subTotal, promoCode, values.deliveryType, setValue]);
+  }, [subTotal, promoCode, hasBundle, values.deliveryType, setValue]);
 
   // Choosing Express themselves means there's nothing to undo. (Not "anything but Regular":
   // in the render that switches them, the old value is still Free.)
@@ -164,7 +166,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     if (code) setPromoRemoved(false);
     if (removed) {
       setPromoRemoved(true);
-      if (freeSwitched && isFreeDeliveryAvailable(subTotal)) setValue("deliveryType", "Free");
+      if (freeSwitched && isFreeDeliveryAvailable(subTotal, null, { hasBundle })) setValue("deliveryType", "Free");
       setFreeSwitched(false);
     }
   };
@@ -269,7 +271,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       labelledBy="checkout-title"
     >
       {step === 1 && <ContactStep form={form} emailLocked={Boolean(user)} />}
-      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} promoCode={promoCode} />}
+      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} promoCode={promoCode} hasBundle={hasBundle} />}
       {step === 3 && (
         <ReviewStep
           form={form}

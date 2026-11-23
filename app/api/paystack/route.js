@@ -6,7 +6,7 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
-import { BUNDLE_PROMO_MESSAGE, promoEligibleSubtotal } from "@/lib/bundles";
+import { BUNDLE_PROMO_MESSAGE, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
 import PendingCheckout from "@/models/PendingCheckout";
 import crypto from "crypto";
@@ -181,7 +181,9 @@ export async function POST(req) {
     }
     const { subTotal } = priced;
 
-    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode);
+    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode, {
+      hasBundle: priced.items.some(isBundleItem), // no free delivery with combo deals
+    });
     if (delivery.error) {
       return NextResponse.json({ message: delivery.error }, { status: 400 });
     }

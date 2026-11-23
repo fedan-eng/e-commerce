@@ -84,7 +84,8 @@ function DeliveryOption({ option, selected, blocked, fee, regionChosen, onSelect
   );
 }
 
-export function DeliveryStep({ form, subTotal, promoCode }) {
+// hasBundle: a combo deal in the order, which rules out free delivery
+export function DeliveryStep({ form, subTotal, promoCode, hasBundle = false }) {
   const [noteOpen, setNoteOpen] = useState(Boolean(form.values.orderNote));
   const { region, deliveryType } = form.values;
 
@@ -121,7 +122,7 @@ export function DeliveryStep({ form, subTotal, promoCode }) {
               key={option.id}
               option={option}
               selected={deliveryType === option.id}
-              blocked={option.id === "Free" ? freeDeliveryBlock(subTotal, promoCode) : null}
+              blocked={option.id === "Free" ? freeDeliveryBlock(subTotal, promoCode, { hasBundle }) : null}
               fee={deliveryFeeFor(option.id, region)}
               regionChosen={Boolean(region?.name)}
               onSelect={form.onChange}
