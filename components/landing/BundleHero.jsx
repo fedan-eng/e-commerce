@@ -40,11 +40,11 @@ export default function BundleHero({ bundle, priority = false }) {
         {art && <Image src={art} alt="" fill priority={priority} sizes="100vw" className="select-none object-cover object-bottom" />}
       </div>
 
-      {/* Tablet and up: a blurred copy of the art as the background */}
+      {/* Tablet and up: the background is the art's plain top strip (above the products),
+          blown up and blurred, so it's the art's own colour with no product smudges */}
       {art && (
-        <div aria-hidden className="absolute inset-0 hidden md:block">
-          <Image src={art} alt="" fill sizes="50vw" quality={30} className="scale-125 object-cover blur-3xl" />
-          <div className="absolute inset-0 bg-black/15" />
+        <div aria-hidden className="absolute inset-0 hidden overflow-hidden md:block">
+          <Image src={art} alt="" fill sizes="40vw" quality={40} className="origin-top scale-[4] object-cover object-top blur-2xl" />
         </div>
       )}
 
@@ -77,7 +77,7 @@ export default function BundleHero({ bundle, priority = false }) {
         </div>
 
         {/* Tablet and up: the art beside the copy, edges faded into the background */}
-        <Link href={href} aria-label={`Shop the ${bundle.name}`} className="relative hidden aspect-[1127/1396] w-full max-w-[520px] justify-self-end md:block">
+        <Link href={href} aria-label={`Shop the ${bundle.name}`} className="relative hidden aspect-[1127/1396] w-full max-w-[520px] self-end justify-self-end md:block">
           {art && (
             <Image
               src={art}
@@ -85,7 +85,7 @@ export default function BundleHero({ bundle, priority = false }) {
               fill
               priority={priority}
               sizes="(min-width: 1280px) 520px, 45vw"
-              className="select-none object-contain [mask-image:radial-gradient(ellipse_75%_80%_at_50%_55%,black_60%,transparent_100%)]"
+              className="select-none object-cover object-bottom [mask-image:linear-gradient(to_right,transparent,black_22%,black_78%,transparent),linear-gradient(to_bottom,transparent,black_25%)] [mask-composite:intersect] [-webkit-mask-composite:source-in]"
             />
           )}
         </Link>
