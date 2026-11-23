@@ -6,7 +6,7 @@ const Anniversary = () => {
   return (
     <section className="w-full bg-white pb-16 md:pb-24">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[28px] bg-[#DAF0FF] px-6 py-10 sm:px-10 md:px-14 md:py-16 lg:px-[72px]">
+        <div className="rounded-[28px] bg-[#ffd23f] px-6 py-10 sm:px-10 md:px-14 md:py-16 lg:px-[72px]">
           <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-12 lg:gap-16">
 
             {/* Laurel */}

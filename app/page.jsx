@@ -3,7 +3,6 @@ import { SOCIAL_URLS } from "@/lib/socials";
 import { STORE_CATEGORIES } from "@/lib/categories";
 import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
 import Hero1 from "@/components/landing/Hero1";
-import Hero2 from "@/components/landing/Hero2";
 import BundleHeroCarousel from "@/components/landing/BundleHeroCarousel";
 import ComboDeals from "@/components/landing/ComboDeals";
 import StoryHero from "@/components/landing/StoryHero";
@@ -154,11 +153,11 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      {/* With bundles in stock: a slide per bundle, "Power your Story" and Combo Deals.
-          Otherwise the usual two heroes. */}
+      {/* A slide per bundle in stock (Hero1 until there are any), then "Power your Story"
+          and Combo Deals (hidden with no bundles) */}
       {bundles.length > 0 ? <BundleHeroCarousel bundles={bundles} /> : <Hero1 />}
       <Marquee/>
-      {bundles.length > 0 ? <StoryHero /> : <Hero2 />}
+      <StoryHero />
       <ComboDeals bundles={bundles} />
       <NeedsPower/>
       <BestSellers initialProducts={featuredProducts}/>
