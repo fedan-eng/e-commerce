@@ -9,7 +9,7 @@ import { formatAmount } from "@/lib/utils";
 // The bundle's art with its tag, pieces sticker and price chip. Used by the cart card below and
 // the landing page's Combo Deals (variant "combo": "Combo deal" tag on dark green, bright green
 // price chip in the corner, no sticker). aspect: Tailwind aspect class.
-export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 480px, 100vw", variant = "cart" }) {
+export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 560px, 100vw", variant = "cart" }) {
   if (variant === "combo") {
     return (
       <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#eef1fb]`}>
@@ -25,23 +25,43 @@ export function BundleBanner({ image, name, count, price, originalPrice, aspect 
     );
   }
 
+  // Cart, checkout and order confirmation: gradient frame, "Special bundle" tab, starburst
+  // sticker and a dark price chip in the corner (the cart design)
   return (
-    <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#0b6b5f]`}>
-      {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-[50%_70%]" />}
-      <span className="absolute left-0 top-0 rounded-br-[14px] bg-[#b6f36a] px-3 py-1 text-xs font-bold italic text-forest">
-        Special bundle
-      </span>
-      {count > 1 && (
-        <span className="absolute right-2.5 top-2.5 flex h-11 w-11 rotate-12 flex-col items-center justify-center rounded-full border-2 border-white bg-[#22b14c] text-white shadow-md">
-          <span className="text-base font-extrabold leading-none">{count}</span>
-          <span className="text-[9px] font-semibold leading-none">items</span>
+    <div className="rounded-[22px] bg-gradient-to-br from-[#1fd769] to-[#b6f36a] p-[3px]">
+      <div className={`relative ${aspect} w-full overflow-hidden rounded-[19px] bg-gradient-to-b from-[#e8f7ff] to-[#e6fbef]`}>
+        {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-center" />}
+        <span className="absolute left-0 top-0 rounded-br-[18px] bg-gradient-to-r from-[#1fd769] to-[#a5ef41] px-4 py-1.5 text-[15px] font-bold italic tracking-tight text-[#0b3d22] sm:px-6 sm:py-2 sm:text-lg">
+          Special bundle
         </span>
-      )}
-      <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-forest px-2.5 py-1 text-right text-white shadow-md">
-        {originalPrice > price && <span className="block text-[9px] leading-none text-white/70 line-through">{formatAmount(originalPrice)}</span>}
-        <span className="block text-base font-bold leading-tight">{formatAmount(price)}</span>
-      </span>
+        {count > 1 && <Starburst count={count} />}
+        <span className="absolute bottom-0 right-0 rounded-tl-[18px] bg-[#0b1512] px-4 pb-2 pt-1.5 text-right text-white sm:px-5">
+          {originalPrice > price && <span className="block text-[11px] leading-none text-white/60 line-through sm:text-xs">{formatAmount(originalPrice)}</span>}
+          <span className="block text-xl font-extrabold leading-tight sm:text-2xl">{formatAmount(price)}</span>
+        </span>
+      </div>
     </div>
+  );
+}
+
+// Scalloped "3 Items" badge: a 14-point star with a lime outline
+const STAR_POINTS = Array.from({ length: 28 }, (_, i) => {
+  const r = i % 2 === 0 ? 48 : 40;
+  const a = (Math.PI * i) / 14 - Math.PI / 2;
+  return `${(50 + r * Math.cos(a)).toFixed(1)},${(50 + r * Math.sin(a)).toFixed(1)}`;
+}).join(" ");
+
+function Starburst({ count }) {
+  return (
+    <span className="absolute right-3 top-3 h-14 w-14 -rotate-6 drop-shadow-md sm:h-[68px] sm:w-[68px]">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden>
+        <polygon points={STAR_POINTS} fill="#1fd769" stroke="#b6f36a" strokeWidth="5" strokeLinejoin="round" />
+      </svg>
+      <span className="relative flex h-full w-full flex-col items-center justify-center text-[#0b3d22]">
+        <span className="text-xl font-black leading-none sm:text-2xl">{count}</span>
+        <span className="text-[10px] font-bold leading-none sm:text-[11px]">Items</span>
+      </span>
+    </span>
   );
 }
 
@@ -63,10 +83,9 @@ export default function BundleCard({ item, quantityControl = null, onRemove = nu
   const banner = <BundleBanner image={item.image} name={item.name} count={count} price={item.price} originalPrice={original ? item.originalPrice : null} />;
 
   return (
-    <div className={`flex flex-col ${className}`}>
-      <div className="rounded-[18px] border-2 border-[#4cd964] p-1">
-        {href ? <Link href={href} aria-label={item.name}>{banner}</Link> : banner}
-      </div>
+    // Full width on phones; capped on wider screens so the art isn't blown up
+    <div className={`flex w-full flex-col md:max-w-[560px] ${className}`}>
+      {href ? <Link href={href} aria-label={item.name} className="block">{banner}</Link> : banner}
 
       <div className="mt-3 flex items-start justify-between gap-3">
         <p className="text-[15px] font-bold text-forest">
