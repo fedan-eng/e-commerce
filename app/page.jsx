@@ -66,12 +66,13 @@ export const metadata = {
   },
 };
 
-// Shown in the hero until Snap Trio and Thunder Trio are created as bundle products in the
-// admin; then the real products take over (and "Shop now" opens them). Remove once they exist.
+// Shown in the hero and Combo Deals until Snap Trio and Thunder Trio are created as bundle
+// products in the admin; then the real products take over ("Shop now" opens them and "Buy now"
+// adds them to the cart). Remove once they exist.
 const R2 = "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev";
 const PREVIEW_BUNDLES = [
   { _id: "preview-snap-trio", name: "Snap Trio", price: 29500, originalPrice: 38000, image: `${R2}/SnapTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
-  { _id: "preview-thunder-trio", name: "Thunder Trio", price: 32500, image: `${R2}/ThunderTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
+  { _id: "preview-thunder-trio", name: "Thunder Trio", price: 32500, originalPrice: 48500, image: `${R2}/ThunderTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
 ];
 
 const page = async () => {
@@ -80,6 +81,7 @@ const page = async () => {
     getFeaturedProducts(),
     getLiveBundles(),
   ]);
+  const combos = bundles.length > 0 ? bundles : PREVIEW_BUNDLES;
 
   const baseUrl = SITE_URL;
 
@@ -160,12 +162,12 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      {/* A slide per bundle in stock (the preview slides until there are any), then
-          "Power your Story" and Combo Deals (hidden until real bundles exist) */}
-      <BundleHeroCarousel bundles={bundles.length > 0 ? bundles : PREVIEW_BUNDLES} />
+      {/* A slide per bundle in stock (the preview ones until there are any), then
+          "Power your Story" and Combo Deals */}
+      <BundleHeroCarousel bundles={combos} />
       <Marquee/>
       <StoryHero />
-      <ComboDeals bundles={bundles} />
+      <ComboDeals bundles={combos} />
       <NeedsPower/>
       <BestSellers initialProducts={featuredProducts}/>
       <WhatsAppReviews chats={reviewChats}/>

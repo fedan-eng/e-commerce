@@ -75,6 +75,9 @@ const productSchema = new mongoose.Schema(
     // Sold and stocked as a single product; bundleItems say what goes in the box, and the
     // order line gets a copy of them (lib/pricing.js). Promo codes don't apply to bundles.
     isBundle: { type: Boolean, default: false },
+    // The landing page hero slide's art (portrait, no text). `image` is the card art used in
+    // Combo Deals and the cart; the hero falls back to it when this is empty.
+    heroImage: { type: String, default: "" },
     bundleItems: [
       {
         _id:      false,

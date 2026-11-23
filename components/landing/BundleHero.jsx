@@ -31,18 +31,19 @@ export default function BundleHero({ bundle, priority = false }) {
   const pieces = count > 1 ? count : null;
   const original = bundle.originalPrice > bundle.price ? bundle.originalPrice : null;
   const Heading = priority ? "h1" : "h2"; // the first slide's title is the page's h1
+  const art = bundle.heroImage || bundle.image; // the slide art, else the card art
 
   return (
     <div className="relative isolate h-full w-full overflow-hidden bg-[#0b3d4a]">
       {/* Phone: the art is the whole slide */}
       <div className="relative aspect-[1127/1396] w-full md:hidden">
-        {bundle.image && <Image src={bundle.image} alt="" fill priority={priority} sizes="100vw" className="select-none object-cover object-bottom" />}
+        {art && <Image src={art} alt="" fill priority={priority} sizes="100vw" className="select-none object-cover object-bottom" />}
       </div>
 
       {/* Tablet and up: a blurred copy of the art as the background */}
-      {bundle.image && (
+      {art && (
         <div aria-hidden className="absolute inset-0 hidden md:block">
-          <Image src={bundle.image} alt="" fill sizes="50vw" quality={30} className="scale-125 object-cover blur-3xl" />
+          <Image src={art} alt="" fill sizes="50vw" quality={30} className="scale-125 object-cover blur-3xl" />
           <div className="absolute inset-0 bg-black/15" />
         </div>
       )}
@@ -77,9 +78,9 @@ export default function BundleHero({ bundle, priority = false }) {
 
         {/* Tablet and up: the art beside the copy, edges faded into the background */}
         <Link href={href} aria-label={`Shop the ${bundle.name}`} className="relative hidden aspect-[1127/1396] w-full max-w-[520px] justify-self-end md:block">
-          {bundle.image && (
+          {art && (
             <Image
-              src={bundle.image}
+              src={art}
               alt={`${bundle.name} bundle`}
               fill
               priority={priority}

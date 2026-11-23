@@ -1,10 +1,13 @@
 // components/landing/ComboDeals.jsx — "Combo Deals": every bundle in stock as a card with its
 // art, price and a "Buy now" button that adds it to the cart. Two across on phones.
+// A bundle with `href` is a preview (PREVIEW_BUNDLES in app/page.jsx): its button links there
+// instead, since there's no product to add yet.
 import Link from "next/link";
 import { BundleBanner } from "@/components/cart/BundleCard";
 import AddToCartButton from "@/components/AddToCart";
-import { bundlePieceCount } from "@/lib/bundles";
 import { formatAmount } from "@/lib/utils";
+
+const BUTTON = "mt-3 flex h-11 w-full items-center justify-center rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-60";
 
 export default function ComboDeals({ bundles }) {
   if (!bundles?.length) return null;
@@ -17,15 +20,15 @@ export default function ComboDeals({ bundles }) {
 
         <ul className="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:mt-8 md:grid-cols-3 lg:grid-cols-4">
           {bundles.map((bundle) => {
-            const href = `/products/${bundle._id}`;
+            const href = bundle.href || `/products/${bundle._id}`;
             const original = bundle.originalPrice > bundle.price ? bundle.originalPrice : null;
             return (
               <li key={bundle._id} className="flex flex-col">
-                <Link href={href} aria-label={bundle.name} className="block rounded-[18px] border-2 border-[#4cd964] p-1 transition-transform hover:-translate-y-0.5">
+                <Link href={href} aria-label={bundle.name} className="block overflow-hidden rounded-[16px] border-[1.5px] border-[#014628] transition-transform hover:-translate-y-0.5">
                   <BundleBanner
+                    variant="combo"
                     image={bundle.image}
                     name={bundle.name}
-                    count={bundlePieceCount(bundle)}
                     price={bundle.price}
                     originalPrice={original}
                     aspect="aspect-square"
@@ -33,19 +36,19 @@ export default function ComboDeals({ bundles }) {
                   />
                 </Link>
 
-                <Link href={href} className="mt-3 border-b border-line pb-2 text-[15px] font-bold text-forest hover:underline">
+                <Link href={href} className="mt-3 border-b border-line pb-2.5 text-[15px] font-bold text-forest hover:underline">
                   {bundle.name}
                 </Link>
-                <p className="mt-2 flex flex-wrap items-baseline gap-x-2">
-                  <span className="text-base font-bold text-forest">{formatAmount(bundle.price)}</span>
-                  {original && <span className="text-xs text-muted line-through">{formatAmount(original)}</span>}
+                <p className="mt-2.5 flex flex-wrap items-baseline gap-x-2">
+                  <span className="text-lg font-extrabold text-forest">{formatAmount(bundle.price)}</span>
+                  {original && <span className="text-xs text-[#b8c2bd] line-through">{formatAmount(original)}</span>}
                 </p>
 
-                <AddToCartButton
-                  product={bundle}
-                  label="Buy now"
-                  className="mt-3 h-11 w-full rounded-full bg-forest text-sm font-semibold text-white transition-colors hover:bg-black disabled:opacity-60"
-                />
+                {bundle.href ? (
+                  <Link href={href} className={BUTTON}>Buy now</Link>
+                ) : (
+                  <AddToCartButton product={bundle} label="Buy now" className={BUTTON} />
+                )}
               </li>
             );
           })}

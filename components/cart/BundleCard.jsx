@@ -6,9 +6,25 @@ import Link from "next/link";
 import { Magnet, Trash2, Zap } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 
-// The bundle's art with its "Special bundle" tag, pieces sticker and price chip. Used by the
-// cart card below and the landing page's Combo Deals. aspect: Tailwind aspect class.
-export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 480px, 100vw" }) {
+// The bundle's art with its tag, pieces sticker and price chip. Used by the cart card below and
+// the landing page's Combo Deals (variant "combo": "Combo deal" tag on dark green, bright green
+// price chip in the corner, no sticker). aspect: Tailwind aspect class.
+export function BundleBanner({ image, name, count, price, originalPrice, aspect = "aspect-[2/1]", sizes = "(min-width: 768px) 480px, 100vw", variant = "cart" }) {
+  if (variant === "combo") {
+    return (
+      <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#eef1fb]`}>
+        {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-[50%_70%]" />}
+        <span className="absolute left-0 top-0 rounded-br-[12px] bg-[#014628] px-3 py-1 text-[11px] font-semibold text-white sm:text-xs">
+          Combo deal
+        </span>
+        <span className="absolute bottom-0 right-0 rounded-tl-[16px] bg-[#1fd17a] px-3 pb-1.5 pt-1 text-right text-[#014628]">
+          {originalPrice > price && <span className="block text-[9px] leading-none text-[#014628]/60 line-through">{formatAmount(originalPrice)}</span>}
+          <span className="block text-[15px] font-extrabold leading-tight sm:text-base">{formatAmount(price)}</span>
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative ${aspect} w-full overflow-hidden rounded-[14px] bg-[#0b6b5f]`}>
       {image && <Image src={image} alt={name} fill sizes={sizes} className="object-cover object-[50%_70%]" />}

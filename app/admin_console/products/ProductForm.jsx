@@ -235,9 +235,9 @@ const BundleFields = ({ rows, catalogue, onChange, onAdd, onRemove, partsTotal, 
       </div>
     )}
     <p className="m-0 mt-3 text-xs text-faint">
-      The bundle is sold as one product at the price above. Its main image should be the plain art (podium and products,
-      no text): it&apos;s the landing page hero slide, the Combo Deals card and the cart banner. Its first two features show
-      on the cart card. Promo codes don&apos;t apply to bundles.
+      The bundle is sold as one product at the price above. Its main image is the card art (Combo Deals and the cart) and
+      the hero slide image is the landing page slide; both plain art with no text. Its first two features show on the
+      cart card. Promo codes don&apos;t apply to bundles.
     </p>
   </>
 );
@@ -250,6 +250,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     category: getCategoryByDbName(initial.category)?.dbCategory || initial.category || "", tag: initial.tag || "", description: initial.description || "",
     image: initial.image || "", availability: initial.availability ?? true,
     features: (initial.features || []).join(", "),
+    heroImage: initial.heroImage || "",
     isBestseller: initial.isBestseller || false, isTodaysDeal: initial.isTodaysDeal || false,
     isWhatsNew: initial.isWhatsNew || false, isDiscounted: initial.isDiscounted || false,
   });
@@ -384,6 +385,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         specs: buildSpecs(specFields, specs),
         isBundle,
         bundleItems: isBundle ? cleanBundle : [],
+        heroImage: isBundle ? form.heroImage.trim() : "",
       };
       const url = isEdit ? `/api/products/${initial._id}` : "/api/admin/products";
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -505,6 +507,12 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           />
           {isBundle && (
             <div className="mt-4">
+              <Field label="Hero slide image URL" hint="The landing page slide's art (portrait, no text). The main image below is the card art for Combo Deals and the cart." className="mb-4">
+                <div className="flex items-center gap-2">
+                  <input value={form.heroImage} onChange={set("heroImage")} placeholder="https://pub-….r2.dev/SnapTrio.png" className={inputCls} />
+                  <Thumb url={form.heroImage} />
+                </div>
+              </Field>
               <BundleFields rows={bundleItems} catalogue={catalogue} onChange={updateBundleRow} onAdd={addBundleRow} onRemove={removeBundleRow}
                 partsTotal={bundlePartsTotal} onUsePartsTotal={() => setForm(p => ({ ...p, originalPrice: String(bundlePartsTotal) }))} />
             </div>
