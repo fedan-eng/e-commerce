@@ -8,21 +8,25 @@ import Link from "next/link";
 import { formatAmount } from "@/lib/utils";
 import { bundlePieceCount } from "@/lib/bundles";
 
-// "Snap Trio" → "Snap " in white and "Trio" in lavender
+// Colour of the name's last word ("Trio"): lavender, or light blue on the blue Thunder art
+const accentFor = (name) => (/thunder/i.test(name) ? "#7ee0ff" : "#c4b5fd");
+
+// "Snap Trio" → "Snap " in white and "Trio" in the accent colour
 function Title({ name }) {
   const cut = name.lastIndexOf(" ");
   if (cut < 0) return <>{name}</>;
   return (
     <>
       {name.slice(0, cut + 1)}
-      <span className="text-[#c4b5fd]">{name.slice(cut + 1)}</span>
+      <span style={{ color: accentFor(name) }}>{name.slice(cut + 1)}</span>
     </>
   );
 }
 
-// priority: the first slide's images load straight away
+// priority: the first slide's images load straight away.
+// bundle.href: where "Shop now" goes when it isn't a real product yet (PREVIEW_BUNDLES)
 export default function BundleHero({ bundle, priority = false }) {
-  const href = `/products/${bundle._id}`;
+  const href = bundle.href || `/products/${bundle._id}`;
   const count = bundlePieceCount(bundle);
   const pieces = count > 1 ? count : null;
   const original = bundle.originalPrice > bundle.price ? bundle.originalPrice : null;

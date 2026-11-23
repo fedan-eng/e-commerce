@@ -2,7 +2,6 @@ import React from "react";
 import { SOCIAL_URLS } from "@/lib/socials";
 import { STORE_CATEGORIES } from "@/lib/categories";
 import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
-import Hero1 from "@/components/landing/Hero1";
 import BundleHeroCarousel from "@/components/landing/BundleHeroCarousel";
 import ComboDeals from "@/components/landing/ComboDeals";
 import StoryHero from "@/components/landing/StoryHero";
@@ -66,6 +65,14 @@ export const metadata = {
     },
   },
 };
+
+// Shown in the hero until Snap Trio and Thunder Trio are created as bundle products in the
+// admin; then the real products take over (and "Shop now" opens them). Remove once they exist.
+const R2 = "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev";
+const PREVIEW_BUNDLES = [
+  { _id: "preview-snap-trio", name: "Snap Trio", price: 29500, originalPrice: 38000, image: `${R2}/SnapTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
+  { _id: "preview-thunder-trio", name: "Thunder Trio", price: 32500, image: `${R2}/ThunderTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
+];
 
 const page = async () => {
   const [reviewChats, featuredProducts, bundles] = await Promise.all([
@@ -153,9 +160,9 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      {/* A slide per bundle in stock (Hero1 until there are any), then "Power your Story"
-          and Combo Deals (hidden with no bundles) */}
-      {bundles.length > 0 ? <BundleHeroCarousel bundles={bundles} /> : <Hero1 />}
+      {/* A slide per bundle in stock (the preview slides until there are any), then
+          "Power your Story" and Combo Deals (hidden until real bundles exist) */}
+      <BundleHeroCarousel bundles={bundles.length > 0 ? bundles : PREVIEW_BUNDLES} />
       <Marquee/>
       <StoryHero />
       <ComboDeals bundles={bundles} />
