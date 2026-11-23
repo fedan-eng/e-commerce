@@ -216,14 +216,14 @@ const BundleFields = ({ rows, catalogue, onChange, onAdd, onRemove, partsTotal, 
     {catalogue === null && <p className="m-0 mb-2 text-[13px] text-faint">Loading products…</p>}
     {rows.map((row, i) => (
       <div key={i} className="mb-2 flex items-center gap-2">
-        <select value={row.product} onChange={e => onChange(i, "product", e.target.value)} className={cx(selectCls, "flex-1")} aria-label={`Bundle product ${i + 1}`}>
+        <select value={row.product} onChange={e => onChange(i, "product", e.target.value)} className={cx(selectCls, "min-w-0 flex-1")} aria-label={`Bundle product ${i + 1}`}>
           <option value="">Choose a product</option>
           {(catalogue || []).map(p => (
             <option key={p._id} value={p._id}>{p.name} · {money(p.price)}{p.availability === false ? " (out of stock)" : ""}</option>
           ))}
         </select>
         <input type="number" value={row.quantity} onChange={e => onChange(i, "quantity", e.target.value)} min="1"
-          className={cx(inputCls, "w-16 text-center")} aria-label={`Quantity of bundle product ${i + 1}`} />
+          className={cx(inputCls, "max-w-16 shrink-0 text-center")} aria-label={`Quantity of bundle product ${i + 1}`} />
         <Button size="sm" variant="ghost" onClick={() => onRemove(i)} aria-label={`Remove bundle product ${i + 1}`}><X size={14} aria-hidden /></Button>
       </div>
     ))}
@@ -576,9 +576,9 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           {boxContent.map((b, i) => (
             <SortRow key={i} dragH={boxDrag} i={i} total={boxContent.length}
               onUp={() => swap(setBoxContent, i, -1)} onDown={() => swap(setBoxContent, i, 1)} onRemove={() => removeBox(i)}>
-              <input value={b.item} onChange={e => updateBox(i, "item", e.target.value)} placeholder="e.g. USB-C cable, user manual" className={cx(inputCls, "flex-1")} aria-label={`Box item ${i + 1}`} />
+              <input value={b.item} onChange={e => updateBox(i, "item", e.target.value)} placeholder="e.g. USB-C cable, user manual" className={cx(inputCls, "min-w-0 flex-1")} aria-label={`Box item ${i + 1}`} />
               <input type="number" value={b.quantity} onChange={e => updateBox(i, "quantity", e.target.value)} min="1" placeholder="Qty"
-                className={cx(inputCls, "w-16 text-center")} aria-label={`Quantity of box item ${i + 1}`} />
+                className={cx(inputCls, "max-w-16 shrink-0 text-center")} aria-label={`Quantity of box item ${i + 1}`} />
             </SortRow>
           ))}
           <div className="flex flex-wrap gap-2">
