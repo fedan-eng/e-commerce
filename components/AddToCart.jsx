@@ -9,6 +9,7 @@ import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
+import { firstInStockColor, itemInStock, productInStock } from "@/lib/stock";
 
 const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Buy Now", animated = true }) => {
   const dispatch       = useDispatch();
@@ -27,7 +28,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
 
     if (phase !== "idle") return;
 
-    const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
+    const colorToAdd = selectedColor || firstInStockColor(product);
     const imageToUse = colorToAdd?.images?.[0] || product.image;
 
     dispatch(
@@ -81,7 +82,8 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
     });
   }, [phase, animated, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
-  const isAvailable = product && product.availability;
+  // A chosen colour must be in stock; otherwise any colour will do
+  const isAvailable = selectedColor ? itemInStock(product, selectedColor.name) : productInStock(product);
 
   if (!animated) {
     return (

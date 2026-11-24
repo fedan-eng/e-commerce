@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import { productInStock } from "@/lib/stock";
 
 // XML escape helper
 function escapeXml(unsafe) {
@@ -64,7 +65,7 @@ export async function GET(req) {
 
       const productId = product._id.toString();
       const productUrl = `${baseUrl}/products/${productId}`;
-      const availability = product.availability ? "in stock" : "out of stock";
+      const availability = productInStock(product) ? "in stock" : "out of stock";
       
       // Handle pricing with sale price logic
       let priceElement = "";

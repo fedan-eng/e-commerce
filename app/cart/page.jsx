@@ -45,6 +45,7 @@ export default function CartPage() {
   const changeColor = (item, newColor) => {
     if (!newColor || newColor === item.color) return;
     const colorData = colorsById[item._id]?.find((c) => c.name === newColor);
+    if (colorData?.inStock === false) return;
     dispatch(updateColor({ _id: item._id, oldColor: item.color, newColor, newImage: colorData?.images?.[0] || item.image }));
   };
 
