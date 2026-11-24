@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
-import { cartItemExtras } from "@/lib/bundles";
+import { cartItemExtras, isBundleProduct } from "@/lib/bundles";
 import useDeals from "@/hooks/useDeals";
 import { Reveal } from "@/components/motion/Reveal";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
@@ -101,7 +101,7 @@ export default function ProductDetailsPage({ product }) {
             <div className="lg:hidden">
               <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
-            <DeliveryOptions />
+            <DeliveryOptions noFree={isBundleProduct(product)} />
             <StockStatus inStock={product.availability !== false} />
             <ServicesCard />
           </Reveal>

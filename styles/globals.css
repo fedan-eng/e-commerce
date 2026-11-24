@@ -165,3 +165,14 @@ input[type="number"] {
 @media (prefers-reduced-motion: reduce) {
   .hero-settle { animation: none; }
 }
+
+/* Feature strip under the hero (components/landing/Marquee.jsx): slides left forever.
+   The track holds two identical copies, so moving it by half its width loops seamlessly. */
+.feature-marquee-track { animation: feature-marquee 32s linear infinite; }
+@keyframes feature-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-marquee-track { animation-duration: 120s; }
+}

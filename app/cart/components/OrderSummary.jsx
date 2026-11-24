@@ -14,7 +14,8 @@ function Row({ label, value, muted }) {
 }
 
 // fullPrice / savings: the cart before discounts and how much they take off (lib/bundles.js cartSavings)
-export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal, savings = 0, isAuthenticated, onCheckout }) {
+// hasBundle: a combo deal in the cart, which rules out free delivery
+export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal, savings = 0, hasBundle = false, isAuthenticated, onCheckout }) {
   return (
     <div className="rounded-[28px] bg-sage p-6 md:p-7">
       <h2 className="text-xl font-bold text-forest">Order summary</h2>
@@ -58,7 +59,7 @@ export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal
 
       <ul className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-sm text-forest">
         {/* Free delivery is paused during Black Friday (components/checkout/delivery.js) */}
-        {!isBlackFridayLive() && (
+        {!isBlackFridayLive() && !hasBundle && (
           <li className="flex items-center gap-2.5">
             <Truck size={17} className="shrink-0" /> Free delivery in Lagos on Thursdays
           </li>

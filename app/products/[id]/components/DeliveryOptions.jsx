@@ -23,7 +23,8 @@ function DeliveryTimes() {
   );
 }
 
-export default function DeliveryOptions() {
+// noFree: hide Free Thursday delivery (combo deals don't get it, see components/checkout/delivery.js)
+export default function DeliveryOptions({ noFree = false }) {
   return (
     <SoftCard className="px-5 py-6 md:px-[22px]">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -31,7 +32,7 @@ export default function DeliveryOptions() {
         <DeliveryTimes />
       </div>
       <ul className="flex flex-col gap-2.5">
-        {OPTIONS.map(({ icon: Icon, title, detail, free }) => (
+        {OPTIONS.filter((o) => !(noFree && o.free)).map(({ icon: Icon, title, detail, free }) => (
           <li key={title} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4">
             <Icon size={18} className="mt-0.5 shrink-0 self-start text-forest" />
             <div className="min-w-0 flex-1">

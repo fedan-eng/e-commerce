@@ -1,8 +1,8 @@
-// components/landing/Marquee.jsx — the four promises under the hero.
-// A 2×2 grid on phones and tablets (as in the design), one row of four on desktop.
+// components/landing/Marquee.jsx — the four promises under the hero, sliding past endlessly.
+// The track holds the items twice and moves left by half its width, so the loop is seamless.
+// Pauses on hover; with "reduce motion" on, it slows right down (styles/globals.css).
 import React from 'react';
 import { Truck, CalendarDays, Headset, Award } from 'lucide-react';
-import { Stagger, StaggerItem } from '@/components/motion/Reveal';
 
 const marqueeItems = [
   { title: 'Free Shipping', subtitle: 'Fast and reliable delivery', icon: Truck },
@@ -11,23 +11,30 @@ const marqueeItems = [
   { title: 'Best Quality', subtitle: 'Many years on the market', icon: Award },
 ];
 
+// Each copy repeats the four items twice, so it's wider than big screens and never shows a gap
+const ROW = [...marqueeItems, ...marqueeItems];
+
 const Marquee = () => {
   return (
-    <section className="w-full border-b border-black/5 bg-[#a8edc8] px-4 py-5 sm:px-6 lg:px-8 lg:py-4">
-      <Stagger gap={0.08} className="mx-auto grid max-w-7xl grid-cols-2 gap-x-3 gap-y-5 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-black/10">
-        {marqueeItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <StaggerItem key={item.title} y={16} className="group flex items-center gap-2.5 sm:justify-center sm:gap-3.5 lg:px-4 lg:py-2">
-              <Icon className="h-6 w-6 shrink-0 text-gray-900 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 sm:h-7 sm:w-7" strokeWidth={1.8} aria-hidden />
-              <div className="flex min-w-0 flex-col">
-                <span className="text-[14px] font-bold leading-tight tracking-tight text-gray-900 sm:text-[15px]">{item.title}</span>
-                <span className="mt-0.5 text-[11px] font-medium leading-tight text-gray-700/80 sm:text-[12px]">{item.subtitle}</span>
-              </div>
-            </StaggerItem>
-          );
-        })}
-      </Stagger>
+    <section className="group w-full overflow-hidden border-b border-black/5 bg-[#a8edc8] py-4 md:py-5">
+      <div className="feature-marquee-track flex w-max group-hover:[animation-play-state:paused]">
+        {[0, 1].map((copy) => (
+          <ul key={copy} className="flex shrink-0" aria-hidden={copy === 1 || undefined}>
+            {ROW.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <li key={`${item.title}-${i}`} className="flex shrink-0 items-center gap-3 border-r border-black/10 px-8 md:px-12">
+                  <Icon className="h-6 w-6 shrink-0 text-gray-900 md:h-7 md:w-7" strokeWidth={1.8} aria-hidden />
+                  <div className="flex flex-col whitespace-nowrap">
+                    <span className="text-[14px] font-bold leading-tight tracking-tight text-gray-900 md:text-[15px]">{item.title}</span>
+                    <span className="mt-0.5 text-[11px] font-medium leading-tight text-gray-700/80 md:text-[12px]">{item.subtitle}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ))}
+      </div>
     </section>
   );
 };

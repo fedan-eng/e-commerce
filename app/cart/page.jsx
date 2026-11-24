@@ -9,7 +9,7 @@ import CheckoutModal from "@/components/checkout/CheckoutModal";
 import CartLineItem from "./components/CartLineItem";
 import OrderSummary from "./components/OrderSummary";
 import useCartColorOptions from "./useCartColorOptions";
-import { cartPieceCount, cartSavings } from "@/lib/bundles";
+import { cartPieceCount, cartSavings, isBundleItem } from "@/lib/bundles";
 
 function trackBeginCheckout(items, value) {
   if (typeof window === "undefined" || !window.gtag) return;
@@ -90,7 +90,7 @@ export default function CartPage() {
             </ul>
 
             <div className="lg:sticky lg:top-24">
-              <OrderSummary subTotal={subTotal} itemCount={pieceCount} fullPrice={fullPrice} savings={savings} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
+              <OrderSummary subTotal={subTotal} itemCount={pieceCount} fullPrice={fullPrice} savings={savings} hasBundle={items.some(isBundleItem)} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
             </div>
           </div>
         </>
