@@ -19,7 +19,7 @@ const items = [
     id: 1,
     type: "campaign",
     badge: "Campaign Film",
-    title: "Light can go. You stay on.",
+    title: "Memories aren't just stored, they're carried",
     duration: "2:05",
     img: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/videos/campaign.mp4",
     poster: "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/campaign.png",
