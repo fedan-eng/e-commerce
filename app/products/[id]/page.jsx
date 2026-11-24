@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { getCategoryByDbName } from "@/lib/categories";
 import { SITE_URL, jsonLdHtml } from "@/lib/seo";
+import { productInStock } from "@/lib/stock";
 import ProductDetailsPage from "./ProductDetailsPage";
 
 // Pages are cached and rebuilt at most hourly; admin edits, review moderation and
@@ -161,7 +162,7 @@ export default async function Page({ params }) {
       priceValidUntil,
       itemCondition: "https://schema.org/NewCondition",
       availability:
-        product.availability !== false
+        productInStock(product)
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       seller: {

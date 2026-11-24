@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addRecentlyViewed } from "@/store/features/recentlyViewedSlice";
 import { getCategoryByDbName } from "@/lib/categories";
+import { firstInStockColor, itemInStock } from "@/lib/stock";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
 import { getGalleryImages, getHighlights, getImageBg } from "./productUtils";
@@ -35,7 +36,7 @@ export default function ProductDetailsPage({ product }) {
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
 
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? null);
+  const [selectedColor, setSelectedColor] = useState(() => firstInStockColor(product));
   const [shareOpen, setShareOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [buyNowItem, setBuyNowItem] = useState(null);
@@ -97,7 +98,7 @@ export default function ProductDetailsPage({ product }) {
               <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
             <DeliveryOptions />
-            <StockStatus inStock={product.availability !== false} />
+            <StockStatus inStock={itemInStock(product, selectedColor?.name)} />
             <ServicesCard />
           </div>
         </div>

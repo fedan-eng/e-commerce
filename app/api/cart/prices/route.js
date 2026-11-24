@@ -3,6 +3,7 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import { productInStock, soldOutColorNames } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,14 @@ export async function POST(req) {
     const valid = Array.isArray(ids) ? [...new Set(ids)].filter((id) => mongoose.isValidObjectId(id)).slice(0, 100) : [];
 
     await connectDB();
-    const products = await Product.find({ _id: { $in: valid } }).select("name price availability").lean();
+    const products = await Product.find({ _id: { $in: valid } }).select("name price availability colors.name colors.inStock").lean();
 
-    // { [productId]: { price, available } }; ids missing from the reply are no longer sold
+    // { [productId]: { price, available, soldOutColors } }; ids missing from the reply are no longer sold
     const prices = Object.fromEntries(
-      products.map((p) => [String(p._id), { price: p.price, available: p.availability !== false }])
+      products.map((p) => [
+        String(p._id),
+        { price: p.price, available: productInStock(p), soldOutColors: soldOutColorNames(p) },
+      ])
     );
     return Response.json({ prices }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {

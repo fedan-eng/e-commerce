@@ -13,6 +13,7 @@ import {
   Checkbox, BulkBar, bulkBtnCls, EmptyState, Spinner, selectCls, TH, TD, cx,
 } from "@/components/admin/ui";
 import { money } from "@/components/admin/format";
+import { productInStock, soldOutColorNames } from "@/lib/stock";
 
 const PAGE_SIZE = 15;
 
@@ -25,15 +26,24 @@ const SORT_LISTS = [
   { value: "isTodaysDeal", label: "Today's deal", special: true },
 ];
 
-const StockBadge = ({ inStock }) => (
-  <span className={cx(
-    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
-    inStock ? "bg-[#eaf7ef] text-[#15803d]" : "bg-[#fdeeee] text-[#b91c1c]",
-  )}>
-    <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
-    {inStock ? "In stock" : "Out of stock"}
-  </span>
-);
+// In stock / some colours sold out / out of stock (whole product, or every colour)
+const StockBadge = ({ product }) => {
+  const inStock = productInStock(product);
+  const soldOut = soldOutColorNames(product);
+  const partial = inStock && soldOut.length > 0;
+  return (
+    <span
+      title={partial ? `Out of stock: ${soldOut.join(", ")}` : undefined}
+      className={cx(
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",
+        partial ? "bg-[#fef6e7] text-[#b45309]" : inStock ? "bg-[#eaf7ef] text-[#15803d]" : "bg-[#fdeeee] text-[#b91c1c]",
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
+      {partial ? `${soldOut.length} colour${soldOut.length === 1 ? "" : "s"} out` : inStock ? "In stock" : "Out of stock"}
+    </span>
+  );
+};
 
 const Thumb = ({ src, size = "h-10 w-10" }) => src
   // eslint-disable-next-line @next/next/no-img-element
@@ -365,7 +375,7 @@ export default function AdminProductsPage() {
                         <div className="font-medium">{money(p.price)}</div>
                         {p.originalPrice > p.price && <div className="text-xs text-faint line-through">{money(p.originalPrice)}</div>}
                       </td>
-                      <td className={TD}><StockBadge inStock={p.availability} /></td>
+                      <td className={TD}><StockBadge product={p} /></td>
                       <td className={cx(TD, "whitespace-nowrap")}>
                         {p.averageRating > 0
                           ? <span className="inline-flex items-center gap-1"><Star size={13} className="fill-[#d97706] text-[#d97706]" aria-hidden />{p.averageRating.toFixed(1)}</span>
@@ -391,7 +401,7 @@ export default function AdminProductsPage() {
                   <Link href={`/admin_console/products/${p._id}`} className="min-w-0 flex-1 text-ink no-underline">
                     <span className="block truncate text-[13px] font-medium">{p.name}</span>
                     <span className="block text-xs text-faint">{p.category || "—"} · {money(p.price)}</span>
-                    <span className="mt-1 block"><StockBadge inStock={p.availability} /></span>
+                    <span className="mt-1 block"><StockBadge product={p} /></span>
                   </Link>
                   <ProductMenu product={p} onToggleStock={toggleStock} onDelete={deleteProducts} />
                 </div>

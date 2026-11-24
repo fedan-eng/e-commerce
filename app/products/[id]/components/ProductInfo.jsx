@@ -9,6 +9,7 @@ import ColorPicker from "./ColorPicker";
 import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
 import { Specifications } from "./ProductSpecs";
+import { itemInStock } from "@/lib/stock";
 
 function Badges({ product, discount }) {
   const badges = [
@@ -74,7 +75,8 @@ export function StockStatus({ inStock }) {
 export default function ProductInfo({ product, highlights, selectedColor, onColorChange, onCheckout }) {
   const [quantity, setQuantity] = useState(1);
   const discount = getDiscount(product);
-  const inStock = product.availability !== false;
+  // The chosen colour can be bought (or, with no colours, the product can)
+  const inStock = itemInStock(product, selectedColor?.name);
 
   return (
     <div className="flex min-w-0 flex-col">

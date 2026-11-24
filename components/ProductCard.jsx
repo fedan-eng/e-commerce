@@ -8,6 +8,7 @@ import AddToCartButton from "./AddToCart";
 import WishlistButton from "@/components/WishlistButton";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { ProductImage } from "@/components/ProductImage";
+import { productInStock } from "@/lib/stock";
 
 const ProductCard = ({
   productName,
@@ -131,7 +132,7 @@ const ProductCard = ({
           <div className="mt-2 sm:mt-0 sm:absolute sm:top-0 sm:left-0 sm:opacity-0 sm:hover:opacity-100 w-full sm:transition-opacity sm:duration-300">
             <AddToCartButton
               className={`flex justify-center ${
-                product.availability ? "bg-black" : "bg-gray-300 cursor-not-allowed"
+                productInStock(product) ? "bg-black" : "bg-gray-300 cursor-not-allowed"
               } py-2 rounded-md w-full text-white text-xs text-center`}
               product={product}
             />

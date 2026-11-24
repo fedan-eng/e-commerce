@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
+import { colorInStock } from "@/lib/stock";
 
 function QtyStepper({ value, onChange }) {
   const btn = "flex h-9 w-9 items-center justify-center rounded-full text-forest transition-colors hover:bg-sage disabled:opacity-30";
@@ -28,18 +29,30 @@ function ColorSwitch({ colors, selected, onChange }) {
     <div className="mt-2 flex items-center gap-1.5" role="radiogroup" aria-label="Colour">
       {colors.map((c) => {
         const active = c.name === selected;
+        const soldOut = !colorInStock(c);
+        const label = soldOut ? `${c.name} (out of stock)` : c.name;
         return (
           <button
             key={c.name}
             type="button"
             role="radio"
             aria-checked={active}
-            aria-label={c.name}
-            title={c.name}
+            aria-label={label}
+            title={label}
+            disabled={soldOut && !active}
             onClick={() => onChange(c.name)}
-            className={`h-7 w-7 rounded-full border-2 p-0.5 transition-colors ${active ? "border-forest" : "border-transparent hover:border-line"}`}
+            className={`relative h-7 w-7 rounded-full border-2 p-0.5 transition-colors disabled:cursor-not-allowed ${active ? "border-forest" : "border-transparent hover:border-line"}`}
           >
-            <span className="block h-full w-full rounded-full ring-1 ring-black/5" style={{ backgroundColor: c.name.toLowerCase() }} />
+            <span
+              className={`block h-full w-full rounded-full ring-1 ring-black/5 ${soldOut ? "opacity-40" : ""}`}
+              style={{ backgroundColor: c.name.toLowerCase() }}
+            />
+            {soldOut && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 h-[2px] w-[120%] -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-red-500 ring-1 ring-white"
+              />
+            )}
           </button>
         );
       })}
@@ -51,6 +64,9 @@ function ColorSwitch({ colors, selected, onChange }) {
 export default function CartLineItem({ item, colors, onQuantityChange, onColorChange, onRemove }) {
   const href = `/products/${item._id}`;
   const canSwitchColor = item.color && colors?.length > 1;
+  // The colour in the cart has sold out since it was added
+  const current = colors?.find((c) => c.name?.trim().toLowerCase() === item.color?.trim().toLowerCase());
+  const colorSoldOut = Boolean(current && !colorInStock(current));
 
   return (
     <li className="flex gap-4 py-5">
@@ -73,6 +89,12 @@ export default function CartLineItem({ item, colors, onQuantityChange, onColorCh
               {item.color && !canSwitchColor && <span className="capitalize"> · {item.color}</span>}
             </p>
             {canSwitchColor && <ColorSwitch colors={colors} selected={item.color} onChange={onColorChange} />}
+            {colorSoldOut && (
+              <p className="mt-2 text-[13px] font-medium text-red-600">
+                {item.color} is out of stock.{" "}
+                {colors.some(colorInStock) ? "Pick another colour or remove it." : "Please remove it."}
+              </p>
+            )}
           </div>
           <button
             type="button"
