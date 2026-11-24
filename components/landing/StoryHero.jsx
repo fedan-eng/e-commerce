@@ -1,6 +1,7 @@
 // components/landing/StoryHero.jsx — "Power your Story" slide (photo: Hero3.png).
-// The photo is portrait: on phones it fills the slide with the copy over the sky; on wider
-// screens the copy sits on a matching sky gradient with the photo as a card beside it.
+// Phones: the copy sits on a sky-blue band above the photo (so it never covers the people), and
+// the photo's top edge fades into that band. Wider screens: the copy on a matching sky gradient
+// with the photo as a card beside it.
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
@@ -9,15 +10,15 @@ const PHOTO = "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev/Hero3.png";
 
 export default function StoryHero() {
   return (
-    <section className="relative isolate w-full overflow-hidden bg-[#2c76d5] md:bg-gradient-to-b md:from-[#2463c4] md:to-[#3d8be0]">
-      {/* Phone: the photo is the whole slide */}
-      <div className="relative aspect-[1127/1396] w-full md:hidden">
-        <Image src={PHOTO} alt="Friends at the beach charging their phones from a FIL power bank" fill sizes="100vw" className="z-0 select-none object-cover" />
+    <section className="relative isolate flex w-full flex-col overflow-hidden bg-gradient-to-b from-[#1f60c8] to-[#327ede] md:block md:from-[#2463c4] md:to-[#3d8be0]">
+      {/* Phone: the photo sits under the copy, its top fading into the blue band */}
+      <div className="relative order-2 -mt-14 aspect-[1127/1396] w-full [mask-image:linear-gradient(to_bottom,transparent,black_18%)] md:hidden">
+        <Image src={PHOTO} alt="Friends at the beach charging their phones from a FIL power bank" fill sizes="100vw" className="select-none object-cover" />
       </div>
 
-      <div className="absolute inset-0 z-10 mx-auto w-full max-w-[1280px] md:static md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center md:gap-12 md:px-10 md:py-16 lg:px-16">
+      <div className="relative order-1 z-10 mx-auto w-full max-w-[1280px] md:static md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center md:gap-12 md:px-10 md:py-16 lg:px-16">
         {/* Copy */}
-        <Stagger gap={0.12} className="flex flex-col items-center px-6 pt-8 text-center sm:pt-12 md:items-start md:px-0 md:pt-0 md:text-left">
+        <Stagger gap={0.12} className="flex flex-col items-center px-6 pb-4 pt-10 text-center sm:pt-14 md:items-start md:px-0 md:pb-0 md:pt-0 md:text-left">
           <StaggerItem as="h2" className="text-[26px] font-bold leading-tight tracking-tight text-white [text-shadow:0_1px_12px_rgba(0,40,110,0.25)] sm:text-4xl lg:text-5xl">
             Power your Story.
             <br />
