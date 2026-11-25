@@ -116,7 +116,7 @@ const ColorImageRow = ({ img, ii, total, onUpdate, onMoveUp, onMoveDown, onRemov
   </SortRow>
 );
 
-const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown, onRemove, onAddImage, onRemoveImage, onUpdateImage, onMoveImageUp, onMoveImageDown, dragHandlers, imageDragHandlers }) => {
+const ColorCard = ({ color, ci, totalColors, onNameChange, onStockChange, onMoveUp, onMoveDown, onRemove, onAddImage, onRemoveImage, onUpdateImage, onMoveImageUp, onMoveImageDown, dragHandlers, imageDragHandlers }) => {
   const [cardOver, setCardOver] = useState(false);
   const ch = dragHandlers(ci);
   return (
@@ -137,6 +137,9 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
           <span className="truncate text-[13px] font-medium text-ink">
             Variant {ci + 1}{color.name ? ` · ${color.name}` : ""}
           </span>
+          {color.inStock === false && (
+            <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">Out of stock</span>
+          )}
         </div>
         <div className="flex shrink-0 gap-0.5">
           <IconBtn onClick={onMoveUp}   disabled={ci === 0}               label="Move variant up"><ArrowUp size={14} aria-hidden /></IconBtn>
@@ -147,6 +150,14 @@ const ColorCard = ({ color, ci, totalColors, onNameChange, onMoveUp, onMoveDown,
       <Field label="Colour name" className="mb-3">
         <input value={color.name} onChange={e => onNameChange(e.target.value)} placeholder="e.g. black, midnight blue" className={inputCls} />
       </Field>
+      <div className="mb-3">
+        <Switch
+          label="This colour is in stock"
+          description={color.inStock !== false ? "Shoppers can buy this colour" : "Shown crossed out; can't be added to cart"}
+          checked={color.inStock !== false}
+          onChange={e => onStockChange(e.target.checked)}
+        />
+      </div>
       <div className="mb-1.5 text-[13px] font-medium text-sub">Images</div>
       {color.images.map((img, ii) => (
         <ColorImageRow key={ii} img={img} ii={ii} total={color.images.length}
@@ -257,7 +268,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
   });
 
   const [secondaryImages, setSecondaryImages] = useState(initial.secondaryImages?.length ? initial.secondaryImages : [""]);
-  const [colors,     setColors]     = useState(initial.colors?.length ? initial.colors.map(c => ({ name: c.name || "", images: c.images?.length ? c.images : [""] })) : []);
+  const [colors,     setColors]     = useState(initial.colors?.length ? initial.colors.map(c => ({ name: c.name || "", images: c.images?.length ? c.images : [""], inStock: c.inStock !== false })) : []);
   const [videos,     setVideos]     = useState(initial.videos?.length ? initial.videos : []);
   const [boxContent, setBoxContent] = useState(initial.boxContent?.length ? initial.boxContent.map(b => ({ item: b.item || "", quantity: b.quantity || 1 })) : []);
   const [specs,      setSpecs]      = useState(initial.specs || {});
@@ -300,9 +311,10 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
       colorFrom.current = null; colorTo.current = null;
     },
   });
-  const addColor        = () => setColors(p => [...p, { name: "", images: [""] }]);
+  const addColor        = () => setColors(p => [...p, { name: "", images: [""], inStock: true }]);
   const removeColor     = (i) => setColors(p => p.filter((_, idx) => idx !== i));
   const updateColorName = (ci, v) => setColors(p => p.map((c, idx) => idx === ci ? { ...c, name: v } : c));
+  const updateColorStock = (ci, v) => setColors(p => p.map((c, idx) => idx === ci ? { ...c, inStock: v } : c));
 
   const ciFrom = useRef({}), ciTo = useRef({});
   const colorImgDrag = (ci) => (ii) => ({
@@ -381,7 +393,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
         // Split on commas, but not inside numbers like "30,000mAh"
         features: form.features.split(/,(?!\s*\d)/).map(f => f.trim()).filter(Boolean),
         secondaryImages: secondaryImages.filter(Boolean),
-        colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean) })).filter(c => c.name),
+        colors: colors.map(c => ({ name: c.name, images: c.images.filter(Boolean), inStock: c.inStock !== false })).filter(c => c.name),
         videos: videos.filter(Boolean),
         boxContent: boxContent.filter(b => b.item?.trim()).map(b => ({ item: b.item.trim(), quantity: parseInt(b.quantity) || 1 })),
         specs: buildSpecs(specFields, specs),
@@ -554,6 +566,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           {colors.map((color, ci) => (
             <ColorCard key={ci} color={color} ci={ci} totalColors={colors.length}
               onNameChange={val => updateColorName(ci, val)}
+              onStockChange={val => updateColorStock(ci, val)}
               onMoveUp={() => swap(setColors, ci, -1)} onMoveDown={() => swap(setColors, ci, 1)}
               onRemove={() => removeColor(ci)} onAddImage={() => addColorImage(ci)}
               onRemoveImage={ii => removeColorImage(ci, ii)}
@@ -626,7 +639,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
           <h2 className="m-0 mb-3 font-poppins text-[15px] font-semibold text-ink">Visibility</h2>
           <Switch
             label="In stock"
-            description={form.availability ? "Shoppers can buy this product" : "Shown as out of stock"}
+            description={form.availability ? "Shoppers can buy this product. Colours can also be switched off one by one." : "Shown as out of stock in every colour"}
             checked={form.availability}
             onChange={set("availability")}
           />

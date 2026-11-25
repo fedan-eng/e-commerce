@@ -66,6 +66,17 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
         if (unavailable.length > 0) {
           toast.error(`${unavailable.map((i) => i.name).join(", ")} is no longer available. Please remove it from your cart.`, { duration: 6000 });
         }
+        const soldOutColor = opened.filter((item) => {
+          const p = prices[item._id];
+          const color = item.color?.trim().toLowerCase();
+          return p?.available && color && p.soldOutColors?.some((c) => c?.trim().toLowerCase() === color);
+        });
+        if (soldOutColor.length > 0) {
+          toast.error(
+            `${soldOutColor.map((i) => `${i.name} (${i.color})`).join(", ")} is out of stock in that colour. Please pick another colour.`,
+            { duration: 6000 }
+          );
+        }
 
         // Bundle details and prices before discount, for the review step and the promo rule
         const extras = Object.fromEntries(opened.filter((i) => prices[i._id]).map((i) => [i._id, prices[i._id].extras || {}]));

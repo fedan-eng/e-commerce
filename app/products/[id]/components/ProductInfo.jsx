@@ -12,6 +12,7 @@ import { Specifications } from "./ProductSpecs";
 import useDeals from "@/hooks/useDeals";
 import { isBundleProduct } from "@/lib/bundles";
 import { Gift, Zap } from "lucide-react";
+import { itemInStock } from "@/lib/stock";
 
 function Badges({ product, discount }) {
   const badges = [
@@ -99,7 +100,8 @@ export default function ProductInfo({ product: baseProduct, highlights, selected
   const dealPrice = deal?.type === "discount" ? deal.products.find((p) => p._id === String(baseProduct._id))?.dealPrice : null;
   const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: Math.max(baseProduct.originalPrice || 0, baseProduct.price) } : baseProduct;
   const discount = getDiscount(product);
-  const inStock = product.availability !== false;
+  // The chosen colour can be bought (or, with no colours, the product can)
+  const inStock = itemInStock(product, selectedColor?.name);
 
   return (
     <div className="flex min-w-0 flex-col">

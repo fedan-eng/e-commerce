@@ -59,6 +59,8 @@ const productSchema = new mongoose.Schema(
       {
         name:   String,
         images: { type: [String], default: [] },
+        // Per-colour stock switch; the whole-product `availability` switch still overrides it (lib/stock.js)
+        inStock: { type: Boolean, default: true },
       },
     ],
 

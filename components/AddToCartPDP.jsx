@@ -11,6 +11,7 @@ import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import { useGAEvent } from "@/hooks/useGAEvent";
 import { useTikTokEvent } from "@/hooks/useTikTokEvent";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
+import { firstInStockColor, itemInStock, productInStock } from "@/lib/stock";
 
 // Product details page "Add to Cart": flies the gallery image into the cart icon.
 const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, className = "" }) => {
@@ -31,7 +32,7 @@ const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, class
 
     if (phase !== "idle") return;
 
-    const colorToAdd = selectedColor || (product.colors?.length > 0 ? product.colors[0] : null);
+    const colorToAdd = selectedColor || firstInStockColor(product);
     const imageToUse = colorToAdd?.images?.[0] || product.image;
 
     dispatch(
@@ -74,7 +75,8 @@ const AddToCartButtonPDP = ({ product, selectedColor = null, quantity = 1, class
     });
   }, [phase, selectedColor, quantity, product, byProduct, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
-  const isAvailable = Boolean(product?.availability);
+  // A chosen colour must be in stock; otherwise any colour will do
+  const isAvailable = selectedColor ? itemInStock(product, selectedColor.name) : productInStock(product);
 
   return (
     <button

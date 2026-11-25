@@ -7,6 +7,7 @@ import { getCategoryByDbName } from "@/lib/categories";
 import { cartItemExtras, isBundleProduct } from "@/lib/bundles";
 import useDeals from "@/hooks/useDeals";
 import { Reveal } from "@/components/motion/Reveal";
+import { firstInStockColor, itemInStock } from "@/lib/stock";
 import CheckoutModal from "@/components/checkout/CheckoutModal";
 import useProductViewTracking from "./useProductViewTracking";
 import { getGalleryImages, getHighlights, getImageBg } from "./productUtils";
@@ -38,7 +39,7 @@ export default function ProductDetailsPage({ product }) {
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
 
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? null);
+  const [selectedColor, setSelectedColor] = useState(() => firstInStockColor(product));
   const [shareOpen, setShareOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [buyNowItem, setBuyNowItem] = useState(null);
@@ -102,7 +103,7 @@ export default function ProductDetailsPage({ product }) {
               <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
             <DeliveryOptions noFree={isBundleProduct(product)} />
-            <StockStatus inStock={product.availability !== false} />
+            <StockStatus inStock={itemInStock(product, selectedColor?.name)} />
             <ServicesCard />
           </Reveal>
         </div>
