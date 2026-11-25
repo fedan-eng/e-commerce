@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import Deal from "@/models/Deal";
+// Registers the Product model for .populate(); without it the first request on a fresh server fails
+import "@/models/Product";
 import { parseDealBody } from "./parse";
 
 export const dynamic = "force-dynamic";

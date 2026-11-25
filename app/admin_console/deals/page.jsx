@@ -194,7 +194,14 @@ export default function DealsPage() {
   const phase = blackFridayPhase();
 
   const load = useCallback(() => {
-    fetch(API).then((r) => r.json()).then((d) => setDeals(d.deals || [])).catch(() => { setDeals([]); toast.error("Couldn't load deals"); });
+    // A failed load says so, rather than looking like there are no deals
+    fetch(API)
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.message || `Couldn't load deals (${r.status})`);
+        setDeals(d.deals || []);
+      })
+      .catch((err) => { setDeals([]); toast.error(err.message || "Couldn't load deals"); });
   }, []);
 
   useEffect(() => {
