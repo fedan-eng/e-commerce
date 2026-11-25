@@ -1,32 +1,46 @@
 "use client";
-// hooks/useDeals.js — the live Black Friday flash deals (/api/deals), fetched once per page
-// load and shared by every component that asks. Empty outside the deal window.
+// hooks/useDeals.js — the Black Friday flash deals (/api/deals, lib/deals.js getDealCards), fetched
+// once per page load and shared by every component that asks.
+//   all:       every deal, sold-out ones included (soldOut: true); a preview before 27 Nov
+//   deals:     the ones that can still be bought right now (live and not sold out)
+//   byProduct: { [productId]: deal } for `deals` — what sets prices, so it's empty unless live
+//   phase:     "upcoming" | "live" | "over"
+// `initial` (the landing page's server copy) is shown until the fresh counts arrive.
 import { useEffect, useState } from "react";
-import { isBlackFridayLive } from "@/lib/blackFriday";
+import { blackFridayPhase } from "@/lib/blackFriday";
 
-let cache = null; // { deals, byProduct, bundle }
+let cache = null;
 let pending = null;
-const EMPTY = { deals: [], byProduct: {}, bundle: null, loaded: false };
+const EMPTY = { all: [], deals: [], byProduct: {}, phase: "over", loaded: false };
+
+function shape(all = [], phase = blackFridayPhase()) {
+  const live = phase === "live" ? all.filter((d) => !d.soldOut) : [];
+  const byProduct = {};
+  for (const deal of live) for (const p of deal.products) if (!byProduct[p._id]) byProduct[p._id] = deal;
+  return { all, deals: live, byProduct, phase, loaded: true };
+}
 
 function load() {
   if (!pending) {
     pending = fetch("/api/deals")
       .then((res) => (res.ok ? res.json() : { deals: [] }))
       .catch(() => ({ deals: [] }))
-      .then(({ deals = [], bundle = null }) => {
-        const byProduct = {};
-        for (const deal of deals) for (const p of deal.products) if (!byProduct[p._id]) byProduct[p._id] = deal;
-        cache = { deals, byProduct, bundle, loaded: true };
+      .then(({ deals = [] }) => {
+        cache = shape(deals);
         return cache;
       });
   }
   return pending;
 }
 
-export default function useDeals() {
-  const [state, setState] = useState(cache || EMPTY);
+export default function useDeals(initial = null) {
+  const [state, setState] = useState(() => cache || (initial ? { ...shape(initial), loaded: false } : EMPTY));
   useEffect(() => {
-    if (cache || !isBlackFridayLive()) return;
+    if (cache) {
+      setState(cache);
+      return;
+    }
+    if (blackFridayPhase() === "over") return;
     let alive = true;
     load().then((c) => alive && setState(c));
     return () => {

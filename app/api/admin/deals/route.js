@@ -12,7 +12,7 @@ export async function GET(req) {
   const denied = requireAdmin(req);
   if (denied) return denied;
   await connectDB();
-  const deals = await Deal.find().sort({ sortOrder: 1, createdAt: 1 }).populate("products", "name price image").lean();
+  const deals = await Deal.find().sort({ sortOrder: 1, createdAt: 1 }).populate("products", "name price image").populate("giftProduct", "name image").lean();
   return NextResponse.json({ deals });
 }
 

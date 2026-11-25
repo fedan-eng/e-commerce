@@ -6,6 +6,7 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
+import { isBlackFridayLive } from "@/lib/blackFriday";
 import { BUNDLE_PROMO_MESSAGE, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
 import PendingCheckout from "@/models/PendingCheckout";
@@ -39,13 +40,16 @@ export async function POST(req) {
     const {
       cartItems: modalCartItems,
       deliveryInfo,
-      promoCode,
+      promoCode: requestedPromo,
       items: simpleItems,
       email: simpleEmail,
       address: simpleAddress,
       gaClientId,
       debugInfo,
     } = body;
+
+    // Promo codes are off while the Black Friday flash deals run (the deal prices are the discount)
+    const promoCode = isBlackFridayLive() ? null : requestedPromo;
 
     // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;

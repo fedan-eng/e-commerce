@@ -2,8 +2,14 @@
 import { connectDB } from "@/lib/db";
 import { sessionUserId, validatePromo } from "@/lib/promo";
 import { BUNDLE_PROMO_MESSAGE } from "@/lib/bundles";
+import { isBlackFridayLive } from "@/lib/blackFriday";
+
+const BLACK_FRIDAY_PROMO_MESSAGE = "Promo codes are off during Black Friday. The flash deal prices are already applied.";
 
 export async function POST(req) {
+  if (isBlackFridayLive()) {
+    return Response.json({ valid: false, message: BLACK_FRIDAY_PROMO_MESSAGE }, { status: 400 });
+  }
   await connectDB();
 
   try {

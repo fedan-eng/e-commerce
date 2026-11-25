@@ -15,7 +15,9 @@ function Row({ label, value, muted }) {
 
 // fullPrice / savings: the cart before discounts and how much they take off (lib/bundles.js cartSavings)
 // hasBundle: a combo deal in the cart, which rules out free delivery
-export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal, savings = 0, hasBundle = false, isAuthenticated, onCheckout }) {
+// flashSavings: the part of `savings` from Black Friday flash deals, shown as its own green row
+export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal, savings = 0, flashSavings = 0, hasBundle = false, isAuthenticated, onCheckout }) {
+  const otherSavings = savings - flashSavings;
   return (
     <div className="rounded-[28px] bg-sage p-6 md:p-7">
       <h2 className="text-xl font-bold text-forest">Order summary</h2>
@@ -23,11 +25,19 @@ export default function OrderSummary({ subTotal, itemCount, fullPrice = subTotal
       <div className="mt-5 flex flex-col gap-3">
         {savings > 0 ? (
           <>
-            <Row label={`Items (${itemCount})`} value={formatAmount(fullPrice)} />
-            <div className="flex items-center justify-between text-[15px]">
-              <span className="text-muted">You save</span>
-              <span className="font-semibold text-[#16a34a]">−{formatAmount(savings)}</span>
-            </div>
+            <Row label={flashSavings > 0 ? `Subtotal (${itemCount} ${itemCount === 1 ? "item" : "items"})` : `Items (${itemCount})`} value={formatAmount(fullPrice)} />
+            {flashSavings > 0 && (
+              <div className="flex items-center justify-between text-[15px] font-medium text-[#16a34a]">
+                <span>Flash deal savings</span>
+                <span className="font-semibold">−{formatAmount(flashSavings)}</span>
+              </div>
+            )}
+            {otherSavings > 0 && (
+              <div className="flex items-center justify-between text-[15px]">
+                <span className="text-muted">You save</span>
+                <span className="font-semibold text-[#16a34a]">−{formatAmount(otherSavings)}</span>
+              </div>
+            )}
           </>
         ) : (
           <Row label={`Subtotal (${itemCount} ${itemCount === 1 ? "item" : "items"})`} value={formatAmount(subTotal)} />

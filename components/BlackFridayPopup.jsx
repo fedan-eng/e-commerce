@@ -1,154 +1,407 @@
 "use client";
-// components/BlackFridayPopup.jsx — Black Friday flash deals popup (27–29 Nov, lib/blackFriday.js).
-// Takes the welcome popup's place while the deals run. Slides through the deals still available
-// (hooks/useDeals), starting with the ones for products already in the shopper's cart. Opens by
-// itself once a day, and from the header bar ("fil:open-deals" event).
+// components/BlackFridayPopup.jsx — the Black Friday popup while the deals run (27–29 Nov,
+// lib/blackFriday.js). Takes the welcome popup's place. Two modes:
+//
+//  • Slider (normal): designed slides built from the live deals (hooks/useDeals):
+//      1. a free-gift slide per gift ("Free cord" for MagFlex and Thunder…)
+//      2. "Selling fast"
+//      3. one slide for all the % off deals ("35% – 50% off")
+//      4. the remaining gift slides
+//    The slide holding a product already in the shopper's cart goes first; otherwise this order.
+//    Opens by itself once a day, and from anywhere via the "fil:open-deals" event.
+//
+//  • Sold out: stays silent until a deal sells out. Then, the next time the shopper lands, this
+//    replaces the slider: "The MagFlex free-cord deal is gone. Don't miss out on the others!!!"
+//    with a swipeable row of the deals still live. Shown once per sold-out deal.
+//
+// Product art is the products' real photos, each bouncing on its own (components/blackfriday/shared).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Gift, X, Zap } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import useDeals from "@/hooks/useDeals";
-import { BLACK_FRIDAY_END, isBlackFridayLive } from "@/lib/blackFriday";
+import { isBlackFridayLive } from "@/lib/blackFriday";
 import { formatAmount } from "@/lib/utils";
+import AddToCartButton from "@/components/AddToCart";
+import { BF, DatePill, DealArt, GREEN_TEXT, giftLabel, joinNames, shortName } from "@/components/blackfriday/shared";
+import { DealBadge, StockBar } from "@/components/blackfriday/FlashDeals";
 
 export const OPEN_DEALS_EVENT = "fil:open-deals";
-const SEEN_KEY = "fil_bf_popup_seen"; // the day it was last shown, so it opens once a day
+const SEEN_KEY = "fil_bf_popup_seen"; // the day the slider was last shown, so it opens once a day
+const SOLD_OUT_SEEN_KEY = "fil_bf_soldout_seen"; // ids of sold-out deals the shopper has been told about
 const OPEN_DELAY_MS = 3000;
-const SLIDE_MS = 4500;
+const SLIDE_MS = 5000;
 const HIDDEN_PATHS = ["/cart", "/checkout", "/login", "/register", "/reset-password", "/review", "/verify-email"];
+const DEALS_HREF = "/#flash-deals";
 
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" });
 
-// One slide per deal (its first in-stock product), plus the bundle; cart matches go first
-function buildSlides(deals, bundle, cartIds) {
-  const slides = deals.map((deal) => {
-    const inCart = deal.products.find((p) => cartIds.has(p._id));
-    const p = inCart || deal.products[0];
-    return {
-      key: deal.id,
-      kind: deal.type,
-      inCart: Boolean(inCart),
-      title: deal.title,
-      name: deal.products.length > 1 ? deal.products.map((x) => x.name).join(" / ") : p.name,
-      badge: deal.type === "gift" ? `Free ${deal.gift.replace(/^free\s+/i, "")}` : `−${deal.percent}%`,
-      image: p.image,
-      price: p.dealPrice,
-      oldPrice: deal.type === "discount" ? p.price : null,
-      left: deal.left,
-      href: `/products/${p._id}`,
-    };
-  });
-  const bundleSlide = bundle && {
-    key: `bundle-${bundle._id}`,
-    kind: "bundle",
-    inCart: cartIds.has(bundle._id),
-    title: bundle.count > 1 ? `${bundle.count} items for the price of one` : "Bundle deal",
-    name: bundle.name,
-    badge: "Bundle",
-    image: bundle.image,
-    price: bundle.price,
-    oldPrice: bundle.originalPrice,
-    left: null,
-    href: `/products/${bundle._id}`,
-  };
-  const all = bundleSlide ? [...slides, bundleSlide] : slides;
-  // Cart matches first, then the rest in the admin's order (stable sort)
-  return all.sort((a, b) => Number(b.inCart) - Number(a.inCart));
+function readSoldOutSeen() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SOLD_OUT_SEEN_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
 }
 
-function useCountdown(end) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const ms = Math.max(0, end - now);
-  const pad = (n) => String(n).padStart(2, "0");
+const artOf = (p, tag) => ({ key: p._id + (tag ? "-gift" : ""), image: p.image, name: p.name, tag });
+
+// ── Slides ────────────────────────────────────────────────────────────────────────────────
+
+function giftSlide(deals) {
+  const gift = giftLabel(deals[0].gift);
+  const products = deals.flatMap((d) => d.products);
+  const quotas = [...new Set(deals.map((d) => d.quota))];
+  const who = quotas.length === 1
+    ? `First ${quotas[0]} ${joinNames(products.map((p) => shortName(p.name)))} buyers`
+    : joinNames(deals.map((d) => `the first ${d.quota} ${joinNames(d.products.map((p) => shortName(p.name)))} buyers`)).replace(/^t/, "T");
+  const giftProduct = deals.find((d) => d.giftProduct?.image)?.giftProduct;
+  const art = products.map((p) => artOf(p));
+  // The free product goes next to the main one, tagged FREE
+  if (giftProduct) art.splice(1, 0, artOf(giftProduct, `Free ${gift.split(" + ")[0]}`));
   return {
-    days: Math.floor(ms / 86400000),
-    clock: `${pad(Math.floor(ms / 3600000) % 24)}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)}`,
+    key: `gift-${gift}`,
+    kind: "gift",
+    ids: new Set(products.map((p) => p._id)),
+    art,
+    href: products.length === 1 ? `/products/${products[0]._id}` : DEALS_HREF,
+    title: (
+      <>
+        <span className="block text-white">Black Friday</span>
+        <span className={`block ${GREEN_TEXT}`}>Flash deals</span>
+      </>
+    ),
+    body: (
+      <div className="mx-auto mt-4 w-full rounded-2xl bg-white/[0.06] px-4 py-3 text-center ring-1 ring-white/10">
+        <p className="text-sm font-black uppercase" style={{ color: BF.lime }}>Free {gift}</p>
+        <p className="mt-1 text-[13px] leading-snug text-white/80">{who} get a free {gift.replace(" + ", " and ")}.</p>
+      </div>
+    ),
   };
 }
 
-function Countdown() {
-  const { days, clock } = useCountdown(BLACK_FRIDAY_END.getTime());
-  return (
-    <p className="text-xs font-medium text-white/70">
-      Ends in{" "}
-      <span className="font-mono font-semibold tabular-nums text-[#ffd95d]">
-        {days > 0 && `${days}d `}
-        {clock}
-      </span>
-    </p>
-  );
+function sellingFastSlide(deals) {
+  const seen = new Set();
+  const art = deals.flatMap((d) => d.products).filter((p) => !seen.has(p._id) && seen.add(p._id)).map((p) => artOf(p));
+  return {
+    key: "selling-fast",
+    kind: "fast",
+    ids: new Set(), // never jumps ahead for what's in the cart
+    art,
+    href: DEALS_HREF,
+    title: <span className={`block ${GREEN_TEXT}`}>Selling fast</span>,
+    body: (
+      <p className="mt-3 text-center text-base leading-snug text-white/90">
+        When a deal sells out, it&apos;s gone.
+        <br />
+        <span className="font-bold" style={{ color: BF.green }}>Grab yours first</span>
+      </p>
+    ),
+  };
 }
 
-// The product pops in, then gives a little shake every couple of seconds
-function ProductArt({ slide }) {
+function discountSlide(deals) {
+  const percents = [...new Set(deals.map((d) => d.percent))].sort((a, b) => a - b);
+  const products = deals.flatMap((d) => d.products);
+  const lines = percents.map((pc) => ({
+    pc,
+    names: joinNames(deals.filter((d) => d.percent === pc).flatMap((d) => d.products.map((p) => shortName(p.name)))),
+  }));
+  return {
+    key: "discounts",
+    kind: "discount",
+    ids: new Set(products.map((p) => p._id)),
+    art: products.map((p) => artOf(p)),
+    href: products.length === 1 ? `/products/${products[0]._id}` : DEALS_HREF,
+    title: (
+      <span className={`block ${GREEN_TEXT}`}>
+        {percents.length > 1 ? `${percents[0]}% – ${percents[percents.length - 1]}%` : `${percents[0]}%`} off
+      </span>
+    ),
+    body: (
+      <p className="mt-3 text-center text-[15px] font-medium leading-snug text-white/90">
+        {lines.map((l, i) => (
+          <span key={l.pc} className="block">
+            {l.names} <span className="font-black" style={{ color: BF.lime }}>{l.pc}% off</span>
+            {i < lines.length - 1 ? "." : ""}
+          </span>
+        ))}
+      </p>
+    ),
+  };
+}
+
+function buildSlides(deals, cartIds) {
+  const giftGroups = new Map();
+  for (const d of deals.filter((x) => x.type === "gift")) {
+    const k = giftLabel(d.gift).toLowerCase();
+    giftGroups.set(k, [...(giftGroups.get(k) || []), d]);
+  }
+  const gifts = [...giftGroups.values()].map(giftSlide);
+  const discounts = deals.filter((d) => d.type === "discount");
+  const slides = [
+    gifts[0],
+    deals.length > 1 && sellingFastSlide(deals),
+    discounts.length > 0 && discountSlide(discounts),
+    ...gifts.slice(1),
+  ].filter(Boolean);
+
+  // The slide with something from the cart goes first
+  const first = slides.findIndex((s) => [...s.ids].some((id) => cartIds.has(id)));
+  if (first > 0) slides.unshift(slides.splice(first, 1)[0]);
+  return slides;
+}
+
+// ── Shell ─────────────────────────────────────────────────────────────────────────────────
+
+function Shell({ label, onClose, closeRef, children, onHover }) {
   return (
     <motion.div
-      key={slide.key}
-      initial={{ scale: 0.3, rotate: -12, opacity: 0 }}
-      animate={{ scale: 1, rotate: 0, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 260, damping: 14 }}
-      className="relative h-full w-full"
+      className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
     >
       <motion.div
-        className="relative h-full w-full"
-        animate={{ rotate: [0, -7, 7, -5, 5, -2, 0], scale: [1, 1.04, 1.04, 1.02, 1.02, 1, 1] }}
-        transition={{ duration: 0.7, delay: 0.9, repeat: Infinity, repeatDelay: 1.8, ease: "easeInOut" }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className="relative max-h-[92dvh] w-full max-w-[400px] overflow-y-auto overflow-x-hidden rounded-t-[28px] text-white shadow-2xl ring-1 ring-white/10 sm:rounded-[28px]"
+        style={{ background: `radial-gradient(ellipse 90% 45% at 50% 0%, rgba(34,211,107,0.28), transparent 70%), ${BF.bg}` }}
+        initial={{ y: 80, scale: 0.94, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 60, scale: 0.96, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 26 }}
+        onClick={(e) => e.stopPropagation()}
+        onMouseEnter={() => onHover?.(true)}
+        onMouseLeave={() => onHover?.(false)}
       >
-        {slide.image && (
-          <Image
-            src={slide.image}
-            alt={slide.name}
-            fill
-            sizes="260px"
-            className={slide.kind === "bundle" ? "rounded-3xl object-cover object-[50%_72%]" : "object-contain drop-shadow-[0_18px_30px_rgba(255,217,93,0.25)]"}
-          />
-        )}
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        >
+          <X size={18} />
+        </button>
+        {children}
       </motion.div>
     </motion.div>
   );
 }
 
-export default function BlackFridayPopup() {
-  const pathname = usePathname();
-  const cartItems = useSelector((s) => s.cart.items);
-  const { deals, bundle, loaded } = useDeals();
-  const [open, setOpen] = useState(false);
+const CTA = "flex h-[52px] w-full items-center justify-center gap-2 rounded-full text-base font-bold shadow-[0_8px_24px_rgba(34,211,107,0.35)] transition-transform hover:scale-[1.02] active:scale-[0.98]";
+
+// ── Slider ────────────────────────────────────────────────────────────────────────────────
+
+function Slider({ slides, onClose }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [paused, setPaused] = useState(false);
   const closeRef = useRef(null);
+  const count = slides.length;
+
+  useEffect(() => closeRef.current?.focus(), []);
+
+  const go = useCallback((step) => {
+    setDirection(step);
+    setIndex((i) => (i + step + count) % count);
+  }, [count]);
+
+  useEffect(() => {
+    if (paused || count < 2) return;
+    const t = setTimeout(() => go(1), SLIDE_MS);
+    return () => clearTimeout(t);
+  }, [paused, count, index, go]);
+
+  const slide = slides[Math.min(index, count - 1)];
+
+  return (
+    <Shell label="Black Friday flash deals" onClose={onClose} closeRef={closeRef} onHover={setPaused}>
+      <div className="overflow-hidden px-6 pt-10">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={slide.key}
+            initial={{ x: direction * 60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction * -60, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            drag={count > 1 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.4}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50) go(1);
+              else if (info.offset.x > 50) go(-1);
+            }}
+            className="flex cursor-grab flex-col items-center active:cursor-grabbing"
+          >
+            <DealArt items={slide.art} className="h-[180px] sm:h-[200px]" />
+            <DatePill className="mt-3" />
+            <h2 className="mt-3 text-center text-[34px] font-black uppercase leading-[0.95] tracking-tight">{slide.title}</h2>
+            {slide.body}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="px-6 pb-6 pt-4">
+        {count > 1 && (
+          <div className="mb-4 flex justify-center gap-1.5" role="tablist" aria-label="Deals">
+            {slides.map((s, i) => (
+              <button
+                key={s.key}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={`Slide ${i + 1}`}
+                onClick={() => {
+                  setDirection(i > index ? 1 : -1);
+                  setIndex(i);
+                }}
+                className={`h-1.5 rounded-full transition-all ${i === index ? "w-6" : "w-1.5 bg-white/30"}`}
+                style={i === index ? { background: BF.green } : undefined}
+              />
+            ))}
+          </div>
+        )}
+        <Link href={slide.href} onClick={onClose} className={CTA} style={{ background: BF.green, color: BF.ink }}>
+          Grab a deal <ArrowRight size={18} />
+        </Link>
+        <button type="button" onClick={onClose} className="mx-auto mt-3 block text-sm text-white/60 hover:text-white">
+          Maybe later
+        </button>
+      </div>
+    </Shell>
+  );
+}
+
+// ── Sold out ──────────────────────────────────────────────────────────────────────────────
+
+function soldOutLine(deal) {
+  const names = joinNames(deal.products.map((p) => shortName(p.name)));
+  return deal.type === "gift" ? `The ${names} free-${giftLabel(deal.gift).replace(" + ", "-and-")} deal is gone.` : `The ${names} ${deal.percent}%-off deal is gone.`;
+}
+
+function SoldOut({ gone, live, onClose }) {
+  const closeRef = useRef(null);
+  useEffect(() => closeRef.current?.focus(), []);
+  const product = gone.products[0];
+  const cards = live.flatMap((deal) => deal.products.map((p) => ({ deal, p })));
+
+  return (
+    <Shell label="A flash deal has sold out" onClose={onClose} closeRef={closeRef}>
+      <div className="flex flex-col items-center px-6 pt-8 text-center">
+        <motion.span
+          className="rounded-full bg-[#ff3b3b] px-3 py-1 text-xs font-black uppercase tracking-wide text-white"
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.2, 1] }}
+          transition={{ duration: 0.4 }}
+        >
+          Sold out
+        </motion.span>
+        <div className="relative mt-3 h-24 w-24">
+          {product?.image && <Image src={product.image} alt={product.name} fill sizes="96px" className="object-contain opacity-80 grayscale-[40%]" />}
+          <motion.span
+            className="absolute -right-1 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-[#ff3b3b] text-white shadow-lg"
+            initial={{ scale: 0, rotate: -90 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.25, type: "spring", stiffness: 300, damping: 14 }}
+          >
+            <X size={16} strokeWidth={3} />
+          </motion.span>
+        </div>
+        <p className="mt-3 text-sm text-white/80">{soldOutLine(gone)}</p>
+        <h2 className={`mt-1 text-[30px] font-black uppercase leading-[0.95] tracking-tight ${GREEN_TEXT}`}>Don&apos;t miss out on the others!!!</h2>
+      </div>
+
+      {cards.length > 0 && (
+        <>
+          <ul className="mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {cards.map(({ deal, p }) => (
+              <li key={`${deal.id}-${p._id}`} className="w-[150px] shrink-0 snap-start rounded-2xl bg-white/[0.06] p-2 ring-1 ring-white/10">
+                <Link href={`/products/${p._id}`} onClick={onClose} className="relative block aspect-square overflow-hidden rounded-xl bg-[#ecfbf1]">
+                  {p.image && <Image src={p.image} alt={p.name} fill sizes="150px" className="object-contain p-2" />}
+                  <span className="absolute right-1.5 top-1.5">
+                    {deal.type === "gift" ? (
+                      <span className="rounded-full bg-[#ff3b3b] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">Free gift</span>
+                    ) : (
+                      <DealBadge deal={deal} className="!h-10 !w-10" />
+                    )}
+                  </span>
+                </Link>
+                <p className="mt-2 line-clamp-1 text-left text-[13px] font-bold">{shortName(p.name)}</p>
+                <p className="text-left text-sm font-extrabold">{formatAmount(p.dealPrice)}</p>
+                <StockBar deal={deal} />
+                <AddToCartButton
+                  product={{ _id: p._id, name: p.name, price: p.price, category: p.category, image: p.image, colors: p.colors }}
+                  label="Buy now"
+                  className="mt-2 flex h-9 w-full items-center justify-center rounded-full bg-[#22d36b] text-[13px] font-bold text-[#04140b]"
+                />
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-center text-xs text-white/50">
+            Swipe to see all {live.length} live {live.length === 1 ? "deal" : "deals"}
+          </p>
+        </>
+      )}
+
+      <div className="px-6 pb-6 pt-4">
+        <Link href={DEALS_HREF} onClick={onClose} className={CTA} style={{ background: BF.green, color: BF.ink }}>
+          See all flash deals <ArrowRight size={18} />
+        </Link>
+      </div>
+    </Shell>
+  );
+}
+
+// ── Popup ─────────────────────────────────────────────────────────────────────────────────
+
+export default function BlackFridayPopup() {
+  const pathname = usePathname();
+  const cartItems = useSelector((s) => s.cart.items);
+  const { all, deals, loaded } = useDeals();
+  const [mode, setMode] = useState(null); // null (not shown yet) | "slider" | "soldout" | false (closed)
+  const [soldOutSeen, setSoldOutSeen] = useState(null); // Set, read after mount
+
+  useEffect(() => setSoldOutSeen(readSoldOutSeen()), []);
 
   const hidden = HIDDEN_PATHS.some((p) => pathname.startsWith(p));
   const cartKey = cartItems.map((i) => i._id).sort().join(",");
-  // Worked out when the popup opens, so the order doesn't jump while it's on screen
+  // Worked out when the popup opens, so slides don't reorder while it's on screen
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const slides = useMemo(() => buildSlides(deals, bundle, new Set(cartKey.split(","))), [deals, bundle, open]);
+  const slides = useMemo(() => buildSlides(deals, new Set(cartKey.split(","))), [deals, mode === null]);
 
-  // Once a day, a few seconds after landing, while the deals are live and some are left
+  // The newest sold-out deal this shopper hasn't been told about
+  const newlyGone = useMemo(
+    () => (soldOutSeen ? all.filter((d) => d.soldOut && !soldOutSeen.has(d.id)) : []),
+    [all, soldOutSeen]
+  );
+
+  // A few seconds after landing: the sold-out news if there is any, else the slider once a day
   useEffect(() => {
-    if (hidden || !loaded || slides.length === 0 || !isBlackFridayLive()) return;
-    let seenToday = false;
-    try {
-      seenToday = localStorage.getItem(SEEN_KEY) === today();
-    } catch {}
-    if (seenToday) return;
-    const t = setTimeout(() => setOpen(true), OPEN_DELAY_MS);
+    if (hidden || !loaded || !soldOutSeen || mode !== null || !isBlackFridayLive()) return;
+    let next = null;
+    if (newlyGone.length > 0) next = "soldout";
+    else if (slides.length > 0) {
+      let seenToday = false;
+      try {
+        seenToday = localStorage.getItem(SEEN_KEY) === today();
+      } catch {}
+      if (!seenToday) next = "slider";
+    }
+    if (!next) return;
+    const t = setTimeout(() => setMode(next), OPEN_DELAY_MS);
     return () => clearTimeout(t);
-  }, [hidden, loaded, slides.length]);
+  }, [hidden, loaded, soldOutSeen, newlyGone.length, slides.length, mode]);
 
-  // The header bar opens it on demand
+  // Anything on the site can open the slider
   useEffect(() => {
-    const onOpen = () => {
-      setIndex(0);
-      setOpen(true);
-    };
+    const onOpen = () => setMode("slider");
     window.addEventListener(OPEN_DEALS_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_DEALS_EVENT, onOpen);
   }, []);
@@ -156,197 +409,31 @@ export default function BlackFridayPopup() {
   const close = useCallback(() => {
     try {
       localStorage.setItem(SEEN_KEY, today());
+      if (mode === "soldout") {
+        const ids = [...readSoldOutSeen(), ...all.filter((d) => d.soldOut).map((d) => d.id)];
+        localStorage.setItem(SOLD_OUT_SEEN_KEY, JSON.stringify([...new Set(ids)]));
+        setSoldOutSeen(new Set(ids));
+      }
     } catch {}
-    setOpen(false);
-  }, []);
+    setMode(false); // closed for this page view
+  }, [mode, all]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!mode) return;
     const onKey = (e) => e.key === "Escape" && close();
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, close]);
-
-  const count = slides.length;
-  const go = useCallback((step) => {
-    setDirection(step);
-    setIndex((i) => (i + step + count) % count);
-  }, [count]);
-
-  // Auto-advance, paused while the pointer is over the card
-  useEffect(() => {
-    if (!open || paused || count < 2) return;
-    const t = setTimeout(() => go(1), SLIDE_MS);
-    return () => clearTimeout(t);
-  }, [open, paused, count, index, go]);
-
-  const slide = slides[Math.min(index, count - 1)];
+  }, [mode, close]);
 
   return (
     <AnimatePresence>
-      {open && slide && (
-        <motion.div
-          className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={close}
-        >
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Black Friday flash deals"
-            className="relative w-full max-w-[420px] overflow-hidden rounded-t-[28px] bg-[#0b0b0b] text-white shadow-2xl ring-1 ring-white/10 sm:rounded-[28px]"
-            initial={{ y: 80, scale: 0.92, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 60, scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 26 }}
-            onClick={(e) => e.stopPropagation()}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-          >
-            {/* Glow behind the product */}
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-16 mx-auto h-64 w-64 rounded-full bg-[#ffd95d]/20 blur-3xl" />
-
-            <button
-              ref={closeRef}
-              type="button"
-              onClick={close}
-              aria-label="Close"
-              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Header */}
-            <div className="relative z-10 px-6 pt-6">
-              <motion.p
-                className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffd95d]"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                Flash deals · Grab it now
-              </motion.p>
-              <motion.h2
-                className="mt-1 text-[34px] font-black uppercase leading-none tracking-tight"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 15 }}
-              >
-                Black Friday
-              </motion.h2>
-              <div className="mt-1.5">
-                <Countdown />
-              </div>
-            </div>
-
-            {/* Slide */}
-            <div className="relative z-10 mt-2 overflow-hidden">
-              <AnimatePresence mode="wait" custom={direction} initial={false}>
-                <motion.div
-                  key={slide.key}
-                  custom={direction}
-                  initial={{ x: direction * 60, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: direction * -60, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  drag={count > 1 ? "x" : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.4}
-                  onDragEnd={(_, info) => {
-                    if (info.offset.x < -50) go(1);
-                    else if (info.offset.x > 50) go(-1);
-                  }}
-                  className="cursor-grab px-6 active:cursor-grabbing"
-                >
-                  <div className="relative mx-auto h-[200px] w-full max-w-[260px] sm:h-[220px]">
-                    <ProductArt slide={slide} />
-                    <motion.span
-                      className="absolute -right-1 top-2 z-10 flex h-16 w-16 rotate-12 flex-col items-center justify-center rounded-full bg-[#ffd95d] text-center text-black shadow-lg"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: [0, 1.25, 1] }}
-                      transition={{ delay: 0.45, duration: 0.45 }}
-                    >
-                      {slide.kind === "gift" ? <Gift size={16} /> : slide.kind === "bundle" ? <Zap size={16} /> : null}
-                      <span className={`font-black leading-none ${slide.kind === "discount" ? "text-lg" : "mt-0.5 px-1 text-[10px]"}`}>{slide.badge}</span>
-                    </motion.span>
-                  </div>
-
-                  {slide.inCart && (
-                    <p className="mt-2 text-center text-[11px] font-semibold uppercase tracking-wider text-[#4ade80]">In your cart</p>
-                  )}
-                  <h3 className="mt-2 text-center text-xl font-bold leading-tight">{slide.title}</h3>
-                  <p className="mt-0.5 line-clamp-1 text-center text-sm text-white/60">{slide.name}</p>
-
-                  <div className="mt-3 flex items-baseline justify-center gap-2">
-                    <span className="text-2xl font-extrabold">{formatAmount(slide.price)}</span>
-                    {slide.oldPrice > slide.price && <span className="text-sm text-white/50 line-through">{formatAmount(slide.oldPrice)}</span>}
-                  </div>
-                  {slide.left != null && (
-                    <p className="mt-1 text-center text-xs font-semibold text-[#ff6b6b]">
-                      <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}>●</motion.span>{" "}
-                      Only {slide.left} left
-                    </p>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-
-              {count > 1 && (
-                <>
-                  <button type="button" onClick={() => go(-1)} aria-label="Previous deal"
-                    className="absolute left-2 top-[100px] flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button type="button" onClick={() => go(1)} aria-label="Next deal"
-                    className="absolute right-2 top-[100px] flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
-                    <ChevronRight size={18} />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* CTA and dots */}
-            <div className="relative z-10 px-6 pb-6 pt-4">
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link
-                  href={slide.href}
-                  onClick={close}
-                  className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#ffd95d] text-base font-bold text-black shadow-[0_8px_24px_rgba(255,217,93,0.35)]"
-                >
-                  <Zap size={18} fill="currentColor" /> Grab it now
-                </Link>
-              </motion.div>
-              <p className="mt-2.5 text-center text-[11px] text-white/50">While stocks last · Free delivery is paused until Sunday</p>
-
-              {count > 1 && (
-                <div className="mt-3 flex justify-center gap-1.5" role="tablist" aria-label="Deals">
-                  {slides.map((s, i) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      role="tab"
-                      aria-selected={i === index}
-                      aria-label={`Deal ${i + 1}: ${s.title}`}
-                      onClick={() => {
-                        setDirection(i > index ? 1 : -1);
-                        setIndex(i);
-                      }}
-                      className={`h-1.5 rounded-full transition-all ${i === index ? "w-6 bg-[#ffd95d]" : "w-1.5 bg-white/30"}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
+      {mode === "soldout" && newlyGone[0] && <SoldOut key="soldout" gone={newlyGone[0]} live={deals} onClose={close} />}
+      {mode === "slider" && slides.length > 0 && <Slider key="slider" slides={slides} onClose={close} />}
     </AnimatePresence>
   );
 }

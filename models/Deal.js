@@ -9,6 +9,8 @@ const dealSchema = new mongoose.Schema(
     type:     { type: String, enum: ["discount", "gift"], required: true },
     percent:  { type: Number, min: 1, max: 90 },                // discount deals
     gift:     { type: String, trim: true, default: "" },        // gift deals: "Free cord"
+    // gift deals: the product given away, so the cart, popup and order show its real photo
+    giftProduct: { type: mongoose.Schema.Types.ObjectId, ref: "Product", default: null },
     products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }], // share one quota
     quota:    { type: Number, required: true, min: 1 },
     claimed:  { type: Number, default: 0, min: 0 },

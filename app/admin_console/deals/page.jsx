@@ -12,7 +12,7 @@ import { BLACK_FRIDAY_START, BLACK_FRIDAY_END, blackFridayPhase } from "@/lib/bl
 
 const API = "/api/admin/deals";
 
-const EMPTY_FORM = { title: "", type: "discount", percent: "35", gift: "", quota: "30", products: [], sortOrder: "0", claimed: "", active: true };
+const EMPTY_FORM = { title: "", type: "discount", percent: "35", gift: "", giftProduct: "", quota: "30", products: [], sortOrder: "0", claimed: "", active: true };
 
 // The first flash deal list. `match` finds the products by name; check them before saving.
 const DEAL_TEMPLATES = [
@@ -45,6 +45,38 @@ function ProductPicker({ catalogue, selected, onChange }) {
         ))}
       </div>
       <p className="m-0 mt-1.5 text-xs text-faint">{selected.length} selected. Several products share one quota.</p>
+    </div>
+  );
+}
+
+// The product given away with a gift deal; its photo shows in the popup, cart and order
+function GiftProductPicker({ catalogue, value, onChange }) {
+  const [q, setQ] = useState("");
+  const list = (catalogue || []).filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()));
+  const chosen = (catalogue || []).find((p) => p._id === value);
+  return (
+    <div>
+      {chosen ? (
+        <div className="flex items-center gap-2.5 rounded-lg border border-pine bg-pine-tint px-3 py-2 text-[13px]">
+          {chosen.image && <img src={chosen.image} alt="" className="h-8 w-8 rounded object-contain" />}
+          <span className="flex-1 truncate font-medium">{chosen.name}</span>
+          <button type="button" onClick={() => onChange("")} className="cursor-pointer text-xs font-semibold text-sub underline">Change</button>
+        </div>
+      ) : (
+        <>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for the free product (e.g. cord)" className={inputCls} aria-label="Search gift product" />
+          <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-edge">
+            {catalogue === null && <p className="m-0 p-3 text-[13px] text-faint">Loading products…</p>}
+            {list.map((p) => (
+              <button key={p._id} type="button" onClick={() => onChange(p._id)}
+                className="flex w-full cursor-pointer items-center gap-2.5 border-b border-[#eef0ef] bg-white px-3 py-2 text-left text-[13px] last:border-0 hover:bg-pine-tint">
+                {p.image ? <img src={p.image} alt="" className="h-7 w-7 rounded object-contain" /> : <span className="h-7 w-7" />}
+                <span className="flex-1 truncate">{p.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -96,12 +128,17 @@ function DealForm({ initial, catalogue, onSaved, onCancel }) {
             {form.type === "discount" ? (
               <Field label="Discount (%)"><input type="number" min="1" max="90" value={form.percent} onChange={set("percent")} className={inputCls} /></Field>
             ) : (
-              <Field label="Free gift"><input value={form.gift} onChange={set("gift")} placeholder="cord" className={inputCls} /></Field>
+              <Field label="Free gift (short name)"><input value={form.gift} onChange={set("gift")} placeholder="cord" className={inputCls} /></Field>
             )}
             <Field label="Quota (units)"><input type="number" min="1" value={form.quota} onChange={set("quota")} className={inputCls} /></Field>
             <Field label="Order in popup"><input type="number" value={form.sortOrder} onChange={set("sortOrder")} className={inputCls} /></Field>
             {isEdit && <Field label="Claimed so far"><input type="number" min="0" value={form.claimed} onChange={set("claimed")} className={inputCls} /></Field>}
           </div>
+          {form.type === "gift" && (
+            <Field label="Gift product" hint="The real product given away. Its photo shows in the popup, the cart and the order.">
+              <GiftProductPicker catalogue={catalogue} value={form.giftProduct} onChange={(giftProduct) => setForm((p) => ({ ...p, giftProduct }))} />
+            </Field>
+          )}
           <Switch label="Active" description={form.active ? "Runs while the deal period is on" : "Paused"} checked={form.active} onChange={set("active")} />
         </div>
         <Field label="Products">
@@ -129,7 +166,10 @@ function DealRow({ deal, onEdit, onToggle, onDelete }) {
           {soldOut ? <span className="rounded-full bg-[#fdeeee] px-2 py-px text-xs font-semibold text-[#b91c1c]">Sold out</span>
             : !deal.active ? <span className="rounded-full bg-hover px-2 py-px text-xs font-semibold text-sub">Paused</span> : null}
         </div>
-        <p className="m-0 mt-0.5 truncate text-xs text-faint">{(deal.products || []).map((p) => p?.name || "Deleted product").join(", ")}</p>
+        <p className="m-0 mt-0.5 truncate text-xs text-faint">
+          {(deal.products || []).map((p) => p?.name || "Deleted product").join(", ")}
+          {deal.type === "gift" && (deal.giftProduct?.name ? ` · Gift: ${deal.giftProduct.name}` : " · No gift product picked")}
+        </p>
         <div className="mt-2 flex items-center gap-2">
           <div className="h-1.5 max-w-[240px] flex-1 overflow-hidden rounded-full bg-[#e6e9e7]">
             <div className={cx("h-full rounded-full", soldOut ? "bg-[#b91c1c]" : "bg-pine")} style={{ width: `${pct}%` }} />
@@ -161,12 +201,12 @@ export default function DealsPage() {
     load();
     fetch("/api/products?limit=500&sort=sortOrder.__all__")
       .then((r) => r.json())
-      .then((d) => setCatalogue((d.products || []).filter((p) => !isBundleProduct(p)).map((p) => ({ _id: p._id, name: p.name, price: p.price }))))
+      .then((d) => setCatalogue((d.products || []).filter((p) => !isBundleProduct(p)).map((p) => ({ _id: p._id, name: p.name, price: p.price, image: p.image || p.colors?.[0]?.images?.[0] || "" }))))
       .catch(() => setCatalogue([]));
   }, [load]);
 
   const editDeal = (d) => setEditing({
-    _id: d._id, title: d.title, type: d.type, percent: String(d.percent || ""), gift: d.gift || "", quota: String(d.quota),
+    _id: d._id, title: d.title, type: d.type, percent: String(d.percent || ""), gift: d.gift || "", giftProduct: d.giftProduct?._id ? String(d.giftProduct._id) : "", quota: String(d.quota),
     products: (d.products || []).filter(Boolean).map((p) => String(p._id)), sortOrder: String(d.sortOrder || 0), claimed: String(d.claimed || 0), active: d.active,
   });
 

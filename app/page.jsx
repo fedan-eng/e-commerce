@@ -17,6 +17,22 @@ import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
 import { getFeaturedProducts, getLiveBundles } from "@/lib/products";
+import BlackFridayHero from "@/components/blackfriday/BlackFridayHero";
+import FlashDeals from "@/components/blackfriday/FlashDeals";
+import { blackFridayPhase } from "@/lib/blackFriday";
+import { getDealCards } from "@/lib/deals";
+import { connectDB } from "@/lib/db";
+
+// The flash deals for the first paint; the browser fetches fresh stock counts straight after
+async function dealCardsOrEmpty() {
+  try {
+    await connectDB();
+    return (await getDealCards()).deals;
+  } catch (err) {
+    console.error("Landing flash deals:", err);
+    return [];
+  }
+}
 
 // Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
 export const revalidate = 3600;
@@ -76,10 +92,13 @@ const PREVIEW_BUNDLES = [
 ];
 
 const page = async () => {
-  const [reviewChats, featuredProducts, bundles] = await Promise.all([
+  // Black Friday takes over the top of the page from now until the end of Sun 29 Nov
+  const blackFriday = blackFridayPhase() !== "over";
+  const [reviewChats, featuredProducts, bundles, flashDeals] = await Promise.all([
     getWhatsAppReviews("home"),
     getFeaturedProducts(),
     getLiveBundles(),
+    blackFriday ? dealCardsOrEmpty() : [],
   ]);
   // A combo without its own hero slide image uses the matching preview art (SnapTrio.png…),
   // not its card art
@@ -165,6 +184,24 @@ const page = async () => {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
+      {blackFriday ? (
+        <>
+          {/* Black Friday: the countdown hero and the flash deals up top, then reviews and
+              creators; the usual sections follow. Combo Deals are paused while it runs. */}
+          <BlackFridayHero initialDeals={flashDeals} />
+          <FlashDeals initialDeals={flashDeals} />
+          <WhatsAppReviews chats={reviewChats}/>
+          <Creators/>
+          <Marquee/>
+          <StoryHero />
+          <NeedsPower/>
+          <BestSellers initialProducts={featuredProducts}/>
+          <MadeFor/>
+          <Anniversary/>
+          <Banner/>
+        </>
+      ) : (
+      <>
       {/* A slide per bundle in stock (the preview ones until there are any), then
           "Power your Story" and Combo Deals */}
       <BundleHeroCarousel bundles={combos} />
@@ -180,6 +217,8 @@ const page = async () => {
       <Creators/>
       {/* <FeaturedBlog/> */}
       <Banner/>
+      </>
+      )}
     </div>
   );
 };

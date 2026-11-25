@@ -6,7 +6,9 @@ import { ChevronDown, Info, ShoppingBag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import BundleCard from "@/components/cart/BundleCard";
-import { dealText, promoEligibleSubtotal } from "@/lib/bundles";
+import { dealGift, flashDealPill, flashDealSavings, promoEligibleSubtotal } from "@/lib/bundles";
+import { isBlackFridayLive } from "@/lib/blackFriday";
+import { BlackFridayStrip, FlashDealPill, GiftRow } from "@/components/cart/FlashDealParts";
 import { RegionField, TextAreaField, TextField } from "./formFields";
 import { DELIVERY_OPTIONS, deliveryFeeFor, freeDeliveryBlock } from "./delivery";
 
@@ -152,32 +154,44 @@ function SummaryCard({ title, onEdit, children }) {
 
 function OrderItem({ item }) {
   return (
-    <li className="flex items-center gap-3 py-3">
-      <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-mint">
-        {item.image ? (
-          <Image src={item.image} alt="" fill sizes="56px" className="object-contain p-1.5" />
-        ) : (
-          <ShoppingBag size={18} className="absolute inset-0 m-auto text-forest/40" />
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="line-clamp-1 text-sm font-semibold text-forest">{item.name}</p>
-        <p className="mt-0.5 text-[13px] text-muted">
-          {item.quantity} × {formatAmount(item.price)}
-          {item.color && <span className="capitalize"> · {item.color}</span>}
-        </p>
-        {dealText(item) && <p className="mt-0.5 text-[12px] font-semibold text-black">⚡ {dealText(item)}</p>}
+    <li className="py-3">
+      <div className="flex items-center gap-3">
+        <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-mint">
+          {item.image ? (
+            <Image src={item.image} alt="" fill sizes="56px" className="object-contain p-1.5" />
+          ) : (
+            <ShoppingBag size={18} className="absolute inset-0 m-auto text-forest/40" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-1 text-sm font-semibold text-forest">{item.name}</p>
+          <p className="mt-0.5 text-[13px] text-muted">
+            {item.quantity} × {formatAmount(item.price)}
+            {item.color && <span className="capitalize"> · {item.color}</span>}
+          </p>
+          {flashDealPill(item) && <FlashDealPill className="mt-1">{flashDealPill(item)}</FlashDealPill>}
+        </div>
+        <span className="shrink-0 text-right text-sm font-semibold text-forest">
+          {item.deal?.type === "discount" && item.originalPrice > item.price && (
+            <span className="block text-xs font-normal text-muted line-through">{formatAmount(item.originalPrice * item.quantity)}</span>
+          )}
+          {formatAmount(item.price * item.quantity)}
+        </span>
       </div>
-      <span className="shrink-0 text-sm font-semibold text-forest">{formatAmount(item.price * item.quantity)}</span>
+      {dealGift(item) && (
+        <div className="mt-2">
+          <GiftRow gift={dealGift(item)} size="sm" />
+        </div>
+      )}
     </li>
   );
 }
 
-function TotalRow({ label, value, strong }) {
+function TotalRow({ label, value, strong, green }) {
   return (
-    <div className={`flex justify-between ${strong ? "border-t border-line pt-3 text-base font-bold text-forest" : "text-sm text-muted"}`}>
+    <div className={`flex justify-between ${strong ? "border-t border-line pt-3 text-base font-bold text-forest" : green ? "text-sm font-medium text-[#16a34a]" : "text-sm text-muted"}`}>
       <span>{label}</span>
-      <span className={strong ? "" : "font-medium text-forest"}>{value}</span>
+      <span className={strong ? "" : green ? "font-semibold" : "font-medium text-forest"}>{value}</span>
     </div>
   );
 }
@@ -227,10 +241,22 @@ export function ReviewStep({ form, items, totals, isGuest, onEdit, onPromoApply,
         </ul>
       </div>
 
-      <PromoCodeInput key={promoResetKey} subTotal={promoEligibleSubtotal(items)} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} {...promo} />
+      {/* Promo codes are off during Black Friday: the flash deal prices are the discount */}
+      {isBlackFridayLive() ? (
+        items.some((i) => i.deal) && <BlackFridayStrip />
+      ) : (
+        <PromoCodeInput key={promoResetKey} subTotal={promoEligibleSubtotal(items)} onApply={onPromoApply} userId={userId} phone={v.phone} email={v.email} {...promo} />
+      )}
 
       <div className="flex flex-col gap-2.5">
-        <TotalRow label="Subtotal" value={formatAmount(totals.subTotal)} />
+        {flashDealSavings(items) > 0 ? (
+          <>
+            <TotalRow label="Subtotal" value={formatAmount(totals.subTotal + flashDealSavings(items))} />
+            <TotalRow label="Flash deal savings" value={`−${formatAmount(flashDealSavings(items))}`} green />
+          </>
+        ) : (
+          <TotalRow label="Subtotal" value={formatAmount(totals.subTotal)} />
+        )}
         {totals.discount > 0 && <TotalRow label="Discount" value={`−${formatAmount(totals.discount)}`} />}
         <TotalRow label="Delivery" value={totals.deliveryFee ? formatAmount(totals.deliveryFee) : "Free"} />
         <TotalRow label="Total" value={formatAmount(totals.total)} strong />
