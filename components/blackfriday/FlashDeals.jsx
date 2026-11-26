@@ -159,7 +159,9 @@ export default function FlashDeals({ initialDeals = [] }) {
   );
 
   return (
-    <section id="flash-deals" className="scroll-mt-20 bg-[#050b07] px-4 py-12 text-white sm:px-6 md:py-20">
+    <section id="flash-deals" className="relative isolate scroll-mt-20 overflow-hidden bg-[#050b07] px-4 pb-14 pt-6 text-white sm:px-6 md:pb-20 md:pt-8">
+      {/* Carries on the hero's green glow, so the two read as one */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[120%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(ellipse_at_top,rgba(34,211,107,0.16),transparent_65%)]" />
       <div className="mx-auto max-w-[1280px]">
         <motion.div
           className="text-center"
