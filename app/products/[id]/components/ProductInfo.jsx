@@ -98,7 +98,7 @@ export default function ProductInfo({ product: baseProduct, highlights, selected
   const { byProduct } = useDeals();
   const deal = isBundleProduct(baseProduct) ? null : byProduct[baseProduct._id];
   const dealPrice = deal?.type === "discount" ? deal.products.find((p) => p._id === String(baseProduct._id))?.dealPrice : null;
-  const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: Math.max(baseProduct.originalPrice || 0, baseProduct.price) } : baseProduct;
+  const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: baseProduct.price } : baseProduct;
   const discount = getDiscount(product);
   // The chosen colour can be bought (or, with no colours, the product can)
   const inStock = itemInStock(product, selectedColor?.name);
