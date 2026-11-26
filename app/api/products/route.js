@@ -43,8 +43,10 @@ export async function GET(req) {
   const customSortKey = isCustomSortKey ? sortBy.replace("sortOrder.", "") : null;
 
   // Build the MongoDB query object
-  // Admin-only products are listed for admins only (the admin console uses this route too)
-  const query = isAdminRequest(req) ? {} : { ...NOT_ADMIN_ONLY };
+  // Admin-only products are listed for admins only (the admin console uses this route too).
+  // ?adminOnly=1 lists just those, for the category pages to add for a signed-in admin.
+  const isAdmin = isAdminRequest(req);
+  const query = !isAdmin ? { ...NOT_ADMIN_ONLY } : searchParams.get("adminOnly") === "1" ? { adminOnly: true } : {};
 
   if (search) {
     // Split search term into words and create partial matches

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useSelector } from "react-redux";
 import { filterProducts, selectedFromParams, selectedToQuery } from "@/lib/categories";
 import CategoryChips from "./CategoryChips";
 import FilterSidebar from "./FilterSidebar";
@@ -14,9 +15,26 @@ import Pagination from "./Pagination";
 // 3×3 grid: 8 products + the help card
 const PER_PAGE = 8;
 
-export default function CategoryShop({ category, products }) {
+export default function CategoryShop({ category, products: publicProducts }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // Admin-only test products aren't in the cached page; a signed-in admin gets them first in the grid
+  const isAdmin = useSelector((s) => s.auth.user?.role === "admin");
+  const [adminProducts, setAdminProducts] = useState([]);
+  useEffect(() => {
+    if (!isAdmin) { setAdminProducts([]); return; }
+    let cancelled = false;
+    fetch(`/api/products?adminOnly=1&categories=${encodeURIComponent(category.dbCategory)}&limit=50`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { products: [] }))
+      .then((d) => { if (!cancelled) setAdminProducts(d.products || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isAdmin, category.dbCategory]);
+  const products = useMemo(
+    () => (adminProducts.length ? [...adminProducts, ...publicProducts] : publicProducts),
+    [adminProducts, publicProducts]
+  );
 
   const selected = useMemo(
     () => selectedFromParams(category, searchParams),
