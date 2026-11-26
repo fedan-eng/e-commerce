@@ -7,45 +7,83 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Gift, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import AddToCartButton from "@/components/AddToCart";
 import useDeals from "@/hooks/useDeals";
 import { formatAmount } from "@/lib/utils";
 import { productInStock } from "@/lib/stock";
 import { BF, DatePill, GREEN_TEXT, dealBlurb, giftLabel, useBlackFridayClock } from "./shared";
 
-const BUY = "mt-3 flex h-10 w-full items-center justify-center rounded-full text-sm font-bold transition-transform active:scale-95";
+const BUY = "mt-3 flex h-11 w-full items-center justify-center rounded-full text-[15px] font-bold transition-transform active:scale-95";
 
-// A deal's stock: how much of the bar is left, and the words under it
+// Bar colour by how much is left: green when plenty, through lime and yellow, to orange near the end
+function stockColor(fraction) {
+  if (fraction > 0.6) return "linear-gradient(90deg,#22d36b,#a3e635)";
+  if (fraction > 0.35) return "linear-gradient(90deg,#a3e635,#facc15)";
+  return "linear-gradient(90deg,#facc15,#f97316)";
+}
+
+// A deal's stock: the bar and "22 of 30 left" (or "Sold out")
 export function StockBar({ deal, dark = true }) {
-  const left = Math.max(0, deal.left ?? 0);
-  const pct = deal.quota ? Math.max(deal.soldOut ? 0 : 6, Math.round((left / deal.quota) * 100)) : 0;
-  const low = !deal.soldOut && left <= Math.max(3, deal.quota * 0.2);
+  const left = deal.soldOut ? 0 : Math.max(0, deal.left ?? 0);
+  const fraction = deal.quota ? left / deal.quota : 0;
   return (
-    <div className="mt-2">
-      <div className={`h-1.5 overflow-hidden rounded-full ${dark ? "bg-white/15" : "bg-black/10"}`}>
-        <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${pct}%`, background: low ? "#ff6b4a" : BF.green }} />
+    <div className="mt-2.5">
+      <div className={`h-2 overflow-hidden rounded-full ${dark ? "bg-white/15" : "bg-black/10"}`}>
+        {left > 0 && (
+          <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.max(4, fraction * 100)}%`, background: stockColor(fraction) }} />
+        )}
       </div>
-      <p className={`mt-1 text-[11px] font-semibold ${low ? "text-[#ff8a6b]" : dark ? "text-white/60" : "text-black/55"}`}>
-        {deal.soldOut ? "All gone" : `${left} left`}
+      <p className={`mt-1.5 text-xs ${dark ? "text-white/60" : "text-black/55"}`}>
+        {left > 0 ? (
+          <>
+            <span className={`font-bold ${dark ? "text-white" : "text-black"}`}>{left}</span> of {deal.quota} left
+          </>
+        ) : (
+          "Sold out"
+        )}
       </p>
     </div>
   );
 }
 
-// "35% OFF" circle or "FREE CORD" tag
+// Round badge in the image's corner: red "35% OFF" / "−50%", or black "FREE CORD" ringed in lime
 export function DealBadge({ deal, className = "" }) {
   if (deal.type === "gift") {
+    const words = giftLabel(deal.gift).split(" + ");
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-black ${className}`} style={{ background: BF.lime }}>
-        <Gift size={11} aria-hidden /> Free {giftLabel(deal.gift)}
+      <span
+        className={`flex h-14 w-14 rotate-12 flex-col items-center justify-center rounded-full border-2 bg-black text-center font-black uppercase leading-[1.05] shadow-lg ${className}`}
+        style={{ borderColor: BF.lime, color: BF.lime }}
+      >
+        <span className="text-[10px]">Free</span>
+        <span className={words[0].length > 6 || words.length > 1 ? "text-[8px]" : "text-[10px]"}>{words.join(" + ")}</span>
       </span>
     );
   }
   return (
-    <span className={`flex h-12 w-12 rotate-12 flex-col items-center justify-center rounded-full bg-[#ff3b3b] text-center font-black leading-none text-white shadow-lg ${className}`}>
-      <span className="text-sm">{deal.percent}%</span>
-      <span className="text-[9px]">OFF</span>
+    <span className={`flex h-14 w-14 rotate-12 flex-col items-center justify-center rounded-full bg-[#ff4545] text-center font-black leading-none text-white shadow-lg ${className}`}>
+      {deal.percent >= 50 ? (
+        <span className="text-base">−{deal.percent}%</span>
+      ) : (
+        <>
+          <span className="text-base">{deal.percent}%</span>
+          <span className="text-[10px]">OFF</span>
+        </>
+      )}
+    </span>
+  );
+}
+
+// The free gift's photo in the image's bottom corner, with a red FREE tag
+function GiftThumb({ gift }) {
+  if (!gift?.image) return null;
+  return (
+    <span className="absolute bottom-2 right-2 flex flex-col items-center">
+      <span className="relative z-10 -mb-1.5 rounded-full bg-[#ff4545] px-2 py-px text-[9px] font-black uppercase text-white shadow">Free</span>
+      <span className="relative h-12 w-12 overflow-hidden rounded-xl bg-white shadow-md sm:h-14 sm:w-14">
+        <Image src={gift.image} alt={gift.name || "Free gift"} fill sizes="56px" className="object-contain p-1" />
+      </span>
     </span>
   );
 }
@@ -57,33 +95,42 @@ function DealCard({ deal, product, phase }) {
   const old = product.originalPrice > price ? product.originalPrice : null;
 
   return (
-    <li className={`flex flex-col rounded-[18px] bg-[#0d1712] p-2.5 ring-1 ring-white/10 ${soldOut ? "opacity-60 grayscale" : ""}`}>
-      <Link href={href} className="relative block aspect-square overflow-hidden rounded-[14px] bg-[radial-gradient(circle_at_50%_60%,#1f4d33,#0b1f14)]">
-        {product.image && (
-          <Image src={product.image} alt={product.name} fill sizes="(min-width: 1024px) 260px, 45vw" className="object-contain p-4 transition-transform duration-500 hover:scale-105" />
-        )}
-        <span className="absolute left-2 top-2">{deal.type === "gift" && <DealBadge deal={deal} />}</span>
-        {deal.type === "discount" && <DealBadge deal={deal} className="absolute right-2 top-2" />}
-        {soldOut && (
-          <span className="absolute inset-x-0 bottom-3 mx-auto w-max rounded-full bg-[#ff3b3b] px-3 py-1 text-xs font-black uppercase text-white">Sold out</span>
-        )}
+    <li className="flex flex-col">
+      {/* Mint panel inside a green gradient border */}
+      <Link href={href} className="block rounded-[20px] bg-[linear-gradient(135deg,#22d36b,#a3e635_55%,#22d36b)] p-[3px] shadow-[0_8px_28px_rgba(34,211,107,0.18)]">
+        <span className="relative block aspect-square overflow-hidden rounded-[17px] bg-[radial-gradient(circle_at_50%_45%,#f2fdf6_0%,#d4f7e1_55%,#b5ecc9_100%)]">
+          {product.image && (
+            <Image src={product.image} alt={product.name} fill sizes="(min-width: 1024px) 260px, 45vw" className="object-contain p-5 transition-transform duration-500 hover:scale-105" />
+          )}
+          <DealBadge deal={deal} className="absolute right-2 top-2" />
+          {deal.type === "gift" && <GiftThumb gift={deal.giftProduct} />}
+          {soldOut && (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="-rotate-12 rounded-xl bg-[#ff4545] px-5 py-2 text-center text-2xl font-black uppercase leading-[0.95] text-white shadow-[0_10px_30px_rgba(255,69,69,0.45)] sm:text-3xl">
+                Sold
+                <br />
+                out
+              </span>
+            </span>
+          )}
+        </span>
       </Link>
 
-      <div className="flex flex-1 flex-col px-1 pt-2.5">
-        <Link href={href} className="line-clamp-2 text-[13px] font-bold leading-snug text-white hover:underline sm:text-sm">
+      <div className="flex flex-1 flex-col pt-3">
+        <Link href={href} className="line-clamp-2 text-[15px] font-bold leading-snug text-white hover:underline sm:text-base">
           {product.name}
         </Link>
-        <p className="mt-1 text-[11px] font-semibold leading-snug sm:text-xs" style={{ color: deal.type === "gift" ? BF.lime : BF.green }}>
+        <p className="mt-1 text-[13px] font-semibold leading-snug" style={{ color: "#c6f135" }}>
           {dealBlurb(deal)}
         </p>
-        <StockBar deal={deal} />
-        <div className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-1.5">
-          <span className="text-base font-extrabold text-white sm:text-lg">{formatAmount(price)}</span>
-          {old && <span className="text-xs text-white/45 line-through">{formatAmount(old)}</span>}
+        <StockBar deal={{ ...deal, soldOut }} />
+        <div className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-2">
+          <span className="text-lg font-extrabold text-white sm:text-xl">{formatAmount(price)}</span>
+          {old && !soldOut && <span className="text-xs text-white/45 line-through">{formatAmount(old)}</span>}
         </div>
 
         {soldOut ? (
-          <button type="button" disabled className={`${BUY} cursor-not-allowed bg-white/10 text-white/60`}>Sold out</button>
+          <button type="button" disabled className={`${BUY} cursor-not-allowed bg-white/15 text-white/50`}>Sold out</button>
         ) : phase === "live" ? (
           <AddToCartButton
             product={{ _id: product._id, name: product.name, price: product.price, category: product.category, image: product.image, colors: product.colors }}
@@ -129,7 +176,7 @@ export default function FlashDeals({ initialDeals = [] }) {
           <p className="mt-2 text-sm text-white/70 sm:text-base">First come, first served. When a deal sells out, it&apos;s gone.</p>
         </motion.div>
 
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
           {cards.map(({ deal, product }) => (
             <DealCard key={`${deal.id}-${product._id}`} deal={deal} product={product} phase={phase} />
           ))}

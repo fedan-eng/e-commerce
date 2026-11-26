@@ -329,7 +329,7 @@ function SoldOut({ gone, live, onClose }) {
                     {deal.type === "gift" ? (
                       <span className="rounded-full bg-[#ff3b3b] px-1.5 py-0.5 text-[9px] font-black uppercase text-white">Free gift</span>
                     ) : (
-                      <DealBadge deal={deal} className="!h-10 !w-10" />
+                      <DealBadge deal={deal} className="origin-top-right scale-[0.72]" />
                     )}
                   </span>
                 </Link>
