@@ -4,10 +4,12 @@
 // and Buy now (two across on phones). Products in one deal share its stock bar.
 // Before Fri 27 Nov it's a preview: the button says when the deal starts instead of selling at full price.
 // Sold-out deals stay in the grid, greyed out. The popups link here (#flash-deals).
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Zap } from "lucide-react";
+import { ShoppingCart, Zap } from "lucide-react";
+import { useSelector } from "react-redux";
 import AddToCartButton from "@/components/AddToCart";
 import useDeals from "@/hooks/useDeals";
 import { formatAmount } from "@/lib/utils";
@@ -20,8 +22,12 @@ const BUY = "mt-3 flex h-11 w-full items-center justify-center rounded-full text
 function stockColor(fraction) {
   if (fraction > 0.6) return "linear-gradient(90deg,#22d36b,#a3e635)";
   if (fraction > 0.35) return "linear-gradient(90deg,#a3e635,#facc15)";
-  return "linear-gradient(90deg,#facc15,#f97316)";
+  if (fraction > 0.27) return "linear-gradient(90deg,#facc15,#f97316)";
+  return "linear-gradient(90deg,#ff4545,#ff6b6b)"; // nearly gone
 }
+
+// Few enough left to shout about: "Only 5 left!"
+const isLow = (left, quota) => left > 0 && (left <= 5 || left / quota <= 0.27);
 
 // A deal's stock: the bar and "22 of 30 left" (or "Sold out")
 export function StockBar({ deal, dark = true }) {
@@ -35,7 +41,11 @@ export function StockBar({ deal, dark = true }) {
         )}
       </div>
       <p className={`mt-1.5 text-xs ${dark ? "text-white/60" : "text-black/55"}`}>
-        {left > 0 ? (
+        {isLow(left, deal.quota) ? (
+          <>
+            Only <span className={`font-bold ${dark ? "text-white" : "text-black"}`}>{left}</span> left!
+          </>
+        ) : left > 0 ? (
           <>
             <span className={`font-bold ${dark ? "text-white" : "text-black"}`}>{left}</span> of {deal.quota} left
           </>
@@ -88,7 +98,7 @@ function GiftThumb({ gift }) {
   );
 }
 
-function DealCard({ deal, product, phase }) {
+function DealCard({ deal, product, phase, inCart }) {
   const soldOut = deal.soldOut || !productInStock({ colors: product.colors });
   const href = `/products/${product._id}`;
   const price = product.dealPrice;
@@ -103,6 +113,11 @@ function DealCard({ deal, product, phase }) {
             <Image src={product.image} alt={product.name} fill sizes="(min-width: 1024px) 260px, 45vw" className="object-contain p-5 transition-transform duration-500 hover:scale-105" />
           )}
           <DealBadge deal={deal} className="absolute right-2 top-2" />
+          {inCart && !soldOut && (
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-[#22d36b] px-2.5 py-1 text-[11px] font-bold text-[#04140b] shadow-md">
+              <ShoppingCart size={12} strokeWidth={2.5} aria-hidden /> In your Cart
+            </span>
+          )}
           {deal.type === "gift" && <GiftThumb gift={deal.giftProduct} />}
           {soldOut && (
             <span className="absolute inset-0 flex items-center justify-center">
@@ -148,6 +163,11 @@ function DealCard({ deal, product, phase }) {
 export default function FlashDeals({ initialDeals = [] }) {
   const still = useReducedMotion();
   const { all, phase: dealPhase, loaded } = useDeals(initialDeals);
+  const cartItems = useSelector((st) => st.cart.items);
+  // The cart lives in the browser, so the tag only shows after mounting (no hydration mismatch)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const inCart = new Set(mounted ? cartItems.map((i) => String(i._id)) : []);
   // The cached page's copy can be from before the deals went live, so Buy now waits for fresh data
   const phase = loaded ? dealPhase : "upcoming";
   const { phase: clockPhase, ready } = useBlackFridayClock();
@@ -180,7 +200,7 @@ export default function FlashDeals({ initialDeals = [] }) {
 
         <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
           {cards.map(({ deal, product }) => (
-            <DealCard key={`${deal.id}-${product._id}`} deal={deal} product={product} phase={phase} />
+            <DealCard key={`${deal.id}-${product._id}`} deal={deal} product={product} phase={phase} inCart={inCart.has(product._id)} />
           ))}
         </ul>
       </div>

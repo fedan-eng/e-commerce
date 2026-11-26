@@ -57,7 +57,7 @@ export default function ProductDetailsPage({ product }) {
   const highlights = useMemo(() => getHighlights(product), [product]);
   const imageBg = getImageBg(product);
 
-  const { byProduct } = useDeals();
+  const { byProduct, phase: dealPhase } = useDeals();
   const openCheckout = (quantity) =>
     setBuyNowItem({
       _id: product._id,
@@ -102,7 +102,8 @@ export default function ProductDetailsPage({ product }) {
             <div className="lg:hidden">
               <InTheBox productName={product.name} boxContent={product.boxContent} />
             </div>
-            <DeliveryOptions noFree={isBundleProduct(product)} />
+            {/* No Free Thursday delivery for combo deals, or at all while Black Friday runs */}
+            <DeliveryOptions noFree={isBundleProduct(product) || dealPhase === "live"} />
             <StockStatus inStock={itemInStock(product, selectedColor?.name)} />
             <ServicesCard />
           </Reveal>

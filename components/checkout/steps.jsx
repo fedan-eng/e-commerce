@@ -119,7 +119,8 @@ export function DeliveryStep({ form, subTotal, promoCode, hasBundle = false }) {
       <fieldset className="mt-2">
         <legend className="mb-3 text-sm font-semibold text-forest">Delivery option</legend>
         <div className="flex flex-col gap-2.5">
-          {DELIVERY_OPTIONS.map((option) => (
+          {/* Free Thursday delivery is paused while Black Friday runs, so it isn't offered at all */}
+          {DELIVERY_OPTIONS.filter((option) => !(option.id === "Free" && isBlackFridayLive())).map((option) => (
             <DeliveryOption
               key={option.id}
               option={option}

@@ -19,6 +19,7 @@ import CategoryFAQ from "./CategoryFAQ";
 import ExploreMore from "./ExploreMore";
 import ComboDeals from "@/components/landing/ComboDeals";
 import { getLiveBundles } from "@/lib/products";
+import { blackFridayPhase } from "@/lib/blackFriday";
 
 async function getCategoryProducts(dbCategory) {
   await connectDB();
@@ -92,7 +93,8 @@ export default async function CategoryPage({ slug }) {
   const [products, chats, bundles] = await Promise.all([
     getCategoryProducts(category.dbCategory),
     getWhatsAppReviews(slug), // managed in Admin → WhatsApp reviews
-    category.showCombos ? getLiveBundles() : [],
+    // Combo Deals are paused from now until Black Friday ends, as on the homepage
+    category.showCombos && blackFridayPhase() === "over" ? getLiveBundles() : [],
   ]);
   const reviewsTitle = category.reviewsTitle || `What customers say about our ${category.title}`;
 

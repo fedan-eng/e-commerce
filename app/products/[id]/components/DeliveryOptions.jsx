@@ -23,7 +23,8 @@ function DeliveryTimes() {
   );
 }
 
-// noFree: hide Free Thursday delivery (combo deals don't get it, see components/checkout/delivery.js)
+// noFree: hide Free Thursday delivery (combo deals don't get it, and it's paused during Black Friday;
+// see components/checkout/delivery.js)
 export default function DeliveryOptions({ noFree = false }) {
   return (
     <SoftCard className="px-5 py-6 md:px-[22px]">
