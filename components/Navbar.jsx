@@ -18,6 +18,7 @@ import { toggleCart }  from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import CartSidebar     from "@/components/cart/CartSidebar";
 import CartBottomSheet from "@/components/cart/CartBottomSheet";
+import BlackFridayBar  from "@/components/blackfriday/BlackFridayBar";
 import { STORE_CATEGORIES } from "@/lib/categories";
 
 const MOBILE_CATEGORIES = STORE_CATEGORIES;
@@ -77,11 +78,16 @@ export default function Navbar() {
   return (
     <>
       <nav className="relative bg-white">
-        <div className="w-full bg-[#c6e8b9] py-[8px] flex justify-center items-center px-4">
-          <span className="text-[#1a1a1a] text-[12px] font-medium text-center tracking-tight">
-            All deliveries in Lagos are free on Thursday but express deliveries are priced
-          </span>
-        </div>
+        {/* Black Friday strip while it's on; the usual delivery note otherwise */}
+        <BlackFridayBar
+          fallback={
+            <div className="w-full bg-[#c6e8b9] py-[8px] flex justify-center items-center px-4">
+              <span className="text-[#1a1a1a] text-[12px] font-medium text-center tracking-tight">
+                All deliveries in Lagos are free on Thursday but express deliveries are priced
+              </span>
+            </div>
+          }
+        />
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Centering Strategy: using flex-1 on the Left and Right containers forces the Middle container to absolute true center */}
