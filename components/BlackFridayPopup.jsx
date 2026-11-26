@@ -160,7 +160,7 @@ function buildSlides(deals, cartIds) {
 function Shell({ label, onClose, closeRef, children, onHover }) {
   return (
     <motion.div
-      className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -170,11 +170,11 @@ function Shell({ label, onClose, closeRef, children, onHover }) {
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="relative max-h-[92dvh] w-full max-w-[400px] overflow-y-auto overflow-x-hidden rounded-t-[28px] text-white shadow-2xl ring-1 ring-white/10 sm:rounded-[28px]"
+        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-[400px] overflow-y-auto overflow-x-hidden rounded-[28px] text-white shadow-2xl ring-1 ring-white/10"
         style={{ background: `radial-gradient(ellipse 90% 45% at 50% 0%, rgba(34,211,107,0.28), transparent 70%), ${BF.bg}` }}
-        initial={{ y: 80, scale: 0.94, opacity: 0 }}
+        initial={{ y: 24, scale: 0.9, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 60, scale: 0.96, opacity: 0 }}
+        exit={{ y: 16, scale: 0.94, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 26 }}
         onClick={(e) => e.stopPropagation()}
         onMouseEnter={() => onHover?.(true)}

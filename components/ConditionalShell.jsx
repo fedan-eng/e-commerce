@@ -19,7 +19,9 @@ export default function ConditionalShell({ children }) {
   return (
     <>
       <Navbar />
-       <div className="mx-auto w-full max-w-[1640px] overflow-x-hidden font-roboto">
+       {/* overflow-x-clip, not -hidden: "hidden" makes this a scroll box of its own, and a section
+           still sliding in near the bottom then gave the page a second scrollbar */}
+       <div className="mx-auto w-full max-w-[1640px] overflow-x-clip font-roboto">
       {children}
        </div>
       <Footer />

@@ -179,7 +179,7 @@ const page = async () => {
   };
 
   return (
-    <div className="bg-white overflow-x-hidden text-black">
+    <div className="bg-white overflow-x-clip text-black">
       {[websiteJsonLd, organizationJsonLd, navigationJsonLd].map((data) => (
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
