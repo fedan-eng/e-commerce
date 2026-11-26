@@ -23,6 +23,7 @@ export async function GET(req, context) {
     const query = {
       _id: { $ne: currentProduct._id }, // Exclude current product
       availability: true, // Only available products
+      adminOnly: { $ne: true },
       $or: [
         // Same category (highest priority)
         { category: currentProduct.category },
@@ -67,6 +68,7 @@ export async function GET(req, context) {
       const fallbackProducts = await Product.find({
         _id: { $ne: currentProduct._id },
         availability: true,
+        adminOnly: { $ne: true },
         category: currentProduct.category
       })
       .select("-comments -ratings")

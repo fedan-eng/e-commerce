@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { BundleBanner } from "@/components/cart/BundleCard";
+import { isBundleProduct } from "@/lib/bundles";
 import { ArrowLeft, ArrowRight, Share } from "lucide-react";
 import { CircleButton } from "./ui";
 import WishlistToggle from "./WishlistToggle";
@@ -14,6 +16,8 @@ export default function ProductGallery({ product, images, imageBg, onShare, onOp
   const touchStartX = useRef(null);
   const total = images.length;
   const current = images[index];
+  // A combo's main art shows as its card: framed, with the "Combo deal" tag and price chip
+  const comboCard = isBundleProduct(product) && current && (current === product.image || index === 0);
 
   const go = (step) => setIndex((i) => (i + step + total) % total);
 
@@ -42,15 +46,31 @@ export default function ProductGallery({ product, images, imageBg, onShare, onOp
             aria-label="View full image"
             className="absolute inset-0 cursor-zoom-in"
           >
-            <Image
-              src={current}
-              alt={product.name}
-              fill
-              priority
-              quality={90}
-              sizes="(min-width: 1024px) 620px, 100vw"
-              className="object-contain p-[12%]"
-            />
+            {comboCard ? (
+              <span className="absolute inset-[7%] overflow-hidden rounded-[22px] border-2 border-[#014628] shadow-[0_18px_40px_rgba(0,67,40,0.18)] md:rounded-[26px]">
+                <BundleBanner
+                  variant="combo"
+                  large
+                  priority
+                  image={current}
+                  name={product.name}
+                  price={product.price}
+                  originalPrice={product.originalPrice}
+                  aspect="aspect-square"
+                  sizes="(min-width: 1024px) 560px, 90vw"
+                />
+              </span>
+            ) : (
+              <Image
+                src={current}
+                alt={product.name}
+                fill
+                priority
+                quality={90}
+                sizes="(min-width: 1024px) 620px, 100vw"
+                className="object-contain p-[12%]"
+              />
+            )}
           </button>
         )}
 

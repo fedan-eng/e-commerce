@@ -2,8 +2,9 @@ import React from "react";
 import { SOCIAL_URLS } from "@/lib/socials";
 import { STORE_CATEGORIES } from "@/lib/categories";
 import { SITE_URL, MAGFLEX_PATH, jsonLdHtml } from "@/lib/seo";
-import Hero1 from "@/components/landing/Hero1";
-import Hero2 from "@/components/landing/Hero2";
+import BundleHeroCarousel from "@/components/landing/BundleHeroCarousel";
+import ComboDeals from "@/components/landing/ComboDeals";
+import StoryHero from "@/components/landing/StoryHero";
 import BestSellers from "@/components/landing/BestSellers";
 import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
 import Anniversary from "@/components/landing/Anniversary";
@@ -15,7 +16,23 @@ import NeedsPower from "@/components/landing/NeedsPower";
 import MadeFor from "@/components/landing/MadeFor";
 import Banner from "@/components/landing/Banner";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
-import { getFeaturedProducts } from "@/lib/products";
+import { getFeaturedProducts, getLiveBundles } from "@/lib/products";
+import BlackFridayHero from "@/components/blackfriday/BlackFridayHero";
+import FlashDeals from "@/components/blackfriday/FlashDeals";
+import { blackFridayPhase } from "@/lib/blackFriday";
+import { getDealCards } from "@/lib/deals";
+import { connectDB } from "@/lib/db";
+
+// The flash deals for the first paint; the browser fetches fresh stock counts straight after
+async function dealCardsOrEmpty() {
+  try {
+    await connectDB();
+    return (await getDealCards()).deals;
+  } catch (err) {
+    console.error("Landing flash deals:", err);
+    return [];
+  }
+}
 
 // Rebuilt hourly, and straight away when an admin edits the WhatsApp reviews
 export const revalidate = 3600;
@@ -65,11 +82,28 @@ export const metadata = {
   },
 };
 
+// Shown in the hero and Combo Deals until Snap Trio and Thunder Trio are created as bundle
+// products in the admin; then the real products take over ("Shop now" opens them and "Buy now"
+// adds them to the cart). Remove once they exist.
+const R2 = "https://pub-2808252d92f04792b5072c00044ff5b2.r2.dev";
+const PREVIEW_BUNDLES = [
+  { _id: "preview-snap-trio", name: "Snap Trio", price: 29500, originalPrice: 38000, image: `${R2}/SnapTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
+  { _id: "preview-thunder-trio", name: "Thunder Trio", price: 32500, originalPrice: 48500, image: `${R2}/ThunderTrio.png`, bundleItems: [{ quantity: 3 }], href: "/products/power-banks" },
+];
+
 const page = async () => {
-  const [reviewChats, featuredProducts] = await Promise.all([
+  // Black Friday takes over the top of the page from now until the end of Sun 29 Nov
+  const blackFriday = blackFridayPhase() !== "over";
+  const [reviewChats, featuredProducts, bundles, flashDeals] = await Promise.all([
     getWhatsAppReviews("home"),
     getFeaturedProducts(),
+    getLiveBundles(),
+    blackFriday ? dealCardsOrEmpty() : [],
   ]);
+  // A combo without its own hero slide image uses the matching preview art (SnapTrio.png…),
+  // not its card art
+  const heroArt = (b) => b.heroImage || PREVIEW_BUNDLES.find((p) => p.name.toLowerCase() === b.name.trim().toLowerCase())?.image || "";
+  const combos = bundles.length > 0 ? bundles.map((b) => ({ ...b, heroImage: heroArt(b) })) : PREVIEW_BUNDLES;
 
   const baseUrl = SITE_URL;
 
@@ -145,14 +179,35 @@ const page = async () => {
   };
 
   return (
-    <div className="bg-white overflow-x-hidden text-black">
+    <div className="bg-white overflow-x-clip text-black">
       {[websiteJsonLd, organizationJsonLd, navigationJsonLd].map((data) => (
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
 
-      <Hero1 />
+      {blackFriday ? (
+        <>
+          {/* Black Friday: the countdown hero and the flash deals up top, then reviews and
+              creators; the usual sections follow. Combo Deals are paused while it runs. */}
+          <BlackFridayHero initialDeals={flashDeals} />
+          <FlashDeals initialDeals={flashDeals} />
+          <WhatsAppReviews chats={reviewChats}/>
+          <Creators/>
+          <Marquee/>
+          <StoryHero />
+          <NeedsPower/>
+          <BestSellers initialProducts={featuredProducts}/>
+          <MadeFor/>
+          <Anniversary/>
+          <Banner/>
+        </>
+      ) : (
+      <>
+      {/* A slide per bundle in stock (the preview ones until there are any), then
+          "Power your Story" and Combo Deals */}
+      <BundleHeroCarousel bundles={combos} />
       <Marquee/>
-      <Hero2 />
+      <StoryHero />
+      <ComboDeals bundles={combos} />
       <NeedsPower/>
       <BestSellers initialProducts={featuredProducts}/>
       <WhatsAppReviews chats={reviewChats}/>
@@ -162,6 +217,8 @@ const page = async () => {
       <Creators/>
       {/* <FeaturedBlog/> */}
       <Banner/>
+      </>
+      )}
     </div>
   );
 };

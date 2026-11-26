@@ -9,6 +9,8 @@ import CheckoutModal from "@/components/checkout/CheckoutModal";
 import CartLineItem from "./components/CartLineItem";
 import OrderSummary from "./components/OrderSummary";
 import useCartColorOptions from "./useCartColorOptions";
+import { cartPieceCount, cartSavings, flashDealSavings, isBundleItem } from "@/lib/bundles";
+import { BlackFridayStrip } from "@/components/cart/FlashDealParts";
 
 function trackBeginCheckout(items, value) {
   if (typeof window === "undefined" || !window.gtag) return;
@@ -37,6 +39,9 @@ export default function CartPage() {
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const pieceCount = cartPieceCount(items); // a bundle of 3 counts as 3 in the summary
+  const { full: fullPrice, savings } = cartSavings(items);
+  const hasFlashDeal = items.some((item) => item.deal);
 
   const changeQuantity = (item, quantity) => {
     if (quantity >= 1) dispatch(updateQuantity({ _id: item._id, color: item.color, quantity }));
@@ -72,6 +77,7 @@ export default function CartPage() {
             </span>
           </div>
           <p className="mt-1 text-[15px] text-muted">Your goodies are waiting. Check out when you&apos;re ready.</p>
+          {hasFlashDeal && <BlackFridayStrip className="mt-5" />}
 
           <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
             <ul className="divide-y divide-line border-y border-line">
@@ -88,7 +94,7 @@ export default function CartPage() {
             </ul>
 
             <div className="lg:sticky lg:top-24">
-              <OrderSummary subTotal={subTotal} itemCount={itemCount} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
+              <OrderSummary subTotal={subTotal} itemCount={pieceCount} fullPrice={fullPrice} savings={savings} flashSavings={flashDealSavings(items)} hasBundle={items.some(isBundleItem)} isAuthenticated={isAuthenticated} onCheckout={startCheckout} />
             </div>
           </div>
         </>

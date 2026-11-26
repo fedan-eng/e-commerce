@@ -9,6 +9,9 @@ import ColorPicker from "./ColorPicker";
 import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
 import { Specifications } from "./ProductSpecs";
+import useDeals from "@/hooks/useDeals";
+import { discountDealPricing, isBundleProduct } from "@/lib/bundles";
+import { Gift, Zap } from "lucide-react";
 import { itemInStock } from "@/lib/stock";
 
 function Badges({ product, discount }) {
@@ -48,6 +51,23 @@ function RatingLine({ product }) {
   );
 }
 
+// Black Friday flash deal (hooks/useDeals): what it is and how many are left
+function DealBanner({ deal }) {
+  const Icon = deal.type === "gift" ? Gift : Zap;
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-black px-4 py-3 text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ffd95d] text-black">
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ffd95d]">Black Friday flash deal</p>
+        <p className="text-sm font-semibold">{deal.title}</p>
+      </div>
+      <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">{deal.left} left</span>
+    </div>
+  );
+}
+
 function PriceLine({ product, discount }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -72,8 +92,14 @@ export function StockStatus({ inStock }) {
   );
 }
 
-export default function ProductInfo({ product, highlights, selectedColor, onColorChange, onCheckout }) {
+export default function ProductInfo({ product: baseProduct, highlights, selectedColor, onColorChange, onCheckout }) {
   const [quantity, setQuantity] = useState(1);
+  // A Black Friday discount shows as the price, with the original price struck through
+  const { byProduct } = useDeals();
+  const deal = isBundleProduct(baseProduct) ? null : byProduct[baseProduct._id];
+  // The % comes off the original price, which stays crossed out (lib/bundles.js discountDealPricing)
+  const dealPricing = deal?.type === "discount" && deal.percent ? discountDealPricing(baseProduct, deal.percent) : null;
+  const product = dealPricing ? { ...baseProduct, ...dealPricing } : baseProduct;
   const discount = getDiscount(product);
   // The chosen colour can be bought (or, with no colours, the product can)
   const inStock = itemInStock(product, selectedColor?.name);
@@ -85,6 +111,7 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
         <h1 className="text-[22px] font-bold leading-[1.2] tracking-tight text-forest sm:text-[28px] md:text-[36px]">{product.name}</h1>
         <RatingLine product={product} />
         <PriceLine product={product} discount={discount} />
+        {deal && <DealBanner deal={deal} />}
       </div>
 
       {product.description && (
@@ -116,7 +143,7 @@ export default function ProductInfo({ product, highlights, selectedColor, onColo
           </button>
         )}
         <AddToCartButtonPDP
-          product={product}
+          product={baseProduct}
           selectedColor={selectedColor}
           quantity={quantity}
           className="flex-1 sm:flex-none sm:px-8"

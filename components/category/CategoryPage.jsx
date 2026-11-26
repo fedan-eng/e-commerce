@@ -1,5 +1,6 @@
 // components/category/CategoryPage.jsx
 // Shared template for /products/<slug>. Server component — loads products from the DB.
+import { Reveal } from "@/components/motion/Reveal";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
@@ -16,11 +17,14 @@ import WhatsAppReviews from "@/components/landing/WhatsAppReviews";
 import { getWhatsAppReviews } from "@/lib/whatsappReviews";
 import CategoryFAQ from "./CategoryFAQ";
 import ExploreMore from "./ExploreMore";
+import ComboDeals from "@/components/landing/ComboDeals";
+import { getLiveBundles } from "@/lib/products";
+import { blackFridayPhase } from "@/lib/blackFriday";
 
 async function getCategoryProducts(dbCategory) {
   await connectDB();
   // Case-insensitive match — some older products were saved as e.g. "chargers"
-  const docs = await Product.find({ category: dbCategory })
+  const docs = await Product.find({ category: dbCategory, adminOnly: { $ne: true } })
     .collation({ locale: "en", strength: 2 })
     .select("-ratings -comments")
     .lean();
@@ -86,9 +90,11 @@ export default async function CategoryPage({ slug }) {
   const category = getCategory(slug);
   if (!category) notFound();
 
-  const [products, chats] = await Promise.all([
+  const [products, chats, bundles] = await Promise.all([
     getCategoryProducts(category.dbCategory),
     getWhatsAppReviews(slug), // managed in Admin → WhatsApp reviews
+    // Combo Deals are paused from now until Black Friday ends, as on the homepage
+    category.showCombos && blackFridayPhase() === "over" ? getLiveBundles() : [],
   ]);
   const reviewsTitle = category.reviewsTitle || `What customers say about our ${category.title}`;
 
@@ -98,6 +104,8 @@ export default async function CategoryPage({ slug }) {
         <script key={data["@type"]} type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(data)} />
       ))}
       <CategoryHero category={category} />
+      {/* Bundles in stock (lib/categories.js showCombos); hidden when there are none */}
+      {bundles.length > 0 && <ComboDeals bundles={bundles} />}
       <TrustBar />
       {/* Same "What everyone's carrying" section as the homepage, scoped to this category */}
       <BestSellers
@@ -121,7 +129,9 @@ export default async function CategoryPage({ slug }) {
           subtitle={`Real reviews from people using FIL ${category.title} every day.`}
         />
       )}
-      <CategoryFAQ category={category} />
+      <Reveal>
+        <CategoryFAQ category={category} />
+      </Reveal>
       <ExploreMore currentSlug={slug} />
     </main>
   );

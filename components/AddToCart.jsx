@@ -4,6 +4,8 @@ import { useDispatch } from "react-redux";
 import { useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { addToCart } from "@/store/features/cartSlice";
+import { cartItemExtras } from "@/lib/bundles";
+import useDeals from "@/hooks/useDeals";
 import { itemAdded } from "@/store/features/cartUISlice";
 import { useCartAnimationContext } from "@/context/CartAnimationContext";
 import { useGAEvent } from "@/hooks/useGAEvent";
@@ -13,6 +15,7 @@ import { firstInStockColor, itemInStock, productInStock } from "@/lib/stock";
 
 const AddToCartButton = ({ product, className = "", selectedColor = null, label = "Buy Now", animated = true }) => {
   const dispatch       = useDispatch();
+  const { byProduct }  = useDeals(); // Black Friday deal prices and gifts
   const { triggerFly } = useCartAnimationContext();
   const buttonRef      = useRef(null); // fly target
 
@@ -40,6 +43,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
         image:    imageToUse,
         quantity: 1,
         ...(colorToAdd ? { color: colorToAdd.name } : {}),
+        ...cartItemExtras(product, byProduct[product._id]),
       })
     );
 
@@ -80,7 +84,7 @@ const AddToCartButton = ({ product, className = "", selectedColor = null, label 
         setTimeout(() => setPhase("idle"), 1500);
       },
     });
-  }, [phase, animated, selectedColor, product, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
+  }, [phase, animated, selectedColor, product, byProduct, dispatch, triggerFly, trackEvent, trackTikTokATC, trackMetaATC]);
 
   // A chosen colour must be in stock; otherwise any colour will do
   const isAvailable = selectedColor ? itemInStock(product, selectedColor.name) : productInStock(product);

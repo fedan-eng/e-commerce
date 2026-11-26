@@ -1,4 +1,5 @@
 // components/category/TrustBar.jsx
+import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { Zap, BadgeCheck, ShieldCheck, RotateCcw, Award } from "lucide-react";
 
 const ITEMS = [
@@ -13,14 +14,14 @@ export default function TrustBar() {
   return (
     <section className="border-y border-gray-200">
       {/* TODO: design */}
-      <ul className="mx-auto flex max-w-[1440px] gap-8 overflow-x-auto px-4 py-4 md:justify-between md:px-16">
+      <Stagger as="ul" gap={0.07} className="mx-auto flex max-w-[1440px] gap-8 overflow-x-auto px-4 py-4 md:justify-between md:px-16">
         {ITEMS.map(({ icon: Icon, label }) => (
-          <li key={label} className="flex shrink-0 items-center gap-2 text-xs font-medium">
-            <Icon size={16} />
+          <StaggerItem as="li" key={label} y={12} className="group flex shrink-0 items-center gap-2 text-xs font-medium">
+            <Icon size={16} className="transition-transform duration-300 group-hover:scale-125" />
             {label}
-          </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </Stagger>
     </section>
   );
 }

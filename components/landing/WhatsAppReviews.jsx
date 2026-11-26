@@ -1,5 +1,6 @@
 "use client";
 
+import { Reveal } from "@/components/motion/Reveal";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -128,23 +129,24 @@ export default function WhatsAppReviews({
         {isCategory ? (
           /* Title row with the arrows on the right */
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
-            <div>
+            <Reveal>
               <h2 className="text-[24px] sm:text-[32px] md:text-[40px] leading-tight font-bold text-[#0A321B] tracking-tight">{title}</h2>
               <p className="text-gray-500 mt-1 sm:mt-2 text-[13px] sm:text-base">{subtitle}</p>
-            </div>
+            </Reveal>
             <div className="flex items-center gap-3 self-start sm:self-auto">{arrows}</div>
           </div>
         ) : (
           /* Intro + controls */
-          <div className="lg:w-[240px] shrink-0">
+          <Reveal className="lg:w-[240px] shrink-0">
             <Quote className="w-9 h-9 sm:w-12 sm:h-12 text-[#1FA34A] fill-[#1FA34A] rotate-180 mb-3 sm:mb-4" strokeWidth={0} />
             <h2 className="text-[24px] sm:text-[36px] leading-[1.1] font-bold text-[#004328] tracking-tight">{title}</h2>
             <p className="text-gray-500 mt-2 sm:mt-4 text-[13px] sm:text-[15px] leading-relaxed">{subtitle}</p>
             <div className="flex items-center gap-3 mt-5 sm:mt-8">{arrows}</div>
-          </div>
+          </Reveal>
         )}
 
-        {/* Chat bubbles */}
+        {/* Chat bubbles: slide in from the right */}
+        <Reveal y={0} x={60} delay={0.15} className="flex-1 min-w-0 flex">
         <div
           ref={scrollRef}
           onScroll={updateBar}
@@ -183,6 +185,7 @@ export default function WhatsAppReviews({
             </div>
           ))}
         </div>
+        </Reveal>
 
       </div>
 

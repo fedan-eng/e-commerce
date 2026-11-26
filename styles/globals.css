@@ -118,20 +118,6 @@
   .route-loader-bar { animation-duration: 3s; }
 }
 
-/* Mobile feature strip: one row that scrolls endlessly (track holds two copies) */
-.feature-marquee-track {
-  animation: feature-marquee 22s linear infinite;
-}
-
-@keyframes feature-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .feature-marquee-track { animation-duration: 60s; }
-}
-
 .form-background {
   background: linear-gradient(135deg, #0d542b, #1cc874, #0d542b);
 }
@@ -168,4 +154,25 @@ input::-webkit-inner-spin-button {
 /* Hide arrows in number input (Firefox) */
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Hero images settle in: a slight zoom-out on load (components/category/CategoryHero.jsx) */
+@keyframes hero-settle {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+.hero-settle { animation: hero-settle 1.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-settle { animation: none; }
+}
+
+/* Feature strip under the hero (components/landing/Marquee.jsx): slides left forever.
+   The track holds two identical copies, so moving it by half its width loops seamlessly. */
+.feature-marquee-track { animation: feature-marquee 32s linear infinite; }
+@keyframes feature-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-marquee-track { animation-duration: 120s; }
 }

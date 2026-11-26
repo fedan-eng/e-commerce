@@ -4,9 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
+import BundleCard from "@/components/cart/BundleCard";
+import { dealGifts, flashDealPill } from "@/lib/bundles";
+import { FlashDealPill, GiftRow } from "@/components/cart/FlashDealParts";
 import { colorInStock } from "@/lib/stock";
 
-function QtyStepper({ value, onChange }) {
+export function QtyStepper({ value, onChange }) {
   const btn = "flex h-9 w-9 items-center justify-center rounded-full text-forest transition-colors hover:bg-sage disabled:opacity-30";
   return (
     <div className="flex items-center rounded-full border border-line">
@@ -68,49 +71,72 @@ export default function CartLineItem({ item, colors, onQuantityChange, onColorCh
   const current = colors?.find((c) => c.name?.trim().toLowerCase() === item.color?.trim().toLowerCase());
   const colorSoldOut = Boolean(current && !colorInStock(current));
 
+  if (item.bundle) {
+    return (
+      <li className="py-5">
+        <BundleCard
+          item={item}
+          onRemove={onRemove}
+          quantityControl={<QtyStepper value={item.quantity} onChange={onQuantityChange} />}
+        />
+      </li>
+    );
+  }
+
   return (
-    <li className="flex gap-4 py-5">
-      <Link href={href} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-mint sm:h-28 sm:w-28">
-        {item.image ? (
-          <Image src={item.image} alt={item.name} fill sizes="112px" className="object-contain p-2.5" />
-        ) : (
-          <ShoppingBag size={22} className="absolute inset-0 m-auto text-forest/40" />
-        )}
-      </Link>
+    <li className="py-5">
+      <div className="flex gap-4">
+        <Link href={href} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-mint sm:h-28 sm:w-28">
+          {item.image ? (
+            <Image src={item.image} alt={item.name} fill sizes="112px" className="object-contain p-2.5" />
+          ) : (
+            <ShoppingBag size={22} className="absolute inset-0 m-auto text-forest/40" />
+          )}
+        </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Link href={href} className="line-clamp-2 text-[15px] font-semibold leading-snug text-forest hover:underline sm:text-base">
-              {item.name}
-            </Link>
-            <p className="mt-1 text-sm text-muted">
-              {formatAmount(item.price)}
-              {item.color && !canSwitchColor && <span className="capitalize"> · {item.color}</span>}
-            </p>
-            {canSwitchColor && <ColorSwitch colors={colors} selected={item.color} onChange={onColorChange} />}
-            {colorSoldOut && (
-              <p className="mt-2 text-[13px] font-medium text-red-600">
-                {item.color} is out of stock.{" "}
-                {colors.some(colorInStock) ? "Pick another colour or remove it." : "Please remove it."}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Link href={href} className="line-clamp-2 text-[15px] font-semibold leading-snug text-forest hover:underline sm:text-base">
+                {item.name}
+              </Link>
+              <p className="mt-1 text-sm text-muted">
+                {formatAmount(item.price)}
+                {item.originalPrice > item.price && <span className="ml-1.5 text-xs line-through">{formatAmount(item.originalPrice)}</span>}
+                {item.color && !canSwitchColor && <span className="capitalize"> · {item.color}</span>}
               </p>
-            )}
+              {canSwitchColor && <ColorSwitch colors={colors} selected={item.color} onChange={onColorChange} />}
+              {flashDealPill(item) && <FlashDealPill className="mt-1.5">{flashDealPill(item)}</FlashDealPill>}
+              {colorSoldOut && (
+                <p className="mt-2 text-[13px] font-medium text-red-600">
+                  {item.color} is out of stock.{" "}
+                  {colors.some(colorInStock) ? "Pick another colour or remove it." : "Please remove it."}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onRemove}
+              aria-label={`Remove ${item.name}`}
+              className="shrink-0 rounded-full p-2 text-muted transition-colors hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 size={17} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onRemove}
-            aria-label={`Remove ${item.name}`}
-            className="shrink-0 rounded-full p-2 text-muted transition-colors hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 size={17} />
-          </button>
-        </div>
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-          <QtyStepper value={item.quantity} onChange={onQuantityChange} />
-          <span className="text-base font-bold text-forest">{formatAmount(item.price * item.quantity)}</span>
+          <div className="mt-auto flex items-center justify-between gap-3 pt-3">
+            <QtyStepper value={item.quantity} onChange={onQuantityChange} />
+            <span className="text-base font-bold text-forest">{formatAmount(item.price * item.quantity)}</span>
+          </div>
         </div>
       </div>
+      {dealGifts(item).length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {dealGifts(item).map((gift, i) => (
+            <GiftRow key={gift._id || i} gift={gift} />
+          ))}
+        </div>
+      )}
     </li>
   );
 }

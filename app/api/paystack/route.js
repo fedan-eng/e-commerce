@@ -6,6 +6,9 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
+import { isAdminRequest } from "@/lib/auth";
+import { isBlackFridayLive } from "@/lib/blackFriday";
+import { BUNDLE_PROMO_MESSAGE, isAdminOnlyOrder, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
 import PendingCheckout from "@/models/PendingCheckout";
 import crypto from "crypto";
@@ -38,13 +41,16 @@ export async function POST(req) {
     const {
       cartItems: modalCartItems,
       deliveryInfo,
-      promoCode,
+      promoCode: requestedPromo,
       items: simpleItems,
       email: simpleEmail,
       address: simpleAddress,
       gaClientId,
       debugInfo,
     } = body;
+
+    // Promo codes are off while the Black Friday flash deals run (the deal prices are the discount)
+    const promoCode = isBlackFridayLive() ? null : requestedPromo;
 
     // Determine which format we're using
     const isSimpleCheckout = !deliveryInfo && simpleItems && simpleEmail;
@@ -77,7 +83,7 @@ export async function POST(req) {
 
       // Prices come from the database, not the cart the browser sent
       await connectDB();
-      const priced = await priceCart(finalCartItems);
+      const priced = await priceCart(finalCartItems, { isAdmin: isAdminRequest(req) });
       if (priced.error) {
         return NextResponse.json({ message: priced.error }, { status: 400 });
       }
@@ -174,23 +180,31 @@ export async function POST(req) {
     // Prices, delivery fee and discount are all worked out here from the database;
     // the amounts in the browser's cart are ignored
     await connectDB();
-    const priced = await priceCart(finalCartItems);
+    const priced = await priceCart(finalCartItems, { isAdmin: isAdminRequest(req) });
     if (priced.error) {
       return NextResponse.json({ message: priced.error }, { status: 400 });
     }
     const { subTotal } = priced;
 
-    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode);
+    const delivery = await deliveryFeeFor(deliveryInfo.deliveryType, deliveryInfo.region?.name, subTotal, promoCode, {
+      hasBundle: priced.items.some(isBundleItem), // no free delivery with combo deals
+    });
     if (delivery.error) {
       return NextResponse.json({ message: delivery.error }, { status: 400 });
     }
-    const deliveryFee = delivery.fee;
+    // Admin-only test products are delivered free, so a test order costs exactly the product price
+    const deliveryFee = isAdminOnlyOrder(priced.items) ? 0 : delivery.fee;
 
     let discount = 0;
     let appliedPromo = null;
     if (promoCode) {
+      // Bundles are already discounted, so the code only applies to everything else
+      const promoBase = promoEligibleSubtotal(priced.items);
+      if (promoBase <= 0) {
+        return NextResponse.json({ message: BUNDLE_PROMO_MESSAGE }, { status: 400 });
+      }
       const promo = await validatePromo({
-        code: promoCode, userId: finalUserId, cartValue: subTotal, phone: deliveryInfo.phone, email,
+        code: promoCode, userId: finalUserId, cartValue: promoBase, phone: deliveryInfo.phone, email,
       });
       if (!promo.valid) {
         return NextResponse.json({ message: promo.message }, { status: promo.status });
@@ -222,8 +236,8 @@ export async function POST(req) {
         region: delivery.region,
         city: clean(deliveryInfo.city),
         address: clean(deliveryInfo.address),
-        // Anything but Free/Express was priced as Regular by deliveryFeeFor
-        deliveryType: ["Free", "Express"].includes(deliveryInfo.deliveryType) ? deliveryInfo.deliveryType : "Regular",
+        // As priced by deliveryFeeFor: Regular in Lagos, Interstate elsewhere, or Express / Free
+        deliveryType: delivery.deliveryType,
         orderNote: clean(deliveryInfo.orderNote).slice(0, 500),
       },
       promoCode: appliedPromo,

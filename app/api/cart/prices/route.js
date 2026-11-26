@@ -3,6 +3,8 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
+import { cartItemExtras, isBundleProduct } from "@/lib/bundles";
+import { dealsByProduct, getLiveDeals } from "@/lib/deals";
 import { productInStock, soldOutColorNames } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
@@ -13,14 +15,22 @@ export async function POST(req) {
     const valid = Array.isArray(ids) ? [...new Set(ids)].filter((id) => mongoose.isValidObjectId(id)).slice(0, 100) : [];
 
     await connectDB();
-    const products = await Product.find({ _id: { $in: valid } }).select("name price availability colors.name colors.inStock").lean();
+    const products = await Product.find({ _id: { $in: valid } })
+      .select("name price originalPrice availability adminOnly isBundle bundleItems features category colors.name colors.inStock")
+      .lean();
 
-    // { [productId]: { price, available, soldOutColors } }; ids missing from the reply are no longer sold
+    // { [productId]: { price, available, soldOutColors, extras } }; ids missing from the reply are no longer sold.
+    // extras: originalPrice and bundle details for the cart (lib/bundles.js)
+    // During Black Friday the price is the deal price (lib/deals.js); /api/paystack works it out again
+    const deals = dealsByProduct(await getLiveDeals());
     const prices = Object.fromEntries(
-      products.map((p) => [
-        String(p._id),
-        { price: p.price, available: productInStock(p), soldOutColors: soldOutColorNames(p) },
-      ])
+      products.map((p) => {
+        const extras = cartItemExtras(p, isBundleProduct(p) ? null : deals.get(String(p._id)));
+        return [
+          String(p._id),
+          { price: extras.price ?? p.price, available: productInStock(p), soldOutColors: soldOutColorNames(p), extras },
+        ];
+      })
     );
     return Response.json({ prices }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {

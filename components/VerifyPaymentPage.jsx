@@ -19,6 +19,9 @@ import { ProductImage } from "./ProductImage";
 import { DELIVERY_OPTIONS } from "./checkout/delivery";
 import { downloadReceipt } from "./checkout/receiptPdf";
 import SaveAccountCard from "./checkout/SaveAccountCard";
+import BundleCard from "./cart/BundleCard";
+import { dealGifts, flashDealPill, flashDealSavings } from "@/lib/bundles";
+import { FlashDealPill, GiftRow } from "./cart/FlashDealParts";
 
 // Old checkout details kept in localStorage by earlier versions of the checkout
 const OLD_CHECKOUT_KEYS = [
@@ -174,6 +177,8 @@ export default function VerifyPaymentPage() {
   // ── Success ───────────────────────────────────────────────────────────────
   const lineItems = orderDetails.cartItems || orderDetails.items || [];
   const itemCount = lineItems.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+  // The struck-through part of Black Friday deal lines; subTotal is what was paid for the items
+  const flashSavings = flashDealSavings(lineItems);
   const regionName = orderDetails.region?.name || orderDetails.region || "";
   const delivery = DELIVERY_OPTIONS.find((o) => o.id === orderDetails.deliveryType);
   const orderDate = new Date(orderDetails.createdAt || Date.now()).toLocaleDateString("en-NG", {
@@ -285,18 +290,37 @@ export default function VerifyPaymentPage() {
               Your order <span className="font-normal text-muted">· {itemCount} {itemCount === 1 ? "item" : "items"}</span>
             </h2>
             <ul className="mt-5 flex flex-col gap-4">
-              {lineItems.map((item, index) => (
-                <li key={`${item._id || index}-${item.color || ""}`} className="flex items-center gap-3">
-                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white">
-                    <ProductImage src={item.image} alt={item.name} width={52} height={52} className="h-[52px] w-[52px] object-contain" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{item.name}</p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {item.color ? `${item.color} · ` : ""}Qty {item.quantity}
+              {lineItems.map((item, index) => item.bundle ? (
+                <li key={`${item._id || ""}-${item.color || ""}-${index}`}>
+                  <BundleCard item={item} showLineTotal />
+                </li>
+              ) : (
+                <li key={`${item._id || ""}-${item.color || ""}-${index}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white">
+                      <ProductImage src={item.image} alt={item.name} width={52} height={52} className="h-[52px] w-[52px] object-contain" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{item.name}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {item.color ? `${item.color} · ` : ""}Qty {item.quantity}
+                      </p>
+                      {flashDealPill(item) && <FlashDealPill className="mt-1">{flashDealPill(item)}</FlashDealPill>}
+                    </div>
+                    <p className="shrink-0 text-right text-sm font-semibold text-ink">
+                      {item.deal?.type === "discount" && item.originalPrice > item.price && (
+                        <span className="block text-xs font-normal text-muted line-through">{formatAmount(item.originalPrice * item.quantity)}</span>
+                      )}
+                      {formatAmount(item.price * item.quantity)}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold text-ink">{formatAmount(item.price * item.quantity)}</p>
+                  {dealGifts(item).length > 0 && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      {dealGifts(item).map((gift, i) => (
+                        <GiftRow key={gift._id || i} gift={gift} size="sm" />
+                      ))}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -304,8 +328,14 @@ export default function VerifyPaymentPage() {
             <dl className="mt-6 space-y-2.5 border-t border-line pt-5 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted">Subtotal</dt>
-                <dd className="text-ink">{formatAmount(orderDetails.subTotal || 0)}</dd>
+                <dd className="text-ink">{formatAmount((Number(orderDetails.subTotal) || 0) + flashSavings)}</dd>
               </div>
+              {flashSavings > 0 && (
+                <div className="flex justify-between font-medium text-[#16a34a]">
+                  <dt>Flash deal savings</dt>
+                  <dd className="font-semibold">−{formatAmount(flashSavings)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-muted">Delivery</dt>
                 <dd className="text-ink">{Number(orderDetails.deliveryFee) > 0 ? formatAmount(orderDetails.deliveryFee) : "Free"}</dd>

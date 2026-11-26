@@ -72,6 +72,21 @@ const productSchema = new mongoose.Schema(
     ],
 
     category:         { type: String, required: true },
+
+    // ✅ Bundle deals: one product made of other products (e.g. power bank + charger + cable).
+    // Sold and stocked as a single product; bundleItems say what goes in the box, and the
+    // order line gets a copy of them (lib/pricing.js). Promo codes don't apply to bundles.
+    isBundle: { type: Boolean, default: false },
+    // The landing page hero slide's art (portrait, no text). `image` is the card art used in
+    // Combo Deals and the cart; the hero falls back to it when this is empty.
+    heroImage: { type: String, default: "" },
+    bundleItems: [
+      {
+        _id:      false,
+        product:  { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+        quantity: { type: Number, default: 1, min: 1 },
+      },
+    ],
     features:         { type: [String], default: [] },
 
     // ✅ Structured specs used by the category page filters (/products/<slug>).
@@ -93,6 +108,9 @@ const productSchema = new mongoose.Schema(
       featureTags:   { type: [String], default: undefined },  // "noise-cancellation", "magnetic", …
     },
     availability:     { type: Boolean, default: true },
+    // Hidden from shoppers: left out of every listing, the page shows "not found" and checkout
+    // refuses it unless the buyer is signed in as an admin (e.g. a ₦10 product to test payments)
+    adminOnly:        { type: Boolean, default: false },
     secondaryImages:  { type: [String], default: [] },
 
     isDiscounted:  { type: Boolean, default: false },

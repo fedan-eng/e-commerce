@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import { verifyToken } from "@/lib/auth";
+import { isAdminRequest, verifyToken } from "@/lib/auth";
 import { revalidateProduct } from "@/lib/revalidate";
 
 // GET SINGLE PRODUCT
@@ -23,7 +23,7 @@ export async function GET(req, context) {
     // Public endpoint: never expose reviews (pending ones included) or who rated what.
     // Approved reviews come from /api/products/[id]/comments; admins use /api/admin/reviews.
     const product = await Product.findById(id).select("-comments -ratings");
-    if (!product) {
+    if (!product || (product.adminOnly && !isAdminRequest(req))) {
       return NextResponse.json(
         { message: "Product not found" },
         { status: 404 }

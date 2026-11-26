@@ -77,7 +77,7 @@ const orderSchema = new mongoose.Schema({
 
   deliveryType: {
     type: String,
-    enum: ["Free", "Regular", "Express"],
+    enum: ["Free", "Regular", "Interstate", "Express"],
     required: requiredIfOnline,
   },
 
@@ -161,6 +161,11 @@ const orderSchema = new mongoose.Schema({
   },
   // true once this order's quantities are included in Product.soldCount (see lib/soldCount.js)
   soldCounted: {
+    type: Boolean,
+    default: false,
+  },
+  // true once this order's Black Friday deal units are added to Deal.claimed (lib/deals.js)
+  dealsCounted: {
     type: Boolean,
     default: false,
   },

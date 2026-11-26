@@ -93,6 +93,13 @@ const userSchema = new mongoose.Schema(
       image:    { type: String },
       quantity: { type: Number, default: 1 },
       color:    { type: String, default: "" },
+      // Shown in the cart: the price before discount, and for bundle deals how many pieces
+      // are in it and its first two features (lib/bundles.js)
+      originalPrice: { type: Number },
+      bundle: {
+        type: new mongoose.Schema({ count: Number, highlights: [String] }, { _id: false }),
+        default: undefined,
+      },
     },
   ],
   updatedAt:          { type: Date, default: null },

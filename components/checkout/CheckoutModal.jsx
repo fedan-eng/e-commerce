@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, ArrowRight, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { updateUser } from "@/store/features/authSlice";
-import { updatePrices } from "@/store/features/cartSlice";
+import { updateItemDetails, updatePrices } from "@/store/features/cartSlice";
 import { formatAmount } from "@/lib/utils";
 import { isValidEmail, isValidPhone } from "@/lib/sanitize";
 import { useMetaPixelEvent } from "@/hooks/useMetaPixelEvent";
@@ -16,7 +16,8 @@ import ModalShell from "./ModalShell";
 import StepIndicator from "./StepIndicator";
 import { ContactStep, DeliveryStep, ReviewStep } from "./steps";
 import useCheckoutForm, { CONTACT_FIELDS, DELIVERY_FIELDS, SAVED_INFO_KEY, cleanValues } from "./useCheckoutForm";
-import { deliveryFeeFor, isFreeDeliveryAvailable } from "./delivery";
+import { deliveryFeeFor, deliveryTypeForRegion, isFreeDeliveryAvailable, isLagosRegion } from "./delivery";
+import { isAdminOnlyOrder, isBundleItem } from "@/lib/bundles";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
@@ -36,10 +37,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const dispatch = useDispatch();
   const cartItemsFromStore = useSelector((s) => s.cart.items);
   const [buyNowPrice, setBuyNowPrice] = useState(null); // today's price, once checked
+  const [buyNowExtras, setBuyNowExtras] = useState(null); // and its bundle details
   // Memoised: a fresh [buyNowItem] array every render would reset the promo code forever
   const items = useMemo(
-    () => (buyNowItem ? [{ ...buyNowItem, price: buyNowPrice ?? buyNowItem.price }] : cartItemsFromStore),
-    [buyNowItem, buyNowPrice, cartItemsFromStore]
+    () => (buyNowItem ? [{ ...buyNowItem, ...buyNowExtras, price: buyNowPrice ?? buyNowItem.price }] : cartItemsFromStore),
+    [buyNowItem, buyNowPrice, buyNowExtras, cartItemsFromStore]
   );
 
   // Payment is charged at today's prices (lib/pricing.js), so show those before anyone pays.
@@ -76,6 +78,11 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
           );
         }
 
+        // Bundle details and prices before discount, for the review step and the promo rule
+        const extras = Object.fromEntries(opened.filter((i) => prices[i._id]).map((i) => [i._id, prices[i._id].extras || {}]));
+        if (buyNowItem) setBuyNowExtras(extras[buyNowItem._id] || null);
+        else if (Object.keys(extras).length) dispatch(updateItemDetails(extras));
+
         const changed = opened.filter((item) => prices[item._id] && prices[item._id].price !== item.price);
         if (changed.length === 0) return;
         if (buyNowItem) setBuyNowPrice(prices[buyNowItem._id].price);
@@ -106,7 +113,9 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const [submitting, setSubmitting] = useState(false);
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryFee = deliveryFeeFor(values.deliveryType, values.region);
+  // Admin-only test products are delivered free (same rule as /api/paystack)
+  const deliveryFee = isAdminOnlyOrder(items) ? 0 : deliveryFeeFor(values.deliveryType, values.region);
+  const hasBundle = items.some(isBundleItem); // combo deals rule out free delivery
   const total = Math.max(0, subTotal - discount + deliveryFee);
 
   // A promo applied to a different basket no longer holds
@@ -120,10 +129,20 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   // and removing it again puts Free back (see handlePromoApply).
   const { setValue } = form;
   useEffect(() => {
-    if (values.deliveryType !== "Free" || isFreeDeliveryAvailable(subTotal, promoCode)) return;
+    if (values.deliveryType !== "Free" || isFreeDeliveryAvailable(subTotal, promoCode, { hasBundle })) return;
     setValue("deliveryType", "Regular");
     if (promoCode) setFreeSwitched(true);
-  }, [subTotal, promoCode, values.deliveryType, setValue]);
+  }, [subTotal, promoCode, hasBundle, values.deliveryType, setValue]);
+
+  // Regular is for Lagos and Interstate for everywhere else; Express and Free are Lagos only.
+  // When the region changes, move the choice to one that region offers.
+  const regionName = values.region?.name;
+  useEffect(() => {
+    if (!regionName) return;
+    const fits = deliveryTypeForRegion(values.deliveryType, regionName);
+    const next = fits || (isLagosRegion(regionName) ? "Regular" : "Interstate");
+    if (next !== values.deliveryType) setValue("deliveryType", next);
+  }, [regionName, values.deliveryType, setValue]);
 
   // Choosing Express themselves means there's nothing to undo. (Not "anything but Regular":
   // in the render that switches them, the old value is still Free.)
@@ -169,7 +188,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     if (code) setPromoRemoved(false);
     if (removed) {
       setPromoRemoved(true);
-      if (freeSwitched && isFreeDeliveryAvailable(subTotal)) setValue("deliveryType", "Free");
+      if (freeSwitched && isFreeDeliveryAvailable(subTotal, null, { hasBundle })) setValue("deliveryType", "Free");
       setFreeSwitched(false);
     }
   };
@@ -274,7 +293,7 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
       labelledBy="checkout-title"
     >
       {step === 1 && <ContactStep form={form} emailLocked={Boolean(user)} />}
-      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} promoCode={promoCode} />}
+      {step === 2 && <DeliveryStep form={form} subTotal={subTotal} promoCode={promoCode} hasBundle={hasBundle} />}
       {step === 3 && (
         <ReviewStep
           form={form}

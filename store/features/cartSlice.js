@@ -75,6 +75,18 @@ const cartSlice = createSlice({
         if (typeof price === "number") item.price = price;
       });
     },
+    // Today's originalPrice / bundle / Black Friday deal details (lib/bundles.js cartItemExtras): { [productId]: extras }.
+    // Only products in the payload are touched; a field missing from their extras is removed.
+    updateItemDetails: (state, action) => {
+      state.items.forEach((item) => {
+        const extras = action.payload[item._id];
+        if (!extras) return;
+        for (const key of ["originalPrice", "bundle", "deal", "adminOnly"]) {
+          if (extras[key] === undefined) delete item[key];
+          else item[key] = extras[key];
+        }
+      });
+    },
     // ── Replaces the entire cart with items from DB ─────────────────────────
     // Called on login — overwrites localStorage cart with the user's real cart.
     setCartFromDB: (state, action) => {
@@ -90,6 +102,7 @@ export const {
   updateColor,
   clearCart,
   updatePrices,
+  updateItemDetails,
   removePurchased,
   setCartFromDB, // 👈 export it
 } = cartSlice.actions;
@@ -113,6 +126,7 @@ export const cartSyncMiddleware = (store) => (next) => (action) => {
     "cart/updateColor",
     "cart/clearCart",
     "cart/updatePrices",
+    "cart/updateItemDetails",
     "cart/removePurchased",
     // ⚠️ cart/setCartFromDB is intentionally NOT here
     // We don't want to re-sync back to DB when we just loaded FROM the DB

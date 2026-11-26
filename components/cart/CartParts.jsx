@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Minus, Plus, Trash2, Check, Truck, ShoppingBag, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, Check, Truck, ShoppingBag, ArrowRight, Zap } from "lucide-react";
+import { isBlackFridayLive } from "@/lib/blackFriday";
 import { formatAmount } from "@/lib/utils";
 import { STORE_CATEGORIES } from "@/lib/categories";
 
@@ -51,6 +52,15 @@ export function AddedBanner({ show }) {
 }
 
 export function DeliveryNote() {
+  // Free Thursday delivery is paused during Black Friday
+  if (isBlackFridayLive()) {
+    return (
+      <div className="flex items-center gap-2.5 rounded-[14px] bg-black px-3.5 py-2.5 text-[12.5px] font-semibold text-[#d4f25a]">
+        <Zap size={15} fill="currentColor" className="shrink-0" />
+        Black Friday prices apply automatically. No code needed.
+      </div>
+    );
+  }
   return (
     <div className="flex items-center gap-2.5 rounded-[14px] bg-[#F3F7F2] px-3.5 py-2.5 text-[12.5px] font-medium text-[#0A321B]">
       <Truck size={16} className="shrink-0 text-[#1FA34A]" />

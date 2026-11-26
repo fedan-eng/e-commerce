@@ -9,6 +9,7 @@ import { getReferral } from "@/lib/referral";
 // phone / email: the checkout's delivery details, so first-order codes are checked against them.
 // applied: { code, amount } the checkout currently holds (kept when this step is left and reopened).
 // autoApplyRef: false once the shopper removed a code, so a creator's link doesn't put it back.
+// subTotal: what the code can take money off, i.e. the cart without bundle deals (lib/bundles.js).
 // notice: shown under an applied code (e.g. that free delivery was switched off).
 export default function PromoCodeInput({
   subTotal, onApply, userId, phone = "", email = "", applied = null, autoApplyRef = true, notice = null, removeLabel = "Remove",
@@ -22,7 +23,8 @@ export default function PromoCodeInput({
   // A creator's link (?ref=) fills their code in and applies it straight away
   useEffect(() => {
     const ref = getReferral();
-    if (ref && !applied && autoApplyRef) {
+    // subTotal is 0 when the cart is only bundle deals, which codes don't apply to
+    if (ref && !applied && autoApplyRef && subTotal > 0) {
       setCode(ref);
       handleApply(ref);
     }
