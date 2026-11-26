@@ -92,7 +92,7 @@ function DeliveryOption({ option, selected, blocked, fee, regionChosen, onSelect
           </a>
         )}
         {id === "Interstate" && selected && (
-          <span className="mt-1 block text-[12px] leading-snug text-muted">Tell us your preferred station in the order note, if you have one.</span>
+          <span className="mt-1 block text-[12px] leading-snug text-muted">A customer support rep will reach out to confirm your pickup station.</span>
         )}
       </span>
       <span className={`shrink-0 text-[15px] font-semibold ${id === "Free" ? "text-[#0b9a52]" : "text-forest"}`}>{price}</span>
