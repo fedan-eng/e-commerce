@@ -6,7 +6,7 @@ import { ChevronDown, ExternalLink, Info, ShoppingBag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import BundleCard from "@/components/cart/BundleCard";
-import { dealGift, flashDealPill, flashDealSavings, promoEligibleSubtotal } from "@/lib/bundles";
+import { dealGifts, flashDealPill, flashDealSavings, promoEligibleSubtotal } from "@/lib/bundles";
 import { isBlackFridayLive } from "@/lib/blackFriday";
 import { BlackFridayStrip, FlashDealPill, GiftRow } from "@/components/cart/FlashDealParts";
 import { RegionField, TextAreaField, TextField } from "./formFields";
@@ -193,9 +193,11 @@ function OrderItem({ item }) {
           {formatAmount(item.price * item.quantity)}
         </span>
       </div>
-      {dealGift(item) && (
-        <div className="mt-2">
-          <GiftRow gift={dealGift(item)} size="sm" />
+      {dealGifts(item).length > 0 && (
+        <div className="mt-2 flex flex-col gap-2">
+          {dealGifts(item).map((gift, i) => (
+            <GiftRow key={gift._id || i} gift={gift} size="sm" />
+          ))}
         </div>
       )}
     </li>

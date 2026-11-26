@@ -60,14 +60,17 @@ export function StockBar({ deal, dark = true }) {
 // Round badge in the image's corner: red "35% OFF" / "−50%", or black "FREE CORD" ringed in lime
 export function DealBadge({ deal, className = "" }) {
   if (deal.type === "gift") {
-    const words = giftLabel(deal.gift).split(" + ");
+    // "FREE CORD" for one short gift; "FREE GIFT" for several ("charger + cord") or a long name
+    const label = giftLabel(deal.gift);
+    const several = (deal.giftProducts?.length || 0) > 1 || label.includes("+");
+    const word = several || label.length > 7 ? "Gift" : label;
     return (
       <span
-        className={`flex h-14 w-14 rotate-12 flex-col items-center justify-center rounded-full border-2 bg-black text-center font-black uppercase leading-[1.05] shadow-lg ${className}`}
+        className={`flex h-14 w-14 rotate-12 flex-col items-center justify-center rounded-full border-2 bg-black text-center text-[10px] font-black uppercase leading-[1.05] shadow-lg ${className}`}
         style={{ borderColor: BF.lime, color: BF.lime }}
       >
-        <span className="text-[10px]">Free</span>
-        <span className={words[0].length > 6 || words.length > 1 ? "text-[8px]" : "text-[10px]"}>{words.join(" + ")}</span>
+        <span>Free</span>
+        <span>{word}</span>
       </span>
     );
   }
@@ -85,14 +88,20 @@ export function DealBadge({ deal, className = "" }) {
   );
 }
 
-// The free gift's photo in the image's bottom corner, with a red FREE tag
-function GiftThumb({ gift }) {
-  if (!gift?.image) return null;
+// The free gifts' photos side by side in one white tile in the image's bottom corner, with a
+// red FREE tag (a charger and a cord, say)
+function GiftThumb({ gifts = [] }) {
+  const shown = gifts.filter((g) => g.image).slice(0, 3);
+  if (!shown.length) return null;
   return (
     <span className="absolute bottom-2 right-2 flex flex-col items-center">
-      <span className="relative z-10 -mb-1.5 rounded-full bg-[#ff4545] px-2 py-px text-[9px] font-black uppercase text-white shadow">Free</span>
-      <span className="relative h-12 w-12 overflow-hidden rounded-xl bg-white shadow-md sm:h-14 sm:w-14">
-        <Image src={gift.image} alt={gift.name || "Free gift"} fill sizes="56px" className="object-contain p-1" />
+      <span className="relative z-10 -mb-1.5 rounded-full bg-[#ff4545] px-2.5 py-px text-[9px] font-black uppercase text-white shadow">Free</span>
+      <span className="flex items-center gap-0.5 rounded-xl bg-white p-1 shadow-md">
+        {shown.map((g, i) => (
+          <span key={g._id || i} className={`relative ${shown.length > 1 ? "h-10 w-9 sm:h-12 sm:w-11" : "h-10 w-10 sm:h-12 sm:w-12"}`}>
+            <Image src={g.image} alt={g.name || "Free gift"} fill sizes="48px" className="object-contain" />
+          </span>
+        ))}
       </span>
     </span>
   );
@@ -102,7 +111,8 @@ function DealCard({ deal, product, phase, inCart }) {
   const soldOut = deal.soldOut || !productInStock({ colors: product.colors });
   const href = `/products/${product._id}`;
   const price = product.dealPrice;
-  const old = product.originalPrice > price ? product.originalPrice : null;
+  // Only a Black Friday % off shows a crossed-out price; gift deals show just what you pay
+  const old = deal.type === "discount" && product.originalPrice > price ? product.originalPrice : null;
 
   return (
     <li className="flex flex-col">
@@ -118,7 +128,7 @@ function DealCard({ deal, product, phase, inCart }) {
               <ShoppingCart size={12} strokeWidth={2.5} aria-hidden /> In your Cart
             </span>
           )}
-          {deal.type === "gift" && <GiftThumb gift={deal.giftProduct} />}
+          {deal.type === "gift" && <GiftThumb gifts={deal.giftProducts} />}
           {soldOut && (
             <span className="absolute inset-0 flex items-center justify-center">
               <span className="-rotate-12 rounded-xl bg-[#ff4545] px-5 py-2 text-center text-2xl font-black uppercase leading-[0.95] text-white shadow-[0_10px_30px_rgba(255,69,69,0.45)] sm:text-3xl">

@@ -1,6 +1,8 @@
 // Shared by the admin deals routes: checks and cleans a deal from the admin form
 import mongoose from "mongoose";
 
+export const MAX_GIFTS = 3;
+
 export function parseDealBody(body) {
   const title = String(body?.title || "").trim();
   const type = body?.type === "gift" ? "gift" : body?.type === "discount" ? "discount" : null;
@@ -8,7 +10,9 @@ export function parseDealBody(body) {
   const quota = parseInt(body?.quota, 10);
   const percent = parseInt(body?.percent, 10);
   const gift = String(body?.gift || "").trim();
-  const giftProduct = mongoose.isValidObjectId(body?.giftProduct) ? String(body.giftProduct) : null;
+  // Up to MAX_GIFTS free products; an older form may still send a single giftProduct
+  const giftIds = Array.isArray(body?.giftProducts) ? body.giftProducts : body?.giftProduct ? [body.giftProduct] : [];
+  const giftProducts = [...new Set(giftIds.map(String))].filter((id) => mongoose.isValidObjectId(id)).slice(0, MAX_GIFTS);
 
   if (!title) return { error: "Give the deal a title" };
   if (!type) return { error: "Choose a deal type" };
@@ -21,7 +25,8 @@ export function parseDealBody(body) {
     title, type, products, quota,
     percent: type === "discount" ? percent : undefined,
     gift: type === "gift" ? gift : "",
-    giftProduct: type === "gift" ? giftProduct : null,
+    giftProducts: type === "gift" ? giftProducts : [],
+    giftProduct: null, // replaced by giftProducts
     active: body?.active !== false,
     sortOrder: parseInt(body?.sortOrder, 10) || 0,
   };

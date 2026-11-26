@@ -12,7 +12,7 @@ import { BLACK_FRIDAY_START, BLACK_FRIDAY_END, blackFridayPhase } from "@/lib/bl
 
 const API = "/api/admin/deals";
 
-const EMPTY_FORM = { title: "", type: "discount", percent: "35", gift: "", giftProduct: "", quota: "30", products: [], sortOrder: "0", claimed: "", active: true };
+const EMPTY_FORM = { title: "", type: "discount", percent: "35", gift: "", giftProducts: [], quota: "30", products: [], sortOrder: "0", claimed: "", active: true };
 
 // The first flash deal list. `match` finds the products by name; check them before saving.
 const DEAL_TEMPLATES = [
@@ -49,29 +49,45 @@ function ProductPicker({ catalogue, selected, onChange }) {
   );
 }
 
-// The product given away with a gift deal; its photo shows in the popup, cart and order
-function GiftProductPicker({ catalogue, value, onChange }) {
+// The products given away with a gift deal (e.g. a charger and a cord); their photos show in
+// the popup, cart and order
+const MAX_GIFTS = 3;
+
+function GiftProductPicker({ catalogue, value = [], onChange }) {
   const [q, setQ] = useState("");
-  const list = (catalogue || []).filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()));
-  const chosen = (catalogue || []).find((p) => p._id === value);
+  const byId = new Map((catalogue || []).map((p) => [p._id, p]));
+  const chosen = value.map((id) => byId.get(id)).filter(Boolean);
+  const full = value.length >= MAX_GIFTS;
+  const list = (catalogue || []).filter((p) => !value.includes(p._id) && (!q || p.name.toLowerCase().includes(q.toLowerCase())));
   return (
     <div>
-      {chosen ? (
-        <div className="flex items-center gap-2.5 rounded-lg border border-pine bg-pine-tint px-3 py-2 text-[13px]">
-          {chosen.image && <img src={chosen.image} alt="" className="h-8 w-8 rounded object-contain" />}
-          <span className="flex-1 truncate font-medium">{chosen.name}</span>
-          <button type="button" onClick={() => onChange("")} className="cursor-pointer text-xs font-semibold text-sub underline">Change</button>
+      {chosen.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {chosen.map((p) => (
+            <span key={p._id} className="flex items-center gap-2 rounded-lg border border-pine bg-pine-tint py-1.5 pl-2 pr-1 text-[13px]">
+              {p.image && <img src={p.image} alt="" className="h-7 w-7 rounded object-contain" />}
+              <span className="max-w-[180px] truncate font-medium">{p.name}</span>
+              <button type="button" onClick={() => onChange(value.filter((id) => id !== p._id))} aria-label={`Remove ${p.name}`}
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-sub hover:bg-white">
+                <X size={13} />
+              </button>
+            </span>
+          ))}
         </div>
+      )}
+      {full ? (
+        <p className="m-0 text-xs text-faint">That's the most gifts a deal can have ({MAX_GIFTS}). Remove one to pick another.</p>
       ) : (
         <>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for the free product (e.g. cord)" className={inputCls} aria-label="Search gift product" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={chosen.length ? "Add another free product" : "Search for the free product (e.g. cord)"} className={inputCls} aria-label="Search gift products" />
           <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-edge">
             {catalogue === null && <p className="m-0 p-3 text-[13px] text-faint">Loading products…</p>}
             {list.map((p) => (
-              <button key={p._id} type="button" onClick={() => onChange(p._id)}
+              <button key={p._id} type="button" onClick={() => { onChange([...value, p._id]); setQ(""); }}
                 className="flex w-full cursor-pointer items-center gap-2.5 border-b border-[#eef0ef] bg-white px-3 py-2 text-left text-[13px] last:border-0 hover:bg-pine-tint">
                 {p.image ? <img src={p.image} alt="" className="h-7 w-7 rounded object-contain" /> : <span className="h-7 w-7" />}
                 <span className="flex-1 truncate">{p.name}</span>
+                <Plus size={13} className="text-faint" aria-hidden />
               </button>
             ))}
           </div>
@@ -135,8 +151,8 @@ function DealForm({ initial, catalogue, onSaved, onCancel }) {
             {isEdit && <Field label="Claimed so far"><input type="number" min="0" value={form.claimed} onChange={set("claimed")} className={inputCls} /></Field>}
           </div>
           {form.type === "gift" && (
-            <Field label="Gift product" hint="The real product given away. Its photo shows in the popup, the cart and the order.">
-              <GiftProductPicker catalogue={catalogue} value={form.giftProduct} onChange={(giftProduct) => setForm((p) => ({ ...p, giftProduct }))} />
+            <Field label="Gift products" hint="The real products given away, e.g. a charger and a cord. Their photos show in the popup, the cart and the order.">
+              <GiftProductPicker catalogue={catalogue} value={form.giftProducts} onChange={(giftProducts) => setForm((p) => ({ ...p, giftProducts }))} />
             </Field>
           )}
           <Switch label="Active" description={form.active ? "Runs while the deal period is on" : "Paused"} checked={form.active} onChange={set("active")} />
@@ -153,6 +169,11 @@ function DealForm({ initial, catalogue, onSaved, onCancel }) {
   );
 }
 
+// A deal's gift products, reading the older single giftProduct too
+const dealGiftList = (d) => (d.giftProducts?.length ? d.giftProducts : d.giftProduct ? [d.giftProduct] : []).filter(Boolean);
+const dealGiftIds = (d) => dealGiftList(d).map((g) => String(g._id || g));
+const giftNames = (d) => dealGiftList(d).map((g) => g.name).filter(Boolean).join(" + ");
+
 function DealRow({ deal, onEdit, onToggle, onDelete }) {
   const pct = Math.min(100, Math.round(((deal.claimed || 0) / deal.quota) * 100));
   const soldOut = deal.claimed >= deal.quota;
@@ -168,7 +189,7 @@ function DealRow({ deal, onEdit, onToggle, onDelete }) {
         </div>
         <p className="m-0 mt-0.5 truncate text-xs text-faint">
           {(deal.products || []).map((p) => p?.name || "Deleted product").join(", ")}
-          {deal.type === "gift" && (deal.giftProduct?.name ? ` · Gift: ${deal.giftProduct.name}` : " · No gift product picked")}
+          {deal.type === "gift" && (giftNames(deal) ? ` · Gifts: ${giftNames(deal)}` : " · No gift products picked")}
         </p>
         <div className="mt-2 flex items-center gap-2">
           <div className="h-1.5 max-w-[240px] flex-1 overflow-hidden rounded-full bg-[#e6e9e7]">
@@ -213,7 +234,7 @@ export default function DealsPage() {
   }, [load]);
 
   const editDeal = (d) => setEditing({
-    _id: d._id, title: d.title, type: d.type, percent: String(d.percent || ""), gift: d.gift || "", giftProduct: d.giftProduct?._id ? String(d.giftProduct._id) : "", quota: String(d.quota),
+    _id: d._id, title: d.title, type: d.type, percent: String(d.percent || ""), gift: d.gift || "", giftProducts: dealGiftIds(d), quota: String(d.quota),
     products: (d.products || []).filter(Boolean).map((p) => String(p._id)), sortOrder: String(d.sortOrder || 0), claimed: String(d.claimed || 0), active: d.active,
   });
 

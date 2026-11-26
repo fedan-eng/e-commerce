@@ -1,5 +1,5 @@
 // components/cart/FlashDealParts.jsx — how Black Friday flash deals show on cart, checkout and
-// order lines (lib/bundles.js flashDealPill / dealGift): the black "prices applied" strip, the
+// order lines (lib/bundles.js flashDealPill / dealGifts): the black "prices applied" strip, the
 // "⚡ Flash deal −50%" pill, and the free gift on its own FREE row.
 import Image from "next/image";
 import { Gift, Zap } from "lucide-react";
@@ -29,7 +29,7 @@ export function BlackFridayStrip({ className = "" }) {
   );
 }
 
-// The free product that comes with a gift deal line. size: "md" in the cart, "sm" in summaries.
+// One free product that comes with a gift deal line (a deal can have several, one row each). size: "md" in the cart, "sm" in summaries.
 export function GiftRow({ gift, size = "md", as: Tag = "div" }) {
   if (!gift) return null;
   const box = size === "sm" ? "h-12 w-12 rounded-xl" : "h-16 w-16 rounded-2xl sm:h-20 sm:w-20";

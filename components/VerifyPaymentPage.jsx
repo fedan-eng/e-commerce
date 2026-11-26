@@ -20,7 +20,7 @@ import { DELIVERY_OPTIONS } from "./checkout/delivery";
 import { downloadReceipt } from "./checkout/receiptPdf";
 import SaveAccountCard from "./checkout/SaveAccountCard";
 import BundleCard from "./cart/BundleCard";
-import { dealGift, flashDealPill, flashDealSavings } from "@/lib/bundles";
+import { dealGifts, flashDealPill, flashDealSavings } from "@/lib/bundles";
 import { FlashDealPill, GiftRow } from "./cart/FlashDealParts";
 
 // Old checkout details kept in localStorage by earlier versions of the checkout
@@ -314,9 +314,11 @@ export default function VerifyPaymentPage() {
                       {formatAmount(item.price * item.quantity)}
                     </p>
                   </div>
-                  {dealGift(item) && (
-                    <div className="mt-2">
-                      <GiftRow gift={dealGift(item)} size="sm" />
+                  {dealGifts(item).length > 0 && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      {dealGifts(item).map((gift, i) => (
+                        <GiftRow key={gift._id || i} gift={gift} size="sm" />
+                      ))}
                     </div>
                   )}
                 </li>

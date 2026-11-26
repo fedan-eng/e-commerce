@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import BundleCard from "@/components/cart/BundleCard";
-import { dealGift, flashDealPill } from "@/lib/bundles";
+import { dealGifts, flashDealPill } from "@/lib/bundles";
 import { FlashDealPill, GiftRow } from "@/components/cart/FlashDealParts";
 import { colorInStock } from "@/lib/stock";
 
@@ -130,9 +130,11 @@ export default function CartLineItem({ item, colors, onQuantityChange, onColorCh
           </div>
         </div>
       </div>
-      {dealGift(item) && (
-        <div className="mt-3">
-          <GiftRow gift={dealGift(item)} />
+      {dealGifts(item).length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {dealGifts(item).map((gift, i) => (
+            <GiftRow key={gift._id || i} gift={gift} />
+          ))}
         </div>
       )}
     </li>

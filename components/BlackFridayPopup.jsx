@@ -58,10 +58,10 @@ function giftSlide(deals) {
   const who = quotas.length === 1
     ? `First ${quotas[0]} ${joinNames(products.map((p) => shortName(p.name)))} buyers`
     : joinNames(deals.map((d) => `the first ${d.quota} ${joinNames(d.products.map((p) => shortName(p.name)))} buyers`)).replace(/^t/, "T");
-  const giftProduct = deals.find((d) => d.giftProduct?.image)?.giftProduct;
+  const gifts = deals.find((d) => d.giftProducts?.some((g) => g.image))?.giftProducts.filter((g) => g.image) || [];
   const art = products.map((p) => artOf(p));
-  // The free product goes next to the main one, tagged FREE
-  if (giftProduct) art.splice(1, 0, artOf(giftProduct, `Free ${gift.split(" + ")[0]}`));
+  // The free products go next to the main one, each tagged FREE
+  art.splice(1, 0, ...gifts.slice(0, 2).map((g) => artOf(g, "Free")));
   return {
     key: `gift-${gift}`,
     kind: "gift",
