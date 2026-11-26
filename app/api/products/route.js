@@ -1,7 +1,8 @@
 //api/products/route.js
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import { PUBLIC_FIELDS, findByManualOrder } from "@/lib/products";
+import { NOT_ADMIN_ONLY, PUBLIC_FIELDS, findByManualOrder } from "@/lib/products";
+import { isAdminRequest } from "@/lib/auth";
 
 export async function GET(req) {
   await connectDB();
@@ -42,7 +43,8 @@ export async function GET(req) {
   const customSortKey = isCustomSortKey ? sortBy.replace("sortOrder.", "") : null;
 
   // Build the MongoDB query object
-  const query = {};
+  // Admin-only products are listed for admins only (the admin console uses this route too)
+  const query = isAdminRequest(req) ? {} : { ...NOT_ADMIN_ONLY };
 
   if (search) {
     // Split search term into words and create partial matches

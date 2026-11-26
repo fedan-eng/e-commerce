@@ -16,6 +16,7 @@ async function getProducts() {
     return await Product.find({
       category: { $in: STORE_CATEGORIES.map((c) => c.dbCategory) },
       availability: { $ne: false },
+      adminOnly: { $ne: true },
     })
       .collation({ locale: "en", strength: 2 })
       .select("name price category")

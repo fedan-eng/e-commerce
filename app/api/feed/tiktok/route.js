@@ -44,7 +44,7 @@ export async function GET(req) {
     await connectDB();
 
     // Fetch all products (no limit for feed generation)
-    const products =	await Product.find({}).lean();
+    const products =	await Product.find({ adminOnly: { $ne: true } }).lean();
 
     const baseUrl = "https://filstore.com.ng";
     const brand = "Filstore";

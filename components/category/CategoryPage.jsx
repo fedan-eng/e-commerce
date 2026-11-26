@@ -24,7 +24,7 @@ import { blackFridayPhase } from "@/lib/blackFriday";
 async function getCategoryProducts(dbCategory) {
   await connectDB();
   // Case-insensitive match — some older products were saved as e.g. "chargers"
-  const docs = await Product.find({ category: dbCategory })
+  const docs = await Product.find({ category: dbCategory, adminOnly: { $ne: true } })
     .collation({ locale: "en", strength: 2 })
     .select("-ratings -comments")
     .lean();

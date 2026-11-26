@@ -108,6 +108,9 @@ const productSchema = new mongoose.Schema(
       featureTags:   { type: [String], default: undefined },  // "noise-cancellation", "magnetic", …
     },
     availability:     { type: Boolean, default: true },
+    // Hidden from shoppers: left out of every listing, the page shows "not found" and checkout
+    // refuses it unless the buyer is signed in as an admin (e.g. a ₦10 product to test payments)
+    adminOnly:        { type: Boolean, default: false },
     secondaryImages:  { type: [String], default: [] },
 
     isDiscounted:  { type: Boolean, default: false },

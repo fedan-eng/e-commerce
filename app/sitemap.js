@@ -12,7 +12,7 @@ async function getProducts() {
     await connectDB();
     // Products in hidden categories stay out, same as the storefront
     const categories = STORE_CATEGORIES.map((c) => c.dbCategory);
-    return await Product.find({ category: { $in: categories } })
+    return await Product.find({ category: { $in: categories }, adminOnly: { $ne: true } })
       .collation({ locale: "en", strength: 2 })
       .select("_id category updatedAt")
       .lean();

@@ -6,6 +6,7 @@ import { sessionUserId, validatePromo } from "@/lib/promo";
 import { findCreatorCode } from "@/lib/promoCodes";
 import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
+import { isAdminRequest } from "@/lib/auth";
 import { isBlackFridayLive } from "@/lib/blackFriday";
 import { BUNDLE_PROMO_MESSAGE, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
@@ -82,7 +83,7 @@ export async function POST(req) {
 
       // Prices come from the database, not the cart the browser sent
       await connectDB();
-      const priced = await priceCart(finalCartItems);
+      const priced = await priceCart(finalCartItems, { isAdmin: isAdminRequest(req) });
       if (priced.error) {
         return NextResponse.json({ message: priced.error }, { status: 400 });
       }
@@ -179,7 +180,7 @@ export async function POST(req) {
     // Prices, delivery fee and discount are all worked out here from the database;
     // the amounts in the browser's cart are ignored
     await connectDB();
-    const priced = await priceCart(finalCartItems);
+    const priced = await priceCart(finalCartItems, { isAdmin: isAdminRequest(req) });
     if (priced.error) {
       return NextResponse.json({ message: priced.error }, { status: 400 });
     }

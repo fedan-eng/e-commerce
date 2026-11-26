@@ -265,6 +265,7 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
     heroImage: initial.heroImage || "",
     isBestseller: initial.isBestseller || false, isTodaysDeal: initial.isTodaysDeal || false,
     isWhatsNew: initial.isWhatsNew || false, isDiscounted: initial.isDiscounted || false,
+    adminOnly: initial.adminOnly || false,
   });
 
   const [secondaryImages, setSecondaryImages] = useState(initial.secondaryImages?.length ? initial.secondaryImages : [""]);
@@ -643,6 +644,14 @@ export default function ProductForm({ initial = {}, isEdit = false }) {
             checked={form.availability}
             onChange={set("availability")}
           />
+          <div className="mt-4">
+            <Switch
+              label="Admins only"
+              description={form.adminOnly ? "Hidden from shoppers. Only admins signed in can see and buy it (e.g. a test product)" : "Everyone can see this product"}
+              checked={form.adminOnly}
+              onChange={set("adminOnly")}
+            />
+          </div>
           <div className="mb-2 mt-4 text-[13px] font-medium text-sub">Badges</div>
           <div className="flex flex-col gap-1.5">
             <CheckRow label="Bestseller"   checked={form.isBestseller} onChange={set("isBestseller")} />

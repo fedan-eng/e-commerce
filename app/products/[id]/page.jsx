@@ -7,6 +7,7 @@ import { getCategoryByDbName } from "@/lib/categories";
 import { SITE_URL, jsonLdHtml } from "@/lib/seo";
 import { productInStock } from "@/lib/stock";
 import ProductDetailsPage from "./ProductDetailsPage";
+import AdminOnlyGate from "./AdminOnlyGate";
 
 // Pages are cached and rebuilt at most hourly; admin edits, review moderation and
 // paid orders call revalidateProduct() so changes show up straight away.
@@ -99,6 +100,8 @@ export async function generateMetadata({ params }) {
     title,
     description,
     keywords,
+    // Admin-only test products stay out of search engines
+    ...(product.adminOnly && { robots: { index: false, follow: false } }),
     alternates: { canonical: url },
     openGraph: {
       title,
@@ -121,6 +124,14 @@ export default async function Page({ params }) {
   const { id } = await params;
   const product = await fetchProduct(id);
   if (!product?._id) notFound();
+
+  if (product.adminOnly) {
+    return (
+      <AdminOnlyGate>
+        <ProductDetailsPage product={product} />
+      </AdminOnlyGate>
+    );
+  }
 
   const productName = cleanText(product.name || "Product");
   const productUrl = `${SITE_URL}/products/${id}`;
