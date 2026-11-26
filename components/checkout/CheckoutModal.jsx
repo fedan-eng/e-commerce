@@ -16,7 +16,7 @@ import ModalShell from "./ModalShell";
 import StepIndicator from "./StepIndicator";
 import { ContactStep, DeliveryStep, ReviewStep } from "./steps";
 import useCheckoutForm, { CONTACT_FIELDS, DELIVERY_FIELDS, SAVED_INFO_KEY, cleanValues } from "./useCheckoutForm";
-import { deliveryFeeFor, isFreeDeliveryAvailable } from "./delivery";
+import { deliveryFeeFor, deliveryTypeForRegion, isFreeDeliveryAvailable, isLagosRegion } from "./delivery";
 import { isBundleItem } from "@/lib/bundles";
 
 const STEPS = ["Contact", "Delivery", "Review"];
@@ -132,6 +132,16 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
     setValue("deliveryType", "Regular");
     if (promoCode) setFreeSwitched(true);
   }, [subTotal, promoCode, hasBundle, values.deliveryType, setValue]);
+
+  // Regular is for Lagos and Interstate for everywhere else; Express and Free are Lagos only.
+  // When the region changes, move the choice to one that region offers.
+  const regionName = values.region?.name;
+  useEffect(() => {
+    if (!regionName) return;
+    const fits = deliveryTypeForRegion(values.deliveryType, regionName);
+    const next = fits || (isLagosRegion(regionName) ? "Regular" : "Interstate");
+    if (next !== values.deliveryType) setValue("deliveryType", next);
+  }, [regionName, values.deliveryType, setValue]);
 
   // Choosing Express themselves means there's nothing to undo. (Not "anything but Regular":
   // in the render that switches them, the old value is still Free.)

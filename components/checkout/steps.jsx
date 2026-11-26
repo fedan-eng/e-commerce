@@ -2,7 +2,7 @@
 // components/checkout/steps.jsx — the Contact, Delivery and Review steps of CheckoutModal
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronDown, Info, ShoppingBag } from "lucide-react";
+import { ChevronDown, ExternalLink, Info, ShoppingBag } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import BundleCard from "@/components/cart/BundleCard";
@@ -10,7 +10,7 @@ import { dealGift, flashDealPill, flashDealSavings, promoEligibleSubtotal } from
 import { isBlackFridayLive } from "@/lib/blackFriday";
 import { BlackFridayStrip, FlashDealPill, GiftRow } from "@/components/cart/FlashDealParts";
 import { RegionField, TextAreaField, TextField } from "./formFields";
-import { DELIVERY_OPTIONS, deliveryFeeFor, freeDeliveryBlock } from "./delivery";
+import { DELIVERY_OPTIONS, deliveryFeeFor, freeDeliveryBlock, optionsForRegion } from "./delivery";
 
 // ─── Step 1 ───────────────────────────────────────────────────────────────────
 
@@ -64,7 +64,7 @@ export function ContactStep({ form, emailLocked }) {
 // blocked: why this option can't be picked (shown instead of its details), or null
 function DeliveryOption({ option, selected, blocked, fee, regionChosen, onSelect }) {
   const disabled = Boolean(blocked);
-  const { icon: Icon, title, detail, id } = option;
+  const { icon: Icon, title, detail, id, link } = option;
   const price = id === "Free" ? "Free" : regionChosen ? formatAmount(fee) : "—";
 
   return (
@@ -80,6 +80,20 @@ function DeliveryOption({ option, selected, blocked, fee, regionChosen, onSelect
         <span className="mt-0.5 block text-[13px] leading-snug text-muted">
           {blocked || detail}
         </span>
+        {link && !blocked && (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-1.5 inline-flex items-center gap-1 text-[13px] font-semibold text-forest underline underline-offset-2 hover:text-black"
+          >
+            {link.label} <ExternalLink size={12} aria-hidden />
+          </a>
+        )}
+        {id === "Interstate" && selected && (
+          <span className="mt-1 block text-[12px] leading-snug text-muted">Tell us your preferred station in the order note, if you have one.</span>
+        )}
       </span>
       <span className={`shrink-0 text-[15px] font-semibold ${id === "Free" ? "text-[#0b9a52]" : "text-forest"}`}>{price}</span>
     </label>
@@ -120,7 +134,7 @@ export function DeliveryStep({ form, subTotal, promoCode, hasBundle = false }) {
         <legend className="mb-3 text-sm font-semibold text-forest">Delivery option</legend>
         <div className="flex flex-col gap-2.5">
           {/* Free Thursday delivery is paused while Black Friday runs, so it isn't offered at all */}
-          {DELIVERY_OPTIONS.filter((option) => !(option.id === "Free" && isBlackFridayLive())).map((option) => (
+          {optionsForRegion(region).filter((option) => !(option.id === "Free" && isBlackFridayLive())).map((option) => (
             <DeliveryOption
               key={option.id}
               option={option}

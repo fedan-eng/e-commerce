@@ -234,8 +234,8 @@ export async function POST(req) {
         region: delivery.region,
         city: clean(deliveryInfo.city),
         address: clean(deliveryInfo.address),
-        // Anything but Free/Express was priced as Regular by deliveryFeeFor
-        deliveryType: ["Free", "Express"].includes(deliveryInfo.deliveryType) ? deliveryInfo.deliveryType : "Regular",
+        // As priced by deliveryFeeFor: Regular in Lagos, Interstate elsewhere, or Express / Free
+        deliveryType: delivery.deliveryType,
         orderNote: clean(deliveryInfo.orderNote).slice(0, 500),
       },
       promoCode: appliedPromo,

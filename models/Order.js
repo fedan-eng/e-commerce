@@ -77,7 +77,7 @@ const orderSchema = new mongoose.Schema({
 
   deliveryType: {
     type: String,
-    enum: ["Free", "Regular", "Express"],
+    enum: ["Free", "Regular", "Interstate", "Express"],
     required: requiredIfOnline,
   },
 

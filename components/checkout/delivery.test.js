@@ -30,3 +30,21 @@ describe("free delivery", () => {
     expect(isFreeDeliveryAvailable(50000, null, at("2026-11-30T00:00:00+01:00"))).toBe(true);
   });
 });
+
+describe("delivery options by region", () => {
+  it("offers Regular, Express and Free in Lagos, and Interstate elsewhere", async () => {
+    const { optionsForRegion } = await import("./delivery");
+    expect(optionsForRegion({ name: "Lagos Mainland" }).map((o) => o.id)).toEqual(["Regular", "Express", "Free"]);
+    expect(optionsForRegion({ name: "Abuja" }).map((o) => o.id)).toEqual(["Interstate"]);
+    expect(optionsForRegion(null).map((o) => o.id)).toEqual(["Regular", "Interstate", "Express", "Free"]);
+  });
+
+  it("swaps Regular and Interstate to suit the region, and refuses Lagos-only options elsewhere", async () => {
+    const { deliveryTypeForRegion } = await import("./delivery");
+    expect(deliveryTypeForRegion("Regular", "Ogun")).toBe("Interstate");
+    expect(deliveryTypeForRegion("Interstate", "Lagos Island")).toBe("Regular");
+    expect(deliveryTypeForRegion("Express", "Lagos Island")).toBe("Express");
+    expect(deliveryTypeForRegion("Express", "Rivers")).toBeNull();
+    expect(deliveryTypeForRegion("Free", "Abuja")).toBeNull();
+  });
+});
