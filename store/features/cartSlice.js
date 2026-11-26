@@ -81,7 +81,7 @@ const cartSlice = createSlice({
       state.items.forEach((item) => {
         const extras = action.payload[item._id];
         if (!extras) return;
-        for (const key of ["originalPrice", "bundle", "deal"]) {
+        for (const key of ["originalPrice", "bundle", "deal", "adminOnly"]) {
           if (extras[key] === undefined) delete item[key];
           else item[key] = extras[key];
         }

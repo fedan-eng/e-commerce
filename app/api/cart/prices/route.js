@@ -16,7 +16,7 @@ export async function POST(req) {
 
     await connectDB();
     const products = await Product.find({ _id: { $in: valid } })
-      .select("name price originalPrice availability isBundle bundleItems features category colors.name colors.inStock")
+      .select("name price originalPrice availability adminOnly isBundle bundleItems features category colors.name colors.inStock")
       .lean();
 
     // { [productId]: { price, available, soldOutColors, extras } }; ids missing from the reply are no longer sold.

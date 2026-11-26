@@ -17,7 +17,7 @@ import StepIndicator from "./StepIndicator";
 import { ContactStep, DeliveryStep, ReviewStep } from "./steps";
 import useCheckoutForm, { CONTACT_FIELDS, DELIVERY_FIELDS, SAVED_INFO_KEY, cleanValues } from "./useCheckoutForm";
 import { deliveryFeeFor, deliveryTypeForRegion, isFreeDeliveryAvailable, isLagosRegion } from "./delivery";
-import { isBundleItem } from "@/lib/bundles";
+import { isAdminOnlyOrder, isBundleItem } from "@/lib/bundles";
 
 const STEPS = ["Contact", "Delivery", "Review"];
 
@@ -113,7 +113,8 @@ export default function CheckoutModal({ onClose, buyNowItem }) {
   const [submitting, setSubmitting] = useState(false);
 
   const subTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryFee = deliveryFeeFor(values.deliveryType, values.region);
+  // Admin-only test products are delivered free (same rule as /api/paystack)
+  const deliveryFee = isAdminOnlyOrder(items) ? 0 : deliveryFeeFor(values.deliveryType, values.region);
   const hasBundle = items.some(isBundleItem); // combo deals rule out free delivery
   const total = Math.max(0, subTotal - discount + deliveryFee);
 

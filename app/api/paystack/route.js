@@ -8,7 +8,7 @@ import { REF_COOKIE } from "@/lib/referral";
 import { deliveryFeeFor, priceCart } from "@/lib/pricing";
 import { isAdminRequest } from "@/lib/auth";
 import { isBlackFridayLive } from "@/lib/blackFriday";
-import { BUNDLE_PROMO_MESSAGE, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
+import { BUNDLE_PROMO_MESSAGE, isAdminOnlyOrder, isBundleItem, promoEligibleSubtotal } from "@/lib/bundles";
 import { hasEmoji, stripEmoji } from "@/lib/sanitize";
 import PendingCheckout from "@/models/PendingCheckout";
 import crypto from "crypto";
@@ -192,7 +192,8 @@ export async function POST(req) {
     if (delivery.error) {
       return NextResponse.json({ message: delivery.error }, { status: 400 });
     }
-    const deliveryFee = delivery.fee;
+    // Admin-only test products are delivered free, so a test order costs exactly the product price
+    const deliveryFee = isAdminOnlyOrder(priced.items) ? 0 : delivery.fee;
 
     let discount = 0;
     let appliedPromo = null;

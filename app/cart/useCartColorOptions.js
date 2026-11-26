@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { updateItemDetails, updatePrices } from "@/store/features/cartSlice";
 
-const EXTRA_KEYS = ["originalPrice", "bundle", "deal"];
+const EXTRA_KEYS = ["originalPrice", "bundle", "deal", "adminOnly"];
 const sameExtras = (item, extras) => EXTRA_KEYS.every((k) => JSON.stringify(item[k]) === JSON.stringify(extras[k]));
 
 // { [productId]: product.colors } for the products in the cart, so items can switch colour.
