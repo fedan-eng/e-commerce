@@ -10,7 +10,7 @@ import QuantityStepper from "./QuantityStepper";
 import ExpandableText from "./ExpandableText";
 import { Specifications } from "./ProductSpecs";
 import useDeals from "@/hooks/useDeals";
-import { isBundleProduct } from "@/lib/bundles";
+import { discountDealPricing, isBundleProduct } from "@/lib/bundles";
 import { Gift, Zap } from "lucide-react";
 import { itemInStock } from "@/lib/stock";
 
@@ -94,11 +94,12 @@ export function StockStatus({ inStock }) {
 
 export default function ProductInfo({ product: baseProduct, highlights, selectedColor, onColorChange, onCheckout }) {
   const [quantity, setQuantity] = useState(1);
-  // A Black Friday discount shows as the price, with today's price struck through
+  // A Black Friday discount shows as the price, with the original price struck through
   const { byProduct } = useDeals();
   const deal = isBundleProduct(baseProduct) ? null : byProduct[baseProduct._id];
-  const dealPrice = deal?.type === "discount" ? deal.products.find((p) => p._id === String(baseProduct._id))?.dealPrice : null;
-  const product = dealPrice ? { ...baseProduct, price: dealPrice, originalPrice: baseProduct.price } : baseProduct;
+  // The % comes off the original price, which stays crossed out (lib/bundles.js discountDealPricing)
+  const dealPricing = deal?.type === "discount" && deal.percent ? discountDealPricing(baseProduct, deal.percent) : null;
+  const product = dealPricing ? { ...baseProduct, ...dealPricing } : baseProduct;
   const discount = getDiscount(product);
   // The chosen colour can be bought (or, with no colours, the product can)
   const inStock = itemInStock(product, selectedColor?.name);
