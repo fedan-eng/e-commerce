@@ -179,7 +179,7 @@ export default function FlashDeals({ initialDeals = [] }) {
   );
 
   return (
-    <section id="flash-deals" className="relative isolate scroll-mt-20 overflow-hidden bg-[#050b07] px-4 pb-14 pt-6 text-white sm:px-6 md:pb-20 md:pt-8">
+    <section id="flash-deals" className="relative isolate scroll-mt-20 overflow-hidden bg-[#050b07] px-4 pb-16 pt-14 text-white sm:px-6 sm:pt-16 md:pb-20 md:pt-16">
       {/* Carries on the hero's green glow, so the two read as one */}
       <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[120%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(ellipse_at_top,rgba(34,211,107,0.16),transparent_65%)]" />
       <div className="mx-auto max-w-[1280px]">
@@ -191,14 +191,14 @@ export default function FlashDeals({ initialDeals = [] }) {
           transition={{ duration: 0.6 }}
         >
           <DatePill prefix="Black Friday · " />
-          <h2 className="mt-3 flex items-center justify-center gap-1 text-[44px] font-black uppercase leading-none tracking-tight sm:text-6xl">
+          <h2 className="mt-5 flex items-center justify-center gap-1 text-[44px] font-black uppercase leading-none tracking-tight sm:text-6xl">
             <Zap className="h-9 w-9 sm:h-12 sm:w-12" style={{ color: BF.lime }} fill="currentColor" aria-hidden />
             <span className={GREEN_TEXT}>Flash deals</span>
           </h2>
-          <p className="mt-2 text-sm text-white/70 sm:text-base">First come, first served. When a deal sells out, it&apos;s gone.</p>
+          <p className="mx-auto mt-3 max-w-[300px] px-2 text-sm leading-relaxed text-white/70 sm:max-w-none sm:text-base">First come, first served. When a deal sells out, it&apos;s gone.</p>
         </motion.div>
 
-        <ul className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-10 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">
           {cards.map(({ deal, product }) => (
             <DealCard key={`${deal.id}-${product._id}`} deal={deal} product={product} phase={phase} inCart={inCart.has(product._id)} />
           ))}
